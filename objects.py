@@ -156,9 +156,9 @@ class room:
     #mp.figure(i)
     #mp.title('Ray paths')
     #mp.savefig('../../ImagesOfSignalStrength/FiguresNew/Rays.jpg',bbox_inches='tight')
-    #mp.figure(i+3)
-    #s.Plotrom(origin)
-    #mp.savefig('../../ImagesOfSignalStrength/FiguresNew/temproom.jpg',bbox_inches='tight')#This section is the same as the unbounded
+    mp.figure(i+3)
+    s.Plotroom(origin)
+    mp.savefig('../../ImagesOfSignalStrength/FiguresNew/temproom'+str(i)+'.png',bbox_inches='tight')#This section is the same as the unbounded
     #s.Plotroom(origin)
     mp.figure(i+1)
     #mp.title('Heatmap Bounded')
