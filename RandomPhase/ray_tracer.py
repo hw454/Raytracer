@@ -21,10 +21,6 @@ def roomconstruct(walls):
       room=Room.add_wall(wall)
   return Room
 
-
-def Plotray(ray):
-
-
 if __name__=='__main__':
   np.set_printoptions(precision=2,threshold=1e-12,suppress=True)
   # Define the walls and construct the room
