@@ -125,6 +125,7 @@ class room:
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnRefRays'+str(i)+'.png',bbox_inches='tight')
     mp.figure(i+1)
     s.Plotroom(origin)
+<<<<<<< HEAD
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/NoRNDHeatmap'+str(i)+'.png',bbox_inches='tight')
     mp.colorbar()
     mp.figure(i+2)
@@ -139,6 +140,22 @@ class room:
     s.Plotroom(origin)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnBothHeatmap'+str(i)+'.png',bbox_inches='tight')
     mp.colorbar()
+=======
+    mp.colorbar()
+    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/NoRNDHeatmap'+str(i)+'.png',bbox_inches='tight')
+    mp.figure(i+2)
+    s.Plotroom(origin)
+    mp.colorbar()
+    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnRefHeatmap'+str(i)+'.png',bbox_inches='tight')
+    mp.figure(i+3)
+    s.Plotroom(origin)
+    mp.colorbar()
+    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnSumHeatmap'+str(i)+'.png',bbox_inches='tight')
+    mp.figure(i+4)
+    s.Plotroom(origin)
+    mp.colorbar()
+    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnBothHeatmap'+str(i)+'.png',bbox_inches='tight')
+>>>>>>> 54642260ddcd300433333a9faa27811ee514139a
     Mesh0.hist(i+5)
     mp.figure(i+5)
     mp.title('Cumulative Frequency of signal power')
@@ -226,9 +243,15 @@ class room:
     mp.figure(i)
     mp.title('Ray paths')
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnRefRays.png',bbox_inches='tight')
+<<<<<<< HEAD
     mp.figure(i+3)
     s.Plotroom(origin)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnReftemproom.png',bbox_inches='tight')
+=======
+    mp.figure(i+16)
+    s.Plotroom(origin)
+    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/temproom'+str(i)+'.png',bbox_inches='tight')
+>>>>>>> 54642260ddcd300433333a9faa27811ee514139a
     s.Plotroom(origin)
     mp.figure(i+1)
     s.Plotroom(origin)
@@ -290,7 +313,11 @@ class room:
     RefSumDiff=Mesh0.meshdiff(Mesh3)
     mp.title('Residual between No phase change and phase change on reflection and change on sumation')
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/ResidualNoPhasePhasebounded.png',bbox_inches='tight')
+<<<<<<< HEAD
     return i+15
+=======
+    return i+16
+>>>>>>> 54642260ddcd300433333a9faa27811ee514139a
 
 class Ray:
   ''' represents a ray by a collection of line segments followed by
