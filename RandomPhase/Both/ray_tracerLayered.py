@@ -50,7 +50,7 @@ if __name__=='__main__':
   i=1                       # The figure number for the room plot
   frequency=2.4*1.0E+8      # The wave frequency in Hertz
   streg=100.0 # The initial signal power in db
-  spacing=0.25  # Spacing in the grid spaces.
+  #spacing=0.25  # Spacing in the grid spaces.
   bounds= np.array([10**-9, 10**2])               # The bounds within which the signal power is useful
   refloss=20
   m=int(math.ceil(np.log(streg/bounds[0])/np.log(refloss)))     # number of reflections observed
@@ -82,8 +82,8 @@ if __name__=='__main__':
       n=j*100
       print(n)
       origin=(5,1)              # source of the signal
-      i=Room.uniform_ray_tracer(origin,n,i,spacing,frequency,streg,m,refloss)
-      i=Room.uniform_ray_tracer_bounded(origin,n,i+1,spacing,frequency,streg,m,bounds,refloss)
+      i,spacing=Room.uniform_ray_tracer(origin,n,i,frequency,streg,m,refloss)
+      i,spacing=Room.uniform_ray_tracer_bounded(origin,n,i+1,frequency,streg,m,bounds,refloss)
       filename=("RuntimesN"+str(n)+"Delta"+str(int(spacing*100))+ ".txt")
       f=open(filename,"w+")
       (x,y)=Room.time
@@ -91,8 +91,8 @@ if __name__=='__main__':
       #f.write("Estimated P value" % y)
       f.close()
       origin=(0,2)              # source of the signal
-      i=Room.uniform_ray_tracer(origin,n,i+1,spacing,frequency,streg,m,refloss)
-      i=Room.uniform_ray_tracer_bounded(origin,n,i+1,spacing,frequency,streg,m,bounds,refloss)
+      i,spacing=Room.uniform_ray_tracer(origin,n,i+1,frequency,streg,m,refloss)
+      i,spacing=Room.uniform_ray_tracer_bounded(origin,n,i+1,frequency,streg,m,bounds,refloss)
       f=open(filename,"a+")
       for x in Room.time:
         f.write("Run times for second source location %.8f" % x)

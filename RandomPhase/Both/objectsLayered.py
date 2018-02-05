@@ -93,11 +93,13 @@ class room:
     return np.array([min(yarray)[0],max(yarray)[0]])
   def roommesh(s,spacing):
     return rmes.roommesh((s.xbounds()),(s.ybounds()),spacing)
-  def uniform_ray_tracer(s,origin,n,fig,spacing,frequency,start,m,refloss):
+  def uniform_ray_tracer(s,origin,n,fig,frequency,start,m,refloss):
     start_time=t.time()
     ''' Traces ray's uniforming emitted from an origin around a room.
     Number of rays is n, number of reflections m'''
     pi=4*np.arctan(1) # numerically calculate pi
+    r=s.maxleng()
+    spacing=2*pi*r/n
     Mesh3=s.roommesh(spacing)
     # Use more meshes when running with different phase change
     #Mesh1=s.roommesh(spacing)
@@ -110,7 +112,6 @@ class room:
       wallstart=start*(s.heights[i]-h)/s.heights[-1]
       for j in range(0,n+2):
         theta=(2*j*pi)/n
-        r=s.maxleng()
         xtil=ma.cos(theta)
         ytil=ma.sin(theta)
         x= r*xtil+origin[0]
@@ -203,12 +204,14 @@ class room:
     #RefSumDiff=Mesh0.meshdiff(Mesh3)
     #mp.title('Residual between No phase change and phase change on reflection and change on sumation')
     #mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/ResidualNoPhasePhaseUnboundedLayered.png',bbox_inches='tight')
-    return fig+4
-  def uniform_ray_tracer_bounded(s,origin,n,fig,spacing,frequency,start,m,bounds,refloss):
+    return fig+4, spacing
+  def uniform_ray_tracer_bounded(s,origin,n,fig,frequency,start,m,bounds,refloss):
     ''' Traces ray's uniforming emitted from an origin around a room.
     Number of rays is n, number of reflections m'''
     start_time=t.time()
     pi=4*np.arctan(1) # numerically calculate pi
+    r=s.maxleng()
+    spacing=2*pi*r/n
     # Meshes for viewing phase change acting only on certain places.
     #Mesh0=s.roommesh(spacing)
     #Mesh1=s.roommesh(spacing)
@@ -221,7 +224,6 @@ class room:
       wallstart=start*(s.heights[i]-h)/s.heights[-1]
       for j in range(0,n+1):
         theta=(2*j*pi)/n
-        r=s.maxleng()
         xtil=ma.cos(theta)
         ytil=ma.sin(theta)
         x= r*xtil+origin[0]
@@ -315,7 +317,7 @@ class room:
     #RefSumDiff=Mesh0.meshdiff(Mesh3)
     #mp.title('Residual between No phase change and phase change on reflection and change on sumation')
     #mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/ResidualNoPhasePhaseboundedLayered.png',bbox_inches='tight')
-    return fig+4
+    return fig+4, spacing
 
 class Ray:
   ''' represents a ray by a collection of line segments followed by
