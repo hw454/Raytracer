@@ -52,7 +52,8 @@ if __name__=='__main__':
   refloss=20
 
   # Compute Some More Parameters
-  m=int(math.ceil(np.log(streg/bounds[0])/np.log(refloss)))     # number of reflections observed
+  m=1 #int(math.ceil(np.log(streg/bounds[0])/np.log(refloss)))     # number of reflections observed
+  streg=complex(streg,0.0)
   print('Maximum number of reflections to get lower bound ',m)
   heights=[0,sofaheight,boxheight,wallheight]
   heights.sort()
@@ -70,8 +71,8 @@ if __name__=='__main__':
   points=list(walls)
   Room=ob.room((walls),heights)
   Room.roomconstruct((walls,obstacles2,obstacles1))
-  Room.uniform_ray_tracer(origin,n,i,spacing,frequency,streg,m,refloss)
-  Room.uniform_ray_tracer_bounded(origin,n,6,spacing,frequency,streg,m,bounds,refloss)
+  #i=Room.uniform_ray_tracer(origin,n,i,spacing,frequency,streg,m,refloss)
+  i=Room.uniform_ray_tracer_bounded(origin,n,i,spacing,frequency,streg,m,bounds,refloss)
   # Save run times to file
   filename=("RuntimesN"+str(n)+"Delta"+str(int(spacing*100))+ ".txt")
   f=open(filename,"w+")
@@ -79,8 +80,8 @@ if __name__=='__main__':
   f.write("Run times for first source location %.8f, %.8f" % (x,y))
   f.close()
   origin=(0,2)
-  Room.uniform_ray_tracer(origin,n,11,spacing,frequency,streg,m,refloss)
-  Room.uniform_ray_tracer_bounded(origin,n,17,spacing,frequency,streg,m,bounds,refloss)
+  #i=Room.uniform_ray_tracer(origin,n,i,spacing,frequency,streg,m,refloss)
+  i=Room.uniform_ray_tracer_bounded(origin,n,i,spacing,frequency,streg,m,bounds,refloss)
   # Save run times to file
   f=open(filename,"a+")
   (x,y)=Room.time
