@@ -158,7 +158,7 @@ class roommesh:
     #print(r.grid)
     z2=10*np.log10(np.absolute(r.grid))
     np.seterr(divide='ignore')
-    diffz=z1-z2
+    diffz=np.subtract(z1,z2)
     mp.imshow(diffz, cmap='viridis', interpolation='nearest') #,extent=extent)
     mp.colorbar()
   def plot(s):
