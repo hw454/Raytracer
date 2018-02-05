@@ -10,13 +10,21 @@ def Plotline(line,l,c):
   ''' takes a 2D np array and plots the line in colour c. the line is
   given by an origin and direction. l is it's length'''
   line[1]=line[1]*l+line[0]
-  mp.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]],c)
+  mp.plot([line[0][0],line[1][0]], [line[0][1], line[1][1]], color=c)
+  return
+
+def Plotray(edge,c,wid):
+  ''' takes a 2D np array and plots the line in colour c. the line is
+  given by an origin and direction. l is it's length'''
+  x=np.linspace(edge[0][0], edge[1][0], 100)
+  y=np.linspace(edge[0][1], edge[1][1], 100)
+  mp.plot(x,y,linewidth=wid, color=c)
   return
 
 def Plotedge(edge,c):
   ''' takes a 2D np array and plots the line in colour c. the line is
   given by an origin and direction. l is it's length'''
-  mp.plot([edge[0][0], edge[1][0]], [edge[0][1], edge[1][1]],c)
+  mp.plot([edge[0][0], edge[1][0]], [edge[0][1], edge[1][1]], color=c)
   return
 
 def Plotpoint(point):
