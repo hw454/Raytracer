@@ -102,8 +102,8 @@ class room:
       ray=Ray(frequency,start,origin,(x,y))
       # Reflect the ray
       ray.multiref(s,m)
-      #mp.figure(i)
-      #ray.Plotray(s)
+      mp.figure(i)
+      ray.Plotray(s)
       mp.figure(i+1)
       mp.title('Heatmap no phase change')
       Mesh0=ray.heatmapray(Mesh0,ray.streg,ray.frequency,spacing,refloss)

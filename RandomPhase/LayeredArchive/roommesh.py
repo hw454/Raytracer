@@ -11,6 +11,8 @@ import HayleysPlotting as hp
 import matplotlib.pyplot as mp
 import math as ma
 from math import sin,cos,atan2,log
+import numpy.linalg as lin
+import random as rnd
 
 class roommesh:
   ' a mesh representing a room'
@@ -41,11 +43,13 @@ class roommesh:
     return s.bounds[1][0]
   def __ymax__(s):
     return s.bounds[1][1]
-  def singleray(s,ray,streg,f):
+  def singleray(s,ray,iterconsts,f):
     ''' The signal strength at the start of the ray is start assign this
     value to a mesh square and iterate through the ray '''
+    streg=iterconsts[0]
+    totdist=iterconsts[1]
     # Check that a +ve strength is coming in
-    watstreg=10.0**(streg/10.0)
+    # watstreg=10.0**(streg/10.0)
     #if watstreg <= 0 :
       #return streg
     # Get the spacing between co-ordinates
@@ -60,17 +64,17 @@ class roommesh:
     n=int(np.dot((ray[1]-ray[0]),direc)/(np.dot(direc,direc)*space))
     point0=ray[0]
     #Compute the loss using that the length of each step should be the same.
-    loss=((4.0*3.14*lf.length(np.array([(0,0),space*direc]))*f)/(2.99792458*1.0E+8))**2 #In Watts
-    # In db loss=10*np.log10(((4.0*3.14*lf.length(np.array([(0,0),space*direc]))*f)/(2.99792458*1.0E+8))**2 )
+    tmp=np.array([[0,space],[space,0]])
+    alpha=(1/(lin.norm(direc)**2))*min(np.absolute(np.dot(tmp,direc)[0]),np.absolute(np.dot(tmp,direc)[1]))
+    deldist=lf.length(np.array([(0,0),alpha*direc]))
+    if deldist>np.sqrt(2*(space**2)):
+        print('length greater than mesh')
     # Step through the ray decreasing the signal strength
     for x in range(0,n):
       # Find the matrix position of the next point
       i2=int((s.__ymax__()-point0[1])/space)
       j2=int((point0[0]- s.__xmin__())/space)
-      # Check the strength hasn't run out
-      watstreg=10.0**(streg/10.0)
-      #if watstreg <= 0:
-         #return streg
+      loss=((totdist+deldist)/totdist)**2
       if i2 == i and j2 == j:
       # If a ray is going through the same box again take away the loss
       #but do not add the start again.
@@ -84,14 +88,18 @@ class roommesh:
         j=j2
       # Compute the signal strength after loss
       #In db streg=streg-loss
-      streg=streg/loss
+      phase=rnd.uniform(0,2)
+      phasechange=np.exp(ma.pi*phase*complex(0,1))
+      streg=streg*phasechange/loss
+      # Find the distance to the next step
+      totdist=totdist+deldist
       # Set the starting point for the next iteration
       point0=space*direc+point0
     # Return the strength ready for the next ray
-    return streg
+    return np.array([streg,totdist])
   def bound(s,bounds):
-    s.grid[s.grid>bounds[1]]=bounds[1]
-    s.grid[s.grid<bounds[0]]=bounds[0]
+    s.grid[np.absolute(s.grid)>bounds[1]]=bounds[1]
+    s.grid[np.absolute(s.grid)<bounds[0]]=bounds[0]
     return
   def plot(s):
      ''' Plot a heatmap of the strength values '''
@@ -105,7 +113,7 @@ class roommesh:
      ''' Plot a heatmap of the strength values '''
      z=s.grid
      #Convert to db
-     z=10*np.ma.log10(z)
+     z=10*np.ma.log10(np.absolute(z))
      extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
      mp.imshow(z, cmap='viridis', interpolation='nearest',extent=extent)
      return
@@ -118,15 +126,9 @@ class roommesh:
      #print(max(h2))
      h2=h2*(1.0/max(h2))
      mp.plot(h[1][:-1],h2)
-     mp.title('Cumulative Frequency of signal power')
-     mp.grid()
-     mp.savefig('../../../ImagesOfSignalStrength/FiguresNew/RNDCumsum'+str(i)+'.jpg', bbox_inches='tight')
      mp.figure(i+1)
      mp.hist(z.flatten(),bins='auto')
      #mp.plot(h[1][:-1],h[0]) Plots the histogram as a line
-     mp.title('Histrogram of signal power')
-     mp.grid()
-     mp.savefig('../../../ImagesOfSignalStrength/FiguresNew/RNDHistogramNoBounds'+str(i)+'.jpg',bbox_inches='tight')
      return
   def histbounded(s,i):
      z=np.absolute(s.grid)
@@ -137,15 +139,10 @@ class roommesh:
      #print(max(h2))
      h2=h2*(1.0/max(h2))
      mp.plot(h[1][:-1],h2)
-     mp.title('Cumulative Frequency of signal power bounded')
-     mp.grid()
-     mp.savefig('../../../ImagesOfSignalStrength/FiguresNew/RNDCumsumBoundedLayered'+str(i)+'.jpg',bbox_inches='tight')
      mp.figure(i+1)
      mp.hist(z.flatten(),bins='auto')
      #mp.plot(h[1][:-1],h[0]) Plots the histogram as a line
-     mp.title('Histrogram of bounded signal power')
-     mp.grid()
-     mp.savefig('../../../ImagesOfSignalStrength/FiguresNew/RNDHistogramBoundsLayered'+str(i)+'.jpg',bbox_inches='tight')
+
      return
   def teststrength(s):
     ray=np.array([[0.0,0.0],[10.0,10.0]])
