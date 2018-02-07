@@ -83,18 +83,19 @@ class room:
     return np.array([min(yarray)[0],max(yarray)[0]])
   def roommesh(s,spacing):
     return rmes.roommesh((s.xbounds()),(s.ybounds()),spacing)
-  def uniform_ray_tracer(s,origin,n,i,spacing,frequency,start,m,refloss):
+  def uniform_ray_tracer(s,origin,n,i,frequency,start,m,refloss):
     start_time=t.time()
     ''' Traces ray's uniforming emitted from an origin around a room.
     Number of rays is n, number of reflections m'''
     pi=4*np.arctan(1) # numerically calculate pi
+    r=s.maxleng()
+    spacing=ma.sin((2*pi)/n)*(r*np.sqrt(2))
     Mesh0=s.roommesh(spacing)
     Mesh1=s.roommesh(spacing)
     Mesh2=s.roommesh(spacing)
     Mesh3=s.roommesh(spacing)
     for j in range(0,n+2):
       theta=(2*j*pi)/n
-      r=s.maxleng()
       xtil=ma.cos(theta)
       ytil=ma.sin(theta)
       x= r*xtil+origin[0]
@@ -203,19 +204,21 @@ class room:
     RefSumDiff=Mesh0.meshdiff(Mesh3)
     mp.title('Residual between No phase change and phase change on reflection and change on sumation')
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/ResidualNoPhasePhaseUnbounded.png',bbox_inches='tight')
-    return i+15
-  def uniform_ray_tracer_bounded(s,origin,n,i,spacing,frequency,start,m,bounds,refloss):
+    return i+16,spacing
+  def uniform_ray_tracer_bounded(s,origin,n,i,frequency,start,m,bounds,refloss):
     ''' Traces ray's uniforming emitted from an origin around a room.
     Number of rays is n, number of reflections m'''
     start_time=t.time()
     pi=4*np.arctan(1) # numerically calculate pi
+    r=s.maxleng()
+    #spacing=2*pi*r/n
+    spacing=ma.sin((2*pi)/n)*(r*np.sqrt(2))
     Mesh0=s.roommesh(spacing)
     Mesh1=s.roommesh(spacing)
     Mesh2=s.roommesh(spacing)
     Mesh3=s.roommesh(spacing)
     for j in range(0,n+1):
       theta=(2*j*pi)/n
-      r=s.maxleng()
       xtil=ma.cos(theta)
       ytil=ma.sin(theta)
       x= r*xtil+origin[0]
@@ -314,10 +317,14 @@ class room:
     mp.title('Residual between No phase change and phase change on reflection and change on sumation')
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/ResidualNoPhasePhasebounded.png',bbox_inches='tight')
 <<<<<<< HEAD
+<<<<<<< HEAD
     return i+15
 =======
     return i+16
 >>>>>>> 54642260ddcd300433333a9faa27811ee514139a
+=======
+    return i+16, spacing
+>>>>>>> 2daab18382259efbd40af26db1fd9bff3ad1653f
 
 class Ray:
   ''' represents a ray by a collection of line segments followed by

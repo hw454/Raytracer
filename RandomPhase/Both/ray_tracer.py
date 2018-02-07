@@ -44,7 +44,7 @@ if __name__=='__main__':
   i=1                       # The figure number for the room plot
   frequency=2.4*1.0E+8      # The wave frequency in Hertz
   streg=100.0 # The initial signal power in db
-  spacing=0.25  # Spacing in the grid spaces.
+  # The spacing is now found inside the uniform ray tracer function spacing=0.25  # Spacing in the grid spaces.
   bounds= np.array([10**-9, 10**2])               # The bounds within which the signal power is useful
   refloss=20
   m=int(math.ceil(np.log(streg/bounds[0])/np.log(refloss)))     # number of reflections observed
@@ -55,12 +55,12 @@ if __name__=='__main__':
   obstacles=(wall1,wall2,wall3,wall4,Box1,Box2,Box3,Box4,sofa1,sofa2,sofa3,sofa4,sofa5,sofa6,sofa7,sofa8)
   Room=ob.room((obstacles[0]))
   Room.roomconstruct(obstacles)
-  for j in range(1,2):
-      n=j*100
+  for j in range(1,4):
+      n=j*250
       print(n)
       origin=(5,1)              # source of the signal
-      i=Room.uniform_ray_tracer(origin,n,i,spacing,frequency,streg,m,refloss)
-      i=Room.uniform_ray_tracer_bounded(origin,n,i+1,spacing,frequency,streg,m,bounds,refloss)
+      i,spacing=Room.uniform_ray_tracer(origin,n,i,frequency,streg,m,refloss)
+      i,spacing=Room.uniform_ray_tracer_bounded(origin,n,i+1,frequency,streg,m,bounds,refloss)
       filename=("RuntimesN"+str(n)+"Delta"+str(int(spacing*100))+ ".txt")
       f=open(filename,"w+")
       (x,y)=Room.time
@@ -68,8 +68,8 @@ if __name__=='__main__':
       #f.write("Estimated P value" % y)
       f.close()
       origin=(0,2)              # source of the signal
-      i=Room.uniform_ray_tracer(origin,n,i+1,spacing,frequency,streg,m,refloss)
-      i=Room.uniform_ray_tracer_bounded(origin,n,i+1,spacing,frequency,streg,m,bounds,refloss)
+      i,spacing=Room.uniform_ray_tracer(origin,n,i+1,frequency,streg,m,refloss)
+      i,spacing=Room.uniform_ray_tracer_bounded(origin,n,i+1,frequency,streg,m,bounds,refloss)
       f=open(filename,"a+")
       for x in Room.time:
         f.write("Run times for second source location %.8f" % x)

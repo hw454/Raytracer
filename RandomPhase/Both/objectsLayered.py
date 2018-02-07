@@ -99,7 +99,8 @@ class room:
     Number of rays is n, number of reflections m'''
     pi=4*np.arctan(1) # numerically calculate pi
     r=s.maxleng()
-    spacing=2*pi*r/n
+    spacing=2*pi/n
+    spacing=ma.sin(spacing)*(r*np.sqrt(2))
     Mesh3=s.roommesh(spacing)
     # Use more meshes when running with different phase change
     #Mesh1=s.roommesh(spacing)
@@ -211,7 +212,9 @@ class room:
     start_time=t.time()
     pi=4*np.arctan(1) # numerically calculate pi
     r=s.maxleng()
-    spacing=2*pi*r/n
+    #spacing=2*pi*r/n
+    spacing=2*pi/n
+    spacing=ma.sin(spacing)*(r*np.sqrt(2))
     # Meshes for viewing phase change acting only on certain places.
     #Mesh0=s.roommesh(spacing)
     #Mesh1=s.roommesh(spacing)
