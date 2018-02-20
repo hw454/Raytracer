@@ -154,11 +154,13 @@ class roommesh:
     s.grid[np.absolute(s.grid)<bounds[0]]=bounds[0]
     return
   def meshdiff(s,r):
-    z1=10*np.log10(np.absolute(s.grid))
-    #print(r.grid)
-    z2=10*np.log10(np.absolute(r.grid))
-    np.seterr(divide='ignore')
     diffz=np.subtract(z1,z2)
+    diffz=np.absolute(diffz)
+    diffz=diffz/np.absolute(z1)
+    #z1=10*np.log10(np.absolute(s.grid))
+    ##print(r.grid)
+    #z2=10*np.log10(np.absolute(r.grid))
+    np.seterr(divide='ignore')
     mp.imshow(diffz, cmap='viridis', interpolation='nearest') #,extent=extent)
     mp.colorbar()
   def plot(s):
