@@ -24,7 +24,7 @@ class roommesh:
        np.array(ybounds,dtype=np.float),
     ))
     s.grid=np.zeros((abs(int((ybounds[1]-ybounds[0])/spacing)+1),abs(int((xbounds[1]-xbounds[0])/spacing)+1)),dtype=complex)
-     # Co-ordinate followed by initial signal strength
+     # Co-ordinate followed by initial field strength
   def __getitem__(s,i,j):
     return s.grid[i][j]
   def __str__(s):
@@ -44,7 +44,7 @@ class roommesh:
   def __ymax__(s):
     return s.bounds[1][1]
   def singlerayrndsum(s,ray,iterconsts,f):
-    ''' The signal strength at the start of the ray is start assign this
+    ''' The field strength at the start of the ray is start assign this
     value to a mesh square and iterate through the ray '''
     streg=iterconsts[0]
     totdist=iterconsts[1]
@@ -65,7 +65,7 @@ class roommesh:
     deldist=lf.length(np.array([(0,0),alpha*direc]))
     if deldist>np.sqrt(2*(space**2)):
         print('length greater than mesh')
-    # Step through the ray decreasing the signal strength
+    # Step through the ray decreasing the field strength
     for x in range(0,n):
       # Find the matrix position of the next point
       i2=int((s.__ymax__()-point0[1])/space)
@@ -86,7 +86,7 @@ class roommesh:
         s.grid[i2][j2]+=streg
         i=i2
         j=j2
-      # Compute the signal strength after loss
+      # Compute the field strength after loss
       #In db streg=streg-loss
       phase=rnd.uniform(0,2)
       phasechange=np.exp(ma.pi*phase*complex(0,1))
@@ -98,7 +98,7 @@ class roommesh:
     # Return the strength ready for the next ray
     return np.array([streg,totdist])
   def singleray(s,ray,iterconsts,f):
-    ''' The signal strength at the start of the ray is start assign this
+    ''' The field strength at the start of the ray is start assign this
     value to a mesh square and iterate through the ray '''
     streg=iterconsts[0]
     totdist=iterconsts[1]
@@ -119,7 +119,7 @@ class roommesh:
     deldist=lf.length(np.array([(0,0),alpha*direc]))
     if deldist>np.sqrt(2*(space**2)):
         print('length greater than mesh')
-    # Step through the ray decreasing the signal strength
+    # Step through the ray decreasing the field strength
     for x in range(0,n):
       # Find the matrix position of the next point
       i2=int((s.__ymax__()-point0[1])/space)
@@ -140,7 +140,7 @@ class roommesh:
         s.grid[i2][j2]+=streg
         i=i2
         j=j2
-      # Compute the signal strength after loss
+      # Compute the field strength after loss
       #In db streg=streg-loss
       streg=streg/loss
       # Find the distance to the next step
@@ -154,11 +154,15 @@ class roommesh:
     s.grid[np.absolute(s.grid)<bounds[0]]=bounds[0]
     return
   def meshdiff(s,r):
-    z1=10*np.log10(np.absolute(s.grid))
-    #print(r.grid)
-    z2=10*np.log10(np.absolute(r.grid))
-    np.seterr(divide='ignore')
+    z1=s.grid
+    z2=r.grid
     diffz=np.subtract(z1,z2)
+    diffz=np.absolute(diffz)
+    diffz=diffz/np.absolute(z1)
+    #z1=10*np.log10(np.absolute(s.grid))
+    ##print(r.grid)
+    #z2=10*np.log10(np.absolute(r.grid))
+    np.seterr(divide='ignore')
     mp.imshow(diffz, cmap='viridis', interpolation='nearest') #,extent=extent)
     mp.colorbar()
   def plot(s):
@@ -168,7 +172,7 @@ class roommesh:
      #Convert to db
      z=10*np.ma.log10(z)
      extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-     mp.imshow(z, cmap='viridis', interpolation='nearest',extent=extent)
+     mp.imshow(z, cmap='viridis', interpolation='nearest',extent=extent,vmin=-110,vmax=30)
      #mp.colorbar()
      return
   def plotbounded(s,bounds):
@@ -177,7 +181,7 @@ class roommesh:
      #Convert to db
      z=10*np.ma.log10(z)
      extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-     mp.imshow(z, cmap='viridis', interpolation='nearest',extent=extent)
+     mp.imshow(z, cmap='viridis', interpolation='nearest',extent=extent,vmin=-110,vmax=30)
      #mp.colorbar()
      return
   def hist(s,i):
