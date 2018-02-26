@@ -79,7 +79,7 @@ if __name__=='__main__':
   #  Room=ob.room((obstacles[0]))
   #  Room.roomconstruct(obstacles)
   for j in range(1,2):
-      n=j*100
+      n=j*250
       print(n)
       origin=(5,1)              # source of the signal
       i,spacing=Room.uniform_ray_tracer(origin,n,i,frequency,streg,m,refloss)
