@@ -43,7 +43,7 @@ if __name__=='__main__':
   origin=(5,1)              # source of the signal
   i=1                       # The figure number for the room plot
   frequency=2.4*1.0E+8      # The wave frequency in Hertz
-  streg=100.0 # The initial signal power in db
+  streg=np.sqrt(100.0) # The initial signal power in db
   # The spacing is now found inside the uniform ray tracer function spacing=0.25  # Spacing in the grid spaces.
   bounds= np.array([10**-9, 10**2])               # The bounds within which the signal power is useful
   refloss=20

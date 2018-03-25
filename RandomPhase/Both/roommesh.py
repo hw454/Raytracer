@@ -51,8 +51,8 @@ class roommesh:
     # Get the spacing between co-ordinates
     space=s.__getspacing__()
     # Find the position of the start of the ray
-    j=int((ray[0][0]- s.__xmin__())/space)
-    i=int((s.__ymax__()-ray[0][1])/space)
+    j=int((ray[0][0]- s.__xmin__())/space+1)
+    i=int((s.__ymax__()-ray[0][1])/space+1)
     # Find the direction of the ray
     direc=lf.Direction(ray)
     # Compute  the number of steps from one end of the ray to the other
@@ -105,8 +105,8 @@ class roommesh:
     # Get the spacing between co-ordinates
     space=s.__getspacing__()
     # Find the position of the start of the ray
-    j=int((ray[0][0]- s.__xmin__())/space)
-    i=int((s.__ymax__()-ray[0][1])/space)
+    j=int((ray[0][0]- s.__xmin__())/space+1)
+    i=int((s.__ymax__()-ray[0][1])/space+1)
     # Find the direction of the ray
     direc=lf.Direction(ray)
     # Compute  the number of steps from one end of the ray to the other
@@ -124,7 +124,7 @@ class roommesh:
       # Find the matrix position of the next point
       i2=int((s.__ymax__()-point0[1])/space)
       j2=int((point0[0]- s.__xmin__())/space)
-      loss=((totdist+deldist)/totdist)**2
+      loss=(totdist+deldist)/totdist
       # Check the strength hasn't run out
       #watstreg=10.0**(streg/10.0)
       #if watstreg <= 0:
@@ -163,7 +163,7 @@ class roommesh:
     ##print(r.grid)
     #z2=10*np.log10(np.absolute(r.grid))
     np.seterr(divide='ignore')
-    mp.imshow(diffz, cmap='viridis', interpolation='nearest') #,extent=extent)
+    mp.imshow(diffz, cmap='viridis', interpolation='nearest',vmin=0,vmax=5) #,extent=extent)
     mp.colorbar()
   def plot(s):
      ''' Plot a heatmap of the strength values '''
@@ -193,8 +193,12 @@ class roommesh:
      #print(max(h2))
      h2=h2*(1.0/max(h2))
      mp.plot(h[1][:-1],h2)
+     mp.ylabel('Cumulative frequency')
+     mp.xlabel('Field strength in dBm')
      mp.figure(i+1)
      mp.hist(z.flatten(),bins='auto')
+     mp.ylabel('# of squares with value in range')
+     mp.xlabel('Field strength in dBm')
      #mp.plot(h[1][:-1],h[0]) Plots the histogram as a line
      return
   def histbounded(s,i):
@@ -206,7 +210,11 @@ class roommesh:
      #print(max(h2))
      h2=h2*(1.0/max(h2))
      mp.plot(h[1][:-1],h2)
+     mp.ylabel('Cumulative frequency')
+     mp.xlabel('Field strength in dBm')
      mp.figure(i+1)
+     mp.ylabel('# of squares with value in range')
+     mp.xlabel('Field strength in dBm')
      mp.hist(z.flatten(),bins='auto')
      #mp.plot(h[1][:-1],h[0]) Plots the histogram as a line
      return
