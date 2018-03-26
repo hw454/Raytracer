@@ -66,7 +66,7 @@ class roommesh:
     if deldist>np.sqrt(2*(space**2)):
         print('length greater than mesh')
     # Step through the ray decreasing the field strength
-    for x in range(0,n):
+    for x in range(0,n-1):
       # Find the matrix position of the next point
       i2=int((s.__ymax__()-point0[1])/space)
       j2=int((point0[0]- s.__xmin__())/space)
@@ -193,6 +193,7 @@ class roommesh:
      #print(max(h2))
      h2=h2*(1.0/max(h2))
      mp.plot(h[1][:-1],h2)
+     c=np.array([h[1][:-1],h2])
      mp.ylabel('Cumulative frequency')
      mp.xlabel('Field strength in dBm')
      mp.figure(i+1)
@@ -200,7 +201,7 @@ class roommesh:
      mp.ylabel('# of squares with value in range')
      mp.xlabel('Field strength in dBm')
      #mp.plot(h[1][:-1],h[0]) Plots the histogram as a line
-     return
+     return c
   def histbounded(s,i):
      z=np.absolute(s.grid)
      z=10*np.ma.log10(z)
@@ -210,6 +211,7 @@ class roommesh:
      #print(max(h2))
      h2=h2*(1.0/max(h2))
      mp.plot(h[1][:-1],h2)
+     c=np.array([h[1][:-1],h2])
      mp.ylabel('Cumulative frequency')
      mp.xlabel('Field strength in dBm')
      mp.figure(i+1)
@@ -217,7 +219,7 @@ class roommesh:
      mp.xlabel('Field strength in dBm')
      mp.hist(z.flatten(),bins='auto')
      #mp.plot(h[1][:-1],h[0]) Plots the histogram as a line
-     return
+     return c
   def teststrength(s):
     ray=np.array([[0.0,0.0],[10.0,10.0]])
     start=100000
