@@ -106,6 +106,9 @@ class room:
     #Mesh1=s.roommesh(spacing)
     #Mesh2=s.roommesh(spacing)
     #Mesh3=s.roommesh(spacing)
+    k=int((origin[0]- Mesh3.__xmin__())/spacing)
+    l=int((Mesh3.__ymax__()-origin[1])/spacing)
+    Mesh3.grid[l][k]+=start
     i=1
     for h in s.heights:
       if h == s.heights[-1]:
@@ -224,6 +227,9 @@ class room:
     #Mesh1=s.roommesh(spacing)
     #Mesh2=s.roommesh(spacing)
     Mesh3=s.roommesh(spacing)
+    k=int((origin[0]- Mesh3.__xmin__())/spacing)
+    l=int((Mesh3.__ymax__()-origin[1])/spacing)
+    Mesh3.grid[l][k]+=start
     i=1
     for h in s.heights:
       if h == s.heights[-1]:

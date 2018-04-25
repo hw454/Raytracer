@@ -94,12 +94,12 @@ class room:
     Mesh1=s.roommesh(spacing)
     Mesh2=s.roommesh(spacing)
     Mesh3=s.roommesh(spacing)
-    j=int((origin[0]- Mesh0.__xmin__())/spacing)
-    i=int((Mesh0.__ymax__()-origin[1])/spacing)
-    Mesh0.grid[i][j]+=start
-    Mesh1.grid[i][j]+=start
-    Mesh2.grid[i][j]+=start
-    Mesh3.grid[i][j]+=start
+    k=int((origin[0]- Mesh0.__xmin__())/spacing)
+    l=int((Mesh0.__ymax__()-origin[1])/spacing)
+    Mesh0.grid[l][k]+=start
+    Mesh1.grid[l][k]+=start
+    Mesh2.grid[l][k]+=start
+    Mesh3.grid[l][k]+=start
     for j in range(0,n+2):
       theta=(2*j*pi)/n
       xtil=ma.cos(theta)
@@ -210,6 +210,12 @@ class room:
     Mesh1=s.roommesh(spacing)
     Mesh2=s.roommesh(spacing)
     Mesh3=s.roommesh(spacing)
+    k=int((origin[0]- Mesh0.__xmin__())/spacing)
+    l=int((Mesh0.__ymax__()-origin[1])/spacing)
+    Mesh0.grid[l][k]+=start
+    Mesh1.grid[l][k]+=start
+    Mesh2.grid[l][k]+=start
+    Mesh3.grid[l][k]+=start
     for j in range(0,n+1):
       theta=(2*j*pi)/n
       xtil=ma.cos(theta)
