@@ -43,7 +43,7 @@ class roommesh:
     return s.bounds[1][0]
   def __ymax__(s):
     return s.bounds[1][1]
-  def singlerayrndsum(s,ray,iterconsts,f):
+  def singleraydeter(s,ray,iterconsts,f):
     ''' The field strength at the start of the ray is start assign this
     value to a mesh square and iterate through the ray '''
     streg=iterconsts[0]
@@ -89,7 +89,8 @@ class roommesh:
       # Compute the field strength after loss
       #In db streg=streg-loss
       #phase=rnd.uniform(0,2)
-      phase=totdist*2*ma.pi*f/(3*10**8)
+      k=2*ma.pi*f/(299792458)
+      phase=k*totdist
       phasechange=np.exp(ma.pi*phase*complex(0,1))
       streg=streg*phasechange/loss
       # Find the distance to the next step

@@ -100,7 +100,6 @@ class room:
     Mesh1.grid[l][k]+=start
     Mesh2.grid[l][k]+=start
     Mesh3.grid[l][k]+=start
-    #start=start/n
     for j in range(0,n+2):
       theta=(2*j*pi)/n
       xtil=ma.cos(theta)
@@ -198,7 +197,7 @@ class room:
     RefSumDiff=Mesh0.meshdiff(Mesh3)
     mp.title('Residual- No phase change and phase change')
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/ResidualNoPhasePhaseUnbounded.png',bbox_inches='tight')
-    return i+16,spacing,Mesh3
+    return i+16,spacing
   def uniform_ray_tracer_bounded(s,origin,n,i,frequency,start,m,bounds,refloss):
     ''' Traces ray's uniforming emitted from an origin around a room.
     Number of rays is n, number of reflections m'''
@@ -314,7 +313,7 @@ class room:
     RefSumDiff=Mesh0.meshdiff(Mesh3)
     mp.title('Residual- No phase change and phase change')
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/ResidualNoPhasePhasebounded.png',bbox_inches='tight')
-    return i+16, spacing,Mesh3
+    return i+16, spacing
 
 class Ray:
   ''' represents a ray by a collection of line segments followed by
@@ -460,7 +459,7 @@ class Ray:
       #streg=Mesh.singleray(np.array([r,s.ray[i+1]]),streg-refloss,s.frequency)
       #In Watts
       iterconsts[0]=iterconsts[0]/refloss
-      iterconsts=Mesh.singlerayrndsum(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
+      iterconsts=Mesh.singleraydeter(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
       i+=1
     Mesh.plot()
     return Mesh
@@ -476,7 +475,7 @@ class Ray:
       phase=rnd.uniform(0,2)
       refloss=refloss*np.exp(ma.pi*phase*complex(0,1))
       iterconsts[0]=iterconsts[0]/refloss
-      iterconsts=Mesh.singlerayrndsum(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
+      iterconsts=Mesh.singleraydeter(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
       i+=1
     Mesh.plot()
     return Mesh
@@ -522,7 +521,7 @@ class Ray:
       #streg=Mesh.singleray(np.array([r,s.ray[i+1]]),streg-refloss,s.frequency)
       #In Watts
       iterconsts[0]=iterconsts[0]/refloss
-      iterconsts=Mesh.singlerayrndsum(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
+      iterconsts=Mesh.singleraydeter(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
       i+=1
     Mesh.bound(bounds)
     Mesh.plot()
@@ -539,7 +538,7 @@ class Ray:
       phase=rnd.uniform(0,2)
       refloss=refloss*np.exp(ma.pi*phase*complex(0,1))
       iterconsts[0]=iterconsts[0]/refloss
-      iterconsts=Mesh.singlerayrndsum(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
+      iterconsts=Mesh.singleraydeter(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
       i+=1
     Mesh.bound(bounds)
     Mesh.plot()
