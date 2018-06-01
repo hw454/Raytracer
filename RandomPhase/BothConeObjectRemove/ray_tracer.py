@@ -44,14 +44,21 @@ if __name__=='__main__':
   ave=5                     # number of runs to average over
   origin=(5,1)              # source of the signal
   i=1                       # The figure number for the room plot
-  frequency=2.4*1.0E+8      # The wave frequency in Hertz
+  frequency=5.8E+8 # 5.8GHz, ref coef is 1/0.646 for 45 degree polarisation, 1/0.2512 for vertical polarisation
   powerstreg=1              # The initial signal power in db
-  # The spacing is now found inside the uniform ray tracer function spacing  # Spacing in the grid spaces.
+  # The spacing is now found inside the uniform ray tracer function spacing=0.25  # Spacing in the grid spaces.
   bounds= np.array([10**-9, 10**2])               # The bounds within which the signal power is useful
-  refloss=20
-  #m=int(math.ceil(np.log(powerstreg/bounds[0])/np.log(refloss)))     # number of reflections observed
-  m=3
-  streg=complex(((1/8.854187817)*1E12*powerstreg)**0.5,0.0)
+  # Reflection Coefficient
+  refloss=1/0.2512
+  #refloss2=1/0.6457
+  m=int(math.ceil(np.log(powerstreg/bounds[0])/np.log(refloss)))     # number of reflections observed
+  streg=complex(((1/8.854187817)*1E12*powerstreg)**0.5,0.0)          # Initial field strength
+  origin1=(5,1)              # source of the signal
+  origin2=(0,2)              # source of the signal
+  outsidepoint1=(4,1)              # point for testing whether another point is inside or outside an object
+  outsidepoint2=(5,2)              # point for testing whether another point is inside or outside an object
+  outsidepoint3=(1,3)              # point for testing whether another point is inside or outside an object
+  outsidepoint4=(0,3)              # point for testing whether another point is inside or outside an object
   print('number of reflections',m)
   # CONSTRUCT THE OBJECTS
   # Contain all the edges of the room
@@ -63,12 +70,10 @@ if __name__=='__main__':
   Room.add_inside_objects(box)
   Room.add_inside_objects(sofa)
   for j in range(1,l):
-      n=j*250
-      n=100
+      n=j*100
       print('number of rays', n)
-      origin=(5,1)              # source of the signal
       #Attempt at spreading the initial signal strength. This is actually accounted for in C_lambda streg=stregstart/n
-      i,spacing,grid1=Room.uniform_ray_tracer(origin,n,ave,i,frequency,streg,m,refloss)
+      i,spacing,grid1=Room.uniform_ray_tracer(origin1,outsidepoint1,outsidepoint2,n,ave,i,frequency,streg,m,refloss)
       # First attempt at averaging
       #for it in range(1,ave):
         #i,spacing,grid2=Room.uniform_ray_tracer(origin,n,ave,i,frequency,streg,m,refloss)
@@ -91,9 +96,8 @@ if __name__=='__main__':
       f.write("Run times for first source location %.8f, %.8f" % (x,y))
       #f.write("Estimated P value" % y)
       f.close()
-      origin=(0,2)              # source of the signal
       #i,spacing,grid=Room.uniform_ray_tracer(origin,n,i+1,frequency,streg,m,refloss)
-      i,spacing,grid1=Room.uniform_ray_tracer(origin,n,ave,i,frequency,streg,m,refloss)
+      i,spacing,grid1=Room.uniform_ray_tracer(origin2,outsidepoint3,outsidepoint4,n,ave,i,frequency,streg,m,refloss)
       #for it in range(1,ave):
         #i,spacing,grid2=Room.uniform_ray_tracer(origin,n,ave,i,frequency,streg,m,refloss)
         #grid1.grid=grid1.grid+grid2.grid

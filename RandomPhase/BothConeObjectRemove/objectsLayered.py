@@ -99,7 +99,7 @@ class room:
     Number of rays is n, number of reflections m'''
     pi=4*np.arctan(1) # numerically calculate pi
     r=s.maxleng()
-    spacing=pi/n
+    spacing=2*pi/n
     spacing=ma.sin(spacing)*(r*np.sqrt(2))
     Mesh3=s.roommesh(spacing)
     # Use more meshes when running with different phase change

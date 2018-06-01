@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-# Hayley Wragg 2017-07-10
-# Hayley wragg 2017-07-11
+# Hayley Wragg 2018-05-10
 ''' Code to Reflect a line in an edge without using Shapely '''
 import numpy as np
 import matplotlib.pyplot as mp
@@ -9,7 +8,7 @@ import reflection as ref
 import intersection as ins
 import linefunctions as lf
 #import ray_tracer_test as rtest
-import objects as ob
+import geometricobjects as ob
 import roommesh as rmes
 import math
 import time
@@ -39,73 +38,71 @@ if __name__=='__main__':
   sofa8=ob.Wall_segment(np.array([ 1.5, 0.0]), np.array([ 1.0, 0.0]))
   # Define the ray tracing parameters
 
-  #n=10                      # number of rays emitted from source
-  m=10                      # number of runs to average over
+  #n=10                     # number of rays emitted from source
+  l=4                      # number of n's
+  ave=5                     # number of runs to average over
   origin=(5,1)              # source of the signal
   i=1                       # The figure number for the room plot
-  frequency=2.4*1.0E+8      # The wave frequency in Hertz
-  streg=np.sqrt(100.0) # The initial signal power in db
+  # 2.4 GHz frequency=2.4*1.0E+8      # The wave frequency in Hertz
+  #frequency=28*1.0E+8 #28 GHz, ref coef is 1/0.628
+  #frequency=2.3E+8 # 2.3GHz, ref coef is 1/0.628
+  frequency=5.8E+8 # 5.8GHz, ref coef is 1/0.646 for 45 degree polarisation, 1/0.2512 for vertical polarisation
+  powerstreg=1              # The initial signal power in db
   # The spacing is now found inside the uniform ray tracer function spacing=0.25  # Spacing in the grid spaces.
   bounds= np.array([10**-9, 10**2])               # The bounds within which the signal power is useful
-  refloss=20
-  m=int(math.ceil(np.log(streg/bounds[0])/np.log(refloss)))     # number of reflections observed
-  streg=complex(streg,0.0)
-  print(m)
+  # Reflection Coefficient
+  refloss1=1/0.2512
+  refloss2=1/0.6457
+  m1=int(math.ceil((np.log(powerstreg)-np.log(bounds[0]))/np.log(refloss1)))    # number of reflections observed
+  m2=int(math.ceil((np.log(powerstreg)-np.log(bounds[0]))/np.log(refloss2)))    # number of reflections observed
+  #m=3
+  streg=complex(((1/8.854187817)*1E12*powerstreg)**0.5,0.0)
+  print('number of reflections for first coefficient',m1)
+  print('number of reflections for second coefficient',m2)
   # CONSTRUCT THE OBJECTS
   # Contain all the edges of the room
   obstacles=(wall1,wall2,wall3,wall4,Box1,Box2,Box3,Box4,sofa1,sofa2,sofa3,sofa4,sofa5,sofa6,sofa7,sofa8)
   Room=ob.room((obstacles[0]))
   Room.roomconstruct(obstacles)
-  for j in range(1,5):
-      n=j*250
-      print(n)
+  for j in range(1,l):
+      n=j*300
+      print('number of rays', n)
+      # First source location and first reflection coefficient
       origin=(5,1)              # source of the signal
-      #streg=stregstart/n
-      i,spacing,grid1=Room.uniform_ray_tracer(origin,n,i,frequency,streg,m,refloss)
-      for l in range(1,m):
-        i,spacing,grid2=Room.uniform_ray_tracer(origin,n,i,frequency,streg,m,refloss)
-        grid1.grid=grid1.grid+grid2.grid
-      grid1.grid=grid1.grid/m
-      grid1.hist(i)
-      mp.figure(i)
-      mp.title('Cumulative frequency of averaged field strength')
-      mp.grid()
-      mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/AveragedOnBothRNDCumsum'+str(i)+'.png', bbox_inches='tight')
-      mp.figure(i+1)
-      mp.title('Histrogram of averaged field strength')
-      mp.grid()
-      mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/AveragedOnBothHistogramNoBounds'+str(i)+'.png',bbox_inches='tight')
+      i,spacing,grid1=Room.uniform_ray_tracer(origin,n,ave,i,frequency,streg,m1,refloss1)
+      i=i+2
+      # Store the run time
+      filename=("RuntimesN"+str(n)+"Delta"+str(int(spacing*100))+ ".txt")
+      f=open(filename,"w+")
+      (x,y)=Room.time
+      f.write("Run times for first source location with first ref coef %.8f, %.8f" % (x,y))
+      f.close()
+      # Second source location and first reflection coefficient
+      origin=(0,2)              # source of the signal
+      i,spacing,grid1=Room.uniform_ray_tracer(origin,n,ave,i,frequency,streg,m1,refloss1)
+      f=open(filename,"a+")
+      for x in Room.time:
+        f.write("Run times for second source location with first ref coef%.8f" % x)
+      f.close()
+      # Repeat for the second set of reflection coefficients
+      # First source location and second reflection coefficient
+      origin=(5,1)              # source of the signal
+      #Attempt at spreading the initial signal strength. This is actually accounted for in C_lambda streg=stregstart/n
+      i,spacing,grid1=Room.uniform_ray_tracer(origin,n,ave,i,frequency,streg,m2,refloss2)
       i=i+2
       #i,spacing=Room.uniform_ray_tracer_bounded(origin,n,i+1,frequency,streg,m,bounds,refloss)
       filename=("RuntimesN"+str(n)+"Delta"+str(int(spacing*100))+ ".txt")
       f=open(filename,"w+")
-      (x,y)=Room.time
-      f.write("Run times for first source location %.8f, %.8f" % (x,y))
-      #f.write("Estimated P value" % y)
+      for x in Room.time:
+        f.write("Run times for first source location with second ref coef %.8f" % x)
       f.close()
+      # Second source location and second reflection coefficient
       origin=(0,2)              # source of the signal
-      #i,spacing,grid=Room.uniform_ray_tracer(origin,n,i+1,frequency,streg,m,refloss)
-      i,spacing,grid1=Room.uniform_ray_tracer(origin,n,i,frequency,streg,m,refloss)
-      for l in range(1,m):
-        i,spacing,grid2=Room.uniform_ray_tracer(origin,n,i,frequency,streg,m,refloss)
-        grid1.grid=grid1.grid+grid2.grid
-      grid1.grid=grid1.grid/m
-      grid1.hist(i)
-      mp.figure(i)
-      mp.title('Cumulative frequency of averaged field strength')
-      mp.grid()
-      mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/AveragedOnBothRNDCumsum'+str(i)+'.png', bbox_inches='tight')
-      mp.figure(i+1)
-      mp.title('Histrogram of averaged field strength')
-      mp.grid()
-      mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/AveragedOnBothHistogramNoBounds'+str(i)+'.png',bbox_inches='tight')
-      i=i+2
-      #i,spacing=Room.uniform_ray_tracer_bounded(origin,n,i+1,frequency,streg,m,bounds,refloss)
+      i,spacing,grid1=Room.uniform_ray_tracer(origin,n,ave,i,frequency,streg,m2,refloss2)
       f=open(filename,"a+")
       for x in Room.time:
-        f.write("Run times for second source location %.8f" % x)
+        f.write("Run times for second source location with second ref coef%.8f" % x)
       f.close()
-      #f.write("Estimated P value" % y)
   #mp.show()
   # TEST err=rtest.ray_tracer_test(Room, origin)
   # TEST PRINT print('error after rtest on room', err)

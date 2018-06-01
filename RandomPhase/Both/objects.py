@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-# Keith Briggs 2017-02-02
-# Hayley Wragg 2017-03-28
-# Hayley Wragg 2017-04-12
-# Hayley Wragg 2017-05-15
-# Hayley Wragg 2017-07-10
+# Hayley Wragg 2018-05-10
 ''' Code to construct the ray-tracing objects. Constructs wall-segments,
  rays'''
 
@@ -34,7 +30,7 @@ class Wall_segment:
     return 'Wall_segment('+str(list(s.p))+')'
 
 class room:
-  ' A group of wall_segment'
+  ' A group of wall_segments and the time for the run'
   def __init__(s,wall0):
     s.walls=list((wall0,))
     s.points=list(wall0)
@@ -83,26 +79,30 @@ class room:
     return np.array([min(yarray)[0],max(yarray)[0]])
   def roommesh(s,spacing):
     return rmes.roommesh((s.xbounds()),(s.ybounds()),spacing)
-  def uniform_ray_tracer(s,origin,n,i,frequency,start,m,refloss):
-    start_time=t.time()
-    ''' Traces ray's uniforming emitted from an origin around a room.
-    Number of rays is n, number of reflections m'''
-    pi=4*np.arctan(1) # numerically calculate pi
+  def uniform_ray_tracer(s,origin,n,ave,i,frequency,start,m,refloss):
+    start_time=t.time()         # Start the time counter
+    ''' Traces ray's uniformly emitted from an origin around a room.
+    Number of rays is n, number of reflections m. Then calculates loss
+    along each ray, this is output as a mesh of values where rays which
+    go through the same square have their values added together.'''
+    #pi=4*np.arctan(1) # numerically calculate pi
     r=s.maxleng()
-    spacing=ma.sin((2*pi)/n)*(r*np.sqrt(2))
-    Mesh0=s.roommesh(spacing)
-    Mesh1=s.roommesh(spacing)
-    Mesh2=s.roommesh(spacing)
+    spacing=ma.sin((2*ma.pi)/n)*(r*np.sqrt(2))
+    Mesh0=s.roommesh(spacing) # Mesh for the case with no phase
+    Mesh1=s.roommesh(spacing) # Mesh for the initial case with phase
+    Mesh2=s.roommesh(spacing) # Mesh for the averaged case with phase
     Mesh3=s.roommesh(spacing)
+    Mesh4=s.roommesh(spacing)
     k=int((origin[0]- Mesh0.__xmin__())/spacing)
     l=int((Mesh0.__ymax__()-origin[1])/spacing)
     Mesh0.grid[l][k]+=start
     Mesh1.grid[l][k]+=start
     Mesh2.grid[l][k]+=start
     Mesh3.grid[l][k]+=start
+    Mesh4.grid[l][k]+=start
     #start=start/n
     for j in range(0,n+2):
-      theta=(2*j*pi)/n
+      theta=(2*j*ma.pi)/n
       xtil=ma.cos(theta)
       ytil=ma.sin(theta)
       x= r*xtil+origin[0]
@@ -113,44 +113,52 @@ class room:
       mp.figure(i)
       ray.Plotray(s)
       mp.figure(i+1)
-      mp.title('Heatmap no phase change')
+      mp.title('Heatmap no phase')
       Mesh0=ray.heatmapray(Mesh0,ray.streg,ray.frequency,spacing,refloss)
+      Mesh0.plot()
       mp.figure(i+2)
       mp.title('Heatmap phase change on ref.')
       Mesh1=ray.heatmaprayrndref(Mesh1,ray.streg,ray.frequency,spacing,refloss)
+      Mesh1.plot()
       mp.figure(i+3)
       mp.title('Heatmap phase change on sum.')
       Mesh2=ray.heatmaprayrndsum(Mesh2,ray.streg,ray.frequency,spacing,refloss)
+      Mesh2.plot()
       mp.figure(i+4)
-      mp.title('Heatmap phase change on ref. and sum.')
+      mp.title('Heatmap with phase change')
       Mesh3=ray.heatmaprayrndboth(Mesh3,ray.streg,ray.frequency,spacing,refloss)
+      for k in range(1,ave):
+        Mesh4=ray.heatmaprayrndboth(Mesh4,ray.streg,ray.frequency,spacing,refloss)
+        Mesh3.grid=Mesh4.grid+Mesh3.grid
+      Mesh3.grid=Mesh3.grid/ave
+      Mesh3.plot()
     end_time=(t.time() - start_time)
     s.time[0]=end_time
     print("Time to compute unbounded--- %s seconds ---" % end_time )
     mp.figure(i)
     #mp.title('Ray paths')
-    s.Plotroom(origin)
+    #s.Plotroom(origin)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnRefRays'+str(i)+'.png',bbox_inches='tight')
     mp.figure(i+1)
-    s.Plotroom(origin)
+    #s.Plotroom(origin)
     cbar=mp.colorbar()
     cbar.set_label('Field strength in dBm', rotation=270)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/NoRNDHeatmap'+str(i)+'.png',bbox_inches='tight')
     mp.figure(i+2)
-    s.Plotroom(origin)
+    #s.Plotroom(origin)
     cbar=mp.colorbar()
     cbar.set_label('Field strength in dBm', rotation=270)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnRefHeatmap'+str(i)+'.png',bbox_inches='tight')
     mp.figure(i+3)
-    s.Plotroom(origin)
+    #s.Plotroom(origin)
     cbar=mp.colorbar()
     cbar.set_label('Field strength in dBm', rotation=270)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnSumHeatmap'+str(i)+'.png',bbox_inches='tight')
     mp.figure(i+4)
-    s.Plotroom(origin)
+    #s.Plotroom(origin)
     cbar=mp.colorbar()
     cbar.set_label('Field strength in dBm', rotation=270)
-    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnBothHeatmap'+str(i)+'.png',bbox_inches='tight')
+    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/AveragedOnBothHeatmap'+str(i)+'.png',bbox_inches='tight')
     c0=Mesh0.hist(i+5)
     mp.figure(i+5)
     mp.title('Cumulative frequency of field strength')
@@ -178,7 +186,7 @@ class room:
     mp.title('Histrogram of field strength')
     mp.grid()
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnSumHistogramNoBounds'+str(i)+'.png',bbox_inches='tight')
-    c3=Mesh3.hist(i+11)
+    c3=Mesh4.hist(i+11)
     mp.figure(i+11)
     mp.title('Cumulative frequency of field strength')
     mp.grid()
@@ -247,26 +255,26 @@ class room:
     mp.title('Ray paths')
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnRefRays.png',bbox_inches='tight')
     mp.figure(i+16)
-    s.Plotroom(origin)
+    #s.Plotroom(origin)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/temproom'+str(i)+'.png',bbox_inches='tight')
-    s.Plotroom(origin)
+    #s.Plotroom(origin)
     mp.figure(i+1)
-    s.Plotroom(origin)
+    #s.Plotroom(origin)
     cbar=mp.colorbar()
     cbar.set_label('Field strength in dBm', rotation=270)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/NoRNDHeatmapBounds'+str(i)+'.png',bbox_inches='tight')
     mp.figure(i+2)
-    s.Plotroom(origin)
+    #s.Plotroom(origin)
     cbar=mp.colorbar()
     cbar.set_label('Field strength in dBm', rotation=270)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnRefHeatmapBounds'+str(i)+'.png',bbox_inches='tight')
     mp.figure(i+3)
-    s.Plotroom(origin)
+    #s.Plotroom(origin)
     cbar=mp.colorbar()
     cbar.set_label('Field strength in dBm', rotation=270)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnSumHeatmapBounds'+str(i)+'.png',bbox_inches='tight')
     mp.figure(i+4)
-    s.Plotroom(origin)
+    #s.Plotroom(origin)
     cbar=mp.colorbar()
     cbar.set_label('Field strength in dBm', rotation=270)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnBothHeatmapBounds'+str(i)+'.png',bbox_inches='tight')

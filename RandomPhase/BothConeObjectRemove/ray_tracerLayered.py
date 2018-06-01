@@ -48,14 +48,11 @@ if __name__=='__main__':
   #n=10                      # number of rays emitted from source
   origin=(5,1)              # source of the signal
   i=1                       # The figure number for the room plot
-  #frequency=28*1.0E+8 #28 GHz, ref coef is 1/0.628
-  #frequency=2.3E+8 # 2.3GHz, ref coef is 1/0.628
-  frequency=5.8E+8 # 5.8GHz, ref coef is 1/0.646
-  powerstreg=1          # The initial signal power in db
+  frequency=2.4*1.0E+8      # The wave frequency in Hertz
+  powerstreg=1000           # The initial signal power in db
   #spacing=0.25  # Spacing in the grid spaces.
   bounds= np.array([10**-9, 10**2])               # The bounds within which the signal power is useful
-  # Reflection Coefficient
-  refloss=1/0.2512
+  refloss=20
   m=int(math.ceil(np.log(powerstreg/bounds[0])/np.log(refloss)))     # number of reflections observed
   streg=complex(((1/8.854187817)*1E12*powerstreg)**0.5,0.0)
   print('Maximum number of reflections to get lower bound ',m)
