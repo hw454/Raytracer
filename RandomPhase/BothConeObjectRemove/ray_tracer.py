@@ -44,7 +44,7 @@ if __name__=='__main__':
   ave=5                     # number of runs to average over
   origin=(5,1)              # source of the signal
   i=1                       # The figure number for the room plot
-  frequency=5.8E+8 # 5.8GHz, ref coef is 1/0.646 for 45 degree polarisation, 1/0.2512 for vertical polarisation
+  frequency=5.8E+9 # 5.8GHz, ref coef is 1/0.646 for 45 degree polarisation, 1/0.2512 for vertical polarisation
   powerstreg=1              # The initial signal power in db
   # The spacing is now found inside the uniform ray tracer function spacing=0.25  # Spacing in the grid spaces.
   bounds= np.array([10**-9, 10**2])               # The bounds within which the signal power is useful

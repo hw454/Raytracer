@@ -26,6 +26,10 @@ class Wall_segment:
     ))
   def __getitem__(s,i):
     return s.p[i]
+  def firstpoint(s):
+    return s.p[0]
+  def secondpoint(s):
+    return s.p[1]
   def __str__(s):
     return 'Wall_segment('+str(list(s.p))+')'
 
@@ -34,10 +38,15 @@ class room:
   def __init__(s,wall0):
     s.walls=list((wall0,))
     s.points=list(wall0)
+    s.inside_points=np.array([])
+    s.objectcorners=np.array([])
     s.time=np.array([0.0,0.0])
   def __getwall__(s,i):
    ''' Returns the ith wall of s '''
    return s.walls[i]
+  def __getinsidepoint__(s,i,j):
+   ''' Returns the ith wall of s '''
+   return s.inside_points[i][j]
   def add_wall(s,wall):
     ''' Adds wall to the walls in s, and the points of the wall to the
     points in s '''
@@ -57,7 +66,7 @@ class room:
     return leng
   def Plotroom(s,origin,width):
     ''' Plots all the edges in the room '''
-    mp.plot(origin[0],origin[1],marker='x',c='r')
+    mp.plot(origin[0],origin[1],marker='x',c='b')
     for wall in s.walls:
       hp.Plotedge(np.array(wall.p),'b',width)
     return
@@ -77,9 +86,43 @@ class room:
     for wall in s.walls:
       yarray=np.vstack((yarray,wall[0][1],wall[1][1]))
     return np.array([min(yarray)[0],max(yarray)[0]])
+  def add_inside_objects(s,corners):
+    if s.objectcorners.shape[0]==0:
+      n=0
+      j=0
+    else:
+      n=s.objectcorners[-1][0]
+      j=n
+    for x in corners:
+      if j==0: s.inside_points=x.firstpoint()
+      else: s.inside_points=np.vstack((s.inside_points,x.firstpoint()))
+      j+=1
+    if n==0: s.objectcorners=np.array([(n,j-1)])
+    else:
+      s.objectcorners=np.vstack((s.objectcorners,np.array([(n,j-1)])))
+    return
   def roommesh(s,spacing):
-    return rmes.roommesh((s.xbounds()),(s.ybounds()),spacing)
-  def uniform_ray_tracer(s,origin,n,ave,i,frequency,start,m,refloss):
+     #FIXME the room needs the object bounds
+    return rmes.roommesh(s.inside_points,s.objectcorners,(s.xbounds()),(s.ybounds()),spacing)
+  def room_collision_point_with_end(s,line,space):
+    ''' The closest intersection out of the possible intersections with
+    the wall_segments in room for a line with an end point.
+    Returns the intersection point if intersections occurs'''
+    # Retreive the Maximum length from the Room
+    # Find whether there is an intersection with any of the walls.
+    cp, mu=ins.intersection_with_end(line,s.walls[0],space)
+    if cp==1: count=1
+    else: count=0
+    for wall in s.walls[1:]:
+      cp, mu=ins.intersection_with_end(line,wall,space)
+      if cp==1:
+        count+=1
+    if count % 2 ==0:
+      return 0
+    elif count % 2 ==1:
+      return 1
+    else: return 2 # This term shouldn't happen
+  def uniform_ray_tracer(s,origin,outsidepoint1,outsidepoint2,n,ave,i,frequency,start,m,Z2,Z1,refindex):
     start_time=t.time()         # Start the time counter
     ''' Traces ray's uniformly emitted from an origin around a room.
     Number of rays is n, number of reflections m. Then calculates loss
@@ -87,7 +130,10 @@ class room:
     go through the same square have their values added together.'''
     #pi=4*np.arctan(1) # numerically calculate pi
     r=s.maxleng()
-    spacing=ma.sin((ma.pi)/n)*(r*np.sqrt(2))
+    #spacing=0.25*ma.sin((2*ma.pi)/n)*(r*np.sqrt(2))
+    spacing=0.15
+    #print('The spacing is', spacing, 'm')
+    #spacing=0.05
     Mesh0=s.roommesh(spacing) # Mesh for the case with no phase
     Mesh1=s.roommesh(spacing) # Mesh for the initial case with phase
     Mesh2=s.roommesh(spacing) # Mesh for the averaged case with phase
@@ -101,7 +147,9 @@ class room:
     #Mesh3.grid[l][k]+=start
     #Mesh4.grid[l][k]+=start
     #start=start/n
-    for it in range(0,n+2):
+    #FIXME
+    for it in range(0,n+1):
+      #FIXME
       theta=(2*it*ma.pi)/n
       xtil=ma.cos(theta)
       ytil=ma.sin(theta)
@@ -112,36 +160,32 @@ class room:
       ray.multiref(s,m)
       mp.figure(i)
       ray.Plotray(s)
-      mp.figure(i+1)
-      mp.title('Heatmap no phase')
-      Mesh0=ray.heatmapray(Mesh0,ray.streg,ray.frequency,spacing,refloss)
-      Mesh0.powerplot()
+      Mesh0=ray.heatmapray(Mesh0,ray.streg,ray.frequency,spacing,Z2,Z2,refindex,n,s)
       #mp.figure(i+2)
       #mp.title('Heatmap phase change on ref.')
       #Mesh1=ray.heatmaprayrndref(Mesh1,ray.streg,ray.frequency,spacing,refloss)
       #mp.figure(i+3)
       #mp.title('Heatmap phase change on sum.')
       #Mesh2=ray.heatmaprayrndsum(Mesh2,ray.streg,ray.frequency,spacing,refloss)
-      mp.figure(i+2)
-      mp.title('Heatmap with phase change')
-      Mesh1=ray.heatmaprayrndboth(Mesh1,ray.streg,ray.frequency,spacing,refloss)
-      for k in range(1,ave):
-        Mesh2=ray.heatmaprayrndboth(Mesh2,ray.streg,ray.frequency,spacing,refloss)
-        Mesh1.grid=Mesh2.grid+Mesh1.grid
-      Mesh1.grid=Mesh1.grid/ave
-      Mesh1.powerplot()
+      Mesh1=ray.heatmaprayrndboth(Mesh1,ray.streg,ray.frequency,spacing,Z2,Z1,refindex,n,s)
+    mp.figure(i+1)
+    mp.title('Heatmap no phase')
+    Mesh0.powerplot(s,origin,outsidepoint1,outsidepoint2)
+    mp.figure(i+2)
+    mp.title('Heatmap with phase change')
+    Mesh1.powerplot(s,origin,outsidepoint1,outsidepoint2)
     end_time=(t.time() - start_time)
     s.time[0]=end_time
     print("Time to compute unbounded--- %s seconds ---" % end_time )
     mp.figure(i)
     #mp.title('Ray paths')
     s.Plotroom(origin,1.0)
-    mp.savefig('../../../../NewFigures/Rays'+str(i)+'.png',bbox_inches='tight')
+    mp.savefig('../../../../ConeFigures/ConeRays'+str(i)+'.png',bbox_inches='tight')
     mp.figure(i+1)
-    s.Plotroom(origin,1.0)
+    s.Plotroom(origin,1/(spacing))
     cbar=mp.colorbar()
     cbar.set_label('Power in dBm', rotation=270)
-    mp.savefig('../../../../NewFigures/NoPhaseHeatmap'+str(i)+'.png',bbox_inches='tight')
+    mp.savefig('../../../../ConeFigures/ConeNoPhaseHeatmap'+str(i)+'.png',bbox_inches='tight')
     #mp.figure(i+2)
     ##s.Plotroom(origin)
     #cbar=mp.colorbar()
@@ -153,28 +197,28 @@ class room:
     #cbar.set_label('Power in dBm', rotation=270)
     #mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnSumHeatmap'+str(i)+'.png',bbox_inches='tight')
     mp.figure(i+2)
-    s.Plotroom(origin,5.0)
+    s.Plotroom(origin,1/(spacing))
     cbar=mp.colorbar()
     cbar.set_label('Power in dBm', rotation=270)
-    mp.savefig('../../../../NewFigures/AveragedHeatmapwithPhase'+str(i)+'.png',bbox_inches='tight')
+    mp.savefig('../../../../ConeFigures/ConeAveragedHeatmapwithPhase'+str(i)+'.png',bbox_inches='tight')
     c0=Mesh0.hist(i+5)
     mp.figure(i+5)
-    mp.title('Complementary cumulative distribution of power')
+    mp.title('Cumulative frequency of power')
     mp.grid()
-    mp.savefig('../../../../NewFigures/NoPhaseCumsum'+str(i)+'.png', bbox_inches='tight')
+    mp.savefig('../../../../ConeFigures/ConeNoPhaseCumsum'+str(i)+'.png', bbox_inches='tight')
     mp.figure(i+6)
     mp.title('Histogram of power')
     mp.grid()
-    mp.savefig('../../../../NewFigures/NoPhaseHistogram'+str(i)+'.png',bbox_inches='tight')
+    mp.savefig('../../../../ConeFigures/ConeNoPhaseHistogram'+str(i)+'.png',bbox_inches='tight')
     c1=Mesh1.hist(i+7)
     mp.figure(i+7)
-    mp.title('Complementary cumulative distribution of power')
+    mp.title('Cumulative frequency of power')
     mp.grid()
     mp.savefig('../../../../NewFigures/AveragedCumsumwithPhase'+str(i)+'.png', bbox_inches='tight')
     mp.figure(i+8)
     mp.title('Histogram of power')
     mp.grid()
-    mp.savefig('../../../../NewFigures/AveragedHistogramwithPhase'+str(i)+'.png',bbox_inches='tight')
+    mp.savefig('../../../../ConeFigures/ConeAveragedHistogramwithPhase'+str(i)+'.png',bbox_inches='tight')
     #c2=Mesh2.hist(i+9)
     #mp.figure(i+9)
     #mp.title('Cumulative frequency of field strength')
@@ -203,7 +247,7 @@ class room:
     mp.figure(i+9)
     RefSumDiff=Mesh0.meshdiff(Mesh1)
     mp.title('Residual- No phase change and phase change')
-    mp.savefig('../../../../NewFigures/ResidualNoPhasePhasepng',bbox_inches='tight')
+    mp.savefig('../../../../ConeFigures/ConeResidualNoPhasePhase.png',bbox_inches='tight')
     return i+16,spacing,Mesh1
   #def uniform_ray_tracer_bounded(s,origin,n,i,frequency,start,m,bounds,refloss):
     #''' Traces ray's uniforming emitted from an origin around a room.
@@ -426,7 +470,7 @@ class Ray:
       s.ray=np.vstack((s.ray,lf.Direction(refray)))
       print('ray',ray, 'refray', refray, 'error', err)
     return err
-  def heatmapray(s,Mesh,streg,freq,spacing,refloss):
+  def heatmapray(s,Mesh,streg,freq,spacing,Z2,Z1,refindex,N,room):
     i=0
     streg=streg*(299792458/(freq*4*ma.pi))
     iterconsts=np.array([streg,1.0])
@@ -435,8 +479,14 @@ class Ray:
       #refloss=10*np.log10(2)
       #streg=Mesh.singleray(np.array([r,s.ray[i+1]]),streg-refloss,s.frequency)
       #In Watts
+      rcp,rwall=s.room_collision_point(room)
+      line1=np.array([r,s.ray[i+1]])
+      line2=np.array([rwall.secondpoint(),rwall.firstpoint()])
+      thetai=lf.angle(line1,line2)
+      thetat=np.arcsin(np.sin(thetai)/refindex)
+      refloss=(Z1*np.cos(thetai)-Z2*np.cos(thetat))/(Z2*np.cos(thetat)+Z1*np.cos(thetai))
       iterconsts[0]=iterconsts[0]/refloss
-      iterconsts=Mesh.singleray(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
+      iterconsts=Mesh.singleray(np.array([r,s.ray[i+1]]),iterconsts,s.frequency,N)
       i+=1
     #Mesh.plot()
     return Mesh
@@ -470,7 +520,7 @@ class Ray:
       #i+=1
     #Mesh.plot()
     #return Mesh
-  def heatmaprayrndboth(s,Mesh,streg,freq,spacing,refloss):
+  def heatmaprayrndboth(s,Mesh,streg,freq,spacing,Z2,Z1,refindex,N,room):
     i=0
     streg=streg*(299792458/(freq*4*ma.pi))
     iterconsts=np.array([streg,1.0])
@@ -479,10 +529,16 @@ class Ray:
       #refloss=10*np.log10(2)
       #streg=Mesh.singleray(np.array([r,s.ray[i+1]]),streg-refloss,s.frequency)
       #In Watts
+      rcp,rwall=s.room_collision_point(room)
+      line1=np.array([r,s.ray[i+1]])
+      line2=np.array([rwall.secondpoint(),rwall.firstpoint()])
+      thetai=lf.angle(line1,line2)
+      thetat=np.arcsin(np.sin(thetai)/refindex)
+      refloss=(Z1*np.cos(thetai)-Z2*np.cos(thetat))/(Z2*np.cos(thetat)+Z1*np.cos(thetai))
       phase=rnd.uniform(0,2)
       refloss=refloss*np.exp(ma.pi*phase*complex(0,1))
       iterconsts[0]=iterconsts[0]/refloss
-      iterconsts=Mesh.singlerayrndsum(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
+      iterconsts=Mesh.singlerayrndsum(np.array([r,s.ray[i+1]]),iterconsts,s.frequency,N)
       i+=1
     #Mesh.plot()
     return Mesh

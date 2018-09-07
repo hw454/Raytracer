@@ -21,10 +21,10 @@ def Plotray(edge,c,wid):
   mp.plot(x,y,linewidth=wid, color=c)
   return
 
-def Plotedge(edge,c,wid):
+def Plotedge(edge,c,width):
   ''' takes a 2D np array and plots the line in colour c. the line is
   given by an origin and direction. l is it's length'''
-  mp.plot([edge[0][0], edge[1][0]], [edge[0][1], edge[1][1]],linewidth=wid, color=c)
+  mp.plot([edge[0][0], edge[1][0]], [edge[0][1], edge[1][1]], color=c, linewidth=width)
   return
 
 def Plotpoint(point):

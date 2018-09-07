@@ -61,11 +61,11 @@ class room:
       if leng2>leng:
         leng=leng2
     return leng
-  def Plotroom(s,origin,width):
+  def Plotroom(s,origin):
     ''' Plots all the edges in the room '''
     mp.plot(origin[0],origin[1],marker='x',c='r')
     for edge in s.objects[-1]:
-      hp.Plotedge(np.array(edge.p),'b',width)
+      hp.Plotedge(np.array(edge.p),'g')
     return
   def roomconstruct(s,Obstaclelayers):
     ''' Takes in a set of wall segments and constructs a room object
@@ -99,7 +99,7 @@ class room:
     Number of rays is n, number of reflections m'''
     pi=4*np.arctan(1) # numerically calculate pi
     r=s.maxleng()
-    spacing=pi/n
+    spacing=2*pi/n
     spacing=ma.sin(spacing)*(r*np.sqrt(2))
     Mesh3=s.roommesh(spacing)
     # Use more meshes when running with different phase change
@@ -147,7 +147,7 @@ class room:
     print("Time to compute unbounded--- %s seconds ---" % end_time )
     mp.figure(fig)
     mp.title('Ray paths')
-    s.Plotroom(origin,1.0)
+    s.Plotroom(origin)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnRefRaysLayered'+str(fig)+'.png',bbox_inches='tight')
     #mp.figure(fig+1)
     #s.Plotroom(origin)
@@ -165,7 +165,7 @@ class room:
     #cbar.set_label('Field strength in dBm', rotation=270)
     #mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnSumHeatmapLayered'+str(fig)+'.png',bbox_inches='tight')
     mp.figure(fig+1)
-    s.Plotroom(origin,5.0)
+    s.Plotroom(origin)
     cbar=mp.colorbar()
     cbar.set_label('Power in dBm', rotation=270)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnBothHeatmapLayered'+str(fig)+'.png',bbox_inches='tight')
@@ -198,7 +198,7 @@ class room:
     #mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnSumHistogramNoBoundsLayered'+str(fig)+'.png',bbox_inches='tight')
     Mesh3.hist(fig+2)
     mp.figure(fig+2)
-    mp.title('Complementary cumulative distribution of power')
+    mp.title('Cumulative frequency of power')
     mp.grid()
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnBothRNDCumsumLayered'+str(fig)+'.png', bbox_inches='tight')
     mp.figure(fig+3)

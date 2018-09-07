@@ -39,7 +39,7 @@ if __name__=='__main__':
   # Define the ray tracing parameters
 
   #n=10                     # number of rays emitted from source
-  l=4                      # number of n's
+  l=4                       # number of n's
   ave=5                     # number of runs to average over
   origin=(5,1)              # source of the signal
   i=1                       # The figure number for the room plot

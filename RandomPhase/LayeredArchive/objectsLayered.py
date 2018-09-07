@@ -60,11 +60,11 @@ class room:
       if leng2>leng:
         leng=leng2
     return leng
-  def Plotroom(s,origin):
+  def Plotroom(s,origin,width):
     ''' Plots all the edges in the room '''
     mp.plot(origin[0],origin[1],marker='x',c='r')
     for edge in s.objects[-1]:
-      hp.Plotedge(np.array(edge.p),'g')
+      hp.Plotedge(np.array(edge.p),'g',width)
     return
   def roomconstruct(s,Obstaclelayers):
     ''' Takes in a set of wall segments and constructs a room object
@@ -105,8 +105,8 @@ class room:
         wallstart=start*(s.heights[i]-h)/s.heights[-1]
         #print('height= ',h)
         #print('Portion of initial power at height',wallstart)
-        for j in range(0,n+2):
-          theta=(2*j*pi)/n
+        for it in range(0,n+2):
+          theta=(2*it*pi)/n
           r=s.maxleng()
           xtil=ma.cos(theta)
           ytil=ma.sin(theta)
@@ -125,79 +125,79 @@ class room:
     print("Time to compute unbounded--- %s seconds ---" % end_time )
     Mesh.hist(fig+2)
     mp.figure(fig+2)
-    mp.title('Cumulative Frequency of signal power')
+    mp.title('Frequency of power or higher')
     mp.grid()
-    mp.savefig('../../../ImagesOfSignalStrength/FiguresNew/RNDCumsum'+str(fig)+'.png', bbox_inches='tight')
+    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RNDCumsum'+str(fig)+'.png', bbox_inches='tight')
     mp.figure(fig+3)
-    mp.title('Histrogram of signal power')
+    mp.title('Histrogram of power')
     mp.grid()
-    mp.savefig('../../../ImagesOfSignalStrength/FiguresNew/RNDHistogramNoBounds'+str(fig)+'.png',bbox_inches='tight')
+    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RNDHistogramNoBounds'+str(fig)+'.png',bbox_inches='tight')
     mp.figure(fig)
     mp.title('Ray paths')
-    s.Plotroom(origin)
-    mp.savefig('../../../ImagesOfSignalStrength/FiguresNew/RaysRNDLayered'+str(fig)+'.png',bbox_inches='tight')
+    s.Plotroom(origin,1.0)
+    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RaysRNDLayered'+str(fig)+'.png',bbox_inches='tight')
     mp.figure(fig+1)
     mp.title('Heatmap')
-    s.Plotroom(origin)
+    s.Plotroom(origin,1.0)
     mp.colorbar()
-    mp.savefig('../../../ImagesOfSignalStrength/FiguresNew/HeatmapRNDLayered'+str(fig)+'.png',bbox_inches='tight')
+    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/HeatmapRNDLayered'+str(fig)+'.png',bbox_inches='tight')
     #mp.figure(i+4)
     #s.Plotroom(origin)
-    #mp.savefig('../../ImagesOfSignalStrength/FiguresNew/Room.png',bbox_inches='tight')
+    #mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/Room.png',bbox_inches='tight')
     return fig+4
-  def uniform_ray_tracer_bounded(s,origin,n,fig,spacing,frequency,start,m,bounds,refloss):
-    ''' Traces ray's uniforming emitted from an origin around a room.
-    Number of rays is n, number of reflections m'''
-    start_time=t.time()
-    pi=4*np.arctan(1) # numerically calculate pi
-    Mesh=s.roommesh(spacing)
-    i=1
-    for h in s.heights:
-      if h == s.heights[-1]:
-        break
-      for j in range(0,n+1):
-        wallstart=start*(s.heights[i]-h)/s.heights[-1]
-        theta=(2*j*pi)/n
-        r=s.maxleng()
-        xtil=ma.cos(theta)
-        ytil=ma.sin(theta)
-        x= r*xtil+origin[0]
-        y= r*ytil+origin[1]
-        ray=Ray(frequency,wallstart,origin,(x,y))
-        # Reflect the ray
-        ray.multiref(s.objects[-(i-1)],r,m)
-        mp.figure(fig)
-        ray.Plotray(s)
-        mp.figure(fig+1)
-        Mesh=ray.heatmapraybounded(Mesh,ray.streg,ray.frequency,spacing,bounds,refloss)
-      i+=1
-    end_time=(t.time() - start_time)
-    s.time[1]=end_time
-    print("Time to compute bounded--- %s seconds ---" % end_time)
-    mp.figure(fig)
-    s.Plotroom(origin)
-    ##mp.title('Ray paths')
-    ##mp.savefig('../../ImagesOfSignalStrength/FiguresNew/Rays.jpg',bbox_inches='tight')
-    ##mp.figure(i+3)
-    #s.Plotrom(origin)
-    #mp.savefig('../../ImagesOfSignalStrength/FiguresNew/temproom.jpg',bbox_inches='tight')#This section is the same as the unbounded
-    mp.figure(fig+1)
-    s.Plotroom(origin)
-    #mp.figure(i+1)
-    mp.title('Heatmap Bounded')
-    mp.colorbar()
-    mp.savefig('../../../ImagesOfSignalStrength/FiguresNew/HeatmapBoundedRNDLayered'+str(fig)+'.png',bbox_inches='tight')
+  #def uniform_ray_tracer_bounded(s,origin,n,fig,spacing,frequency,start,m,bounds,refloss):
+    #''' Traces ray's uniforming emitted from an origin around a room.
+    #Number of rays is n, number of reflections m'''
+    #start_time=t.time()
+    #pi=4*np.arctan(1) # numerically calculate pi
+    #Mesh=s.roommesh(spacing)
+    #i=1
+    #for h in s.heights:
+      #if h == s.heights[-1]:
+        #break
+      #for j in range(0,n+1):
+        #wallstart=start*(s.heights[i]-h)/s.heights[-1]
+        #theta=(2*j*pi)/n
+        #r=s.maxleng()
+        #xtil=ma.cos(theta)
+        #ytil=ma.sin(theta)
+        #x= r*xtil+origin[0]
+        #y= r*ytil+origin[1]
+        #ray=Ray(frequency,wallstart,origin,(x,y))
+        ## Reflect the ray
+        #ray.multiref(s.objects[-(i-1)],r,m)
+        #mp.figure(fig)
+        #ray.Plotray(s)
+        #mp.figure(fig+1)
+        #Mesh=ray.heatmapraybounded(Mesh,ray.streg,ray.frequency,spacing,bounds,refloss)
+      #i+=1
+    #end_time=(t.time() - start_time)
+    #s.time[1]=end_time
+    #print("Time to compute bounded--- %s seconds ---" % end_time)
+    #mp.figure(fig)
     #s.Plotroom(origin)
-    Mesh.histbounded(fig+2)
-    mp.figure(fig+2)
-    mp.title('Cumulative Frequency of signal power bounded')
-    mp.grid()
-    mp.savefig('../../../ImagesOfSignalStrength/FiguresNew/RNDCumsumBoundedLayered'+str(fig)+'.png',bbox_inches='tight')
-    mp.figure(fig+3)
-    mp.title('Histrogram of bounded signal power')
-    mp.grid()
-    mp.savefig('../../../ImagesOfSignalStrength/FiguresNew/RNDHistogramBoundsLayered'+str(fig)+'.png',bbox_inches='tight')
-    return fig+4
+    ###mp.title('Ray paths')
+    ###mp.savefig('../../ImagesOfSignalStrength/FiguresNew/Rays.jpg',bbox_inches='tight')
+    ###mp.figure(i+3)
+    ##s.Plotrom(origin)
+    ##mp.savefig('../../ImagesOfSignalStrength/FiguresNew/temproom.jpg',bbox_inches='tight')#This section is the same as the unbounded
+    #mp.figure(fig+1)
+    #s.Plotroom(origin)
+    ##mp.figure(i+1)
+    #mp.title('Heatmap Bounded')
+    #mp.colorbar()
+    #mp.savefig('../../../ImagesOfSignalStrength/FiguresNew/HeatmapBoundedRNDLayered'+str(fig)+'.png',bbox_inches='tight')
+    ##s.Plotroom(origin)
+    #Mesh.histbounded(fig+2)
+    #mp.figure(fig+2)
+    #mp.title('Frequency of power or higher after bounding')
+    #mp.grid()
+    #mp.savefig('../../../ImagesOfSignalStrength/FiguresNew/RNDCumsumBoundedLayered'+str(fig)+'.png',bbox_inches='tight')
+    #mp.figure(fig+3)
+    #mp.title('Histrogram of bounded power')
+    #mp.grid()
+    #mp.savefig('../../../ImagesOfSignalStrength/FiguresNew/RNDHistogramBoundsLayered'+str(fig)+'.png',bbox_inches='tight')
+    #return fig+4
 
 class Ray:
   ''' represents a ray by a collection of line segments followed by
@@ -303,6 +303,7 @@ class Ray:
     return err
   def heatmapray(s,Mesh,streg,freq,spacing,refloss):
     i=0
+    streg=streg*(299792458/(freq*4*ma.pi))
     iterconsts=np.array([streg,1.0])
     for r in s.ray[:-3]:
       #In db
