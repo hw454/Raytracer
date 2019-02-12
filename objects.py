@@ -102,8 +102,8 @@ class room:
       ray.multiref(s,m)
       mp.figure(i)
       ray.Plotray(s)
-      mp.figure(i+1)
-      Mesh=ray.heatmapray(Mesh,ray.streg,ray.frequency,spacing,refloss)
+      #mp.figure(i+1)
+      #Mesh=ray.heatmapray(Mesh,ray.streg,ray.frequency,spacing,refloss)
     end_time=(t.time() - start_time)
     s.time[0]=end_time
     print("Time to compute unbounded--- %s seconds ---" % end_time )
