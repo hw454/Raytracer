@@ -308,18 +308,26 @@ class roommesh:
     s.grid[np.absolute(s.grid)>bounds[1]]=bounds[1]
     s.grid[np.absolute(s.grid)<bounds[0]]=bounds[0]
     return
-  def meshdiff(s,r):
-    z1=s.grid
-    z2=r.grid
+  def powermeshdiff(s,r):
+    z1=s #.grid
+    z1=10*np.ma.log10((8.854187817e-12)*np.square(z1))
+    z2=r #.grid
+    z2=10*np.ma.log10((8.854187817e-12)*np.square(z2))
     diffz=np.subtract(z1,z2)
     diffz=np.absolute(diffz)
-    diffz=diffz/np.absolute(z1)
+    #diffz=diffz/np.absolute(z1)
     #z1=10*np.log10(np.absolute(s.grid))
     ##print(r.grid)
     #z2=10*np.log10(np.absolute(r.grid))
-    np.seterr(divide='ignore')
-    mp.imshow(diffz, cmap='viridis', interpolation='nearest',vmin=0,vmax=5) #,extent=extent)
-    mp.colorbar()
+    return diffz
+  def meshdiff(s,r):
+    diffz=np.subtract(s,r)
+    diffz=np.absolute(diffz)
+    #diffz=diffz/np.absolute(z1)
+    #z1=10*np.log10(np.absolute(s.grid))
+    ##print(r.grid)
+    #z2=10*np.log10(np.absolute(r.grid))
+    return diffz
   def plot(s):
      ''' Plot a heatmap of the strength values '''
      # Remove the points inside the objects from the data set.
@@ -362,7 +370,7 @@ class roommesh:
          elif intersection1==1 and intersection3==1:
            s.grid[i][j]=0.0
      return
-  def powerplot(s,room,origin,outsidepoint1,outsidepoint2):
+  def powergrid(s,room,origin,outsidepoint1,outsidepoint2):
      ''' Plot a heatmap of the strength values '''
      np.seterr(divide='ignore')
      N=s.objectcorners.shape[0]
@@ -373,9 +381,9 @@ class roommesh:
      #Convert to db
      z=10*np.ma.log10(z)
      extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-     mp.imshow(z, cmap='viridis', interpolation='nearest',extent=extent,vmin=-110,vmax=30)
+     #mp.imshow(z, cmap='viridis', interpolation='nearest',extent=extent,vmin=-110,vmax=30)
      #mp.colorbar()
-     return
+     return z, extent
   def hist(s,i):
      z=s.grid
      # Convert to Power
