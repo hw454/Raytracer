@@ -1,20 +1,26 @@
-
 #!/usr/bin/env python3
-# Hayley 2019-02-07
+# Hayley 2019-02-14
 
 import numpy as np
 from scipy.sparse import lil_matrix as SM
 from itertools import product
 import math
+import sys
+print('Running  on python version')
+print(sys.version)
 
 # dk is dictionary key, smk is sparse matrix key, SM is a sparse matrix
 class DS:
   def __init__(s,nx=1,ny=1,nz=1,na=1,nb=1):
-    '''nx,ny,nz are the maximums for the key for the dictionary and na and nb are the dimensions of the sparse matrix associated with each key.'''
+    '''nx,ny,nz are the maximums for the key for the dictionary and na
+    and nb are the dimensions of the sparse matrix associated with each key.'''
     s.shape=(na,nb)
     s.d={}
     for x, y, z in product(range(nx),range(ny),range(nz)):
       s.d[x,y,z]=SM(s.shape,dtype=np.complex128)
+    s.nx=nx
+    s.ny=ny
+    s.nz=nz
   def __getitem__(s,i):
     if len(i)==3:
       dk=i[:3]
@@ -53,6 +59,17 @@ class DS:
     return str(s.d)
   def __repr__(s):
     return str(s.d) # TODO
+  def nonzero(s):
+    for x,y,z in product(range(s.nx),range(s.ny),range(s.nz)):
+      indicesM=s.d[0,0,0].nonzero()
+      NI=len(indicesM)
+      if x==0 and y==0 and z==0:
+        indices=np.array([[0,0,0,indicesM[0][0],indicesM[0][1]]])
+        for j in range(1,NI):
+          indices=np.append(indices,[[x,y,z,indicesM[j][0],indicesM[j][1]]],axis=0)
+        print(indices)
+      #indices=np.append([indices,s.d[x,y,z].nonzero(), axis=0)
+
 
 def sparse_angles(M):
   '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
@@ -61,6 +78,14 @@ def sparse_angles(M):
   AngM[indices]=np.angle(M.todense()[indices])
   return AngM
 
+def dict_sparse_angles(DSM):
+  '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+  nx,ny,nz=DSM.nx, DSM.ny, DSM.nz
+  na,nb=DSM[0,0,0].shape
+  AngM=DS(nx,ny,nz,na,nb)
+  indices=DSM.nonzero()
+  #AngM[indices]=np.angle(M.todense()[indices])
+  return 0
 
 def test_00():
   ds=DS()
@@ -176,7 +201,7 @@ def test_10():
   return 0
 
 def test_11():
-  '''Extract reflection angle and ray length from matrix'''
+  '''Extract reflection angles from matrix'''
   nx=3
   ny=3
   nz=1
@@ -186,10 +211,33 @@ def test_11():
   for i,j,k in product(range(nx),range(ny),range(nz)):
       M=DSM[i,j,k]
       AngM=sparse_angles(M)
-      print(AngM)
-  return 0
+  return AngM
 
+def test_12():
+  '''Extract the cos of the reflection angles of the matrix'''
+  nx=3
+  ny=3
+  nz=1
+  na=3
+  nb=3
+  DSM=test_03c(nx,ny,nz,na,nb)
+  for i,j,k in product(range(nx),range(ny),range(nz)):
+      M=DSM[i,j,k]
+      indices=M.nonzero()
+      CosAngM=SM(M.shape,dtype=float)
+      CosAngM[indices]=np.cos(sparse_angles(M)[indices].todense())
+  print(CosAngM)
+  return CosAngM
 
+def test_13():
+  '''Attempt to compute angles of complex entries of every nonzero element of SM inside dictionary'''
+  nx=3
+  ny=3
+  nz=1
+  na=3
+  nb=3
+  DSM=test_03c(nx,ny,nz,na,nb)
+  n=dict_sparse_angles(DSM)
 
 if __name__=='__main__':
-  test_11()
+  test_13()
