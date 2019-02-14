@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Hayley 2019-02-06
+# Hayley 2019-02-07
 
 import numpy as np
 from scipy.sparse import lil_matrix as SM
@@ -98,6 +98,50 @@ def test_05():
   print(ds[0,0,0,0,:])
   print(ds[0,0,0,1:6:2,:])
 
-     
+def test_06():
+  '''testing matrix multiplication'''
+  ds1=test_03(7,6,1,5,5)
+  ds2=test_03b(7,6,1,5,5)
+  M0=ds1[0,0,0]*ds2[0,0,0]
+  M1=ds1[5,5,0]*ds2[6,5,0]
+  print(M0)
+  print(M1)    
+
+def test_07():
+  '''testing getting angle from complex entries in matrix'''
+  ds=test_03(3,3,1,3,3)
+  M0=ds[0,0,0]
+  indices=zip(*M0.nonzero())
+  M1= SM(M0.shape,dtype=np.float)
+  for i,j in indices:
+    M1[i,j]=np.angle(M0[i,j])
+  print(M0,M1)  
+
+def test_08():
+  '''testing getting angle from complex entries in matrix then taking the cosine of every nonzero entry'''
+  ds=test_03(3,3,1,3,3)
+  M0=ds[0,0,0]
+  indices=zip(*M0.nonzero())
+  M1= SM(M0.shape,dtype=np.float)
+  for i,j in indices:
+    M1[i,j]=np.cos(np.angle(M0[i,j]))
+  print(M0,M1) 
+
+def test_09():
+  '''testing operation close to Fresnel reflection formula'''
+  obs=np.array([1.0,2.0,3.0])
+  obs=obs*np.eye(3)
+  ds=test_03(3,3,1,3,3)
+  M0=ds[0,0,0]
+  indices=zip(*M0.nonzero())
+  M1= SM(M0.shape,dtype=np.float)
+  M2= SM(M0.shape,dtype=np.float)
+  for i,j in indices:
+    M1[i,j]=np.cos(np.angle(M0[i,j]))
+    M2[i,j]=np.cos(0.7*np.angle(M0[i,j]))
+  N1=M1[:,0].T*obs-M2[:,0]
+  N2=M1[:,0].T*obs+M2[:,0]
+  return (N1[N1.nonzero()]/(N2[N2.nonzero()]))
+   
 if __name__=='__main__':
-  test_05()
+  test_09() 

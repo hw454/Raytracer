@@ -17,10 +17,10 @@ class X:
     if len(i)==2: # single element
       return s.x[i] 
     if isinstance(i[0],slice): # column
-      if i[0]==slice(None,None,None):
-        return s.x[:,i[1]]
-      else:
-        pass # TODO - handle slice with start:stop:step
+      #if i[0]==slice(None,None,None):
+      return s.x[i[0],i[1]]
+      #else:
+        #pass # TODO - handle slice with start:stop:step
     if isinstance(i[1],slice): # row
       if i[1]==slice(None,None,None):
         return s.x[:,i[0]]
@@ -31,10 +31,13 @@ class X:
       raise 'indexing error!'
 
 def test_00():
-  x=X(3,4)
+  x=X(6,4)
   print(x[1])
   print(x[1,2])
+  print(x[1:3,1])
   print(x[:,1])
+  print(x[1:,1])
+  print(x[1:6:2,1])
   print(x[2,:])
 
 if __name__=='__main__':
