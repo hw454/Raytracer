@@ -14,28 +14,36 @@ import intersection as inter
 from numpy import *
 import linefunctions as lf
 
-def try_reflect_ray(ray,edge):
+def try_reflect_ray(ray,triangle):
   ''' Reflection of a ray which goes through the points source or
   previous intersect and next intersect.ray.get_origin '''
   # Find the distances which need to be translated
+  #edge=np.array([triangle[0],triangle[1]]) # FIXME
   trdist=-ray[1]
   direc=lf.Direction(ray)
   # Translate the points before the reflection
   o=trdist
   ray+=trdist
-  edge+=trdist
+  triangle[0]+=trdist
+  triangle[1]+=trdist
+  triangle[2]+=trdist
+  edge1=triangle[0]-triangle[1]
+  edge2=triangle[1]-triangle[2]
+  edge3=triangle[2]-triangle[0]
   # Find the image of the ray in the edge
   Image=ray[1]+direc
   # Use the unit edge instead of the exact edge for the reflection
-  unitedge=np.array([ray[1],edge[1]])
-  unitedge=(1.0/lf.length(unitedge))*unitedge
+  #unitedge=np.array([ray[1],edge[1]])
+  #unitedge=(1.0/lf.length(unitedge))*unitedge
+  #FIXME unitedge not needed
   # Find the normal to the edge
-  normedge=np.array([[unitedge[1][1],-unitedge[1][0]],ray[1]])
+  normedge=np.cross(edge1,edge2)
+  P1=np.dot(ray[0],normedge)/np.dot(normedge,normedge)
+  normedge=P1-ray[0]
   # Find the reflection using the Image
-  ReflPt=Image-2*np.dot(normedge[0],Image)*normedge[0]
+  ReflPt=Image+2*normedge
   #Translate Back
   ray-=trdist
-  edge-=trdist
   normedge-=trdist
   ReflPt-=trdist
   o-=trdist

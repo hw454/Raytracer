@@ -3,16 +3,19 @@
 ''' Code to construct the mesh of the room '''
 
 from math import atan2,hypot,sqrt,copysign
-import numpy as np
-import reflection as ref
-import intersection as ins
-import linefunctions as lf
-import HayleysPlotting as hp
-import matplotlib.pyplot as mp
-import math as ma
 from math import sin,cos,atan2,log
-import numpy.linalg as lin
-import random as rnd
+import numpy                as np
+import reflection           as ref
+import intersection         as ins
+import linefunctions        as lf
+import HayleysPlotting      as hp
+import matplotlib.pyplot    as mp
+import math                 as ma
+import numpy.linalg         as lin
+import random               as rnd
+import Rays                  as ry
+import time                 as t
+from itertools import product
 
 
 class obstacle_segment:
@@ -35,8 +38,8 @@ class obstacle_segment:
 class room:
   ' A group of obstacle_segments and the time for the run'
   def __init__(s,obst,Nob):
-    s.obst=list((obst,))
-    s.points=list(obst)
+    s.obst=list(obst,)
+    s.points=obst
     s.Nob=Nob
     s.inside_points=np.array([])
     s.objectcorners=np.array([obst[0:Nob-1]])
@@ -65,6 +68,58 @@ class room:
       if leng2>leng:
         leng=leng2
     return leng
+  def maxxleng(s):
+    ''' Finds the maximum length contained in the room in the x plane'''
+    leng=0
+    m=len(s.points)
+    p1=s.points[-1][0][0]
+    for j,k in product(range(0,m),range(0,3)): #FIXME get x co-odrinates
+      p2=s.points[j][k][0]
+      leng2=lf.length(np.array([p1,p2]))
+      if leng2>leng:
+        leng=leng2
+    return leng
+  def maxyleng(s):
+    ''' Finds the maximum length contained in the room in the y plane'''
+    leng=0
+    m=len(s.points)
+    p1=s.points[-1][0][1]
+    for j,k in product(range(0,m),range(0,3)):
+      p2=s.points[j][k][1]
+      leng2=lf.length(np.array([p1,p2]))
+      if leng2>leng:
+        leng=leng2
+    return leng
+  def maxzleng(s):
+    ''' Finds the maximum length contained in the  in the z plane '''
+    leng=0
+    m=len(s.points)
+    p1=s.points[-1][0][2]
+    for j,k in product(range(0,m),range(0,3)):
+      p2=s.points[j][k][2]
+      leng2=lf.length(np.array([p1,p2]))
+      if leng2>leng:
+        leng=leng2
+    return leng
+  def ray_bounce(s,Tx,Nre,Nra):
+    start_time=t.time()         # Start the time counter
+    ''' Traces ray's uniformly emitted from an origin around a room.
+    Number of rays is n, number of reflections m. Output
+    Nra x Nre x Dimension array containing each ray as a squence of it's intersection points.'''
+    r=s.maxleng()
+    raylist=np.empty([Nra+1, Nre+1,3])
+    for it in range(0,Nra+1):
+      theta=(2*it*ma.pi)/Nra
+      xtil=ma.cos(theta)
+      ytil=ma.sin(theta)
+      ztil=0 #FIXME for 3D this needs to be changed
+      x= r*xtil+Tx[0]
+      y= r*ytil+Tx[1]
+      z= r*ztil+Tx[2]
+      direc=np.array([x,y,z])
+      raystart=ry.Ray(Tx, direc)
+      raylist[it]=raystart.multiref(s,Nre)
+    return raylist
   def Plotroom(s,origin,width):
     ''' Plots all the edges in the room '''
     mp.plot((origin),marker='x',c='r')

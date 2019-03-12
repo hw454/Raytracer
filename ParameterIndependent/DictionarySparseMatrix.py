@@ -101,7 +101,7 @@ def sparse_angles(M):
   t3=time.time()
   print('first time', t2-t1)
   print('second time',t3-t2)
-  print('Difference in times', t2-t1-t3-t2)
+  print('Difference in times', t2-t1-t3+t2)
   return AngM
 
 def dict_sparse_angles(DSM):
@@ -232,8 +232,8 @@ def test_11():
   nx=1
   ny=1
   nz=1
-  na=100000
-  nb=100000
+  na=1000
+  nb=1000
   DSM=test_03c(nx,ny,nz,na,nb)
   for i,j,k in product(range(nx),range(ny),range(nz)):
       M=DSM[i,j,k]
@@ -270,7 +270,7 @@ def test_13():
 
 
 def test_14():
-  '''Attempt to find angle of nonzero elements of SM inside dictionary'''
+  '''Attempt to find angle of nonzero element of SM inside dictionary'''
   nx=3
   ny=3
   nz=1

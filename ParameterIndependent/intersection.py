@@ -9,7 +9,7 @@ import linefunctions as lf
 import HayleysPlotting as hp
 
 
-def intersection(line,edge):
+def intersection2D(line,edge):
   ''' Locates the point inter as the point of intersection between
   a line  and an edge. line is an origin and direction, edge is 2
   points '''
@@ -106,17 +106,25 @@ def intersection_with_end(line,edge,delta):
     #on each other
     return [0, 0.0]
 
-def intersection3D(line,plane):
+def intersection(line,triangle):
     ''' find the intersection of a line and a plane. The line is
-    represented as a origin and normal and the plane is represented as
-    a direction as a normal. '''
-    if np.inner(line[1],plane[1])!=0:
-      lam=-np.inner(line[0]-plane[0],plane[1])/np.inner(line[1],plane[1])
-      inter=line[0]+lam*line[1]
-    else:
-      # The line is contained in the plane
-      return [None, None]
-    return inter
+    represented as a point and a direction and the plane is three points which lie on the plane.'''
+    print('Triangle',triangle)
+    edges=np.matrix([triangle.T])
+    print('edges',edges)
+    norm=np.cross(edge1,edge2)
+    direc=line[1]
+    p0=triangle[0]
+    l0=line[0]
+    if np.inner(direc,norm)!=0:
+      lam=np.inner(p0-l0,norm)/np.inner(direc,norm)
+      #FIXME check if it's inside the triangle
+      return l0+lam*direc
+    elif np.inner(direc,norm)==0:
+      # The line is contained in the plane or parallele right output
+      return [None,None]
+    else: raise Error('neither intersect or parallel to plane')
+    return None
 
 def test3D():
     l1=np.array([[0.0,0.0,0.0],[1.0,1.0,1.0]])

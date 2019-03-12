@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as mp
 import Room as rom
 import raytracerfunction as rayt
+import DictionarySparseMatrix as DSM
 
 if __name__=='__main__':
   ##---- Define the room co-ordinates----------------------------------
@@ -15,14 +16,16 @@ if __name__=='__main__':
   ##COMMENT But in 3D this needs to be reconsidered.
   ##COMMENT These lines will only define the boundary and the plane surface of
   ##COMMENT the object needs to be defined.
-  ob1=np.array([(0.25,0.25,0.0),(0.5 ,0.25,0.0),(0.25,0.5 ,0.0)]) # Obstacle 1
-  ob2=np.array([(0.75,0.75,0.0),(0.5 ,0.75,0.0),(0.75,0.5 ,0.0)]) # Obstacle 2
-  ob3=np.array([(0.5 ,0.25,0.0),(0.5 ,0.75,0.0),(0.25,0.75,0.0)])# Obstacle 3
 
-  OuterBoundary1=np.array([(0.0,0.0,0.0),(1.0,0.0,0.0)])
-  OuterBoundary2=np.array([(1.0,0.0,0.0),(1.0,1.0,0.0)])
-  OuterBoundary3=np.array([(1.0,1.0,0.0),(0.0,1.0,0.0)])
-  OuterBoundary4=np.array([(0.0,1.0,0.0),(0.0,0.0,0.0)])
+  # Obstacles are all triangles.
+  ob1=np.array([(0.25,0.25,1.0),(0.5 ,0.25,0.0),(0.25,0.5 ,0.0)]) # Obstacle 1
+  ob2=np.array([(0.75,0.75,1.0),(0.5 ,0.75,0.0),(0.75,0.5 ,0.0)]) # Obstacle 2
+  ob3=np.array([(0.5 ,0.25,1.0),(0.5 ,0.75,0.0),(0.25,0.75,0.0)])# Obstacle 3
+
+  OuterBoundary1=np.array([(0.0,0.0,1.0),(1.0,0.0,0.0),(0.0,0.0,0.0)])
+  OuterBoundary2=np.array([(1.0,0.0,1.0),(1.0,1.0,0.0),(1.0,0.0,0.0)])
+  OuterBoundary3=np.array([(1.0,1.0,1.0),(0.0,1.0,0.0),(1.0,1.0,0.0)])
+  OuterBoundary4=np.array([(0.0,1.0,1.0),(0.0,1.0,0.0),(0.0,0.0,0.0)])
   OuterBoundary=list((OuterBoundary1,OuterBoundary2, OuterBoundary3, OuterBoundary4))
   #- Outer Boundary -
   ##COMMENT list 3D co-ordinates defining the outer boundary of the
@@ -30,7 +33,7 @@ if __name__=='__main__':
   # in all the co-ordinates in 0. For propagation in one room in 2D this
   # is the list of co-ordinates defining the edges of the walls.
 
-  Tx=np.array([(0.75,0.25,0.0)]) # -Router location -co-ordinate of three real numbers
+  Tx=np.array([0.75,0.25,0.0]) # -Router location -co-ordinate of three real numbers
   #(the third is zero when modelling in 2D).
 
   ##----Parameters for the ray tracer----------------------------------
@@ -41,16 +44,23 @@ if __name__=='__main__':
   ##----Construct the environment--------------------------------------
   Oblist=list((ob1,ob2,ob3))
   Nob=len(Oblist)
-  Oblist=list((Oblist,OuterBoundary))
+  Oblist=Oblist+OuterBoundary
   # list of all the obstacles in the room.
 
   Room=rom.room(Oblist,Nob)
+  Nx=int(Room.maxxleng()/h)
+  Ny=int(Room.maxyleng()/h)
+  Nz=int(Room.maxzleng()/h)
   # Room contains all the obstacles and walls.
 
-  Mesh=rayt.raytracer(Room,Tx,Nra,Nre,h)
+  Mesh=DSM.DS(Nx,Ny,Nz,Nre*(Nra+1),Nob*(Nre+1))
   # This large mesh is initialised as empty. It contains reference to
   # every segment at every position in the room.
   # The history of the ray up to that point is stored in a vector at that reference point.
+
+  # Calculate the Ray trajectories
+  Rays=Room.ray_bounce(Tx, Nre, Nra)
+
 
   exit()
 
