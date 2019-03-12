@@ -4,10 +4,45 @@
 ''' Module Containing the Intersection and it's test. '''
 
 import numpy as np
+from numpy import linalg as la
 import matplotlib.pyplot as mp
 import linefunctions as lf
 import HayleysPlotting as hp
+import sys
 
+epsilon=9.77e-4
+
+def Project2D(po,triangle):
+  T0=triangle[0]
+  T1=triangle[1]
+  T2=triangle[2]
+  # Output po as a 2D co-ordinate in the triangle plane with T0 as the origin
+  direc1=(T1-T0)/(la.norm(T1-T0))
+  norm=np.cross(T1-T0, T2-T0)
+  norm=norm/(la.norm(norm))
+  direc2=np.cross(direc1,norm)
+  direc2=direc2/(la.norm(direc2))
+  # Check the vectors direc1, norm, and direc2 satisfy the right conditions.
+  if np.dot(norm,direc1)<epsilon and np.dot(norm,direc2)<epsilon and np.dot(direc1,direc2)<epsilon:
+    coef=np.array([np.dot(po-T0,direc1),np.dot(po-T0,direc2),1])
+    return coef
+  else:
+    raise CalculateError("The created vectors, norm, direc1, and direc2 aren't all normal")
+    return None
+
+def InsideCheck(Point,triangle):
+  # Since all points are in the same plane, translate them all into 2D
+  # Project2D outputs (x,y,1)
+  Point=Project2D(Point,       triangle)
+  T0   =Project2D(triangle[0], triangle)
+  T1   =Project2D(triangle[1], triangle)
+  T2   =Project2D(triangle[2], triangle)
+  # Use barycentric co-ordinates to check if inter is within the triangle
+  TriMat=np.array([T0,T1,T2]).T
+  coefs=np.linalg.solve(TriMat,Point)
+  # If all the coefficients are bigger than 0 and less than 1 then the point is inside the triangle
+  if coefs.all()<=1 and coefs.all()>=0: return 1
+  else: return 0
 
 def intersection2D(line,edge):
   ''' Locates the point inter as the point of intersection between
@@ -109,58 +144,36 @@ def intersection_with_end(line,edge,delta):
 def intersection(line,triangle):
     ''' find the intersection of a line and a plane. The line is
     represented as a point and a direction and the plane is three points which lie on the plane.'''
-    print('Triangle',triangle)
-    edges=np.matrix([triangle.T])
-    print('edges',edges)
+    edge1=triangle[0]-triangle[1]
+    edge2=triangle[1]-triangle[2]
+    # The triangle lies on a plane with normal norm and goes through the point p0.
+    # The line goes through the point l0 in the direction direc
     norm=np.cross(edge1,edge2)
     direc=line[1]
     p0=triangle[0]
     l0=line[0]
     if np.inner(direc,norm)!=0:
+      # The line is not parallel with the plane and there is therefore an intersection.
       lam=np.inner(p0-l0,norm)/np.inner(direc,norm)
-      #FIXME check if it's inside the triangle
-      return l0+lam*direc
+      inter=l0+lam*direc
+      check=InsideCheck(inter,triangle)
+      if check: return inter
+      else: return [None,None]
     elif np.inner(direc,norm)==0:
-      # The line is contained in the plane or parallele right output
+      # The line is contained in the plane or parallel right output
       return [None,None]
     else: raise Error('neither intersect or parallel to plane')
     return None
 
-def test3D():
+def test():
     l1=np.array([[0.0,0.0,0.0],[1.0,1.0,1.0]])
-    plane=np.array([[0.0,1.0,1.0],[0.0,0.0,1.0]])
-    inter=intersection3D(l1,plane)
-    print('Intersection3D test should be 0', np.inner((inter-plane[0]),plane[1]))
+    triangle=np.array([[0.5,3.0,3.0],[0.5,0.0,3.0],[0.5,0.0,0.0]])
+    inter=intersection(l1,triangle)
     return
 
 
-def test():
-  ''' Test for the intersection function '''
-  l1=np.array([[0.0,0.0],[1.0,1.0]])
-  e1=np.array([[0.0,0.5],[3.0,0.5]])
-  e2=np.array([[0.5,0.0],[0.5,3.0]])
-  e3=np.array([[0.0,1.0],[2.0,-1.0]])
-  inter=intersection(l1,e1)
-  if inter[0]:
-    if (abs(inter[0]-0.5)<1.0E-7 and abs(inter[1]-0.5)<1.0E-7):
-     inter=intersection(l1,e2)
-     if inter[0]:
-       if (abs(inter[0]-0.5)<1.0E-7 and abs(inter[1]-0.5)<1.0E-7):
-        inter=intersection(l1,e3)
-        if inter[0]:
-          if (abs(inter[0]-0.5)<1.0E-7 and abs(inter[1]-0.5)<1.0E-7):
-            l1=np.array([[0.0,0.0],[1.0,2.0]])
-            inter=intersection(l1,e1)
-            if inter[0]:
-              if (abs(inter[0]-0.25)<1.0E-7 and abs(inter[1]-0.5)<1.0E-7):
-                inter=intersection(l1,e2)
-                if inter[0]:
-                  if (abs(inter[0]-0.5)<1.0E-7 and abs(inter[1]-1.0)<1.0E-7):
-                    inter=intersection(l1,e3)
-                    if inter[0]:
-                      if (abs(inter[0]-3**-1)<1.0E-5 and abs(inter[1]-2*3.0**-1)<1.0E-5):
-                       return True
-  else:
-    return False
 
-
+if __name__=='__main__':
+  test()
+  print('Running  on python version')
+  print(sys.version)

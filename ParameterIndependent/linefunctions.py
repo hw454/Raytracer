@@ -10,24 +10,20 @@ import matplotlib.pyplot as mp
 def Direction(line):
   '''  Direction using co-ordinates input is a line
   (pair of co-ordinates) '''
+  if isinstance(line[0],float): n=1
+  elif isinstance(line[0],int): n=1
+  else:
+    n=len(line[0])
   if (length(line)>0):
     return (line[1]-line[0])/length(line)
   else:
-    return np.array([0.0,0.0])
-
-def Direction3D(line):
-  '''  Direction using co-ordinates input is a line
-  (pair of co-ordinates) '''
-  if (length3D(line)>0):
-    return (line[1]-line[0])/length3D(line)
-  else:
-    return np.array([0.0,0.0,0.0])
+    return np.zeros(n)
 
 def length(line):
   ''' line is given as a pair of two co-ordinates. Output the length of
   the line '''
   if isinstance(line[0],float): n=1
-  elif type(line[0])==int: n=1
+  elif isinstance(line[0],int): n=1
   else:
     n=len(line[0])
   if n==3:

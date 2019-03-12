@@ -7,8 +7,6 @@ from itertools import product
 import math
 import sys
 import time
-print('Running  on python version')
-print(sys.version)
 
 # dk is dictionary key, smk is sparse matrix key, SM is a sparse matrix
 class DS:
@@ -283,3 +281,5 @@ def test_14():
 
 if __name__=='__main__':
   test_11()
+  print('Running  on python version')
+  print(sys.version)

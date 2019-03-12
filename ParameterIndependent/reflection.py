@@ -7,19 +7,17 @@
 ''' Code to Reflect a line in an edge without using Shapely '''
 
 from math import atan2,hypot,sqrt,copysign
+from numpy import linalg as la
 import numpy as np
 import matplotlib.pyplot as mp
 import HayleysPlotting as hp
 import intersection as inter
-from numpy import *
 import linefunctions as lf
 
 def try_reflect_ray(ray,triangle):
-  ''' Reflection of a ray which goes through the points source or
-  previous intersect and next intersect.ray.get_origin '''
+  ''' Reflection of a ray with a triangle'''
   # Find the distances which need to be translated
-  #edge=np.array([triangle[0],triangle[1]]) # FIXME
-  trdist=-ray[1]
+  trdist=-ray[1] # Make the intersection the origin
   direc=lf.Direction(ray)
   # Translate the points before the reflection
   o=trdist
@@ -30,14 +28,11 @@ def try_reflect_ray(ray,triangle):
   edge1=triangle[0]-triangle[1]
   edge2=triangle[1]-triangle[2]
   edge3=triangle[2]-triangle[0]
-  # Find the image of the ray in the edge
-  Image=ray[1]+direc
-  # Use the unit edge instead of the exact edge for the reflection
-  #unitedge=np.array([ray[1],edge[1]])
-  #unitedge=(1.0/lf.length(unitedge))*unitedge
-  #FIXME unitedge not needed
-  # Find the normal to the edge
   normedge=np.cross(edge1,edge2)
+  normedge=normedge/la.norm(normedge)
+  # Find the image of the ray in the edge
+  # The image point is the point if the ray was to continue going through the surface
+  Image=ray[1]+direc
   P1=np.dot(ray[0],normedge)/np.dot(normedge,normedge)
   normedge=P1-ray[0]
   # Find the reflection using the Image
@@ -51,7 +46,7 @@ def try_reflect_ray(ray,triangle):
 
 def try_3D_reflect_ray(ray,plane):
   ''' Take a ray and find it's reflection in a plane. '''
-    # Find the distances which need to be translated
+  # Find the distances which need to be translated
   trdist=-ray[1]
   direc=lf.Direction3D(ray)
   # Translate the points before the reflection
@@ -86,4 +81,9 @@ def errorcheck(err,ray,ref,normedge):
   if (abs(theta1-theta2)>1.0E-7):
     err+=1.0
   return err
+
+if __name__=='__main__':
+  test()
+  print('Running  on python version')
+  print(sys.version)
 

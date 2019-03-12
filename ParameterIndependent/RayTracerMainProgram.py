@@ -6,11 +6,14 @@ spreading. This version will compute this independent of object
 parameters and object an array with signatures for the field'''
 import numpy as np
 import matplotlib.pyplot as mp
-import Room as rom
+import Room01 as rom
 import raytracerfunction as rayt
 import DictionarySparseMatrix as DSM
+import sys
 
 if __name__=='__main__':
+  print('Running  on python version')
+  print(sys.version)
   ##---- Define the room co-ordinates----------------------------------
   ##COMMENT In 2D obstacles are just lines which are join co-ordinates.
   ##COMMENT But in 3D this needs to be reconsidered.
@@ -37,9 +40,9 @@ if __name__=='__main__':
   #(the third is zero when modelling in 2D).
 
   ##----Parameters for the ray tracer----------------------------------
-  Nre=1 # -No. of reflections - Integer
-  Nra=4 #-No. of rays -Integer
-  h=0.5 #- Mesh width -Real number in (0,1]
+  Nre=5 # -No. of reflections - Integer
+  Nra=200 #-No. of rays -Integer
+  h=0.025 #- Mesh width -Real number in (0,1]
 
   ##----Construct the environment--------------------------------------
   Oblist=list((ob1,ob2,ob3))
@@ -51,6 +54,7 @@ if __name__=='__main__':
   Nx=int(Room.maxxleng()/h)
   Ny=int(Room.maxyleng()/h)
   Nz=int(Room.maxzleng()/h)
+  print(Nx,Ny,Nz)
   # Room contains all the obstacles and walls.
 
   Mesh=DSM.DS(Nx,Ny,Nz,Nre*(Nra+1),Nob*(Nre+1))
@@ -60,7 +64,6 @@ if __name__=='__main__':
 
   # Calculate the Ray trajectories
   Rays=Room.ray_bounce(Tx, Nre, Nra)
-
-
+  np.save('RayPoints'+str(Nra)+'Refs'+str(Nre)+'n.npy',Rays)
   exit()
 

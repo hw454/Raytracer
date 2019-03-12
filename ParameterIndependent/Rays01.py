@@ -105,7 +105,7 @@ class Ray:
       refray,n=ref.try_reflect_ray(ray,obst)
       # update self...
       s.points[-1]=cp
-      s.points=np.vstack((s.points,lf.Direction(refray)))
+      s.points=np.vstack((s.points,np.append([lf.Direction(refray),0]))
     return
   def multiref(s,room,m):
     ''' Takes a ray and finds the first five reflections within a room'''
