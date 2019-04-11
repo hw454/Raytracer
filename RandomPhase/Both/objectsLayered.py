@@ -61,11 +61,11 @@ class room:
       if leng2>leng:
         leng=leng2
     return leng
-  def Plotroom(s,origin):
+  def Plotroom(s,origin,width):
     ''' Plots all the edges in the room '''
     mp.plot(origin[0],origin[1],marker='x',c='r')
     for edge in s.objects[-1]:
-      hp.Plotedge(np.array(edge.p),'g')
+      hp.Plotedge(np.array(edge.p),'b',width)
     return
   def roomconstruct(s,Obstaclelayers):
     ''' Takes in a set of wall segments and constructs a room object
@@ -99,13 +99,16 @@ class room:
     Number of rays is n, number of reflections m'''
     pi=4*np.arctan(1) # numerically calculate pi
     r=s.maxleng()
-    spacing=2*pi/n
+    spacing=pi/n
     spacing=ma.sin(spacing)*(r*np.sqrt(2))
     Mesh3=s.roommesh(spacing)
     # Use more meshes when running with different phase change
     #Mesh1=s.roommesh(spacing)
     #Mesh2=s.roommesh(spacing)
     #Mesh3=s.roommesh(spacing)
+    k=int((origin[0]- Mesh3.__xmin__())/spacing)
+    l=int((Mesh3.__ymax__()-origin[1])/spacing)
+    Mesh3.grid[l][k]+=start
     i=1
     for h in s.heights:
       if h == s.heights[-1]:
@@ -125,38 +128,46 @@ class room:
         #mp.figure(i+1)
         #mp.title('Heatmap no phase change')
         #Mesh0=ray.heatmapray(Mesh0,ray.streg,ray.frequency,spacing,refloss)
+        #Mesh0.powerplot()
         #mp.figure(i+2)
         #mp.title('Heatmap phase change on reflection')
         #Mesh1=ray.heatmaprayrndref(Mesh1,ray.streg,ray.frequency,spacing,refloss)
+        #Mesh1.powerplot()
         #mp.figure(i+3)
         #mp.title('Heatmap phase change on sumation')
         #Mesh2=ray.heatmaprayrndsum(Mesh2,ray.streg,ray.frequency,spacing,refloss)
+        #Mesh2.powerplot()
         mp.figure(fig+1)
         mp.title('Heatmap phase change on reflection and sumation')
         Mesh3=ray.heatmaprayrndboth(Mesh3,ray.streg,ray.frequency,spacing,refloss)
       i+=1
+    Mesh3.powerplot()
     end_time=(t.time() - start_time)
     s.time[0]=end_time
     print("Time to compute unbounded--- %s seconds ---" % end_time )
     mp.figure(fig)
     mp.title('Ray paths')
-    s.Plotroom(origin)
+    s.Plotroom(origin,1.0)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnRefRaysLayered'+str(fig)+'.png',bbox_inches='tight')
     #mp.figure(fig+1)
     #s.Plotroom(origin)
-    #mp.colorbar()
+    #cbar=mp.colorbar()
+    #cbar.set_label('Field strength in dBm', rotation=270)
     #mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/NoRNDHeatmapLayered'+str(fig)+'.png',bbox_inches='tight')
     #mp.figure(fig+2)
     #s.Plotroom(origin)
-    #mp.colorbar()
+    #cbar=mp.colorbar()
+    #cbar.set_label('Field strength in dBm', rotation=270)
     #mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnRefHeatmapLayered'+str(fig)+'.png',bbox_inches='tight')
     #mp.figure(i+3)
     #s.Plotroom(origin)
-    #mp.colorbar()
+    #cbar=mp.colorbar()
+    #cbar.set_label('Field strength in dBm', rotation=270)
     #mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnSumHeatmapLayered'+str(fig)+'.png',bbox_inches='tight')
     mp.figure(fig+1)
-    s.Plotroom(origin)
-    mp.colorbar()
+    s.Plotroom(origin,5.0)
+    cbar=mp.colorbar()
+    cbar.set_label('Power in dBm', rotation=270)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnBothHeatmapLayered'+str(fig)+'.png',bbox_inches='tight')
     #Mesh0.hist(i+5)
     #mp.figure(i+5)
@@ -187,11 +198,11 @@ class room:
     #mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnSumHistogramNoBoundsLayered'+str(fig)+'.png',bbox_inches='tight')
     Mesh3.hist(fig+2)
     mp.figure(fig+2)
-    mp.title('Cumulative Frequency of field strength')
+    mp.title('Complementary cumulative distribution of power')
     mp.grid()
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnBothRNDCumsumLayered'+str(fig)+'.png', bbox_inches='tight')
     mp.figure(fig+3)
-    mp.title('Histrogram of field strength')
+    mp.title('Histrogram of power')
     mp.grid()
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnBothHistogramNoBoundsLayered'+str(fig)+'.png',bbox_inches='tight')
     #mp.figure(i+13)
@@ -220,6 +231,9 @@ class room:
     #Mesh1=s.roommesh(spacing)
     #Mesh2=s.roommesh(spacing)
     Mesh3=s.roommesh(spacing)
+    k=int((origin[0]- Mesh3.__xmin__())/spacing)
+    l=int((Mesh3.__ymax__()-origin[1])/spacing)
+    Mesh3.grid[l][k]+=start
     i=1
     for h in s.heights:
       if h == s.heights[-1]:
@@ -248,6 +262,7 @@ class room:
         mp.figure(fig+1)
         mp.title('Heatmap bounded phase change on reflection and sumation')
         Mesh3=ray.heatmaprayboundedboth(Mesh3,ray.streg,ray.frequency,spacing,bounds,refloss)
+        Mesh3.powerplot()
       i+=1
     end_time=(t.time() - start_time)
     s.time[1]=end_time
@@ -274,7 +289,8 @@ class room:
     #mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnSumHeatmapBoundsLayered'+str(fig)+'.png',bbox_inches='tight')
     mp.figure(fig+1)
     s.Plotroom(origin)
-    mp.colorbar()
+    cbar=mp.colorbar()
+    cbar.set_label('Field strength in dBm', rotation=270)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnBothHeatmapBoundsLayered'+str(fig)+'.png',bbox_inches='tight')
     #Mesh0.histbounded(i+5)
     #mp.figure(i+5)
@@ -305,7 +321,7 @@ class room:
     #mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnSumHistogramBoundsLayered'+str(fig)+'.png',bbox_inches='tight')
     Mesh3.histbounded(fig+2)
     mp.figure(fig+2)
-    mp.title('Cumulative Frequency of field strength')
+    mp.title('Cumulative frequency of field strength')
     mp.grid()
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnBothRNDCumsumBoundsLayered'+str(fig)+'.png', bbox_inches='tight')
     mp.figure(fig+3)
@@ -435,7 +451,7 @@ class Ray:
       iterconsts[0]=iterconsts[0]/refloss
       iterconsts=Mesh.singleray(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
       i+=1
-    Mesh.plot()
+    #Mesh.plot()
     return Mesh
   def heatmaprayrndref(s,Mesh,streg,freq,spacing,refloss):
     i=0
@@ -450,7 +466,7 @@ class Ray:
       iterconsts[0]=iterconsts[0]/refloss
       iterconsts=Mesh.singleray(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
       i+=1
-    Mesh.plot()
+    #Mesh.plot()
     return Mesh
   def heatmaprayrndsum(s,Mesh,streg,freq,spacing,refloss):
     i=0
@@ -463,12 +479,12 @@ class Ray:
       iterconsts[0]=iterconsts[0]/refloss
       iterconsts=Mesh.singlerayrndsum(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
       i+=1
-    Mesh.plot()
+    #Mesh.plot()
     return Mesh
   def heatmaprayrndboth(s,Mesh,streg,freq,spacing,refloss):
     i=0
     iterconsts=np.array([streg,1.0])
-    for r in s.ray[:-3]:
+    for r in s.ray[:-2]:
       #In db
       #refloss=10*np.log10(2)
       #streg=Mesh.singleray(np.array([r,s.ray[i+1]]),streg-refloss,s.frequency)
@@ -478,7 +494,7 @@ class Ray:
       iterconsts[0]=iterconsts[0]/refloss
       iterconsts=Mesh.singlerayrndsum(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
       i+=1
-    Mesh.plot()
+    #Mesh.plot()
     return Mesh
   def heatmapraybounded(s,Mesh,streg,freq,spacing,bounds,refloss):
     i=0
@@ -492,7 +508,7 @@ class Ray:
       iterconsts=Mesh.singleray(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
       i+=1
     Mesh.bound(bounds)
-    Mesh.plot()
+    #Mesh.plot()
     return Mesh
   def heatmaprayboundedrndref(s,Mesh,streg,freq,spacing,bounds,refloss):
     i=0
@@ -508,7 +524,7 @@ class Ray:
       iterconsts=Mesh.singleray(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
       i+=1
     Mesh.bound(bounds)
-    Mesh.plot()
+    #Mesh.plot()
     return Mesh
   def heatmaprayboundedrndsum(s,Mesh,streg,freq,spacing,bounds,refloss):
     i=0
@@ -522,7 +538,7 @@ class Ray:
       iterconsts=Mesh.singlerayrndsum(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
       i+=1
     Mesh.bound(bounds)
-    Mesh.plot()
+    #Mesh.plot()
     return Mesh
   def heatmaprayboundedboth(s,Mesh,streg,freq,spacing,bounds,refloss):
     i=0
@@ -538,7 +554,7 @@ class Ray:
       iterconsts=Mesh.singlerayrndsum(np.array([r,s.ray[i+1]]),iterconsts,s.frequency)
       i+=1
     Mesh.bound(bounds)
-    Mesh.plot()
+    #Mesh.plot()
     return Mesh
 
 

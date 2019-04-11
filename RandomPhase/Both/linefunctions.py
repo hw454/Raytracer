@@ -26,7 +26,7 @@ def Direction3D(line):
 def length(line):
   ''' line is given as a pair of two co-ordinates. Output the length of
   the line '''
-  length=np.linalg.norm(np.array([line[1][0]-line[0][0], line[1][1]-line[0][1]]))
+  length=((line[1][0]-line[0][0])**2+( line[1][1]-line[0][1])**2)**0.5
   return length
 
 def length3D(line):

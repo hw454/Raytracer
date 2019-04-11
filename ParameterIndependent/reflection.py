@@ -1,0 +1,89 @@
+
+#!/usr/bin/env python3
+# Keith Briggs 2017-02-02
+# Hayley Wragg 2017-03-28
+# Hayley Wragg 2017-04-12
+# Hayley Wragg 2017-05-15
+''' Code to Reflect a line in an edge without using Shapely '''
+
+from math import atan2,hypot,sqrt,copysign
+from numpy import linalg as la
+import numpy as np
+import matplotlib.pyplot as mp
+import HayleysPlotting as hp
+import intersection as inter
+import linefunctions as lf
+
+def try_reflect_ray(ray,triangle):
+  ''' Reflection of a ray with a triangle'''
+  # Find the distances which need to be translated
+  trdist=-ray[1] # Make the intersection the origin
+  direc=lf.Direction(ray)
+  # Translate the points before the reflection
+  o=trdist
+  ray+=trdist
+  triangle[0]+=trdist
+  triangle[1]+=trdist
+  triangle[2]+=trdist
+  edge1=triangle[0]-triangle[1]
+  edge2=triangle[1]-triangle[2]
+  edge3=triangle[2]-triangle[0]
+  normedge=np.cross(edge1,edge2)
+  normedge=normedge/la.norm(normedge)
+  # Find the image of the ray in the edge
+  # The image point is the point if the ray was to continue going through the surface
+  Image=ray[1]+direc
+  P1=np.dot(ray[0],normedge)/np.dot(normedge,normedge)
+  normedge=P1-ray[0]
+  # Find the reflection using the Image
+  ReflPt=Image+2*normedge
+  #Translate Back
+  ray-=trdist
+  normedge-=trdist
+  ReflPt-=trdist
+  o-=trdist
+  return np.array([ray[1], ReflPt]), normedge
+
+def try_3D_reflect_ray(ray,plane):
+  ''' Take a ray and find it's reflection in a plane. '''
+  # Find the distances which need to be translated
+  trdist=-ray[1]
+  direc=lf.Direction3D(ray)
+  # Translate the points before the reflection
+  o=trdist
+  ray+=trdist
+  plane[0]+=trdist
+  # Find the image of the ray in the edge
+  Image=ray[1]+direc
+  # Find the normal to the edge
+  normedge=plane[1]
+  # Find the reflection using the Image
+  ReflPt=Image-2*np.dot(normedge,Image)*normedge
+  #Translate Back
+  ray-=trdist
+  plane[0]-=trdist
+  normedge-=trdist
+  ReflPt-=trdist
+  o-=trdist
+  return np.array([ray[1], ReflPt]), normedge
+
+def errorcheck(err,ray,ref,normedge):
+  ''' Take the input ray and output ray and the normal to the edge,
+  check that both vectors have the same angle to the normal'''
+  # Convert to the Direction vectors
+  ray=lf.Direction(ray)
+  normedge=lf.Direction(normedge)
+  ref=lf.Direction(ref)
+  # Find the angles
+  #FIXME check the cosine rule
+  theta1=np.arccos(abs(np.dot(ray,normedge))/(np.linalg.norm(ray)*np.linalg.norm(normedge)))
+  theta2=np.arccos(abs(np.dot(ref,normedge))/(np.linalg.norm(ref)*np.linalg.norm(normedge)))
+  if (abs(theta1-theta2)>1.0E-7):
+    err+=1.0
+  return err
+
+if __name__=='__main__':
+  test()
+  print('Running  on python version')
+  print(sys.version)
+

@@ -8,7 +8,6 @@ import HayleysPlotting as hp
 import reflection as ref
 import intersection as ins
 import linefunctions as lf
-import ray_tracer_test as rtest
 import objectsLayered as ob
 import roommesh as rmes
 import math
@@ -49,10 +48,10 @@ if __name__=='__main__':
   streg=100.0 # The initial signal power in db
   spacing=0.1  # Spacing in the grid spaces.
   bounds= np.array([10**-9, 10**2])               # The bounds within which the signal power is useful
-  refloss=20
+  refloss2=1/0.6457
 
   # Compute Some More Parameters
-  m=1 #int(math.ceil(np.log(streg/bounds[0])/np.log(refloss)))     # number of reflections observed
+  m=10 #int(math.ceil(np.log(streg/bounds[0])/np.log(refloss)))     # number of reflections observed
   streg=complex(streg,0.0)
   print('Maximum number of reflections to get lower bound ',m)
   heights=[0,sofaheight,boxheight,wallheight]
@@ -72,7 +71,7 @@ if __name__=='__main__':
   Room=ob.room((walls),heights)
   Room.roomconstruct((walls,obstacles2,obstacles1))
   #i=Room.uniform_ray_tracer(origin,n,i,spacing,frequency,streg,m,refloss)
-  i=Room.uniform_ray_tracer_bounded(origin,n,i,spacing,frequency,streg,m,bounds,refloss)
+  i=Room.uniform_ray_tracer(origin,n,i,spacing,frequency,streg,m,refloss)
   # Save run times to file
   filename=("RuntimesN"+str(n)+"Delta"+str(int(spacing*100))+ ".txt")
   f=open(filename,"w+")
@@ -81,7 +80,7 @@ if __name__=='__main__':
   f.close()
   origin=(0,2)
   #i=Room.uniform_ray_tracer(origin,n,i,spacing,frequency,streg,m,refloss)
-  i=Room.uniform_ray_tracer_bounded(origin,n,i,spacing,frequency,streg,m,bounds,refloss)
+  i=Room.uniform_ray_tracer(origin,n,i,spacing,frequency,streg,m,refloss)
   # Save run times to file
   f=open(filename,"a+")
   (x,y)=Room.time

@@ -102,8 +102,8 @@ class room:
       ray.multiref(s,m)
       mp.figure(i)
       ray.Plotray(s)
-      mp.figure(i+1)
-      Mesh=ray.heatmapray(Mesh,ray.streg,ray.frequency,spacing,refloss)
+      #mp.figure(i+1)
+      #Mesh=ray.heatmapray(Mesh,ray.streg,ray.frequency,spacing,refloss)
     end_time=(t.time() - start_time)
     s.time[0]=end_time
     print("Time to compute unbounded--- %s seconds ---" % end_time )
@@ -124,9 +124,9 @@ class room:
     mp.title('Histrogram of signal power')
     mp.grid()
     mp.savefig('../../ImagesOfSignalStrength/FiguresNew/HistogramNoBounds'+str(i)+'.png',bbox_inches='tight')
-    #mp.figure(i+4)
-    #s.Plotroom(origin)
-    #mp.savefig('../../ImagesOfSignalStrength/FiguresNew/Room.jpg',bbox_inches='tight')
+    mp.figure(i+4)
+    s.Plotroom(origin)
+    mp.savefig('../../ImagesOfSignalStrength/FiguresNew/Room.jpg',bbox_inches='tight')
     return i+4
   def uniform_ray_tracer_bounded(s,origin,n,i,spacing,frequency,streg,m,bounds,refloss):
     ''' Traces ray's uniforming emitted from an origin around a room.
