@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 # Updated Hayley Wragg 2019-03-15
-''' Code to trace rays around a room. This code computes the trajectories only.'''
+''' Code to trace rays around a room using cones to account for
+spreading. This version will compute this independent of object
+parameters and object an array with signatures for the field'''
 import numpy as np
 import matplotlib.pyplot as mp
 import Room01 as rom
 import raytracerfunction as rayt
+import DictionarySparseMatrix as DSM
 import sys
 
-#FIXME write a new program with a similar structure for storing the information in a DSM
-# Is it possible to use this function and build on top? -Calculation is
-# reduced if the rays don't have to be iterated through after being saved.
-
 if __name__=='__main__':
-  print('Running  on python version')
-  print(sys.version)
+  #print('Running  on python version')
+  #print(sys.version)
   ##---- Define the room co-ordinates----------------------------------
   # Obstacles are triangles stored as three 3D co-ordinates
 
@@ -23,9 +22,10 @@ if __name__=='__main__':
   ##----Retrieve the environment--------------------------------------
   #Oblist        =np.load('Parameters/Obstacles.npy')
   Tx            =np.load('Parameters/Origin.npy')
+  Nob           =0#=len(Oblist)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')
-  Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)
-  Nob           =len(Oblist)
+  #print(Oblist, OuterBoundary)
+  Oblist        =OuterBoundary#=np.concatenate((Oblist,OuterBoundary),axis=0)
   Room=rom.room(Oblist,Nob)
 
   Nx=int(Room.maxxleng()/h)

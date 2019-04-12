@@ -9,8 +9,9 @@ import matplotlib.pyplot as mp
 import linefunctions as lf
 import HayleysPlotting as hp
 import sys
+import itertools
 
-epsilon=9.77e-4
+epsilon=2.22e-16
 
 def Project2D(po,triangle):
   T0=triangle[0]
@@ -21,14 +22,27 @@ def Project2D(po,triangle):
   norm=np.cross(T1-T0, T2-T0)
   norm=norm/(la.norm(norm))
   direc2=np.cross(direc1,norm)
-  direc2=direc2/(la.norm(direc2))
   # Check the vectors direc1, norm, and direc2 satisfy the right conditions.
-  if np.dot(norm,direc1)<epsilon and np.dot(norm,direc2)<epsilon and np.dot(direc1,direc2)<epsilon:
+  if abs(np.dot(norm,direc1))<epsilon and abs(np.dot(norm,direc2))<epsilon: # and abs(np.dot(direc1,direc2))<epsilon:
     coef=np.array([np.dot(po-T0,direc1),np.dot(po-T0,direc2),1])
     return coef
   else:
+    print('n.d1',abs(np.dot(norm,direc1)),'n.d2',abs(np.dot(norm,direc2)))
     raise CalculateError("The created vectors, norm, direc1, and direc2 aren't all normal")
     return None
+#FIXME write a test function for inside check
+# test inside and outside and on edge
+#FIXME check for close to edge
+#FIXME test for iterating through two triangles
+def TriangleFalseCheck(triangle):
+  check=0
+  for j in range(0,2):
+    c=triangle[j]
+    x=triangle[j+1]
+    if c[0]==x[0] and c[1]==x[1] and c[2]==x[2]:
+      check=1
+      return check
+  return check
 
 def InsideCheck(Point,triangle):
   # Since all points are in the same plane, translate them all into 2D
@@ -41,9 +55,11 @@ def InsideCheck(Point,triangle):
   TriMat=np.array([T0,T1,T2]).T
   coefs=np.linalg.solve(TriMat,Point)
   # If all the coefficients are bigger than 0 and less than 1 then the point is inside the triangle
-  if coefs.all()<=1 and coefs.all()>=0: return 1
-  else: return 0
-
+  if (np.sum(coefs)<=(1+epsilon)) and (np.sum(coefs)>=(1-epsilon)) and all(c>=-epsilon for c in coefs):
+      return 1
+  else:
+      return 0
+#FIXME archive the 2D function which is no longer needed.
 def intersection2D(line,edge):
   ''' Locates the point inter as the point of intersection between
   a line  and an edge. line is an origin and direction, edge is 2
@@ -140,40 +156,82 @@ def intersection_with_end(line,edge,delta):
     # line and edge are parallel, there is no intersection or they lie
     #on each other
     return [0, 0.0]
-
+#FIXME test intersection function.
+# test negative and positive direction.
+# Parallel, perpendicular and angled hit at the surface.
 def intersection(line,triangle):
     ''' find the intersection of a line and a plane. The line is
     represented as a point and a direction and the plane is three points which lie on the plane.'''
-    edge1=triangle[0]-triangle[1]
-    edge2=triangle[1]-triangle[2]
-    # The triangle lies on a plane with normal norm and goes through the point p0.
-    # The line goes through the point l0 in the direction direc
-    norm=np.cross(edge1,edge2)
-    direc=line[1]
-    p0=triangle[0]
-    l0=line[0]
-    if np.inner(direc,norm)!=0:
-      # The line is not parallel with the plane and there is therefore an intersection.
-      lam=np.inner(p0-l0,norm)/np.inner(direc,norm)
-      inter=l0+lam*direc
-      check=InsideCheck(inter,triangle)
-      if check: return inter
-      else: return [None,None]
-    elif np.inner(direc,norm)==0:
-      # The line is contained in the plane or parallel right output
-      return [None,None]
-    else: raise Error('neither intersect or parallel to plane')
-    return None
+    tricheck=TriangleFalseCheck(triangle)
+    if tricheck:
+      print("Stopped on the surface intersection")
+      print("Triangle:", triangle)
+      raise Error("The surfaces is not defined properly")
+      return None
+    elif not tricheck:
+        edge1=triangle[1]-triangle[0]
+        edge2=triangle[1]-triangle[2]
+        # The triangle lies on a plane with normal norm and goes through the point p0.
+        # The line goes through the point l0 in the direction direc
+        norm    =np.cross(edge1,edge2)
+        norm    =norm/(la.norm(norm))
+        direc   =line[1]
+        p0      =triangle[0]
+        l0      =line[0]
+        parcheck=np.inner(direc,norm)
+        if (parcheck>epsilon or parcheck<-epsilon):
+          # The line is not parallel with the plane and there is therefore an intersection.
+          lam=np.inner(p0-l0,norm)/np.inner(direc,norm)
+          if lam<-epsilon:
+            # The intersection point is in the opposite direction to the ray
+            # print('negative direction',lam)
+            return [None, None,None]
+          else:
+            # Computer the intersection point with the plane
+            inter=l0+lam*direc
+            check=InsideCheck(inter,triangle)
+            if check:
+              # The point is inside the triangle
+              return inter
+            else:
+              # The point is outside the triangle
+              # print('outside surface')
+              return [None,None,None]
+        elif (parcheck<=epsilon and parcheck>=-epsilon):
+          #FIXME deal with diffraction here.
+          # print('parallel to surface', parcheck)
+          # The line is contained in the plane or parallel right output
+          return [None,None,None]
+        else:
+            print('Before error, direction ',direc,' Normal ',norm,' Parallel check ',parcheck)
+            raise Error('neither intersect or parallel to plane')
+        return None
+    else:
+      print("Triangle: ", triangle)
+      raise Error("Triangle neither exists or doesn't exist")
 
 def test():
     l1=np.array([[0.0,0.0,0.0],[1.0,1.0,1.0]])
     triangle=np.array([[0.5,3.0,3.0],[0.5,0.0,3.0],[0.5,0.0,0.0]])
+    inter=intersection(l1,triangle)
+    print(inter)
+    return
+
+def test2():
+    l1=np.array([[0.0,0.0,0.0],[0.0,0.0,1.0]])
+    triangle=np.array([[0.5,3.0,1.0],[0.5,0.0,1.0],[0.5,0.0,1.0]])
+    inter=intersection(l1,triangle)
+    return
+
+def test3():
+    l1=np.array([[0.0,0.0,0.0],[0.0,0.0,1.0]])
+    triangle=np.array([[0.5,3.0,1.0],[0.5,0.0,1.0],[0.0,0.3,1.0]])
     inter=intersection(l1,triangle)
     return
 
 
 
 if __name__=='__main__':
-  test()
+  test3()
   print('Running  on python version')
   print(sys.version)
