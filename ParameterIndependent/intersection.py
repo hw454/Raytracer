@@ -10,6 +10,7 @@ import linefunctions as lf
 import HayleysPlotting as hp
 import sys
 import itertools
+import math as ma
 
 epsilon=2.22e-16
 
@@ -229,9 +230,127 @@ def test3():
     inter=intersection(l1,triangle)
     return
 
+def test4():
+    ''' Test that an intersection is found with one ray in a closed domain'''
+    # Start of the ray
+    origin=np.array([ 0.0    , 0.0    , 0.0    ])
+    # Direction of the ray
+    direct=np.array([ 1.0    , 1.0    , 1.0    ])
+    # Points defining the triangles which enclose the domain
+    point0=np.array([ 1.0/3.0, 0.0    ,-1.0/3.0])
+    point1=np.array([ 0.0    , 1.0/3.0,-1.0/3.0])
+    point2=np.array([ 0.0    , 0.0    , 1.0/3.0])
+    point3=np.array([-1.0/3.0,-1.0/3.0,-1.0/3.0])
+    # Construct the triangles
+    triangle1=np.array([point0,point1,point3])
+    triangle2=np.array([point0,point1,point2])
+    triangle3=np.array([point1,point2,point3])
+    triangle4=np.array([point0,point2,point3])
+    Triangles=np.array([triangle1,triangle2,triangle3,triangle4])
+    # Construct the rays
+    l1=np.array([origin,direct])
+    # Find the intersections
+    count =0
+    for T in Triangles:
+      inter=intersection(l1,T)
+      if inter[0] is not None:
+        count+=1
+    if count==1:
+      return 1
+    elif count==0:
+      print("No intersection found in closed domain")
+      return 0
+    elif count>1:
+      print("More than one intersection found for one ray")
+      return 0
+    else:
+      print("Should not be negative intersections")
+      return 0
+
+def testinputray(ray):
+    ''' Test that an intersection is found with one ray in a closed domain'''
+    origin=ray[0]
+    direct=ray[1]
+    # Points defining the triangles which enclose the domain
+    point0=np.array([ 1.0/3.0, 0.0    ,-1.0/3.0])
+    point1=np.array([ 0.0    , 1.0/3.0,-1.0/3.0])
+    point2=np.array([ 0.0    , 0.0    , 1.0/3.0])
+    point3=np.array([-1.0/3.0,-1.0/3.0,-1.0/3.0])
+    # Construct the triangles
+    triangle1=np.array([point0,point1,point3])
+    triangle2=np.array([point0,point1,point2])
+    triangle3=np.array([point1,point2,point3])
+    triangle4=np.array([point0,point2,point3])
+    Triangles=np.array([triangle1,triangle2,triangle3,triangle4])
+    # Construct the rays
+    l1=np.array([origin,direct])
+    # Find the intersections
+    count =0
+    for T in Triangles:
+      inter=intersection(l1,T)
+      if inter[0] is not None:
+        count+=1
+    if count==1:
+      return inter
+    elif count==0:
+      print("No intersection found in closed domain")
+      return inter
+    elif count>1:
+      print("More than one intersection found for one ray")
+      return inter
+    else:
+      print("Should not be negative intersections")
+      return inter
+
+def testmanyrays():
+    # Start of the ray
+    origin=np.array([ 1.0/6.0 , 1.0/6.0, 1.0/6.0])
+    # Direction of the ray
+    Nra           =20
+    r             =1.0
+    deltheta      =(np.sqrt(2.0*(Nra)-3)+1)*(ma.pi/(Nra-2))
+    print((2.0*ma.pi/deltheta),(ma.pi/deltheta+1))
+    xysteps       =int(2.0*ma.pi/deltheta)
+    zsteps        =int(ma.pi/deltheta+1)
+    Nra           =xysteps*zsteps+2
+    theta1        =deltheta*np.arange(xysteps)
+    theta2        =deltheta*np.arange(zsteps)
+    xydirecs      =np.transpose(r*np.vstack((np.cos(theta1),np.sin(theta1))))
+    z             =r*np.tensordot(np.cos(theta2),np.ones(xysteps),axes=0)
+    directions    =np.zeros((Nra,3))
+    directions[0] =np.array([0.0,0.0,r])
+    directions[-1]=np.array([0.0,0.0,-r])
+    for j in range(1,zsteps):
+      st=(j-1)*xysteps+1
+      ed=(j)*xysteps+1
+      sinalpha=np.sin(theta2[j])
+      coords=np.c_[sinalpha*xydirecs,z[j]]
+      directions[st:ed]=np.c_[coords]
+    print(directions)
+    count=0
+    for j in range(0,zsteps*xysteps):
+      l1=np.array([origin,directions[j]])
+      inter=testinputray(l1)
+      if inter[0] is not None:
+        count+=1
+    if count==zsteps*xysteps:
+      return 1
+    elif count<zsteps*xysteps:
+      print("Not enough intersections found in closed domain")
+      print("count: ",count)
+      return 0
+    elif count>steps*xysteps:
+      print("Too many intersections found")
+      print("count: ", count)
+      return 0
+    else:
+      print("Should not be zero or negative intersections")
+      print("count: ", count)
+      return 0
 
 
 if __name__=='__main__':
-  test3()
   print('Running  on python version')
   print(sys.version)
+  result=testmanyrays()
+  print(result)
