@@ -289,43 +289,44 @@ def testinputray(ray):
     for T in Triangles:
       inter=intersection(l1,T)
       if inter[0] is not None:
+        interreturn=inter
         count+=1
     if count==1:
-      return inter
+      return interreturn
     elif count==0:
       print("No intersection found in closed domain")
       return inter
     elif count>1:
-      print("More than one intersection found for one ray")
-      return inter
+      print("More than one intersection found for one ray", inter)
+      return interreturn
     else:
       print("Should not be negative intersections")
       return inter
 
 def testmanyrays():
     # Start of the ray
-    origin=np.array([ 1.0/6.0 , 1.0/6.0, 1.0/6.0])
+    #origin=np.array([ 1.0/6.0 , 1.0/6.0, 1.0/6.0])
+    origin=np.array([0.0,0.0,0.0])
     # Direction of the ray
     Nra           =20
-    r             =1.0
-    deltheta      =(np.sqrt(2.0*(Nra)-3)+1)*(ma.pi/(Nra-2))
+    r             =3.0
+    deltheta      =(-2+np.sqrt(2.0*(Nra)))*(ma.pi/(Nra-2))
     xysteps       =int(2.0*ma.pi/deltheta)
-    zsteps        =int(ma.pi/deltheta+1)
+    zsteps        =int(ma.pi/deltheta-2)
     Nra           =xysteps*zsteps+2
     theta1        =deltheta*np.arange(xysteps)
-    theta2        =deltheta*np.arange(zsteps)
+    theta2        =deltheta*np.arange(1,zsteps+1)
     xydirecs      =np.transpose(r*np.vstack((np.cos(theta1),np.sin(theta1))))
     z             =r*np.tensordot(np.cos(theta2),np.ones(xysteps),axes=0)
     directions    =np.zeros((Nra,3))
     directions[0] =np.array([0.0,0.0,r])
     directions[-1]=np.array([0.0,0.0,-r])
-    for j in range(1,zsteps):
+    for j in range(1,zsteps+1):
       st=(j-1)*xysteps+1
       ed=(j)*xysteps+1
-      sinalpha=np.sin(theta2[j])
-      coords=np.c_[sinalpha*xydirecs,z[j]]
+      sinalpha=np.sin(theta2[j-1])
+      coords=np.c_[sinalpha*xydirecs,z[j-1]]
       directions[st:ed]=np.c_[coords]
-    print(directions)
     count=0
     for j in range(0,zsteps*xysteps):
       l1=np.array([origin,directions[j]])
