@@ -137,10 +137,12 @@ class room:
     start_time    =t.time()         # Start the time counter
     r             =s.maxleng()
     raylist       =np.empty([Nra+1, Nre+1,4])
-    deltheta      =np.sqrt(2.0/(Nra))*ma.pi
-    Nra           =int(np.sqrt(Nra/2.0)-1)*int(np.sqrt(Nra*2.0))+1
+    deltheta      =(2+np.sqrt(2.0*(Nra)))*(ma.pi/(Nra-2))
     xysteps       =int(2.0*ma.pi/deltheta)
     zsteps        =int(ma.pi/deltheta+1)
+    Nra           =xysteps*zsteps+2
+    # ^^ Due to need of integer steps the input number of rays can not
+    # always be used if everything is equally spaced ^^
     theta1        =deltheta*np.arange(xysteps)
     theta2        =deltheta*np.arange(zsteps)
     xydirecs      =np.transpose(r*np.vstack((np.cos(theta1),np.sin(theta1))))
