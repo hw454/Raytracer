@@ -5,6 +5,7 @@ import numpy as np
 
 #FIXME Allow input of ray number change yes or no. Then save the direction from the source.
 # These should then be imported into the main program from a saved numpy file rather than computing every time.
+# Compute Directions in here if Nra changes not in main program
 
 Nra=200
 Nre=6
