@@ -183,7 +183,7 @@ def intersection(line,triangle):
         if (parcheck>epsilon or parcheck<-epsilon):
           # The line is not parallel with the plane and there is therefore an intersection.
           lam=np.inner(p0-l0,norm)/np.inner(direc,norm)
-          if lam<-epsilon:
+          if lam<epsilon:
             # The intersection point is in the opposite direction to the ray
             # print('negative direction',lam)
             return [None, None,None]
@@ -206,7 +206,7 @@ def intersection(line,triangle):
         else:
             print('Before error, direction ',direc,' Normal ',norm,' Parallel check ',parcheck)
             raise Error('neither intersect or parallel to plane')
-        return None
+        return [None, None, None]
     else:
       print("Triangle: ", triangle)
       raise Error("Triangle neither exists or doesn't exist")
