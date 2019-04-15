@@ -69,7 +69,7 @@ class Ray:
     ''' The closest intersection out of the possible intersections with
     the wall_segments in room. Returns the intersection point and the
     wall intersected with '''
-    if s.points[-1][0] is not None:
+    if all(p is not None for p in s.points[-1]):
         # Retreive the Maximum length from the Room
         leng=room.maxleng()
         # Initialise the point and wall
@@ -81,12 +81,12 @@ class Ray:
         rNob=Nob
         for obj in room.obst:
           cp=s.obst_collision_point(obj)
-          #print('cp',cp)
           if all(c is not None for c in cp):
             if np.allclose(cp, s.points[-2][0:3],atol=epsilon):
-              #print('Collision point is previous', cp, s.points[-2][0:3])
+              print("Collision point is the same as the previous")
               pass
-              # Do not reassign collision point when it is the previous point
+              # Do not reassign collision point when it is the previous
+              # point, this shouldn't happen because of direction check though
             else:
               #print('cp accepted',cp)
               leng2=s.ray_length(cp)
@@ -116,15 +116,17 @@ class Ray:
       return 0
     cp,obst,nob=s.room_collision_point(room)
     # Check that a collision does occur
-    if cp[0] is None:
+    if any(p is None for p in cp):
       #print('no cp at collision ',len(s.points)-2,' before reflection.')
       #print('Collision point ',cp,' Previous instersection ', s.points[-2:-1])
       # If there is no collision then None's are stored as place holders
-      s.points=np.vstack((s.points,np.array([None, None, None, None])))
+      # Replace the last point of the ray instead of keeping the direction term.
+      s.points=np.vstack((s.points[0:-1],np.array([None, None, None, None]),np.array([None, None, None, None])))
       return 0
     elif obst is None:
       #print('no ob',s.points[1])
-      s.points=np.vstack((s.points,np.array([None, None, None, None])))
+      # Replace the last point of the ray instead of keeping the direction term.
+      s.points=np.vstack((s.points[0:-1],np.array([None, None, None, None]),np.array([None, None, None, None])))
       return 0
       #print('ray:',s.points)
       #raise Error('Collision should occur')

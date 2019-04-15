@@ -7,7 +7,7 @@ import numpy as np
 # These should then be imported into the main program from a saved numpy file rather than computing every time.
 # Compute Directions in here if Nra changes not in main program
 
-Nra=200
+Nra=300 # Minimum 3
 Nre=6
 h=0.25
 RTPar=np.array([Nra,Nre,h])
