@@ -137,14 +137,14 @@ class room:
     start_time    =t.time()         # Start the time counter
     r             =s.maxleng()
     raylist       =np.empty([Nra+1, Nre+1,4])
-    deltheta      =(2+np.sqrt(2.0*(Nra)))*(ma.pi/(Nra-2))
+    deltheta      =(-2+np.sqrt(2.0*(Nra)))*(ma.pi/(Nra-2))
     xysteps       =int(2.0*ma.pi/deltheta)
-    zsteps        =int(ma.pi/deltheta+1)
+    zsteps        =int(ma.pi/deltheta-2)
     Nra           =xysteps*zsteps+2
     # ^^ Due to need of integer steps the input number of rays can not
     # always be used if everything is equally spaced ^^
     theta1        =deltheta*np.arange(xysteps)
-    theta2        =deltheta*np.arange(zsteps)
+    theta2        =deltheta*np.arange(1,zsteps+1)
     xydirecs      =np.transpose(r*np.vstack((np.cos(theta1),np.sin(theta1))))
     z             =r*np.tensordot(np.cos(theta2),np.ones(xysteps),axes=0)
     directions    =np.zeros((Nra,4))
@@ -152,11 +152,11 @@ class room:
     directions[-1]=np.array([0.0,0.0,-r,0.0])
     # Form the xyz co-ordinates matrix
     #FIXME try to form this without a loop
-    for j in range(1,zsteps-1):
+    for j in range(1,zsteps+1):
       st=(j-1)*xysteps+1
       ed=(j)*xysteps+1
-      sinalpha=np.sin(theta2[j])
-      coords=np.c_[sinalpha*xydirecs,z[j]]
+      sinalpha=np.sin(theta2[j-1])
+      coords=np.c_[sinalpha*xydirecs,z[j-1]]
       directions[st:ed]=np.c_[coords,np.zeros(xysteps)]
     # Iterate through the rays find the ray reflections
     # FIXME the rays are independent of each toher so this is easily parallelisable
