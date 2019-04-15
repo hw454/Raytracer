@@ -309,7 +309,6 @@ def testmanyrays():
     Nra           =20
     r             =1.0
     deltheta      =(np.sqrt(2.0*(Nra)-3)+1)*(ma.pi/(Nra-2))
-    print((2.0*ma.pi/deltheta),(ma.pi/deltheta+1))
     xysteps       =int(2.0*ma.pi/deltheta)
     zsteps        =int(ma.pi/deltheta+1)
     Nra           =xysteps*zsteps+2
