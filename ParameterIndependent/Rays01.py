@@ -69,7 +69,7 @@ class Ray:
     ''' The closest intersection out of the possible intersections with
     the wall_segments in room. Returns the intersection point and the
     wall intersected with '''
-    if s.points[-1][0]:
+    if s.points[-1][0] is not None:
         # Retreive the Maximum length from the Room
         leng=room.maxleng()
         # Initialise the point and wall
