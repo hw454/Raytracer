@@ -41,7 +41,7 @@ class room:
   def __init__(s,obst):
     s.obst=obst
     RoomP=obst[0]
-    for j in range(1,len(obst+1)):
+    for j in range(1,len(obst)):
       RoomP=np.concatenate((RoomP,obst[j]),axis=0)
     s.points=RoomP
     # Points is the array of all the co-ordinates which form the surfaces in the room
@@ -66,7 +66,8 @@ class room:
     s.points+=obst0
     return
   def __set_insidepoint__(s,p):
-
+    ''' Puts a point p in the inside points array '''
+    s.inside_points+=p
     return
   def __str__(s):
     return 'Rooom('+str(list(s.obst))+')'
@@ -171,12 +172,6 @@ class room:
     mp.plot((origin),marker='x',c='r')
     for obst0 in s.obst:
       hp.Plotedge(obst0,'g',width)
-    return
-  def roomconstruct(s,obsts):
-    ''' Takes in a set of wall segments and constructs a room object
-    containing them all'''
-    for obst1 in obsts[1:]:
-      s.add_obst(obst1)
     return
   def xbounds(s):
     xarray=np.vstack(np.array([s.obst[0][0][0]]))
