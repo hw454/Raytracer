@@ -13,7 +13,7 @@ import matplotlib.pyplot    as mp
 import math                 as ma
 import numpy.linalg         as lin
 import random               as rnd
-import Rays01               as ry
+import Rays                 as ry
 import time                 as t
 from itertools import product
 
