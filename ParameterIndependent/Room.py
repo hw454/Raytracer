@@ -75,61 +75,50 @@ class room:
     ''' Finds the maximum length contained in the room '''
     # Has the maxlength in the room been found yet? If no compute it.
     if abs(s.maxlength[0])<epsilon:
-      leng=0
       p1=s.points[-1]
       for p2 in s.points:
         leng2=lf.length(np.array([p1,p2]))
-        if leng2>leng:
-          leng=leng2
-      s.maxlength[0]=leng
+        if leng2>s.maxlength[0]:
+          s.maxlength[0]=leng2
+      return s.maxlength[0]
     # If yes then return it
-    else: leng=s.maxlength[0]
-    return leng
+    else: return s.maxlength[0]
   def maxxleng(s):
     ''' Finds the maximum length contained in the room in the x plane'''
     if abs(s.maxlength[1])<epsilon:
-      leng=0
-      m=len(s.points)
       p1=s.points[-1][0]
-      for j in range(0,m):
+      for j in range(0,len(s.points)):
         p2=s.points[j][0]
         leng2=lf.length(np.array([p1,p2]))
-        if leng2>leng:
-          leng=leng2
-      s.maxlength[1]=leng
+        if leng2>s.maxlength[1]
+          s.maxlength[1]=leng2
+      return s.maxlength[2]
     # If yes then return it
-    else: leng=s.maxlength[1]
-    return leng
+    else: return s.maxlength[1]
   def maxyleng(s):
     ''' Finds the maximum length contained in the room in the y plane'''
     if abs(s.maxlength[2])<epsilon:
-      leng=0
-      m=len(s.points)
       p1=s.points[-1][0]
-      for j in range(0,m):
+      for j in range(0,len(s.points)):
         p2=s.points[j][0]
         leng2=lf.length(np.array([p1,p2]))
-        if leng2>leng:
-          leng=leng2
-      s.maxlength[2]=leng
+        if leng2>s.maxlength[2]:
+          s.maxlength[2]=leng2
+      return s.maxlength[2]
     # If yes then return it
-    else: leng=s.maxlength[2]
-    return leng
+    else: return s.maxlength[2]
   def maxzleng(s):
     ''' Finds the maximum length contained in the  in the z plane '''
     if abs(s.maxlength[3])<epsilon:
-      leng=0
-      m=len(s.points)
       p1=s.points[-1][0]
-      for j in range(0,m):
+      for j in range(0,len(s.points)):
         p2=s.points[j][0]
         leng2=lf.length(np.array([p1,p2]))
-        if leng2>leng:
-          leng=leng2
-      s.maxlength[3]=leng
+        if leng2>s.maxlength[3]:
+          s.maxlength[3]=leng2
+      return s.maxlength[3]
     # If yes then return it
-    else: leng=s.maxlength[3]
-    return leng
+    else: return s.maxlength[3]
   def ray_bounce(s,Tx,Nre,Nra):
     ''' Traces ray's uniformly emitted from an origin around a room.
     Number of rays is n, number of reflections m. Output
