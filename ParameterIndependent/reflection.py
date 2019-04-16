@@ -9,15 +9,15 @@
 from math import atan2,hypot,sqrt,copysign
 from numpy import linalg as la
 import numpy as np
-import matplotlib.pyplot as mp
+#import matplotlib.pyplot as mp
 import HayleysPlotting as hp
 import intersection as inter
 import linefunctions as lf
-from mayavi.core.api import Engine
-from mayavi.sources.vtk_file_reader import VTKFileReader
-from mayavi.modules.surface import Surface
-from mayavi import mlab
-from pyface.api import GUI
+#from mayavi.core.api import Engine
+#from mayavi.sources.vtk_file_reader import VTKFileReader
+#from mayavi.modules.surface import Surface
+#from mayavi import mlab
+#from pyface.api import GUI
 import sys
 import math as ma
 
@@ -48,25 +48,26 @@ def try_reflect_ray(ray,triangle):
   ReflPt-=trdist
   return np.array([ray[1], ReflPt])
 
+# FIXME The plotting for the tests should go elsewhere
 def test():
   triangle=np.array([(0.0,0.0,1.0),(3.0,0.0,0.0),(0.0,0.0,0.0)])
   x=np.array([triangle[0][0],triangle[1][0],triangle[2][0],triangle[0][0]])
   y=np.array([triangle[0][1],triangle[1][1],triangle[2][1],triangle[0][1]])
   z=np.array([triangle[0][2],triangle[1][2],triangle[2][2],triangle[0][2]])
-  mlab.plot3d(x,y,z,color= (1, 1, 1))
+  #mlab.plot3d(x,y,z,color= (1, 1, 1))
   ray=np.array([(-1.0,-1.0,0.0),(3,3,2.25)])
   x=np.array([ray[0][0],ray[0][0]+ray[1][0]])
   y=np.array([ray[0][1],ray[0][1]+ray[1][1]])
   z=np.array([ray[0][2],ray[0][2]+ray[1][2]])
-  mlab.plot3d(x,y,z,color= (0, 1, 1))
+  #mlab.plot3d(x,y,z,color= (0, 1, 1))
   ray[1]=inter.intersection(ray,triangle)
   rayout=try_reflect_ray(ray,triangle)
   x=np.array([ray[0][0],rayout[0][0],rayout[1][0]])
   y=np.array([ray[0][1],rayout[0][1],rayout[1][1]])
   z=np.array([ray[0][2],rayout[0][2],rayout[1][2]])
-  mlab.plot3d(x,y,z,color= (0, 0, 1))
-  gui = GUI()
-  gui.start_event_loop()
+  #mlab.plot3d(x,y,z,color= (0, 0, 1))
+  #gui = GUI()
+  #gui.start_event_loop()
   return 0
 
 #FIXME test the refangle calculation
@@ -97,7 +98,7 @@ def test2():
     x=np.array([Trilist[l][0][0],Trilist[l][1][0],Trilist[l][2][0],Trilist[l][0][0]])
     y=np.array([Trilist[l][0][1],Trilist[l][1][1],Trilist[l][2][1],Trilist[l][0][1]])
     z=np.array([Trilist[l][0][2],Trilist[l][1][2],Trilist[l][2][2],Trilist[l][0][2]])
-    mlab.plot3d(x,y,z,color= (1, 1, 1))
+    #mlab.plot3d(x,y,z,color= (1, 1, 1))
   ray=np.array([(1.5,1.0,0.25),(3,3,2.25)])
   r =10.0
   Nra=20
@@ -110,7 +111,7 @@ def test2():
     x=np.array([ray[0][0],ray[0][0]+ray[1][0]])
     y=np.array([ray[0][1],ray[0][1]+ray[1][1]])
     z=np.array([ray[0][2],ray[0][2]+ray[1][2]])
-    mlab.plot3d(x,y,z,color= (0, 1, 1))
+    #mlab.plot3d(x,y,z,color= (0, 1, 1))
     for l in range(0,4):
       ray=np.array([Tx,directions[j]])
       ray[1]=inter.intersection(ray,Trilist[l])
@@ -121,9 +122,9 @@ def test2():
         x=np.array([ray[0][0],rayout[0][0],rayout[1][0]])
         y=np.array([ray[0][1],rayout[0][1],rayout[1][1]])
         z=np.array([ray[0][2],rayout[0][2],rayout[1][2]])
-        mlab.plot3d(x,y,z,color= (0, 0, 1))
-  gui = GUI()
-  gui.start_event_loop()
+        #mlab.plot3d(x,y,z,color= (0, 0, 1))
+  #gui = GUI()
+  #gui.start_event_loop()
   return 0
 
 def try_3D_reflect_ray(ray,plane):
