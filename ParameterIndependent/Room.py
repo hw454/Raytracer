@@ -19,22 +19,22 @@ from itertools import product
 
 epsilon=2.22e-32
 
-class obstacle_segment:
-  ' a line segment from p0 to p1 '
-  def __init__(s,p0,p1):
-    assert not (p0==p1).all()
-    s.p=np.vstack(
-      (np.array(p0,dtype=np.float),
-       np.array(p1,dtype=np.float),
-    ))
-  def __getitem__(s,i):
-    return s.p[i]
-  def firstpoint(s):
-    return s.p[0]
-  def secondpoint(s):
-    return s.p[1]
-  def __str__(s):
-    return 'Wall_segment('+str(list(s.p))+')'
+#class obstacle_segment:
+  #' a line segment from p0 to p1 '
+  #def __init__(s,p0,p1):
+    #assert not (p0==p1).all()
+    #s.p=np.vstack(
+      #(np.array(p0,dtype=np.float),
+       #np.array(p1,dtype=np.float),
+    #))
+  #def __getitem__(s,i):
+    #return s.p[i]
+  #def firstpoint(s):
+    #return s.p[0]
+  #def secondpoint(s):
+    #return s.p[1]
+  #def __str__(s):
+    #return 'Wall_segment('+str(list(s.p))+')'
 
 class room:
   ' A group of obstacle_segments and the time for the run'
