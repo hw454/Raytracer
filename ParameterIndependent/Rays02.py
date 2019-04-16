@@ -38,8 +38,10 @@ def Raytracer(Room,source,Nrays,Nrefs):
 class Ray:
   ''' A ray is a representation of the the trajectory of a reflecting line
   and it's reflections. Ray.points is an array of co-ordinates representing
-  the collision points and the corresponding obstacle number and angle of
-  incidence with the last term being the direction the ray ended in.'''
+  the collision points with the last term being the direction the ray ended in.
+  And Ray.reflections is an array containing tuples of the angles of incidence
+  and the number referring to the position of the obstacle in the obstacle list
+  '''
   def __init__(s,origin,direc):
     s.points=np.vstack(
       (np.array(origin,  dtype=np.float),
@@ -106,23 +108,23 @@ class Ray:
     cp,obst,nob=s.room_collision_point(room)
     # Check that a collision does occur
     if cp[0] is None:
-      print('Error! no cp found in an enclosed room')
-      print('Points of the error ray: ',s.points)
-      s.points=np.vstack((s.points,np.array([None, None, None, None, None])))
+      print('no cp before',s.points)
+      s.points=np.vstack((s.points,np.array([None, None, None, None])))
       return 0
     elif obst is None:
-      print('Error! there is a collision point but no obstacle.')
-      print('Points of the error ray: ',s.points)
-      s.points=np.vstack((s.points,np.array([None, None, None, None, None])))
+      print('no ob',s.points[1])
+      s.points=np.vstack((s.points,np.array([None, None, None, None])))
       return 0
+      #print('ray:',s.points)
+      #raise Error('Collision should occur')
     else:
       # Construct the incoming array
       origin=s.points[-2][0:3]
       ray=np.array([origin,cp])
       # The reflection function returns a line segment
       refray=ref.try_reflect_ray(ray,obst) # refray is the intersection point to a reflection point
-      angle =ref.refangle(refray,obst)
-      s.points[-1]=np.append(cp, [nob],angle)
+      # update self...
+      s.points[-1]=np.append(cp, [nob])
       s.points=np.vstack((s.points,np.append(lf.Direction(refray),[0])))
     return 1
   def multiref(s,room,m):

@@ -122,6 +122,7 @@ class room:
     elif count % 2 ==1:
       return 1
     else: return 2 # This term shouldn't happen
+
   def uniform_ray_tracer(s,origin,outsidepoint1,outsidepoint2,n,ave,i,frequency,start,m,Z2,Z1,refindex):
     start_time=t.time()         # Start the time counter
     ''' Traces ray's uniformly emitted from an origin around a room.

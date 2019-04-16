@@ -17,7 +17,6 @@ import Rays01               as ry
 import time                 as t
 from itertools import product
 
-epsilon=2.22e-32
 
 class obstacle_segment:
   ' a line segment from p0 to p1 '
@@ -44,127 +43,85 @@ class room:
     for j in range(1,len(obst)):
       RoomP=np.concatenate((RoomP,obst[j]),axis=0)
     s.points=RoomP
-    # Points is the array of all the co-ordinates which form the surfaces in the room
     s.Nob=Nob
-    # Nob is the number of surfaces forming obstacles in the room.
-    s.maxlength=np.zeros(4)
-    # The initial maxleng, maxxlength, maxylength and maxzlength are 0, this value is changed once computed
     s.inside_points=np.array([])
-    # The inside points line within obstacles and are used to detect if a ray is inside or outside.
-    s.time=np.array([0.0])
-    # The time taken for a computation is stored in time.
-  def __get_obst__(s,i):
-   ''' Returns the ith surface obstacle of the room s'''
+    s.objectcorners=np.array([obst[0:Nob-1]])
+    s.boundaryedge= np.array([obst[Nob:-1]])
+    s.time=np.array([0.0,0.0])
+  def __getobst__(s,i):
+   ''' Returns the ith wall of s '''
    return s.obst[i]
-  def __get_insidepoint__(s,i):
+  def __getinsidepoint__(s,i):
    ''' Returns the ith inside point of s '''
    return s.inside_points[i]
-  def __set_obst__(s,obst0):
+  def add_obst(s,obst0):
     ''' Adds wall to the walls in s, and the points of the wall to the
     points in s '''
     s.obst+=(obst0,)
     s.points+=obst0
     return
-  def __set_insidepoint__(s,p):
-
-    return
   def __str__(s):
-    return 'Rooom('+str(list(s.obst))+')'
+    return 'Rooom('+str(list(s.walls))+')'
   def maxleng(s):
     ''' Finds the maximum length contained in the room '''
-    # Has the maxlength in the room been found yet? If no compute it.
-    if abs(s.maxlength[0])<epsilon:
-      leng=0
-      p1=s.points[-1]
-      for p2 in s.points:
-        leng2=lf.length(np.array([p1,p2]))
-        if leng2>leng:
-          leng=leng2
-      s.maxlength[0]=leng
-    # If yes then return it
-    else: leng=s.maxlength[0]
+    leng=0
+    p1=s.points[-1]
+    for p2 in s.points:
+      leng2=lf.length(np.array([p1,p2]))
+      if leng2>leng:
+        leng=leng2
     return leng
   def maxxleng(s):
     ''' Finds the maximum length contained in the room in the x plane'''
-    if abs(s.maxlength[1])<epsilon:
-      leng=0
-      m=len(s.points)
-      p1=s.points[-1][0]
-      for j in range(0,m):
-        p2=s.points[j][0]
-        leng2=lf.length(np.array([p1,p2]))
-        if leng2>leng:
-          leng=leng2
-      s.maxlength[1]=leng
-    # If yes then return it
-    else: leng=s.maxlength[1]
+    leng=0
+    m=len(s.points)
+    p1=s.points[-1][0]
+    for j in range(0,m): #product(range(0,m),range(0,3)): #FIXME get x co-odrinates
+      p2=s.points[j][0]
+      leng2=lf.length(np.array([p1,p2]))
+      if leng2>leng:
+        leng=leng2
     return leng
   def maxyleng(s):
     ''' Finds the maximum length contained in the room in the y plane'''
-    if abs(s.maxlength[2])<epsilon:
-      leng=0
-      m=len(s.points)
-      p1=s.points[-1][0]
-      for j in range(0,m):
-        p2=s.points[j][0]
-        leng2=lf.length(np.array([p1,p2]))
-        if leng2>leng:
-          leng=leng2
-      s.maxlength[2]=leng
-    # If yes then return it
-    else: leng=s.maxlength[2]
+    leng=0
+    m=len(s.points)
+    p1=s.points[-1][1]
+    for j in range(0,m): #product(range(0,m),range(0,3)):
+      p2=s.points[j][1]
+      leng2=lf.length(np.array([p1,p2]))
+      if leng2>leng:
+        leng=leng2
     return leng
   def maxzleng(s):
     ''' Finds the maximum length contained in the  in the z plane '''
-    if abs(s.maxlength[3])<epsilon:
-      leng=0
-      m=len(s.points)
-      p1=s.points[-1][0]
-      for j in range(0,m):
-        p2=s.points[j][0]
-        leng2=lf.length(np.array([p1,p2]))
-        if leng2>leng:
-          leng=leng2
-      s.maxlength[3]=leng
-    # If yes then return it
-    else: leng=s.maxlength[3]
+    leng=0
+    m=len(s.points)
+    p1=s.points[-1][2]
+    for j in range(0,m): #product(range(0,m),range(0,3)):
+      p2=s.points[j][2]
+      leng2=lf.length(np.array([p1,p2]))
+      if leng2>leng:
+        leng=leng2
     return leng
   def ray_bounce(s,Tx,Nre,Nra):
+    #start_time=t.time()         # Start the time counter
     ''' Traces ray's uniformly emitted from an origin around a room.
     Number of rays is n, number of reflections m. Output
     Nra x Nre x Dimension array containing each ray as a squence of it's
     intersection points and the corresponding object number.'''
-    start_time    =t.time()         # Start the time counter
-    r             =s.maxleng()
-    raylist       =np.empty([Nra+1, Nre+1,4])
-    deltheta      =np.sqrt(2.0/(Nra))*ma.pi
-    Nra           =int(np.sqrt(Nra/2.0)-1)*int(np.sqrt(Nra*2.0))+1
-    xysteps       =int(2.0*ma.pi/deltheta)
-    zsteps        =int(ma.pi/deltheta+1)
-    theta1        =deltheta*np.arange(xysteps)
-    theta2        =deltheta*np.arange(zsteps)
-    xydirecs      =np.transpose(r*np.vstack((np.cos(theta1),np.sin(theta1))))
-    z             =r*np.tensordot(np.cos(theta2),np.ones(xysteps),axes=0)
-    directions    =np.zeros((Nra,4))
-    directions[0] =np.array([0.0,0.0,r,0.0])
-    directions[-1]=np.array([0.0,0.0,-r,0.0])
-    # Form the xyz co-ordinates matrix
-    #FIXME try to form this without a loop
-    for j in range(1,zsteps-1):
-      st=(j-1)*xysteps+1
-      ed=(j)*xysteps+1
-      sinalpha=np.sin(theta2[j])
-      coords=np.c_[sinalpha*xydirecs,z[j]]
-      directions[st:ed]=np.c_[coords,np.zeros(xysteps)]
-    # Iterate through the rays find the ray reflections
-    # FIXME the rays are independent of each toher so this is easily parallelisable
+    r           =s.maxleng()
+    raylist     =np.empty([Nra+1, Nre+1,4])
+    theta       =((2.0*ma.pi)/Nra)*np.arange(Nra)
+    TxMat       =np.array([Tx[0]*np.ones(Nra),Tx[1]*np.ones(Nra),Tx[2]*np.ones(Nra)])
+    directions  =np.transpose(r*np.vstack((np.cos(theta),np.sin(theta),np.zeros(Nra),np.zeros(Nra))))#FIXME rotate in z axis too.
     for it in range(0,Nra):
       Dir       =directions[it]
       start     =np.append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
       raystart.multiref(s,Nre)
       raylist[it]=raystart.points[0:-2]
-    s.time=start_time-t.time()
+    #print(raylist)
     return raylist
   def Plotroom(s,origin,width):
     ''' Plots all the edges in the room '''

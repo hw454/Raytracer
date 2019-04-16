@@ -377,7 +377,7 @@ class roommesh:
      #Convert to db
      z=10*np.ma.log10(z)
      extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-     mp.imshow(z, cmap='YlOrRd', interpolation='nearest',extent=extent,vmin=-110,vmax=30)
+     mp.imshow(z, interpolation='nearest',extent=extent,vmin=-110,vmax=30)
      #mp.colorbar()
      return
   def hist(s,i):
