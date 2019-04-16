@@ -182,19 +182,19 @@ class room:
     for obst0 in s.obst:
       yarray=np.vstack((yarray,obst0[0][2],obst0[1][2]))
     return np.array([min(yarray)[0],max(yarray)[0]])
-  def add_inside_objects(s,corners):
-    if s.objectcorners.shape[0]==0:
-      n=0
-      j=0
-    else:
-      n=s.objectcorners[-1][0]
-      j=n
-    for x in corners:
-      if j==0: s.inside_points=x.firstpoint()
-      else: s.inside_points=np.vstack((s.inside_points,x.firstpoint()))
-      j+=1
-    if n==0: s.objectcorners=np.array([(n,j-1)])
-    else:
-      s.objectcorners=np.vstack((s.objectcorners,np.array([(n,j-1)])))
-    return
+  #def add_inside_objects(s,corners):
+    #if s.objectcorners.shape[0]==0:
+      #n=0
+      #j=0
+    #else:
+      #n=s.objectcorners[-1][0]
+      #j=n
+    #for x in corners:
+      #if j==0: s.inside_points=x.firstpoint()
+      #else: s.inside_points=np.vstack((s.inside_points,x.firstpoint()))
+      #j+=1
+    #if n==0: s.objectcorners=np.array([(n,j-1)])
+    #else:
+      #s.objectcorners=np.vstack((s.objectcorners,np.array([(n,j-1)])))
+    #return
 
