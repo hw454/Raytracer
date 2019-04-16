@@ -167,12 +167,6 @@ class room:
       raylist[it]=raystart.points[0:-2]
     s.time=start_time-t.time()
     return raylist
-  def Plotroom(s,origin,width):
-    ''' Plots all the edges in the room '''
-    mp.plot((origin),marker='x',c='r')
-    for obst0 in s.obst:
-      hp.Plotedge(obst0,'g',width)
-    return
   def xbounds(s):
     xarray=np.vstack(np.array([s.obst[0][0][0]]))
     for obst0 in s.obst:
