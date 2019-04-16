@@ -2,7 +2,7 @@
 # Updated Hayley Wragg 2019-03-15
 ''' Code to trace rays around a room. This code computes the trajectories only.'''
 import numpy as np
-import Room01 as rom
+import Room03 as rom
 import raytracerfunction as rayt
 import sys
 import ParameterInput as PI
