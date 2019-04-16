@@ -30,7 +30,7 @@ def RayTracer():
   Nob           =len(Oblist)								  # The number of obstacles in the room
   
   # Room contains all the obstacles and walls.
-  Room=rom.room(Oblist,Nob)
+  Room=rom.room(Oblist) 
 
   # Calculate the Ray trajectories
   print('Starting trajectory calculation')

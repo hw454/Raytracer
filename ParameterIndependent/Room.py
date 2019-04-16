@@ -38,14 +38,14 @@ epsilon=2.22e-32
 
 class room:
   ' A group of obstacle_segments and the time for the run'
-  def __init__(s,obst,Nob):
+  def __init__(s,obst):
     s.obst=obst
     RoomP=obst[0]
-    for j in range(1,len(obst)):
+    for j in range(1,len(obst+1)):
       RoomP=np.concatenate((RoomP,obst[j]),axis=0)
     s.points=RoomP
     # Points is the array of all the co-ordinates which form the surfaces in the room
-    s.Nob=Nob
+    s.Nob=len(obst)
     # Nob is the number of surfaces forming obstacles in the room.
     s.maxlength=np.zeros(4)
     # The initial maxleng, maxxlength, maxylength and maxzlength are 0, this value is changed once computed
