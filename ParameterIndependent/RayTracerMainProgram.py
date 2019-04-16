@@ -27,7 +27,7 @@ def RayTracer():
   Tx            =np.load('Parameters/Origin.npy')			  # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
   Oblist        =np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
-  Nob           =len(Oblist)								  # The number of obstacles in the room
+  #Nob           =len(Oblist)								  # The number of obstacles in the room
   
   # Room contains all the obstacles and walls.
   Room=rom.room(Oblist) 
