@@ -2,10 +2,10 @@
 # Updated Hayley Wragg 2019-03-15
 ''' Code to trace rays around a room. This code computes the trajectories only.'''
 import numpy as np
-import matplotlib.pyplot as mp
 import Room01 as rom
 import raytracerfunction as rayt
 import sys
+import ParameterInput as PI
 
 #FIXME write a new program with a similar structure for storing the information in a DSM
 # Is it possible to use this function and build on top? -Calculation is
@@ -14,6 +14,10 @@ import sys
 if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
+  
+  # Run the ParameterInput file
+  PI.DeclareParameters()
+  
   ##---- Define the room co-ordinates----------------------------------
   # Obstacles are triangles stored as three 3D co-ordinates
 
@@ -40,7 +44,11 @@ if __name__=='__main__':
   # The history of the ray up to that point is stored in a vector at that reference point.
 
   # Calculate the Ray trajectories
+  print('Starting trajectory calculation')
+  print('-------------------------------')
   Rays=Room.ray_bounce(Tx, int(Nre), int(Nra))
+  print('-------------------------------')
+  print('Trajectory calculation completed')
   np.save('RayPoints'+str(int(Nra))+'Refs'+str(int(Nre))+'n.npy',Rays)
   exit()
 
