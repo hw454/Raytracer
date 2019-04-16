@@ -11,12 +11,10 @@ import ParameterInput as PI
 # Is it possible to use this function and build on top? -Calculation is
 # reduced if the rays don't have to be iterated through after being saved.
 
-if __name__=='__main__':
-  print('Running  on python version')
-  print(sys.version)
-  
+def RayTracer():
+	  
   # Run the ParameterInput file
-  PI.DeclareParameters()
+  out=PI.DeclareParameters()
   
   ##---- Define the room co-ordinates----------------------------------
   # Obstacles are triangles stored as three 3D co-ordinates
@@ -50,5 +48,11 @@ if __name__=='__main__':
   print('-------------------------------')
   print('Trajectory calculation completed')
   np.save('RayPoints'+str(int(Nra))+'Refs'+str(int(Nre))+'n.npy',Rays)
+  return 0
+
+if __name__=='__main__':
+  print('Running  on python version')
+  print(sys.version)
+  out=RayTracer()
   exit()
 
