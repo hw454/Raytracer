@@ -197,26 +197,4 @@ class room:
     else:
       s.objectcorners=np.vstack((s.objectcorners,np.array([(n,j-1)])))
     return
-  def roommesh(s,spacing):
-    Nx=int((s.xbounds[1]-s.xbounds[0])/spacing)
-    Ny=int((s.ybounds[1]-s.ybounds[0])/spacing)
-    Nz=int((s.zbounds[1]-s.zbounds[0])/spacing)
-    return rmes.roommesh(s.inside_points,s.objectcorners,(s.xbounds()),(s.ybounds()),spacing)
-  # def room_collision_point_with_end(s,line,space):
-    # ''' The closest intersection out of the possible intersections with
-    # the wall_segments in room for a line with an end point.
-    # Returns the intersection point if intersections occurs'''
-    # # Retreive the Maximum length from the Room
-    # # Find whether there is an intersection with any of the walls.
-    # cp, mu=ins.intersection_with_end(line,s.obst[0],space)
-    # if cp==1: count=1
-    # else: count=0
-    # for OB in s.obst[1:]:
-      # cp, mu=ins.intersection_with_end(line,OB,space)
-      # if cp==1:
-        # count+=1
-    # if count % 2 ==0:
-      # return 0
-    # elif count % 2 ==1:
-      # return 1
-    # else: return 2 # This term shouldn't happen
+
