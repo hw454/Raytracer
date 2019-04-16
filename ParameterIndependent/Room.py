@@ -70,7 +70,7 @@ class room:
     s.inside_points+=p
     return
   def __str__(s):
-    return 'Rooom('+str(list(s.obst))+')'
+    return 'Room('+str(list(s.obst))+')'
   def maxleng(s):
     ''' Finds the maximum length contained in the room '''
     # Has the maxlength in the room been found yet? If no compute it.
