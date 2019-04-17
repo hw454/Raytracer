@@ -16,14 +16,14 @@ def DeclareParameters():
   print('Number of requested rays ', Nra)
   print('Number of reflections ', Nre)
   print('Mesh spacing ', h)
-  
+
   # Obstacles are all triangles in 3D.
   triangle1 =np.array([(0.0,0.0,0.0),(3.0, 0.0,0.0),(1.5,1.5,0.0)])
   triangle2=np.array([(0.0,0.0,0.0),(3.0, 0.0,0.0),(1.0,1.0,3.0)])
   triangle3=np.array([(0.0,0.0,0.0),(1.5, 1.5,0.0),(1.0,1.0,3.0)])
   triangle4=np.array([(1.5,1.5,0.0),(1.0, 1.0,3.0),(3.0,0.0,0.0)])
   Oblist=3*np.array([triangle1,triangle2,triangle3,triangle4])
-  
+
   #- Outer Boundary -
   # 3D co-ordinates forming a closed boundary.
   # Wall 1
@@ -47,7 +47,7 @@ def DeclareParameters():
   OuterBoundary=5*np.array([OuterBoundary1,OuterBoundary2, OuterBoundary3,
    OuterBoundary4,OuterBoundary5,OuterBoundary6,OuterBoundary7,
    OuterBoundary8, OuterBoundary9, OuterBoundary10, OuterBoundary11,OuterBoundary12])
-  
+
   Tx=np.array([5.75,5.25,1.5]) # -Router location -co-ordinate of three real numbers
   #(the third is zero when modelling in 2D).
   print('Origin of raytracer ', Tx)
@@ -59,10 +59,10 @@ def DeclareParameters():
   print('--------------------')
   print('All parameters saved')
   return 0
-  
+
 if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   out=DeclareParameters()
-  
-  
+
+
