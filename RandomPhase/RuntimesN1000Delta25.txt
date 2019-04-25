@@ -1,0 +1,9 @@
+
+Run times for first source location 119.74601102
+Estimated P value 0.69275369
+Run times for first source location 115.37654400
+Estimated P value 0.68737251
+Run times for second source location 117.49469900
+Estimated P value 0.69000609
+Run times for second source location 117.25183010
+Estimated P value 0.68970654
