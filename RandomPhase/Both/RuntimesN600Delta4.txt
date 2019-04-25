@@ -1,0 +1,1 @@
+Run times for first source location with second ref coef 588.77030301Run times for first source location with second ref coef 0.00000000Run times for second source location with second ref coef591.75116301Run times for second source location with second ref coef0.00000000
