@@ -6,6 +6,7 @@ import Room  as rom
 import raytracerfunction as rayt
 import sys
 import ParameterInput as PI
+import DictionarySparseMatrix as DSM
 
 #FIXME write a new program with a similar structure for storing the information in a DSM
 # Is it possible to use this function and build on top? -Calculation is
@@ -39,6 +40,7 @@ def RayTracer():
   Rays=Room.ray_bounce(Tx, int(Nre), int(Nra),Direc)
   print('-------------------------------')
   print('Trajectory calculation completed')
+  print('-------------------------------')
   np.save('RayPoints'+str(int(Nra))+'Refs'+str(int(Nre))+'n.npy',Rays)
   # The "Rays" file is Nra+1 x Nre+1 x 4 array containing the
   # co-ordinate and obstacle number for each reflection point corresponding
@@ -47,7 +49,9 @@ def RayTracer():
   return 1
 
 def MeshProgram():
-
+  print('-------------------------------')
+  print('Building Mesh')
+  print('-------------------------------')
   # Run the ParameterInput file
   out=PI.DeclareParameters()
 
@@ -72,18 +76,21 @@ def MeshProgram():
   Nx=int(Room.maxxleng()/h)
   Ny=int(Room.maxyleng()/h)
   Nz=int(Room.maxzleng()/h)
-  print(Nx,Ny,Nz)
-  #Mesh=DSM.DS(Nx,Ny,Nz,int(Nre*(Nra+1)),int(Nob*(Nre+1)))
+
+  Mesh=DSM.DS(Nx,Ny,Nz,int(Nre*(Nra+1)),int(Nob*(Nre+1)))
+  Mesh=Room.ray_mesh_bounce(Tx,int(Nre),int(Nra),Direc,Mesh)
   # This large mesh is initialised as empty. It contains reference to
   # every segment at every position in the room.
   # The history of the ray up to that point is stored in a vector at that reference point.
-
-  return 1
+  print('-------------------------------')
+  print('Mesh built')
+  print('-------------------------------')
+  return Mesh
 
 if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
-  out=RayTracer()
+  #out=RayTracer()
   out=MeshProgram()
   exit()
 
