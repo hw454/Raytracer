@@ -6,7 +6,7 @@ from scipy.sparse import lil_matrix as SM
 from itertools import product
 import math
 import sys
-import time
+import time as t
 print('Running  on python version')
 print(sys.version)
 
@@ -19,6 +19,82 @@ class DS:
     s.d={}
     for x, y, z in product(range(nx),range(ny),range(nz)):
       s.d[x,y,z]=SM(s.shape,dtype=np.complex128)
+    s.nx=nx
+    s.ny=ny
+    s.nz=nz
+  def __getitem__(s,i):
+    if len(i)==3:
+      dk=i[:3]
+      return s.d[dk]                # return a SM
+    elif len(i)==4:
+      dk,smk=i[:3],i[3]
+      return s.d[dk][smk,:]         # return a SM row
+    elif len(i)==5:
+      dk,smk=i[:3],i[3:]
+      return s.d[dk][smk[0],smk[1]] # return a SM element if smk=[init,int], column if smk=[:,int], row if smk=[int,:], full SM if smk=[:,:]
+    # elif i.shape[1]>1:
+      # dk1=i[0][:]
+      # dk2=i[1][:]
+      # dk3=i[2][:]
+      # smk1=i[3][:]
+      # smk2=i[4][:]
+      # for x, y, z in product(dk1,dk2,dk3):
+      # #return 0
+    else:
+      # ...
+      raise Exception('Error getting the (%s) part of the sparse matrix. Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
+      pass
+  def __setitem__(s,i,x):
+    if len(i)==3:
+      dk,smk=i[:3],i[3:]            # set a SM to an input SM
+      if dk not in s.d:
+        s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
+      s.d[dk]=x
+    elif len(i)==4:                 # set a SM row
+      dk,smk=i[:3],i[3:]
+      if dk not in s.d:
+        s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
+      s.d[dk][smk[0],:]=x
+    elif len(i)==5:                # set a SM element
+      dk,smk=i[:3],i[3:]
+      if dk not in s.d:
+        s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
+      s.d[dk][smk[0],smk[1]]=x
+    else:
+      # ...
+      raise Exception('Error setting the (%s) part of the sparse matrix to (%s). Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
+      pass
+  def __str__(s):
+    return str(s.d)
+  def __repr__(s):
+    return str(s.d) # TODO
+  def nonzero(s):
+    for x,y,z in product(range(s.nx),range(s.ny),range(s.nz)):
+      indicesM=s.d[x,y,z].nonzero()
+      NI=len(indicesM[0])
+      for j in range(0,NI):
+        if x==0 and y==0 and z==0 and j==0:
+          indices=np.array([[0,0,0,indicesM[0][j],indicesM[1][j]]])
+        else:
+          indices=np.append(indices,[[x,y,z,indicesM[0][j],indicesM[1][j]]],axis=0)
+    return indices
+  def dense(s):
+    (na,nb)=s.d[0,0,0].shape
+    nx=s.nx
+    ny=s.ny
+    nz=s.nz
+    den=np.zeros((nx,ny,nz,na,nb),dtype=np.complex128)
+    for x,y,z in product(range(s.nx),range(s.ny),range(s.nz)):
+      den[x,y,z]=s.d[x,y,z].todense()
+    return den
+class DSupdate:
+  def __init__(s,nx=1,ny=1,nz=1,na=1,nb=1):
+    '''nx,ny,nz are the maximums for the key for the dictionary and na
+    and nb are the dimensions of the sparse matrix associated with each key.'''
+    s.shape=(na,nb)
+    Keys=product(range(nx),range(ny),range(nz))
+    default_value=SM(s.shape,dtype=np.complex128)
+    s.d=dict.fromkeys(Keys,default_value)
     s.nx=nx
     s.ny=ny
     s.nz=nz
@@ -280,6 +356,26 @@ def test_14():
   ang=dict_sparse_angles(DSM)
   return 1
 
+def test_15():
+  '''Attempt to find angle of nonzero element of SM inside dictionary'''
+  nx=50
+  ny=50
+  nz=1
+  na=3
+  nb=3
+  for j in range(5):
+      t1=t.time()
+      DSM=DSupdate(nx,ny,nz,na,nb)
+      t2=t.time()
+      DSM2=DS(nx,ny,nz,na,nb)
+      t3=t.time()
+      #print('first time', t2-t1)
+      #print('second time', t3-t2)
+      print('t1/t2',(t2-t1)<(t3-t2),(t2-t1)/(t3-t2))
+  #print(DSM)
+  #print(DSM2)
+  return 1
+
 
 if __name__=='__main__':
-  test_11()
+  test_15()
