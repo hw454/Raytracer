@@ -6,6 +6,9 @@ import Room  as rom
 import raytracerfunction as rayt
 import sys
 import ParameterInput as PI
+import DictionarySparseMatrix as DSM
+import time as t
+import matplotlib.pyplot as mp
 
 #FIXME write a new program with a similar structure for storing the information in a DSM
 # Is it possible to use this function and build on top? -Calculation is
@@ -26,6 +29,7 @@ def RayTracer():
   Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
   Tx            =np.load('Parameters/Origin.npy')			  # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
+  Direc			=np.load('Parameters/Directions.npy')		  # Matrix of intial ray directions for Nra rays.
   Oblist        =np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
   #Nob           =len(Oblist)								  # The number of obstacles in the room
   
@@ -35,7 +39,7 @@ def RayTracer():
   # Calculate the Ray trajectories
   print('Starting trajectory calculation')
   print('-------------------------------')
-  Rays=Room.ray_bounce(Tx, int(Nre), int(Nra))
+  Rays=Room.ray_bounce(Tx, int(Nre), int(Nra), Direc)
   print('-------------------------------')
   print('Trajectory calculation completed')
   np.save('RayPoints'+str(int(Nra))+'Refs'+str(int(Nre))+'n.npy',Rays)
@@ -46,19 +50,70 @@ def RayTracer():
   return 1
   
 def MeshProgram():
-  Nx=int(Room.maxxleng()/h)
-  Ny=int(Room.maxyleng()/h)
-  Nz=int(Room.maxzleng()/h)
-  #Mesh=DSM.DS(Nx,Ny,Nz,int(Nre*(Nra+1)),int(Nob*(Nre+1)))
-  # This large mesh is initialised as empty. It contains reference to
-  # every segment at every position in the room.
-  # The history of the ray up to that point is stored in a vector at that reference point.
-
-  return 1
+  Nraarray=np.arange(5,26,2)
+  timearray=np.zeros([10,3])
+  for j in range(10):
+	  starttime=t.time()
+	  Nra=Nraarray[j]
+	    # Run the ParameterInput file
+	  out=PI.DeclareParameters(Nra)
+	  
+	  ##---- Define the room co-ordinates----------------------------------
+	  # Obstacles are triangles stored as three 3D co-ordinates
+	
+	  ##----Retrieve the Raytracing Parameters-----------------------------
+	  Nra,Nre,h     =np.load('Parameters/Raytracing.npy')
+	
+	  ##----Retrieve the environment--------------------------------------
+	  Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
+	  Tx            =np.load('Parameters/Origin.npy')			  # The location of the source antenna (origin of every ray)
+	  OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
+	  Direc			=np.load('Parameters/Directions.npy')		  # Matrix of intial ray directions for Nra rays.
+	  Oblist        =np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+	  #Nob           =len(Oblist)								  # The number of obstacles in the room
+	  
+	  # Room contains all the obstacles and walls.
+	  Room=rom.room(Oblist)
+	  roomtime=Room.time
+	  
+	  Nob=Room.Nob 
+	  
+	  # Build the Mesh
+	  print('Building the sparse mesh')
+	  print('-------------------------------------------------')
+	  
+	  # Calculate the number of steps in the x,y, and z directions
+	  Nx=int(Room.maxxleng()/h)
+	  Ny=int(Room.maxyleng()/h)
+	  Nz=int(Room.maxzleng()/h)
+	  
+	  # Initialise the sparse mesh (in the form of a dictionary of sparse matrices)
+	  Mesh=DSM.DS(Nx,Ny,Nz,int(Nre*(Nra+1)),int(Nob*(Nre+1)))
+	  Meshtime=Mesh.time
+	  print('Mesh built')
+	  print('-------------------------------------------------')
+	  # This large mesh is initialised as empty. It contains reference to
+	  # every segment at every position in the room.
+	  # The history of the ray up to that point is stored in a vector at that reference point.
+	  timearray[j][0]=roomtime-starttime
+	  timearray[j][1]=Meshtime-roomtime
+	  timearray[j][2]=Meshtime-starttime
+	  print('Time taken to build room',     timearray[j][0])
+	  print('-------------------------------------------------')
+	  print('Time taken to build Mesh',     timearray[j][1])
+	  print('-------------------------------------------------')
+	  print('Total time taken to initiate', timearray[j][2])
+	  print('-------------------------------------------------')
+  return Nraarray,timearray
 
 if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
-  out=RayTracer()
+  #out=RayTracer()
+  Nraarray,timearray=MeshProgram()
+  mp.plot(Nraarray,timearray[0])
+  mp.plot(Nraarray,timearray[1])
+  mp.plot(Nraarray,timearray[2])
+  mp.show()
   exit()
 
