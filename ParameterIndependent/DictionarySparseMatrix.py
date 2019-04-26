@@ -7,8 +7,7 @@ from itertools import product
 import math
 import sys
 import time as t
-print('Running  on python version')
-print(sys.version)
+import matplotlib.pyplot as mp
 
 # dk is dictionary key, smk is sparse matrix key, SM is a sparse matrix
 class DS:
@@ -87,6 +86,7 @@ class DS:
     for x,y,z in product(range(s.nx),range(s.ny),range(s.nz)):
       den[x,y,z]=s.d[x,y,z].todense()
     return den
+
 class DSupdate:
   def __init__(s,nx=1,ny=1,nz=1,na=1,nb=1):
     '''nx,ny,nz are the maximums for the key for the dictionary and na
@@ -356,26 +356,44 @@ def test_14():
   ang=dict_sparse_angles(DSM)
   return 1
 
-def test_15():
+def test_time_00():
   '''Attempt to find angle of nonzero element of SM inside dictionary'''
   nx=50
   ny=50
   nz=1
   na=3
   nb=3
-  for j in range(5):
-      t1=t.time()
-      DSM=DSupdate(nx,ny,nz,na,nb)
-      t2=t.time()
-      DSM2=DS(nx,ny,nz,na,nb)
-      t3=t.time()
-      #print('first time', t2-t1)
-      #print('second time', t3-t2)
-      print('t1/t2',(t2-t1)<(t3-t2),(t2-t1)/(t3-t2))
+  nx=4
+  ny=4
+  ntests=50
+  timeratio=np.zeros((ntests,1))
+  nsize=np.zeros((ntests,1))
+  for i in range(ntests):
+      nx=nx+2
+      ny=ny+2
+      nsize[i]=nx
+      tratio=0.0
+      for j in range(10):
+          t1=t.time()
+          DSM=DSupdate(nx,ny,nz,na,nb)
+          t2=t.time()
+          DSM2=DS(nx,ny,nz,na,nb)
+          t3=t.time()
+          #print('first time', t2-t1)
+          #print('second time', t3-t2)
+          tratio=tratio+((t3-t2)-(t2-t1))/(t3-t2)
+      tratio=tratio/10
+      timeratio[i]=tratio
+      print('t1/t2',tratio<1,tratio)
+  print(nsize)
+  mp.plot(nsize,timeratio)
+  mp.show()
   #print(DSM)
   #print(DSM2)
   return 1
 
 
 if __name__=='__main__':
-  test_15()
+  print('Running  on python version')
+  print(sys.version)
+  test_time_00()

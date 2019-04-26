@@ -26,6 +26,7 @@ def RayTracer():
   Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
   Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
+  Direc         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
   Oblist        =np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
   #Nob           =len(Oblist)                                 # The number of obstacles in the room
 
@@ -35,7 +36,7 @@ def RayTracer():
   # Calculate the Ray trajectories
   print('Starting trajectory calculation')
   print('-------------------------------')
-  Rays=Room.ray_bounce(Tx, int(Nre), int(Nra))
+  Rays=Room.ray_bounce(Tx, int(Nre), int(Nra),Direc)
   print('-------------------------------')
   print('Trajectory calculation completed')
   np.save('RayPoints'+str(int(Nra))+'Refs'+str(int(Nre))+'n.npy',Rays)
@@ -46,6 +47,28 @@ def RayTracer():
   return 1
 
 def MeshProgram():
+
+  # Run the ParameterInput file
+  out=PI.DeclareParameters()
+
+  ##---- Define the room co-ordinates----------------------------------
+  # Obstacles are triangles stored as three 3D co-ordinates
+
+  ##----Retrieve the Raytracing Parameters-----------------------------
+  Nra,Nre,h     =np.load('Parameters/Raytracing.npy')
+
+  ##----Retrieve the environment--------------------------------------
+  Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
+  Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
+  OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
+  Direc         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
+  Oblist        =np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+  #Nob           =len(Oblist)                                 # The number of obstacles in the room
+
+  # Room contains all the obstacles and walls.
+  Room=rom.room(Oblist)
+  Nob=Room.Nob
+
   Nx=int(Room.maxxleng()/h)
   Ny=int(Room.maxyleng()/h)
   Nz=int(Room.maxzleng()/h)
@@ -61,5 +84,6 @@ if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   out=RayTracer()
+  out=MeshProgram()
   exit()
 

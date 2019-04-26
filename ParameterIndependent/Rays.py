@@ -97,7 +97,8 @@ class Ray:
                 rNob=Nob
           Nob+=1
         if any(c is None for c in rcp):
-          print('No collision point found', rcp)
+          pass
+          #print('No collision point found', rcp)
         return rcp, robj, rNob
     else:
       return np.array([None, None, None]), None, 0
