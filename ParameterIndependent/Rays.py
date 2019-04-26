@@ -96,11 +96,10 @@ class Ray:
               robj=obj
               rNob=Nob
           Nob+=1
-      if any(c is None for c in rcp):
-        #pass
-        #print('No collision point found', rcp)
-        pass
-      return rcp, robj, rNob
+        if any(c is None for c in rcp):
+          pass
+          #print('No collision point found', rcp)
+        return rcp, robj, rNob
     else:
       return np.array([None, None, None]), None, 0
   def ray_length(s,inter):
@@ -147,6 +146,15 @@ class Ray:
     for i in range(0,m+1):
       end=s.reflect(room)
     return
+  def mesh_multiref(s,room,m,Mesh):
+    ''' Takes a ray and finds the first five reflections within a room'''
+    for i in range(0,m+1):
+      end=s.reflect(room)
+      if end: Mesh=s.meshsingleray(Mesh)
+      else: pass
+    return
+  def meshsingleray(s,Mesh):
+    return Mesh
   def raytest(s,room,err):
     ''' Checks the reflection for errors'''
     cp,wall=s.room_collision_point(room)

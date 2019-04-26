@@ -15,10 +15,10 @@ import matplotlib.pyplot as mp
 # reduced if the rays don't have to be iterated through after being saved.
 
 def RayTracer():
-	  
+
   # Run the ParameterInput file
   out=PI.DeclareParameters()
-  
+
   ##---- Define the room co-ordinates----------------------------------
   # Obstacles are triangles stored as three 3D co-ordinates
 
@@ -27,14 +27,14 @@ def RayTracer():
 
   ##----Retrieve the environment--------------------------------------
   Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
-  Tx            =np.load('Parameters/Origin.npy')			  # The location of the source antenna (origin of every ray)
+  Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
   Direc			=np.load('Parameters/Directions.npy')		  # Matrix of intial ray directions for Nra rays.
   Oblist        =np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
-  #Nob           =len(Oblist)								  # The number of obstacles in the room
-  
+  #Nob           =len(Oblist)                                 # The number of obstacles in the room
+
   # Room contains all the obstacles and walls.
-  Room=rom.room(Oblist) 
+  Room=rom.room(Oblist)
 
   # Calculate the Ray trajectories
   print('Starting trajectory calculation')
@@ -42,78 +42,57 @@ def RayTracer():
   Rays=Room.ray_bounce(Tx, int(Nre), int(Nra), Direc)
   print('-------------------------------')
   print('Trajectory calculation completed')
+  print('-------------------------------')
   np.save('RayPoints'+str(int(Nra))+'Refs'+str(int(Nre))+'n.npy',Rays)
-  # The "Rays" file is Nra+1 x Nre+1 x 4 array containing the 
-  # co-ordinate and obstacle number for each reflection point corresponding 
+  # The "Rays" file is Nra+1 x Nre+1 x 4 array containing the
+  # co-ordinate and obstacle number for each reflection point corresponding
   # to each source ray.
-  
+
   return 1
-  
+
 def MeshProgram():
-  Nraarray=np.arange(5,26,2)
-  timearray=np.zeros([10,3])
-  for j in range(10):
-	  starttime=t.time()
-	  Nra=Nraarray[j]
-	    # Run the ParameterInput file
-	  out=PI.DeclareParameters(Nra)
-	  
-	  ##---- Define the room co-ordinates----------------------------------
-	  # Obstacles are triangles stored as three 3D co-ordinates
-	
-	  ##----Retrieve the Raytracing Parameters-----------------------------
-	  Nra,Nre,h     =np.load('Parameters/Raytracing.npy')
-	
-	  ##----Retrieve the environment--------------------------------------
-	  Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
-	  Tx            =np.load('Parameters/Origin.npy')			  # The location of the source antenna (origin of every ray)
-	  OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
-	  Direc			=np.load('Parameters/Directions.npy')		  # Matrix of intial ray directions for Nra rays.
-	  Oblist        =np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
-	  #Nob           =len(Oblist)								  # The number of obstacles in the room
-	  
-	  # Room contains all the obstacles and walls.
-	  Room=rom.room(Oblist)
-	  roomtime=Room.time
-	  
-	  Nob=Room.Nob 
-	  
-	  # Build the Mesh
-	  print('Building the sparse mesh')
-	  print('-------------------------------------------------')
-	  
-	  # Calculate the number of steps in the x,y, and z directions
-	  Nx=int(Room.maxxleng()/h)
-	  Ny=int(Room.maxyleng()/h)
-	  Nz=int(Room.maxzleng()/h)
-	  
-	  # Initialise the sparse mesh (in the form of a dictionary of sparse matrices)
-	  Mesh=DSM.DS(Nx,Ny,Nz,int(Nre*(Nra+1)),int(Nob*(Nre+1)))
-	  Meshtime=Mesh.time
-	  print('Mesh built')
-	  print('-------------------------------------------------')
-	  # This large mesh is initialised as empty. It contains reference to
-	  # every segment at every position in the room.
-	  # The history of the ray up to that point is stored in a vector at that reference point.
-	  timearray[j][0]=roomtime-starttime
-	  timearray[j][1]=Meshtime-roomtime
-	  timearray[j][2]=Meshtime-starttime
-	  print('Time taken to build room',     timearray[j][0])
-	  print('-------------------------------------------------')
-	  print('Time taken to build Mesh',     timearray[j][1])
-	  print('-------------------------------------------------')
-	  print('Total time taken to initiate', timearray[j][2])
-	  print('-------------------------------------------------')
-  return Nraarray,timearray
+  print('-------------------------------')
+  print('Building Mesh')
+  print('-------------------------------')
+  # Run the ParameterInput file
+  out=PI.DeclareParameters()
+
+  ##---- Define the room co-ordinates----------------------------------
+  # Obstacles are triangles stored as three 3D co-ordinates
+
+  ##----Retrieve the Raytracing Parameters-----------------------------
+  Nra,Nre,h     =np.load('Parameters/Raytracing.npy')
+
+  ##----Retrieve the environment--------------------------------------
+  Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
+  Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
+  OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
+  Direc         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
+  Oblist        =np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+  #Nob           =len(Oblist)                                 # The number of obstacles in the room
+
+  # Room contains all the obstacles and walls.
+  Room=rom.room(Oblist)
+  Nob=Room.Nob
+
+  Nx=int(Room.maxxleng()/h)
+  Ny=int(Room.maxyleng()/h)
+  Nz=int(Room.maxzleng()/h)
+
+  Mesh=DSM.DS(Nx,Ny,Nz,int(Nre*(Nra+1)),int(Nob*(Nre+1)))
+  Mesh=Room.ray_mesh_bounce(Tx,int(Nre),int(Nra),Direc,Mesh)
+  # This large mesh is initialised as empty. It contains reference to
+  # every segment at every position in the room.
+  # The history of the ray up to that point is stored in a vector at that reference point.
+  print('-------------------------------')
+  print('Mesh built')
+  print('-------------------------------')
+  return Mesh
 
 if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   #out=RayTracer()
-  Nraarray,timearray=MeshProgram()
-  mp.plot(Nraarray,timearray[0])
-  mp.plot(Nraarray,timearray[1])
-  mp.plot(Nraarray,timearray[2])
-  mp.show()
+  out=MeshProgram()
   exit()
 

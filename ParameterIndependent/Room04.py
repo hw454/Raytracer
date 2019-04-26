@@ -90,7 +90,7 @@ class room:
       for j in range(0,len(s.points)):
         p2=s.points[j][0]
         leng2=lf.length(np.array([p1,p2]))
-        if leng2>s.maxlength[1]
+        if leng2>s.maxlength[1]:
           s.maxlength[1]=leng2
       return s.maxlength[2]
     # If yes then return it
@@ -119,33 +119,34 @@ class room:
       return s.maxlength[3]
     # If yes then return it
     else: return s.maxlength[3]
-  def ray_bounce(s,Tx,Nre,Nra):
+def ray_mesh_bounce(s,Tx,Nra,Nra,directions,Mesh):
     ''' Traces ray's uniformly emitted from an origin around a room.
-    Number of rays is n, number of reflections m. Output
+    Number of rays is Nra, number of reflections m. Output
     Nra x Nre x Dimension array containing each ray as a squence of it's
     intersection points and the corresponding object number.'''
     start_time    =t.time()         # Start the time counter
     r             =s.maxleng()
     raylist       =np.empty([Nra+1, Nre+1,4])
-    deltheta      =np.sqrt(2.0/(Nra))*ma.pi
-    Nra           =int(np.sqrt(Nra/2.0)-1)*int(np.sqrt(Nra*2.0))+1
-    xysteps       =int(2.0*ma.pi/deltheta)
-    zsteps        =int(ma.pi/deltheta+1)
-    theta1        =deltheta*np.arange(xysteps)
-    theta2        =deltheta*np.arange(zsteps)
-    xydirecs      =np.transpose(r*np.vstack((np.cos(theta1),np.sin(theta1))))
-    z             =r*np.tensordot(np.cos(theta2),np.ones(xysteps),axes=0)
-    directions    =np.zeros((Nra,4))
-    directions[0] =np.array([0.0,0.0,r,0.0])
-    directions[-1]=np.array([0.0,0.0,-r,0.0])
-    # Form the xyz co-ordinates matrix
-    #FIXME try to form this without a loop
-    for j in range(1,zsteps-1):
-      st=(j-1)*xysteps+1
-      ed=(j)*xysteps+1
-      sinalpha=np.sin(theta2[j])
-      coords=np.c_[sinalpha*xydirecs,z[j]]
-      directions[st:ed]=np.c_[coords,np.zeros(xysteps)]
+    directions    =r*directions
+    # Iterate through the rays find the ray reflections
+    # FIXME the rays are independent of each toher so this is easily parallelisable
+    for it in range(0,Nra):
+      Dir       =directions[it]
+      start     =np.append(Tx,[0])
+      raystart  =ry.Ray(start, Dir)
+      raystart.multiref(s,Nre)
+      raylist[it]=raystart.points[0:-2]
+    s.time=start_time-t.time()
+    return Mesh
+def ray_bounce(s,Tx,Nre,Nra,directions):
+    ''' Traces ray's uniformly emitted from an origin around a room.
+    Number of rays is Nra, number of reflections m. Output
+    Nra x Nre x Dimension array containing each ray as a squence of it's
+    intersection points and the corresponding object number.'''
+    start_time    =t.time()         # Start the time counter
+    r             =s.maxleng()
+    raylist       =np.empty([Nra+1, Nre+1,4])
+    directions    =r*directions
     # Iterate through the rays find the ray reflections
     # FIXME the rays are independent of each toher so this is easily parallelisable
     for it in range(0,Nra):

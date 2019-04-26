@@ -1,9 +1,12 @@
 *.pyc
+*.txt
 *.npy
-*.jpg
 *.png
+*.jpg
+*.html
 *.aux
 *.toc
-*.html
-*.txt
-*.pyc
+.gitignore*
+
+
+

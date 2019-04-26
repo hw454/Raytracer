@@ -72,17 +72,15 @@ def DeclareParameters(Nra):
       sinalpha=np.sin(theta2[j-1])
       coords=np.c_[sinalpha*xydirecs,z[j-1]]
       directions[st:ed]=np.c_[coords,np.zeros(xysteps)]
-
   np.save('Parameters/Directions.npy',directions)
   np.save('Parameters/Obstacles.npy',Oblist)
   np.save('Parameters/OuterBoundary.npy',OuterBoundary)
-  np.save('Parameters/Origin.npy',Tx) 
+  np.save('Parameters/Origin.npy',Tx)
   print('Origin of raytracer ', Tx)
-  print('-------------------------------------------------')
+  print('------------------------------------------------')
   print('All parameters saved')
-  print('-------------------------------------------------')
-  
-  return 0
+  print('------------------------------------------------')
+  return 1
 
 if __name__=='__main__':
   print('Running  on python version')

@@ -93,9 +93,15 @@ class room:
       for j in range(0,m):
         p2=s.points[j][0]
         leng2=lf.length(np.array([p1,p2]))
+<<<<<<< HEAD
         if leng2>leng:
           leng=leng2
       s.maxlength[1]=leng
+=======
+        if leng2>s.maxlength[1]:
+          s.maxlength[1]=leng2
+      return s.maxlength[2]
+>>>>>>> 0af78bf21b7684a551bf55439f09af85dd249956
     # If yes then return it
     else: leng=s.maxlength[1]
     return leng
@@ -127,11 +133,34 @@ class room:
           leng=leng2
       s.maxlength[3]=leng
     # If yes then return it
+<<<<<<< HEAD
     else: leng=s.maxlength[3]
     return leng
   def ray_bounce(s,Tx,Nre,Nra,directions):
+=======
+    else: return s.maxlength[3]
+  def ray_mesh_bounce(s,Tx,Nre,Nra,directions,Mesh):
+>>>>>>> 0af78bf21b7684a551bf55439f09af85dd249956
     ''' Traces ray's uniformly emitted from an origin around a room.
-    Number of rays is n, number of reflections m. Output
+    Number of rays is Nra, number of reflections Nre.
+    Output Mesh of sparse matrices containing the ray information'''
+    start_time    =t.time()         # Start the time counter
+    r             =s.maxleng()
+    raylist       =np.empty([Nra+1, Nre+1,4])
+    directions    =r*directions
+    # Iterate through the rays find the ray reflections
+    # FIXME the rays are independent of each toher so this is easily parallelisable
+    for it in range(0,Nra):
+      Dir       =directions[it]
+      start     =np.append(Tx,[0])
+      raystart  =ry.Ray(start, Dir)
+      Mesh=raystart.mesh_multiref(s,Nre,Mesh)
+      raylist[it]=raystart.points[0:-2]
+    s.time=start_time-t.time()
+    return Mesh
+  def ray_bounce(s,Tx,Nre,Nra,directions):
+    ''' Traces ray's uniformly emitted from an origin around a room.
+    Number of rays is Nra, number of reflections Nre. Output
     Nra x Nre x Dimension array containing each ray as a squence of it's
     intersection points and the corresponding object number.'''
     start_time    =t.time()         # Start the time counter
