@@ -6,9 +6,7 @@ from scipy.sparse import lil_matrix as SM
 from itertools import product
 import math
 import sys
-import time
-print('Running  on python version')
-print(sys.version)
+import time as t
 
 # dk is dictionary key, smk is sparse matrix key, SM is a sparse matrix
 class DS:
@@ -22,6 +20,7 @@ class DS:
     s.nx=nx
     s.ny=ny
     s.nz=nz
+    s.time=np.array([t.time()])
   def __getitem__(s,i):
     if len(i)==3:
       dk=i[:3]
@@ -282,4 +281,6 @@ def test_14():
 
 
 if __name__=='__main__':
+  print('Running  on python version')
+  print(sys.version)
   test_11()

@@ -70,37 +70,35 @@ class Ray:
     the wall_segments in room. Returns the intersection point and the
     wall intersected with '''
     if all(p is not None for p in s.points[-1]):
-      # Retreive the Maximum length from the Room
-      leng=room.maxleng()
-      # Initialise the point and wall
-      robj=room.obst[0]
-      rcp=s.obst_collision_point(robj)
-      # Find the intersection with all the walls and check which is the
-      #closest. Verify that the intersection is not the current origin.
-      Nob=1
-      rNob=Nob
-      for obj in room.obst:
-        cp=s.obst_collision_point(obj)
-        if all(c is not None for c in cp):
-          if np.allclose(cp, s.points[-2][0:3],atol=epsilon):
-            #print("Collision point is the same as the previous")
-            pass
-            # Do not reassign collision point when it is the previous
-            # point, this shouldn't happen because of direction check though
-          else:
-            #print('cp accepted',cp)
-            leng2=s.ray_length(cp)
-            if (leng2<leng and leng2>-epsilon) :
-              leng=leng2
-              rcp=cp
-              robj=obj
-              rNob=Nob
+        # Retreive the Maximum length from the Room
+        leng=room.maxleng()
+        # Initialise the point and wall
+        robj=room.obst[0]
+        rcp=s.obst_collision_point(robj)
+        # Find the intersection with all the walls and check which is the
+        #closest. Verify that the intersection is not the current origin.
+        Nob=1
+        rNob=Nob
+        for obj in room.obst:
+          cp=s.obst_collision_point(obj)
+          if all(c is not None for c in cp):
+            if np.allclose(cp, s.points[-2][0:3],atol=epsilon):
+              #print("Collision point is the same as the previous")
+              pass
+              # Do not reassign collision point when it is the previous
+              # point, this shouldn't happen because of direction check though
+            else:
+              #print('cp accepted',cp)
+              leng2=s.ray_length(cp)
+              if (leng2<leng and leng2>-epsilon) :
+                leng=leng2
+                rcp=cp
+                robj=obj
+                rNob=Nob
           Nob+=1
-      if any(c is None for c in rcp):
-        #pass
-        #print('No collision point found', rcp)
-        pass
-      return rcp, robj, rNob
+        if any(c is None for c in rcp):
+          #print('No collision point found', rcp)
+        return rcp, robj, rNob
     else:
       return np.array([None, None, None]), None, 0
   def ray_length(s,inter):
