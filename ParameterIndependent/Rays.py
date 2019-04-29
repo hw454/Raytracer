@@ -107,6 +107,12 @@ class Ray:
     o=s.points[-2][0:3]
     ray=np.array([o,inter])
     return lf.length(ray)
+  def number_steps(s,meshwidth):
+    return lf.length(np.vstack((s.points[-3][0:3],s.points[-2][0:3])))/meshwidth
+  def normal_mat(s,Nra,d):
+     anglevec=np.linspace(0.0,2*np.pi,num=int(Nra), endpoint=False)
+     Norm=np.tile(d,int(Nra))# .linalg.cross(,np.array([np.cos(anglevec),np.sin(anglevec),np.zeros(Nra)]))
+     return Norm
   def reflect(s,room):
     ''' finds the reflection of the ray inside a room'''
     if any(c is None for c in s.points[-1][0:2]):
@@ -149,7 +155,7 @@ class Ray:
       # be one at the next step.
       #print('no cp at previous stage', s.points[-2:-1])
       s.points=np.vstack((s.points,np.array([None, None, None, None])))
-      return 0, 0.0
+      return 0, 0.0, 0.0
     cp,obst,nob=s.room_collision_point(room)
     # Check that a collision does occur
     if any(p is None for p in cp):
@@ -158,12 +164,12 @@ class Ray:
       # If there is no collision then None's are stored as place holders
       # Replace the last point of the ray instead of keeping the direction term.
       s.points=np.vstack((s.points[0:-1],np.array([None, None, None, None]),np.array([None, None, None, None])))
-      return 0, 0.0
+      return 0, 0.0, 0.0
     elif obst is None:
       #print('no ob',s.points[1])
       # Replace the last point of the ray instead of keeping the direction term.
       s.points=np.vstack((s.points[0:-1],np.array([None, None, None, None]),np.array([None, None, None, None])))
-      return 0, 0.0
+      return 0, 0.0, 0.0
       #print('ray:',s.points)
       #raise Error('Collision should occur')
     else:
@@ -173,23 +179,36 @@ class Ray:
       dist=lf.length(ray)
       # The reflection function returns a line segment
       refray=ref.try_reflect_ray(ray,obst) # refray is the intersection point to a reflection point
+      theta=0.0 #FIXME find the angle of reflection
       # update self...
       s.points[-1]=np.append(cp, [nob])
       s.points=np.vstack((s.points,np.append(lf.Direction(refray),[0])))
-    return 1, dist
+    return 1, dist, theta
   def multiref(s,room,m):
     ''' Takes a ray and finds the first five reflections within a room'''
     for i in range(0,m+1):
       end=s.reflect(room)
     return
-  def mesh_multiref(s,room,m,Mesh):
+  def mesh_multiref(s,room,Nre,Mesh,Nra):
     ''' Takes a ray and finds the first five reflections within a room'''
-    for i in range(0,m+1):
-      end, dist=s.reflect_calc(room)
-      if end: Mesh=s.meshsingleray(Mesh,dist)
+    dist=0
+    calcvec=np.zeros((room.Nob*(Nre+1),1))
+    for i in range(0,Nre+1):
+      end, dist, theta=s.reflect_calc(room)
+      if end:
+          #i1,j1=Mesh.position(s.points[-3])
+          #i2,j2=Mesh.position(s.points[-2])
+          h=room.meshwidth(Mesh)
+          Ns=s.number_steps(h)
+          direc=s.points[-1]
+          norm=s.normal_mat(Nra,direc) # Matrix of
+          Mesh=s.meshsingleray(room.Nob, Mesh,dist)
       else: pass
-    return
-  def meshsingleray(s,Mesh,dist):
+    return Mesh
+  def meshsingleray(s,Nob,Mesh,dist):
+    ''' Iterate between two intersection points and store the ray information in the Mesh '''
+    r=dist                      # The distance travelled by the ray to the start of this calculcation
+    Nre=len(s.points[0])        # Compute the reflection number of this reflection point
     return Mesh
   def raytest(s,room,err):
     ''' Checks the reflection for errors'''
@@ -208,18 +227,18 @@ class Ray:
       s.ray=np.vstack((s.ray,lf.Direction(refray)))
       #print('ray',ray, 'refray', refray, 'error', err)
     return err
-  def heatmapray(s,Mesh,streg,freq,spacing,refloss,N):
-    i=0
-    streg=streg*(299792458/(freq*4*ma.pi))
-    iterconsts=np.array([streg,1.0])
-    for r in s.ray[:-3]:
-      #In db
-      #refloss=10*np.log10(2)
-      #streg=Mesh.singleray(np.array([r,s.ray[i+1]]),streg-refloss,s.frequency)
-      #In Watts
-      iterconsts[0]=iterconsts[0]/refloss
-      iterconsts=Mesh.singleray(np.array([r,s.ray[i+1]]),iterconsts,s.frequency,N)
-      i+=1
-    #Mesh.plot()
-    return Mesh
+  # def heatmapray(s,Mesh,streg,freq,spacing,refloss,N):
+    # i=0
+    # streg=streg*(299792458/(freq*4*ma.pi))
+    # iterconsts=np.array([streg,1.0])
+    # for r in s.ray[:-3]:
+      # #In db
+      # #refloss=10*np.log10(2)
+      # #streg=Mesh.singleray(np.array([r,s.ray[i+1]]),streg-refloss,s.frequency)
+      # #In Watts
+      # iterconsts[0]=iterconsts[0]/refloss
+      # iterconsts=Mesh.singleray(np.array([r,s.ray[i+1]]),iterconsts,s.frequency,N)
+      # i+=1
+    # #Mesh.plot()
+    # return Mesh
 
