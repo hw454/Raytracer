@@ -141,6 +141,42 @@ class Ray:
       s.points[-1]=np.append(cp, [nob])
       s.points=np.vstack((s.points,np.append(lf.Direction(refray),[0])))
     return 1
+  def reflect_calc(s,room):
+    ''' finds the reflection of the ray inside a room'''
+    #FIXME - return distance upto new point and end 0,1.
+    if any(c is None for c in s.points[-1][0:2]):
+      # If there was no previous collision point then there won't
+      # be one at the next step.
+      #print('no cp at previous stage', s.points[-2:-1])
+      s.points=np.vstack((s.points,np.array([None, None, None, None])))
+      return 0, 0.0
+    cp,obst,nob=s.room_collision_point(room)
+    # Check that a collision does occur
+    if any(p is None for p in cp):
+      #print('no cp at collision ',len(s.points)-2,' before reflection.')
+      #print('Collision point ',cp,' Previous instersection ', s.points[-2:-1])
+      # If there is no collision then None's are stored as place holders
+      # Replace the last point of the ray instead of keeping the direction term.
+      s.points=np.vstack((s.points[0:-1],np.array([None, None, None, None]),np.array([None, None, None, None])))
+      return 0, 0.0
+    elif obst is None:
+      #print('no ob',s.points[1])
+      # Replace the last point of the ray instead of keeping the direction term.
+      s.points=np.vstack((s.points[0:-1],np.array([None, None, None, None]),np.array([None, None, None, None])))
+      return 0, 0.0
+      #print('ray:',s.points)
+      #raise Error('Collision should occur')
+    else:
+      # Construct the incoming array
+      origin=s.points[-2][0:3]
+      ray=np.array([origin,cp])
+      dist=lf.length(ray)
+      # The reflection function returns a line segment
+      refray=ref.try_reflect_ray(ray,obst) # refray is the intersection point to a reflection point
+      # update self...
+      s.points[-1]=np.append(cp, [nob])
+      s.points=np.vstack((s.points,np.append(lf.Direction(refray),[0])))
+    return 1, dist
   def multiref(s,room,m):
     ''' Takes a ray and finds the first five reflections within a room'''
     for i in range(0,m+1):
@@ -149,11 +185,11 @@ class Ray:
   def mesh_multiref(s,room,m,Mesh):
     ''' Takes a ray and finds the first five reflections within a room'''
     for i in range(0,m+1):
-      end=s.reflect(room)
-      if end: Mesh=s.meshsingleray(Mesh)
+      end, dist=s.reflect_calc(room)
+      if end: Mesh=s.meshsingleray(Mesh,dist)
       else: pass
     return
-  def meshsingleray(s,Mesh):
+  def meshsingleray(s,Mesh,dist):
     return Mesh
   def raytest(s,room,err):
     ''' Checks the reflection for errors'''
