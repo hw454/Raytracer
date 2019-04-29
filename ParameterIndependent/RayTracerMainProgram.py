@@ -80,13 +80,18 @@ def MeshProgram():
   Nz=int(Room.maxzleng()/h)
 
   Mesh=DSM.DS(Nx,Ny,Nz,int(Nob*(Nre+1)),int(Nre*(Nra+1)))
-  Mesh=Room.ray_mesh_bounce(Tx,int(Nre),int(Nra),Direc,Mesh)
-  # This large mesh is initialised as empty. It contains reference to
-  # every segment at every position in the room.
-  # The history of the ray up to that point is stored in a vector at that reference point.
   print('-------------------------------')
   print('Mesh built')
   print('-------------------------------')
+  print('Starting the ray bouncing and information storage')
+  print('-------------------------------')
+  Mesh=Room.ray_mesh_bounce(Tx,int(Nre),int(Nra),Direc,Mesh)
+  print('-------------------------------')
+  print('ray-launching complete')
+  print('-------------------------------')
+  # This large mesh is initialised as empty. It contains reference to
+  # every segment at every position in the room.
+  # The history of the ray up to that point is stored in a vector at that reference point.
   return Mesh
 
 if __name__=='__main__':
