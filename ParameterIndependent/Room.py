@@ -47,7 +47,9 @@ class room:
     # Points is the array of all the co-ordinates which form the surfaces in the room
     s.Nob=len(obst)
     # Nob is the number of surfaces forming obstacles in the room.
-    s.maxlength=np.zeros(4)
+    s.maxlength=np.zeros((4,1))
+    # Co-ordinate bounds
+    s.bounds=np.array([np.min(s.points,axis=0),np.max(s.points,axis=0)])
     # The initial maxleng, maxxlength, maxylength and maxzlength are 0, this value is changed once computed
     s.inside_points=np.array([])
     # The inside points line within obstacles and are used to detect if a ray is inside or outside.
@@ -66,7 +68,7 @@ class room:
     s.points+=obst0
     return
   def __set_insidepoint__(s,p):
-
+    # FIXME - Is this function needed??
     return
   def __str__(s):
     return 'Rooom('+str(list(s.obst))+')'
@@ -81,49 +83,24 @@ class room:
         if leng2>leng:
           s.maxlength[0]=leng2
       return s.maxlength[0]
-    # If yes then return it
     else: return s.maxlength[0]
   def maxxleng(s):
     ''' Finds the maximum length contained in the room in the x plane'''
     if abs(s.maxlength[1])<epsilon:
-      leng=0
-      m=len(s.points)
-      p1=s.points[-1][0]
-      for j in range(0,m):
-        p2=s.points[j][0]
-        leng2=lf.length(np.array([p1,p2]))
-        if leng2>s.maxlength[1]:
-          s.maxlength[1]=leng2
+      s.maxlength[1]=s.bounds[1][0]-s.bounds[0][0]
       return s.maxlength[1]
-    # If yes then return it
     else: return s.maxlength[1]
   def maxyleng(s):
     ''' Finds the maximum length contained in the room in the y plane'''
     if abs(s.maxlength[2])<epsilon:
-      leng=0
-      m=len(s.points)
-      p1=s.points[-1][0]
-      for j in range(0,m):
-        p2=s.points[j][0]
-        leng2=lf.length(np.array([p1,p2]))
-        if leng2>leng:
-          leng=leng2
+      s.maxlength[2]=s.bounds[1][1]-s.bounds[0][1]
       return s.maxlength[2]
-    # If yes then return it
     else: return s.maxlength[2]
   def maxzleng(s):
     ''' Finds the maximum length contained in the  in the z plane '''
     if abs(s.maxlength[3])<epsilon:
-      leng=0
-      m=len(s.points)
-      p1=s.points[-1][0]
-      for j in range(0,m):
-        p2=s.points[j][0]
-        leng2=lf.length(np.array([p1,p2]))
-        if leng2>leng:
-          leng=leng2
+      s.maxlength[3]=s.bounds[1][2]-s.bounds[0][2]
       return s.maxlength[3]
-    # If yes then return it
     else: return s.maxlength[3]
   def meshwidth(s,Mesh):
     return s.maxlength[1]/Mesh.nx
@@ -175,21 +152,6 @@ class room:
     for obst1 in obsts[1:]:
       s.add_obst(obst1)
     return
-  def xbounds(s):
-    xarray=np.vstack(np.array([s.obst[0][0][0]]))
-    for obst0 in s.obst:
-      xarray=np.vstack((xarray,obst0[0][0],obst[1][0]))
-    return np.array([min(xarray)[0],max(xarray)[0]])
-  def ybounds(s):
-    yarray=np.vstack(np.array([s.obst[0][0][1]]))
-    for obst0 in s.obst:
-      yarray=np.vstack((yarray,obst0[0][1],obst0[1][1]))
-    return np.array([min(yarray)[0],max(yarray)[0]])
-  def zbounds(s):
-    yarray=np.vstack(np.array([s.obst[0][0][2]]))
-    for obst0 in s.obst:
-      yarray=np.vstack((yarray,obst0[0][2],obst0[1][2]))
-    return np.array([min(yarray)[0],max(yarray)[0]])
   def add_inside_objects(s,corners):
     if s.objectcorners.shape[0]==0:
       n=0
