@@ -1,39 +1,23 @@
 #!/usr/bin/env python3
-# Hayley Wragg 2018-05-10
-''' Code to construct the ray-tracing objects. Constructs wall-segments,
- rays'''
-
-from math import atan2,hypot,sqrt,copysign
+# Hayley Wragg 2019-29-04
+''' Code to construct the ray-tracing objects rays'''
+from scipy.sparse import lil_matrix as SM
 import numpy as np
 import reflection as ref
 import intersection as ins
 import linefunctions as lf
-import HayleysPlotting as hp
+#import HayleysPlotting as hp
 import matplotlib.pyplot as mp
 import math as ma
-from math import sin,cos,atan2
-import roommesh as rmes
+#from math import sin,cos,atan2,hypot,sqrt,copysign
+#import roommesh as rmes
 import time as t
 import random as rnd
 from itertools import product
+import sys
 
-epsilon=2.22e-32
-
-def Raytracer(Room,source,Nrays,Nrefs):
-    '''Shoot Nrays from the source location source and track them for Nrefs.
-    Track which objects are hit and the angle they are hit at then output a list
-    of rays which each ray having the list of points it's hit and an array
-    corresponding to the object hit and the angle hit at. '''
-    Frac=2*ma.pi/Nrays
-    r=Room.maxleng()
-    RayArray=[]
-    for count in range(0,Nrays+1):
-        theta=count*Fraction
-        p1=r*np.array([ma.cos(theta),ma.sin(theta),0])
-        RayCount=Ray(source,p1)
-        #RayCount.multiref(Room,Nrefs)
-        #RayArray.append(RayCount)
-    return RayArray
+epsilon=sys.float_info.epsilon
+print(epsilon)
 
 class Ray:
   ''' A ray is a representation of the the trajectory of a reflecting line
@@ -108,10 +92,22 @@ class Ray:
     ray=np.array([o,inter])
     return lf.length(ray)
   def number_steps(s,meshwidth):
-    return lf.length(np.vstack((s.points[-3][0:3],s.points[-2][0:3])))/meshwidth
-  def normal_mat(s,Nra,d):
-     anglevec=np.linspace(0.0,2*np.pi,num=int(Nra), endpoint=False)
-     Norm=np.tile(d,int(Nra))# .linalg.cross(,np.array([np.cos(anglevec),np.sin(anglevec),np.zeros(Nra)]))
+    return int(lf.length(np.vstack((s.points[-3][0:3],s.points[-2][0:3])))/meshwidth)
+  def number_cone_steps(s,h,dist,Nra):
+     '''find the number of steps taken along one normal in the cone'''
+     si=ma.sin(2*ma.pi/Nra)
+     c=ma.cos(2*ma.pi/Nra)
+     conedist=dist*(2*si*c+si+np.sqrt((c**2+1)*(c**2-0.5)))/(2*c)
+     Nc=int(1+(conedist/h))
+     return Nc
+  def normal_mat(s,Nra,d,dist,h):
+     deltheta=(-2+np.sqrt(2.0*(Nra)))*(np.pi/(Nra-2)) # Calculate angle spacing
+     Nup=int(dist*ma.sin(deltheta)/h)+1
+     anglevec=np.linspace(0.0,2*np.pi,num=int(Nup), endpoint=False)
+     Norm=np.zeros((Nra,3),dtype=np.float)
+     check=0
+     for j in range(0,Nup):
+       Norm[j]=np.cross(d,np.array([np.cos(anglevec[j]),np.sin(anglevec[j]),0]))
      return Norm
   def reflect_calc(s,room):
     ''' finds the reflection of the ray inside a room'''
@@ -161,7 +157,7 @@ class Ray:
     for i in range(0,m+1):
       end=s.reflect_calc(room)
     return
-  def mesh_multiref(s,room,Nre,Mesh,Nra):
+  def mesh_multiref(s,room,Nre,Mesh,Nra,nra):
     ''' Takes a ray and finds the first Nre reflections within a room.
     As each reflection is found the ray is stepped through and
     information added to the Mesh.
@@ -171,27 +167,49 @@ class Ray:
     # The ray distance travelled starts at 0.
     dist=0
     # Vector of the reflection angle entries in relevant positions.
-    calcvec=np.zeros((Mesh.shape[0],1))
+    shape=(Mesh.shape[0],1)
+    calcvec=SM(shape,dtype=np.complex128)
     for nre in range(0,Nre+1):
       end=s.reflect_calc(room)
       if end:
-          #i1,j1=Mesh.position(s.points[-3],room)
-          #i2,j2=Mesh.position(s.points[-2],room)
-          dist+=lf.length(np.transpose(s.points[-3:-2][0:2]))
-          theta=s.ref_angle(room)
-          #calcvec[int(nre*room.Nob+s.points[-2][-1])]=np.exp(1j*theta)
-          h=room.meshwidth(Mesh)
-          Ns=s.number_steps(h)
-          direc=s.points[-1]
-          norm=s.normal_mat(Nra,direc) # Matrix of
-          Mesh=s.meshsingleray(room.Nob, Mesh,dist)
+          Mesh,dist,calcvec=s.mesh_singleray(room,Mesh,dist,calcvec,Nra,Nre,nra)
       else: pass
     return Mesh
-  def meshsingleray(s,Nob,Mesh,dist):
+  def mesh_singleray(s,room,Mesh,dist,calcvec,Nra,Nre,nra):
     ''' Iterate between two intersection points and store the ray information in the Mesh '''
-    r=dist                      # The distance travelled by the ray to the start of this calculcation
-    Nre=len(s.points[0])        # Compute the reflection number of this reflection point
-    return Mesh
+    nre=len(s.points)-1
+    h=room.meshwidth(Mesh)
+    direc=s.points[-1][0:3]
+    if abs(direc.any()-0.0)>epsilon:
+      alpha=h/max(direc)
+    else: alpha=0.0
+    deldist=lf.length(np.array([(0,0,0),alpha*direc]))
+    i1,j1,k1=room.position(s.points[-3][0:3],h)
+    i2,j2,k2=room.position(s.points[-2][0:3],h) # Stopping terms
+    maxi,maxj,maxk=room.bounds[1]/h+1
+    theta=s.ref_angle(room)
+    calcvec[int(nre*room.Nob+s.points[-2][-1])]=np.exp(1j*theta)
+    Mesh[i1,j1,k1,:,nra*Nre-1]=dist*calcvec
+    Ns=s.number_steps(h)
+    norm=s.normal_mat(Nra,direc,dist,h) # Matrix of normals to the direc, all of distance 1 equally angle spaced
+    Nup=len(norm)
+    for m1 in range(Ns):
+      p0=s.points[-2][0:3]+deldist*m1*direc
+      dist=dist+deldist
+      i1,j1,k1=room.position(p0,h)
+      if i1>=i2 and j1>=j2 and k1>=k2:
+        break
+      elif i1>maxi or j1>maxj or k1>maxk:
+        break
+      elif i1<0 or j1<0 or k1<0:
+        break
+      else:
+          print(room.bounds[1]/h,i1,j1,k1,p0,s.points[-3:])
+          Mesh[i1,j1,k1,:,nra*Nre+m1-1]=dist*calcvec #FIXME there's a shape problem, why?
+          Nc=s.number_cone_steps(deldist,dist,Nra)
+          for m2 in range(Nc):
+            p3=p0*np.ones((Nup,3))+m2*deldist*norm
+    return Mesh,dist,calcvec
   def raytest(s,room,err):
     ''' Checks the reflection for errors'''
     cp,wall=s.room_collision_point(room)
