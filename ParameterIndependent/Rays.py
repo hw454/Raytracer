@@ -113,7 +113,7 @@ class Ray:
      anglevec=np.linspace(0.0,2*np.pi,num=int(Nra), endpoint=False)
      Norm=np.tile(d,int(Nra))# .linalg.cross(,np.array([np.cos(anglevec),np.sin(anglevec),np.zeros(Nra)]))
      return Norm
-  def reflect(s,room):
+  def reflect_calc(s,room):
     ''' finds the reflection of the ray inside a room'''
     if any(c is None for c in s.points[-1][0:2]):
       # If there was no previous collision point then there won't
@@ -143,61 +143,43 @@ class Ray:
       ray=np.array([origin,cp])
       # The reflection function returns a line segment
       refray=ref.try_reflect_ray(ray,obst) # refray is the intersection point to a reflection point
-      # update self...
+      # Update intersection point list
       s.points[-1]=np.append(cp, [nob])
       s.points=np.vstack((s.points,np.append(lf.Direction(refray),[0])))
     return 1
-  def reflect_calc(s,room):
-    ''' finds the reflection of the ray inside a room'''
-    #FIXME - return distance upto new point and end 0,1.
-    if any(c is None for c in s.points[-1][0:2]):
-      # If there was no previous collision point then there won't
-      # be one at the next step.
-      #print('no cp at previous stage', s.points[-2:-1])
-      s.points=np.vstack((s.points,np.array([None, None, None, None])))
-      return 0, 0.0, 0.0
-    cp,obst,nob=s.room_collision_point(room)
-    # Check that a collision does occur
-    if any(p is None for p in cp):
-      #print('no cp at collision ',len(s.points)-2,' before reflection.')
-      #print('Collision point ',cp,' Previous instersection ', s.points[-2:-1])
-      # If there is no collision then None's are stored as place holders
-      # Replace the last point of the ray instead of keeping the direction term.
-      s.points=np.vstack((s.points[0:-1],np.array([None, None, None, None]),np.array([None, None, None, None])))
-      return 0, 0.0, 0.0
-    elif obst is None:
-      #print('no ob',s.points[1])
-      # Replace the last point of the ray instead of keeping the direction term.
-      s.points=np.vstack((s.points[0:-1],np.array([None, None, None, None]),np.array([None, None, None, None])))
-      return 0, 0.0, 0.0
-      #print('ray:',s.points)
-      #raise Error('Collision should occur')
-    else:
-      # Construct the incoming array
-      origin=s.points[-2][0:3]
-      ray=np.array([origin,cp])
-      dist=lf.length(ray)
-      # The reflection function returns a line segment
-      refray=ref.try_reflect_ray(ray,obst) # refray is the intersection point to a reflection point
-      theta=0.0 #FIXME find the angle of reflection
-      # update self...
-      s.points[-1]=np.append(cp, [nob])
-      s.points=np.vstack((s.points,np.append(lf.Direction(refray),[0])))
-    return 1, dist, theta
+  def ref_angle(s,room):
+    '''Find the reflection angle of the most recent intersected ray.'''
+    nob=s.points[-2][-1]
+    direc=s.points[-1][0:3]
+    obst=room.obst[int(nob)]
+    norm=np.cross(obst[1]-obst[0],obst[2]-obst[0])
+    check=(np.inner(direc,norm)/(np.linalg.norm(direc)*np.linalg.norm(norm)))
+    theta=ma.acos(check)
+    return theta
   def multiref(s,room,m):
     ''' Takes a ray and finds the first five reflections within a room'''
     for i in range(0,m+1):
-      end=s.reflect(room)
+      end=s.reflect_calc(room)
     return
   def mesh_multiref(s,room,Nre,Mesh,Nra):
-    ''' Takes a ray and finds the first five reflections within a room'''
+    ''' Takes a ray and finds the first Nre reflections within a room.
+    As each reflection is found the ray is stepped through and
+    information added to the Mesh.
+    Inputs: Room- Obstacle co-ordinates, Nre- Number of reflections,
+    Mesh- 3D array with each element corresponding to a sparse matrix.
+    Nra- Total number of rays.'''
+    # The ray distance travelled starts at 0.
     dist=0
-    calcvec=np.zeros((room.Nob*(Nre+1),1))
-    for i in range(0,Nre+1):
-      end, dist, theta=s.reflect_calc(room)
+    # Vector of the reflection angle entries in relevant positions.
+    calcvec=np.zeros((Mesh.shape[0],1))
+    for nre in range(0,Nre+1):
+      end=s.reflect_calc(room)
       if end:
-          #i1,j1=Mesh.position(s.points[-3])
-          #i2,j2=Mesh.position(s.points[-2])
+          #i1,j1=Mesh.position(s.points[-3],room)
+          #i2,j2=Mesh.position(s.points[-2],room)
+          dist+=lf.length(np.transpose(s.points[-3:-2][0:2]))
+          theta=s.ref_angle(room)
+          #calcvec[int(nre*room.Nob+s.points[-2][-1])]=np.exp(1j*theta)
           h=room.meshwidth(Mesh)
           Ns=s.number_steps(h)
           direc=s.points[-1]
@@ -227,6 +209,7 @@ class Ray:
       s.ray=np.vstack((s.ray,lf.Direction(refray)))
       #print('ray',ray, 'refray', refray, 'error', err)
     return err
+# Archive - heatmapray function
   # def heatmapray(s,Mesh,streg,freq,spacing,refloss,N):
     # i=0
     # streg=streg*(299792458/(freq*4*ma.pi))
@@ -241,4 +224,39 @@ class Ray:
       # i+=1
     # #Mesh.plot()
     # return Mesh
+# --- Archive reflect function
+# def reflect(s,room):
+    # ''' finds the reflection of the ray inside a room'''
+    # if any(c is None for c in s.points[-1][0:2]):
+      # # If there was no previous collision point then there won't
+      # # be one at the next step.
+      # #print('no cp at previous stage', s.points[-2:-1])
+      # s.points=np.vstack((s.points,np.array([None, None, None, None])))
+      # return 0
+    # cp,obst,nob=s.room_collision_point(room)
+    # # Check that a collision does occur
+    # if any(p is None for p in cp):
+      # #print('no cp at collision ',len(s.points)-2,' before reflection.')
+      # #print('Collision point ',cp,' Previous instersection ', s.points[-2:-1])
+      # # If there is no collision then None's are stored as place holders
+      # # Replace the last point of the ray instead of keeping the direction term.
+      # s.points=np.vstack((s.points[0:-1],np.array([None, None, None, None]),np.array([None, None, None, None])))
+      # return 0
+    # elif obst is None:
+      # #print('no ob',s.points[1])
+      # # Replace the last point of the ray instead of keeping the direction term.
+      # s.points=np.vstack((s.points[0:-1],np.array([None, None, None, None]),np.array([None, None, None, None])))
+      # return 0
+      # #print('ray:',s.points)
+      # #raise Error('Collision should occur')
+    # else:
+      # # Construct the incoming array
+      # origin=s.points[-2][0:3]
+      # ray=np.array([origin,cp])
+      # # The reflection function returns a line segment
+      # refray=ref.try_reflect_ray(ray,obst) # refray is the intersection point to a reflection point
+      # # update self...
+      # s.points[-1]=np.append(cp, [nob])
+      # s.points=np.vstack((s.points,np.append(lf.Direction(refray),[0])))
+    # return 1
 
