@@ -79,11 +79,10 @@ class room:
       for p2 in s.points:
         leng2=lf.length(np.array([p1,p2]))
         if leng2>leng:
-          leng=leng2
-      s.maxlength[0]=leng
+          s.maxlength[0]=leng2
+      return s.maxlength[0]
     # If yes then return it
-    else: leng=s.maxlength[0]
-    return leng
+    else: return s.maxlength[0]
   def maxxleng(s):
     ''' Finds the maximum length contained in the room in the x plane'''
     if abs(s.maxlength[1])<epsilon:
@@ -93,18 +92,11 @@ class room:
       for j in range(0,m):
         p2=s.points[j][0]
         leng2=lf.length(np.array([p1,p2]))
-<<<<<<< HEAD
-        if leng2>leng:
-          leng=leng2
-      s.maxlength[1]=leng
-=======
         if leng2>s.maxlength[1]:
           s.maxlength[1]=leng2
-      return s.maxlength[2]
->>>>>>> 0af78bf21b7684a551bf55439f09af85dd249956
+      return s.maxlength[1]
     # If yes then return it
-    else: leng=s.maxlength[1]
-    return leng
+    else: return s.maxlength[1]
   def maxyleng(s):
     ''' Finds the maximum length contained in the room in the y plane'''
     if abs(s.maxlength[2])<epsilon:
@@ -116,10 +108,9 @@ class room:
         leng2=lf.length(np.array([p1,p2]))
         if leng2>leng:
           leng=leng2
-      s.maxlength[2]=leng
+      return s.maxlength[2]
     # If yes then return it
-    else: leng=s.maxlength[2]
-    return leng
+    else: return s.maxlength[2]
   def maxzleng(s):
     ''' Finds the maximum length contained in the  in the z plane '''
     if abs(s.maxlength[3])<epsilon:
@@ -131,16 +122,10 @@ class room:
         leng2=lf.length(np.array([p1,p2]))
         if leng2>leng:
           leng=leng2
-      s.maxlength[3]=leng
+      return s.maxlength[3]
     # If yes then return it
-<<<<<<< HEAD
-    else: leng=s.maxlength[3]
-    return leng
-  def ray_bounce(s,Tx,Nre,Nra,directions):
-=======
     else: return s.maxlength[3]
   def ray_mesh_bounce(s,Tx,Nre,Nra,directions,Mesh):
->>>>>>> 0af78bf21b7684a551bf55439f09af85dd249956
     ''' Traces ray's uniformly emitted from an origin around a room.
     Number of rays is Nra, number of reflections Nre.
     Output Mesh of sparse matrices containing the ray information'''
@@ -165,7 +150,7 @@ class room:
     intersection points and the corresponding object number.'''
     start_time    =t.time()         # Start the time counter
     r             =s.maxleng()
-    directions 	  =r*directions
+    directions    =r*directions
     raylist       =np.empty([Nra+1, Nre+1,4])
     # FIXME the rays are independent of each toher so this is easily parallelisable
     for it in range(0,Nra):
