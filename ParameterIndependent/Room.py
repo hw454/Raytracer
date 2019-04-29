@@ -125,6 +125,8 @@ class room:
       return s.maxlength[3]
     # If yes then return it
     else: return s.maxlength[3]
+  def meshwidth(s,Mesh):
+    return s.maxlength[1]/Mesh.nx
   def ray_mesh_bounce(s,Tx,Nre,Nra,directions,Mesh):
     ''' Traces ray's uniformly emitted from an origin around a room.
     Number of rays is Nra, number of reflections Nre.
@@ -139,7 +141,7 @@ class room:
       Dir       =directions[it]
       start     =np.append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
-      Mesh=raystart.mesh_multiref(s,Nre,Mesh)
+      Mesh=raystart.mesh_multiref(s,Nre,Mesh,Nra)
       raylist[it]=raystart.points[0:-2]
     s.time=start_time-t.time()
     return Mesh
