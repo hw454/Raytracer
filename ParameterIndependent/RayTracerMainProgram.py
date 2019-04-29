@@ -29,7 +29,7 @@ def RayTracer():
   Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
   Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
-  Direc			=np.load('Parameters/Directions.npy')		  # Matrix of intial ray directions for Nra rays.
+  Direc         =np.load('Parameters/Directions.npy')         # Matrix of intial ray directions for Nra rays.
   Oblist        =np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
   #Nob           =len(Oblist)                                 # The number of obstacles in the room
 
@@ -79,7 +79,7 @@ def MeshProgram():
   Ny=int(Room.maxyleng()/h)
   Nz=int(Room.maxzleng()/h)
 
-  Mesh=DSM.DS(Nx,Ny,Nz,int(Nre*(Nra+1)),int(Nob*(Nre+1)))
+  Mesh=DSM.DS(Nx,Ny,Nz,int(Nob*(Nre+1)),int(Nre*(Nra+1)))
   Mesh=Room.ray_mesh_bounce(Tx,int(Nre),int(Nra),Direc,Mesh)
   # This large mesh is initialised as empty. It contains reference to
   # every segment at every position in the room.
