@@ -16,8 +16,9 @@ import random               as rnd
 import Rays                 as ry
 import time                 as t
 from itertools import product
+import sys
 
-epsilon=2.22e-32
+epsilon=sys.float_info.epsilon
 
 class obstacle_segment:
   ' a line segment from p0 to p1 '
@@ -104,6 +105,11 @@ class room:
     else: return s.maxlength[3]
   def meshwidth(s,Mesh):
     return s.maxlength[1]/Mesh.nx
+  def position(s,p,h):
+    ''' Return the indexing position in a mesh with width h for point p
+    lying in the room s. '''
+    i,j,k=(p-s.bounds[0])/h
+    return int(i),int(j),int(k)
   def ray_mesh_bounce(s,Tx,Nre,Nra,directions,Mesh):
     ''' Traces ray's uniformly emitted from an origin around a room.
     Number of rays is Nra, number of reflections Nre.
@@ -118,7 +124,7 @@ class room:
       Dir       =directions[it]
       start     =np.append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
-      Mesh=raystart.mesh_multiref(s,Nre,Mesh,Nra)
+      Mesh=raystart.mesh_multiref(s,Nre,Mesh,Nra,it)
       raylist[it]=raystart.points[0:-2]
     s.time=start_time-t.time()
     return Mesh
