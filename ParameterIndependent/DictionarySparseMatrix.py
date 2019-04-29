@@ -89,6 +89,7 @@ class DS:
       den[x,y,z]=s.d[x,y,z].todense()
     return den
 
+
 def sparse_angles(M):
   '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
   AngM=SM(M.shape,dtype=float)
@@ -118,7 +119,6 @@ def dict_sparse_angles(DSM):
 def test_00():
   ds=DS()
   ds[1,2,3,0,0]=2+3j
-  print(ds[1,2,3])
   print(ds[1,2,3][0,0])
 
 def test_01(nx=3,ny=2,nz=1,na=5,nb=6):
@@ -128,7 +128,7 @@ def test_01(nx=3,ny=2,nz=1,na=5,nb=6):
 def test_02(nx=7,ny=6,nz=1,na=5,nb=6):
   '''testing creation of matrix and adding on element'''
   ds=DS(nx,ny,nz,na,nb)
-  ds[0,3,0,2,0]=2+3j
+  ds[0,3,0,:,0]=2+3j
   print(ds[0,3,0])
 
 def test_03(nx,ny,nz,na,nb):
@@ -316,6 +316,4 @@ def test_time_00():
 if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
-  test_11()
-  test_time_00()
-  test_07()
+  test_02()
