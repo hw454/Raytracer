@@ -7,9 +7,9 @@ import sys
 #FIXME Allow input of ray number change yes or no. Then save the direction from the source.
 # These should then be imported into the main program from a saved numpy file rather than computing every time.
 # Compute Directions in here if Nra changes not in main program
-def DeclareParameters(Nra):
+def DeclareParameters():
   print('Saving the parameters in ParameterInput.py')
-  #Nra=20
+  Nra=200
   Nre=6
   h=0.25
   RTPar=np.array([Nra,Nre,h])
@@ -56,7 +56,7 @@ def DeclareParameters(Nra):
   zsteps        =int(np.pi/deltheta-2)
   Nra           =xysteps*zsteps+2
   # ^^ Due to need of integer steps the input number of rays can not
-  # always be used if everything is equally spaced ^^  
+  # always be used if everything is equally spaced ^^
   theta1        =deltheta*np.arange(xysteps)
   theta2        =deltheta*np.arange(1,zsteps+1)
   xydirecs      =np.transpose(np.vstack((np.cos(theta1),np.sin(theta1))))
