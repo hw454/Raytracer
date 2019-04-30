@@ -94,8 +94,14 @@ class room:
   def maxxleng(s):
     ''' Finds the maximum length contained in the room in the x plane'''
     if abs(s.maxlength[1])<epsilon:
-      s.maxlength[1]=s.bounds[1][0]-s.bounds[0][0]
-      return s.maxlength[1]
+      p1=s.points[-1][0]
+      for j in range(0,len(s.points)):
+        p2=s.points[j][0]
+        leng2=lf.length(np.array([p1,p2]))
+        if leng2>s.maxlength[1]:
+          s.maxlength[1]=leng2
+      return s.maxlength[2]
+    # If yes then return it
     else: return s.maxlength[1]
   def maxyleng(s):
     ''' Finds the maximum length contained in the room in the y plane'''

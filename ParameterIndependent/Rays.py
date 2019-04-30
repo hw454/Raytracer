@@ -243,21 +243,6 @@ class Ray:
       s.ray=np.vstack((s.ray,lf.Direction(refray)))
       #print('ray',ray, 'refray', refray, 'error', err)
     return err
-# Archive - heatmapray function
-  # def heatmapray(s,Mesh,streg,freq,spacing,refloss,N):
-    # i=0
-    # streg=streg*(299792458/(freq*4*ma.pi))
-    # iterconsts=np.array([streg,1.0])
-    # for r in s.ray[:-3]:
-      # #In db
-      # #refloss=10*np.log10(2)
-      # #streg=Mesh.singleray(np.array([r,s.ray[i+1]]),streg-refloss,s.frequency)
-      # #In Watts
-      # iterconsts[0]=iterconsts[0]/refloss
-      # iterconsts=Mesh.singleray(np.array([r,s.ray[i+1]]),iterconsts,s.frequency,N)
-      # i+=1
-    # #Mesh.plot()
-    # return Mesh
 # --- Archive reflect function
 # def reflect(s,room):
     # ''' finds the reflection of the ray inside a room'''
@@ -293,4 +278,5 @@ class Ray:
       # s.points[-1]=np.append(cp, [nob])
       # s.points=np.vstack((s.points,np.append(lf.Direction(refray),[0])))
     # return 1
+
 
