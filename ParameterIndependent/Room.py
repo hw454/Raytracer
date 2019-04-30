@@ -56,12 +56,18 @@ class room:
     # The inside points line within obstacles and are used to detect if a ray is inside or outside.
     s.time=np.array([t.time()])
     # The time taken for a computation is stored in time.
+    s.meshwidth=0.0
   def __get_obst__(s,i):
    ''' Returns the ith surface obstacle of the room s'''
    return s.obst[i]
   def __get_insidepoint__(s,i):
    ''' Returns the ith inside point of s '''
    return s.inside_points[i]
+  def get_meshwidth(s,Mesh):
+    if abs(s.meshwidth)<epsilon:
+      return s.maxlength[1]/Mesh.nx
+    else:
+      return s.meshwidth
   def __set_obst__(s,obst0):
     ''' Adds wall to the walls in s, and the points of the wall to the
     points in s '''
@@ -103,13 +109,21 @@ class room:
       s.maxlength[3]=s.bounds[1][2]-s.bounds[0][2]
       return s.maxlength[3]
     else: return s.maxlength[3]
-  def meshwidth(s,Mesh):
-    return s.maxlength[1]/Mesh.nx
   def position(s,p,h):
     ''' Return the indexing position in a mesh with width h for point p
     lying in the room s. '''
-    i,j,k=(p-s.bounds[0])/h
-    return int(i),int(j),int(k)
+    if isinstance(p[0],float): n=1
+    elif isinstance(p[0],int): n=1
+    else:
+      n=len(p)
+    if n==1:
+      i,j,k=(p-s.bounds[0])/h
+      return int(i),int(j),int(k)
+    elif n>1:
+      positions=np.array((p-np.tile(s.bounds[0],(n,1)))/h,dtype=int)
+      return positions
+    else:
+      raise ValueError("Neither point nor array of points")
   def ray_mesh_bounce(s,Tx,Nre,Nra,directions,Mesh):
     ''' Traces ray's uniformly emitted from an origin around a room.
     Number of rays is Nra, number of reflections Nre.
