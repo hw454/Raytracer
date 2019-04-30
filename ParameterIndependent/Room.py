@@ -90,7 +90,7 @@ class room:
       for j in range(0,len(s.points)):
         p2=s.points[j][0]
         leng2=lf.length(np.array([p1,p2]))
-        if leng2>s.maxlength[1]
+        if leng2>s.maxlength[1]:
           s.maxlength[1]=leng2
       return s.maxlength[2]
     # If yes then return it
