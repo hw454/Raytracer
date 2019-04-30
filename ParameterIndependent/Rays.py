@@ -17,7 +17,6 @@ from itertools import product
 import sys
 
 epsilon=sys.float_info.epsilon
-print(epsilon)
 
 class Ray:
   ''' A ray is a representation of the the trajectory of a reflecting line
@@ -177,38 +176,48 @@ class Ray:
     return Mesh
   def mesh_singleray(s,room,Mesh,dist,calcvec,Nra,Nre,nra):
     ''' Iterate between two intersection points and store the ray information in the Mesh '''
-    nre=len(s.points)-1
-    h=room.meshwidth(Mesh)
-    direc=s.points[-1][0:3]
+    # --- Set initial terms before beginning storage steps -------------
+    nre=len(s.points)-1     # The reflection number of the current ray
+    h=room.get_meshwidth(Mesh)  # The Meshwidth for a room with Mesh spaces
+    # Compute the direction - Since the Ray has reflected but we are
+    # storing previous information we want the direction of the ray which
+    # hit the object not the outgoing ray.
+    direc=lf.Direction(np.array([s.points[-3][0:3],s.points[-2][0:3]]))
+    # Before computing the dist travelled through a mesh cube check the direction isn't 0.
     if abs(direc.any()-0.0)>epsilon:
       alpha=h/max(direc)
-    else: alpha=0.0
+    else: return Mesh, dist, calcvec
+    # Calculate the distance travelled through a mesh cube
     deldist=lf.length(np.array([(0,0,0),alpha*direc]))
-    i1,j1,k1=room.position(s.points[-3][0:3],h)
-    i2,j2,k2=room.position(s.points[-2][0:3],h) # Stopping terms
-    maxi,maxj,maxk=room.bounds[1]/h+1
+    # Find the indexing position of the start of the ray segment and end.
+    p0=s.points[-3][0:3]
+    i1,j1,k1=room.position(p0,h)    # Start
+    endposition=room.position(s.points[-2][0:3],h) # Stopping terms
+    # Compute the reflection angle
     theta=s.ref_angle(room)
-    calcvec[int(nre*room.Nob+s.points[-2][-1])]=np.exp(1j*theta)
-    Mesh[i1,j1,k1,:,nra*Nre-1]=dist*calcvec
-    Ns=s.number_steps(h)
+    # Compute the number of steps that'll be taken along the ray.
+    Ns=s.number_steps(deldist)
+    # Compute the normals for the cone.
     norm=s.normal_mat(Nra,direc,dist,h) # Matrix of normals to the direc, all of distance 1 equally angle spaced
-    Nup=len(norm)
+    Nup=len(norm)                       # The number of normal vectors
+    # Add the reflection angle to the vector of  ray history. s.points[-2][-1] is the obstacle number of the last hit.
+    calcvec[int(nre*room.Nob+s.points[-2][-1])]=np.exp(1j*theta)
     for m1 in range(Ns):
-      p0=s.points[-2][0:3]+deldist*m1*direc
+      #FIXME put the stop check into a function.
+      stpch=Mesh.stopcheck(i1,j1,k1,endposition,h)
+      if stpch:
+        Mesh[i1,j1,k1,:,nra*Nre+m1-1]=dist*calcvec
+        Nc=s.number_cone_steps(deldist,dist,Nra)
+        for m2 in range(Nc):
+          p3=np.tile(p0,(Nup,1))+m2*deldist*norm
+          conepositions=room.position(p3,h)
+          Mesh[conepositions[:][0],conepositions[:][1],conepositions[:][2],:,nra*Nre+m1-1]=dist*calcvec
+          print(Mesh[conepositions[:][0],conepositions[:][1],conepositions[:][2],:,nra*Nre+m1-1])
+      # Compute the next point along the ray
+      p0=p0+deldist*direc
       dist=dist+deldist
       i1,j1,k1=room.position(p0,h)
-      if i1>=i2 and j1>=j2 and k1>=k2:
-        break
-      elif i1>maxi or j1>maxj or k1>maxk:
-        break
-      elif i1<0 or j1<0 or k1<0:
-        break
-      else:
-          print(room.bounds[1]/h,i1,j1,k1,p0,s.points[-3:])
-          Mesh[i1,j1,k1,:,nra*Nre+m1-1]=dist*calcvec #FIXME there's a shape problem, why?
-          Nc=s.number_cone_steps(deldist,dist,Nra)
-          for m2 in range(Nc):
-            p3=p0*np.ones((Nup,3))+m2*deldist*norm
+      # Check if the position is the same as previous
     return Mesh,dist,calcvec
   def raytest(s,room,err):
     ''' Checks the reflection for errors'''
