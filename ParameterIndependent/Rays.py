@@ -80,9 +80,9 @@ class Ray:
               rNob=Nob
           Nob+=1
         if any(c is None for c in rcp):
+          #print('No collision point found', rcp, cp)
           pass
-          #print('No collision point found', rcp)
-        return rcp, robj, rNob
+      return rcp, robj, rNob
     else:
       return np.array([None, None, None]), None, 0
   def ray_length(s,inter):
@@ -176,7 +176,7 @@ class Ray:
   def mesh_singleray(s,room,Mesh,dist,calcvec,Nra,Nre,nra):
     ''' Iterate between two intersection points and store the ray information in the Mesh '''
     # --- Set initial terms before beginning storage steps -------------
-    nre=len(s.points)-1     # The reflection number of the current ray
+    nre=len(s.points)-2     # The reflection number of the current ray
     h=room.get_meshwidth(Mesh)  # The Meshwidth for a room with Mesh spaces
     # Compute the direction - Since the Ray has reflected but we are
     # storing previous information we want the direction of the ray which
@@ -184,7 +184,7 @@ class Ray:
     direc=lf.Direction(np.array([s.points[-3][0:3],s.points[-2][0:3]]))
     # Before computing the dist travelled through a mesh cube check the direction isn't 0.
     if abs(direc.any()-0.0)>epsilon:
-      alpha=h/max(direc)
+      alpha=h/max(abs(direc))
     else: return Mesh, dist, calcvec
     # Calculate the distance travelled through a mesh cube
     deldist=lf.length(np.array([(0,0,0),alpha*direc]))
@@ -200,13 +200,14 @@ class Ray:
     norm=s.normal_mat(Nra,direc,dist,h) # Matrix of normals to the direc, all of distance 1 equally angle spaced
     Nup=len(norm)                       # The number of normal vectors
     # Add the reflection angle to the vector of  ray history. s.points[-2][-1] is the obstacle number of the last hit.
+    print(room.Nob,s.points[-2][-1], nre)
     calcvec[int(nre*room.Nob+s.points[-2][-1])]=np.exp(1j*theta)
     for m1 in range(Ns):
       stpch=Mesh.stopcheck(i1,j1,k1,endposition,h)
       if m1>0:
         if i2==i1 and j2==j1 and k2==k1:
           pass
-        else: 
+        else:
           i1=i2
           j1=j2
           k1=k2
@@ -214,12 +215,12 @@ class Ray:
         Mesh[i1,j1,k1,:,nra*Nre+m1-1]=dist*calcvec
         Nc=s.number_cone_steps(deldist,dist,Nra)
         for m2 in range(Nc):
-          p3=np.tile(p0,(Nup,1))+m2*deldist*norm
+          p3=np.tile(p0,(Nup,1))+m2*alpha*norm
           conepositions=room.position(p3,h)
           Mesh[conepositions[:][0],conepositions[:][1],conepositions[:][2],:,nra*Nre+m1-1]=dist*calcvec
           p=dist*calcvec
         # Compute the next point along the ray
-        p0=p0+deldist*direc
+        p0=p0+alpha*direc
         dist=dist+deldist
         i2,j2,k2=room.position(p0,h)
         #FIXME check if the position is the same as the previous
