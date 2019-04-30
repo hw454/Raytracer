@@ -200,7 +200,6 @@ class Ray:
     norm=s.normal_mat(Nra,direc,dist,h) # Matrix of normals to the direc, all of distance 1 equally angle spaced
     Nup=len(norm)                       # The number of normal vectors
     # Add the reflection angle to the vector of  ray history. s.points[-2][-1] is the obstacle number of the last hit.
-    print(room.Nob,s.points[-2][-1], nre)
     calcvec[int(nre*room.Nob+s.points[-2][-1])]=np.exp(1j*theta)
     for m1 in range(Ns):
       stpch=Mesh.stopcheck(i1,j1,k1,endposition,h)
