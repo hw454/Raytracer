@@ -12,7 +12,7 @@ import sys
 import itertools
 import math as ma
 
-epsilon=2.22e-16
+epsilon=sys.float_info.epsilon
 
 def Project2D(po,triangle):
   T0=triangle[0]
