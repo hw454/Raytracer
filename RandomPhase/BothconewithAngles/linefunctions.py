@@ -13,7 +13,7 @@ def Direction(line):
   if (length(line)>0):
     return (line[1]-line[0])/length(line)
   else:
-    return np.array([0.0,0.0])
+    return np.zeros(len(line[1]))
 
 def Direction3D(line):
   '''  Direction using co-ordinates input is a line
