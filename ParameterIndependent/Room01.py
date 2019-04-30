@@ -129,13 +129,21 @@ class room:
     # If yes then return it
     else: leng=s.maxlength[3]
     return leng
-  def ray_bounce(s,Tx,Nre,Nra):
+  def ray_bounce(s,Tx,Nre,Nra,directions):
     ''' Traces ray's uniformly emitted from an origin around a room.
     Number of rays is n, number of reflections m. Output
     Nra x Nre x Dimension array containing each ray as a squence of it's
     intersection points and the corresponding object number.'''
     start_time    =t.time()         # Start the time counter
     r             =s.maxleng()
+    raylist       =np.empty([Nra+1, Nre+1,4])
+    # FIXME the rays are independent of each toher so this is easily parallelisable
+    for it in range(0,Nra):
+      Dir       =directions[it]
+      start     =np.append(Tx,[0])
+      raystart  =ry.Ray(start, Dir)
+      raystart.multiref(s,Nre)
+      raylist[it]=raystart.points[0:-2]
     s.time=start_time-t.time()
     return raylist
   def Plotroom(s,origin,width):

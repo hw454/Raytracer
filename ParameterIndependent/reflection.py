@@ -21,6 +21,8 @@ import linefunctions as lf
 import sys
 import math as ma
 
+epsilon=sys.float_info.epsilon
+
 def try_reflect_ray(ray,triangle):
   ''' Reflection of a ray with a triangle'''
   # Find the distances which need to be translated

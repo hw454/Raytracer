@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Hayley 2019-04-26
+# Hayley 2019-02-14
 
 import numpy as np
 from scipy.sparse import lil_matrix as SM
@@ -10,90 +10,59 @@ import time as t
 import matplotlib.pyplot as mp
 
 # dk is dictionary key, smk is sparse matrix key, SM is a sparse matrix
-
 class DS:
   def __init__(s,nx=1,ny=1,nz=1,na=1,nb=1):
     '''nx,ny,nz are the maximums for the key for the dictionary and na
     and nb are the dimensions of the sparse matrix associated with each key.'''
     s.shape=(na,nb)
-    Keys=product(range(nx),range(ny),range(nz))
-    default_value=SM(s.shape,dtype=np.complex128)
-    s.d=dict.fromkeys(Keys,default_value)
+    s.d={}
+    for x, y, z in product(range(nx),range(ny),range(nz)):
+      s.d[x,y,z]=SM(s.shape,dtype=np.complex128)
     s.nx=nx
     s.ny=ny
     s.nz=nz
-    s.time=np.array([t.time()])
   def __getitem__(s,i):
-    dk,smk=i[:3],i[3:]
-    if isinstance(dk[0],float): n=1
-    elif isinstance(dk[0],int): n=1
+    if len(i)==3:
+      dk=i[:3]
+      return s.d[dk]                # return a SM
+    elif len(i)==4:
+      dk,smk=i[:3],i[3]
+      return s.d[dk][smk,:]         # return a SM row
+    elif len(i)==5:
+      dk,smk=i[:3],i[3:]
+      return s.d[dk][smk[0],smk[1]] # return a SM element if smk=[init,int], column if smk=[:,int], row if smk=[int,:], full SM if smk=[:,:]
+    # elif i.shape[1]>1:
+      # dk1=i[0][:]
+      # dk2=i[1][:]
+      # dk3=i[2][:]
+      # smk1=i[3][:]
+      # smk2=i[4][:]
+      # for x, y, z in product(dk1,dk2,dk3):
+      # #return 0
     else:
-      n=len(dk)
-    if n==1:
-      if len(i)==3:
-        dk=i[:3]
-        return s.d[dk]                # return a SM
-      elif len(i)==4:
-        dk,smk=i[:3],i[3]
-        return s.d[dk][smk,:]         # return a SM row
-      elif len(i)==5:
-        dk,smk=i[:3],i[3:]
-        return s.d[dk][smk[0],smk[1]] # return a SM element if smk=[init,int], column if smk=[:,int], row if smk=[int,:], full SM if smk=[:,:]
-      else:
-        # ...
-        raise Exception('Error getting the (%s) part of the sparse matrix. Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
-        pass
-    else:
-      Keys=np.array(dk).tolist()
-      Keys=''.join(str(key) for key in Keys)
-      if isinstance(smk,float): n2=1
-      elif isinstance(smk,int): n2=1
-      else:                     n2=len(smk)
-      if n2==1:  return [s.d[k][smk,:] for k in Keys]
-      elif n2==2:
-        return [s.d[k][smk[0],smk[1]] for k in Keys]
-      elif n2==0: return [s.d[k] for k in Keys]
-      else:
-        raise Exception('Error, not a valid SM dimension')
-    return
+      # ...
+      raise Exception('Error getting the (%s) part of the sparse matrix. Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
+      pass
   def __setitem__(s,i,x):
-    dk,smk=i[:3],i[3:]
-    if isinstance(dk[0],float): n=1
-    elif isinstance(dk[0],int): n=1
+    if len(i)==3:
+      dk,smk=i[:3],i[3:]            # set a SM to an input SM
+      if dk not in s.d:
+        s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
+      s.d[dk]=x
+    elif len(i)==4:                 # set a SM row
+      dk,smk=i[:3],i[3:]
+      if dk not in s.d:
+        s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
+      s.d[dk][smk[0],:]=x
+    elif len(i)==5:                # set a SM element
+      dk,smk=i[:3],i[3:]
+      if dk not in s.d:
+        s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
+      s.d[dk][smk[0],smk[1]]=x
     else:
-        n=len(dk)
-    if n==1:
-      if len(i)==3:
-        # set a SM to an input SM
-       if dk not in s.d:
-         s.d[dk]=SM(s.shape,dtype=np.complex128)
-       s.d[dk]=x
-      elif len(i)==4:                 # set a SM row
-        if dk not in s.d:
-          s.d[dk]=SM(s.shape,dtype=np.complex128)
-        s.d[dk][smk[0],:]=x
-      elif len(i)==5:                # set a SM element
-        if dk not in s.d:
-          s.d[dk]=SM(s.shape,dtype=np.complex128)
-        s.d[dk][smk[0],smk[1]]=x
-      else:
-        # ...
-        raise Exception('Error setting the (%s) part of the sparse matrix to (%s). Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
-        pass
-    else:
-      Keys=np.array(dk).tolist()
-      Keys=''.join(str(key) for key in Keys)
-      value=SM(s.shape,dtype=np.complex128)
-      if isinstance(smk,float): n2=1
-      elif isinstance(smk,int): n2=1
-      else:                     n2=len(smk)
-      if n2==1:  value[smk,:]=x
-      elif n2==2:value[smk[0],smk[1]]=x
-      elif n2==0:value=x
-      else:
-        raise Exception('Error, not a valid SM dimension')
-      s.d.update(dict.fromkeys(Keys,value))
-      return
+      # ...
+      raise Exception('Error setting the (%s) part of the sparse matrix to (%s). Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
+      pass
   def __str__(s):
     return str(s.d)
   def __repr__(s):
@@ -117,16 +86,83 @@ class DS:
     for x,y,z in product(range(s.nx),range(s.ny),range(s.nz)):
       den[x,y,z]=s.d[x,y,z].todense()
     return den
-  def stopcheck(s,i,j,k,p1,h):
-    #if i>=p1[0] and j>=p1[1] and k>=p1[2]:
-    #  return 0
-    if i>s.nx or j>s.ny or k>s.nz:
-      return 0
-    elif i<0 or j<0 or k<0:
-      return 0
-    else: return 1
 
-
+class DSupdate:
+  def __init__(s,nx=1,ny=1,nz=1,na=1,nb=1):
+    '''nx,ny,nz are the maximums for the key for the dictionary and na
+    and nb are the dimensions of the sparse matrix associated with each key.'''
+    s.shape=(na,nb)
+    Keys=product(range(nx),range(ny),range(nz))
+    default_value=SM(s.shape,dtype=np.complex128)
+    s.d=dict.fromkeys(Keys,default_value)
+    s.nx=nx
+    s.ny=ny
+    s.nz=nz
+  def __getitem__(s,i):
+    if len(i)==3:
+      dk=i[:3]
+      return s.d[dk]                # return a SM
+    elif len(i)==4:
+      dk,smk=i[:3],i[3]
+      return s.d[dk][smk,:]         # return a SM row
+    elif len(i)==5:
+      dk,smk=i[:3],i[3:]
+      return s.d[dk][smk[0],smk[1]] # return a SM element if smk=[init,int], column if smk=[:,int], row if smk=[int,:], full SM if smk=[:,:]
+    # elif i.shape[1]>1:
+      # dk1=i[0][:]
+      # dk2=i[1][:]
+      # dk3=i[2][:]
+      # smk1=i[3][:]
+      # smk2=i[4][:]
+      # for x, y, z in product(dk1,dk2,dk3):
+      # #return 0
+    else:
+      # ...
+      raise Exception('Error getting the (%s) part of the sparse matrix. Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
+      pass
+  def __setitem__(s,i,x):
+    if len(i)==3:
+      dk,smk=i[:3],i[3:]            # set a SM to an input SM
+      if dk not in s.d:
+        s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
+      s.d[dk]=x
+    elif len(i)==4:                 # set a SM row
+      dk,smk=i[:3],i[3:]
+      if dk not in s.d:
+        s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
+      s.d[dk][smk[0],:]=x
+    elif len(i)==5:                # set a SM element
+      dk,smk=i[:3],i[3:]
+      if dk not in s.d:
+        s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
+      s.d[dk][smk[0],smk[1]]=x
+    else:
+      # ...
+      raise Exception('Error setting the (%s) part of the sparse matrix to (%s). Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
+      pass
+  def __str__(s):
+    return str(s.d)
+  def __repr__(s):
+    return str(s.d) # TODO
+  def nonzero(s):
+    for x,y,z in product(range(s.nx),range(s.ny),range(s.nz)):
+      indicesM=s.d[x,y,z].nonzero()
+      NI=len(indicesM[0])
+      for j in range(0,NI):
+        if x==0 and y==0 and z==0 and j==0:
+          indices=np.array([[0,0,0,indicesM[0][j],indicesM[1][j]]])
+        else:
+          indices=np.append(indices,[[x,y,z,indicesM[0][j],indicesM[1][j]]],axis=0)
+    return indices
+  def dense(s):
+    (na,nb)=s.d[0,0,0].shape
+    nx=s.nx
+    ny=s.ny
+    nz=s.nz
+    den=np.zeros((nx,ny,nz,na,nb),dtype=np.complex128)
+    for x,y,z in product(range(s.nx),range(s.ny),range(s.nz)):
+      den[x,y,z]=s.d[x,y,z].todense()
+    return den
 
 def sparse_angles(M):
   '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
@@ -157,6 +193,7 @@ def dict_sparse_angles(DSM):
 def test_00():
   ds=DS()
   ds[1,2,3,0,0]=2+3j
+  print(ds[1,2,3])
   print(ds[1,2,3][0,0])
 
 def test_01(nx=3,ny=2,nz=1,na=5,nb=6):
@@ -166,7 +203,7 @@ def test_01(nx=3,ny=2,nz=1,na=5,nb=6):
 def test_02(nx=7,ny=6,nz=1,na=5,nb=6):
   '''testing creation of matrix and adding on element'''
   ds=DS(nx,ny,nz,na,nb)
-  ds[0,3,0,:,0]=2+3j
+  ds[0,3,0,2,0]=2+3j
   print(ds[0,3,0])
 
 def test_03(nx,ny,nz,na,nb):
@@ -329,22 +366,28 @@ def test_time_00():
   nx=4
   ny=4
   ntests=50
-  timearray=np.zeros((ntests,1))
+  timeratio=np.zeros((ntests,1))
   nsize=np.zeros((ntests,1))
   for i in range(ntests):
       nx=nx+2
       ny=ny+2
       nsize[i]=nx
-      tterm=0.0
+      tratio=0.0
       for j in range(10):
           t1=t.time()
-          DSM=DS(nx,ny,nz,na,nb)
+          DSM=DSupdate(nx,ny,nz,na,nb)
           t2=t.time()
-          tterm=tterm+t2-t1
-      tterm=tterm/10
-      timearray[i]=tterm
-  mp.plot(nsize,timearray)
-  #mp.show()
+          DSM2=DS(nx,ny,nz,na,nb)
+          t3=t.time()
+          #print('first time', t2-t1)
+          #print('second time', t3-t2)
+          tratio=tratio+((t3-t2)-(t2-t1))/(t3-t2)
+      tratio=tratio/10
+      timeratio[i]=tratio
+      print('t1/t2',tratio<1,tratio)
+  print(nsize)
+  mp.plot(nsize,timeratio)
+  mp.show()
   #print(DSM)
   #print(DSM2)
   # Running this test shows the updated DSM is faster than the original
@@ -354,4 +397,4 @@ def test_time_00():
 if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
-  test_02()
+  test_time_00()

@@ -9,14 +9,9 @@ import sys
 # Compute Directions in here if Nra changes not in main program
 def DeclareParameters():
   print('Saving the parameters in ParameterInput.py')
-  Nra=200
-  Nre=6
+  Nra=300
+  Nre=10
   h=0.25
-  RTPar=np.array([Nra,Nre,h])
-  np.save('Parameters/Raytracing.npy',RTPar)
-  print('Number of requested rays ', Nra)
-  print('Number of reflections ', Nre)
-  print('Mesh spacing ', h)
 
   # Obstacles are all triangles in 3D.
   triangle1 =np.array([(0.0,0.0,0.0),(3.0, 0.0,0.0),(1.5,1.5,0.0)])
@@ -72,15 +67,20 @@ def DeclareParameters():
       sinalpha=np.sin(theta2[j-1])
       coords=np.c_[sinalpha*xydirecs,z[j-1]]
       directions[st:ed]=np.c_[coords,np.zeros(xysteps)]
-
+  RTPar=np.array([Nra,Nre,h])
+  np.save('Parameters/Raytracing.npy',RTPar)
+  print('Number of requested rays ', Nra)
+  print('Number of reflections ', Nre)
+  print('Mesh spacing ', h)
+  np.save('Parameters/Directions.npy',directions)
   np.save('Parameters/Obstacles.npy',Oblist)
   np.save('Parameters/OuterBoundary.npy',OuterBoundary)
   np.save('Parameters/Origin.npy',Tx)
   print('Origin of raytracer ', Tx)
-  print('--------------------')
+  print('------------------------------------------------')
   print('All parameters saved')
-
-  return 0
+  print('------------------------------------------------')
+  return 1
 
 if __name__=='__main__':
   print('Running  on python version')
