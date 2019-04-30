@@ -19,7 +19,7 @@ def PlotRays():
     Nra=int(np.sqrt(Nrao/2.0)-1)*int(np.sqrt(2.0*Nrao))+1
 
     ##---Retrieve the Ray points ---------------------------------------
-    data_matrix=np.load('RayPoints'+str(int(Nrao))+'Refs'+str(int(Nre))+'n.npy')
+    data_matrix=np.load('RayMeshPoints'+str(int(Nrao))+'Refs'+str(int(Nre))+'n.npy')
 
     ##----Retrieve the environment--------------------------------------
     Oblist        =np.load('Parameters/Obstacles.npy')
