@@ -141,7 +141,7 @@ class room:
       Mesh=raystart.mesh_multiref(s,Nre,Mesh,Nra,it)
       raylist[it]=raystart.points[0:-2]
     s.time=t.time()-start_time
-    return Mesh
+    return raylist, Mesh
   def ray_bounce(s,Tx,Nre,Nra,directions):
     ''' Traces ray's uniformly emitted from an origin around a room.
     Number of rays is Nra, number of reflections Nre. Output
