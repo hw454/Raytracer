@@ -39,22 +39,22 @@ class DS:
       elif len(i)==5:
         dk,smk=i[:3],i[3:]
         return s.d[dk][smk[0],smk[1]] # return a SM element if smk=[init,int], column if smk=[:,int], row if smk=[int,:], full SM if smk=[:,:]
-    # elif i.shape[1]>1:
-      # dk1=i[0][:]
-      # dk2=i[1][:]
-      # dk3=i[2][:]
-      # smk1=i[3][:]
-      # smk2=i[4][:]
-      # for x, y, z in product(dk1,dk2,dk3):
-      # #return 0
-    else:
-      # ...
-      raise Exception('Error getting the (%s) part of the sparse matrix. Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
-      pass
+      else:
+        # ...
+        raise Exception('Error getting the (%s) part of the sparse matrix. Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
+        pass
     else:
       Keys=np.array(dk).tolist()
       Keys=''.join(str(key) for key in Keys)
-      s.d.update(dict.fromkeys(Keys,x))
+      if isinstance(smk,float): n2=1
+      elif isinstance(smk,int): n2=1
+      else:                     n2=len(smk)
+      if n2==1:  return [s.d[k][smk,:] for k in Keys]
+      elif n2==2:
+        return [s.d[k][smk[0],smk[1]] for k in Keys]
+      elif n2==0: return [s.d[k] for k in Keys]
+      else:
+        raise Exception('Error, not a valid SM dimension')
     return
   def __setitem__(s,i,x):
     dk,smk=i[:3],i[3:]
@@ -66,15 +66,15 @@ class DS:
       if len(i)==3:
         # set a SM to an input SM
        if dk not in s.d:
-         s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
+         s.d[dk]=SM(s.shape,dtype=np.complex128)
        s.d[dk]=x
       elif len(i)==4:                 # set a SM row
         if dk not in s.d:
-          s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
+          s.d[dk]=SM(s.shape,dtype=np.complex128)
         s.d[dk][smk[0],:]=x
       elif len(i)==5:                # set a SM element
         if dk not in s.d:
-          s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
+          s.d[dk]=SM(s.shape,dtype=np.complex128)
         s.d[dk][smk[0],smk[1]]=x
       else:
         # ...
@@ -83,8 +83,17 @@ class DS:
     else:
       Keys=np.array(dk).tolist()
       Keys=''.join(str(key) for key in Keys)
-      s.d.update(dict.fromkeys(Keys,x))
-    return
+      value=SM(s.shape,dtype=np.complex128)
+      if isinstance(smk,float): n2=1
+      elif isinstance(smk,int): n2=1
+      else:                     n2=len(smk)
+      if n2==1:  value[smk,:]=x
+      elif n2==2:value[smk[0],smk[1]]=x
+      elif n2==0:value=x
+      else:
+        raise Exception('Error, not a valid SM dimension')
+      s.d.update(dict.fromkeys(Keys,value))
+      return
   def __str__(s):
     return str(s.d)
   def __repr__(s):
@@ -109,9 +118,9 @@ class DS:
       den[x,y,z]=s.d[x,y,z].todense()
     return den
   def stopcheck(s,i,j,k,p1,h):
-    if i>=p1[0] and j>=p1[1] and k>=p1[2]:
-      return 0
-    elif i>s.nx or j>s.ny or k>s.nz:
+    #if i>=p1[0] and j>=p1[1] and k>=p1[2]:
+    #  return 0
+    if i>s.nx or j>s.ny or k>s.nz:
       return 0
     elif i<0 or j<0 or k<0:
       return 0
