@@ -24,15 +24,21 @@ class DS:
     s.nz=nz
     s.time=np.array([t.time()])
   def __getitem__(s,i):
-    if len(i)==3:
-      dk=i[:3]
-      return s.d[dk]                # return a SM
-    elif len(i)==4:
-      dk,smk=i[:3],i[3]
-      return s.d[dk][smk,:]         # return a SM row
-    elif len(i)==5:
-      dk,smk=i[:3],i[3:]
-      return s.d[dk][smk[0],smk[1]] # return a SM element if smk=[init,int], column if smk=[:,int], row if smk=[int,:], full SM if smk=[:,:]
+    dk,smk=i[:3],i[3:]
+    if isinstance(dk[0],float): n=1
+    elif isinstance(dk[0],int): n=1
+    else:
+      n=len(dk)
+    if n==1:
+      if len(i)==3:
+        dk=i[:3]
+        return s.d[dk]                # return a SM
+      elif len(i)==4:
+        dk,smk=i[:3],i[3]
+        return s.d[dk][smk,:]         # return a SM row
+      elif len(i)==5:
+        dk,smk=i[:3],i[3:]
+        return s.d[dk][smk[0],smk[1]] # return a SM element if smk=[init,int], column if smk=[:,int], row if smk=[int,:], full SM if smk=[:,:]
     # elif i.shape[1]>1:
       # dk1=i[0][:]
       # dk2=i[1][:]
@@ -45,26 +51,40 @@ class DS:
       # ...
       raise Exception('Error getting the (%s) part of the sparse matrix. Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
       pass
-  def __setitem__(s,i,x):
-    if len(i)==3:
-      dk,smk=i[:3],i[3:]            # set a SM to an input SM
-      if dk not in s.d:
-        s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
-      s.d[dk]=x
-    elif len(i)==4:                 # set a SM row
-      dk,smk=i[:3],i[3:]
-      if dk not in s.d:
-        s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
-      s.d[dk][smk[0],:]=x
-    elif len(i)==5:                # set a SM element
-      dk,smk=i[:3],i[3:]
-      if dk not in s.d:
-        s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
-      s.d[dk][smk[0],smk[1]]=x
     else:
-      # ...
-      raise Exception('Error setting the (%s) part of the sparse matrix to (%s). Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
-      pass
+      Keys=np.array(dk).tolist()
+      Keys=''.join(str(key) for key in Keys)
+      s.d.update(dict.fromkeys(Keys,x))
+    return
+  def __setitem__(s,i,x):
+    dk,smk=i[:3],i[3:]
+    if isinstance(dk[0],float): n=1
+    elif isinstance(dk[0],int): n=1
+    else:
+        n=len(dk)
+    if n==1:
+      if len(i)==3:
+        # set a SM to an input SM
+       if dk not in s.d:
+         s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
+       s.d[dk]=x
+      elif len(i)==4:                 # set a SM row
+        if dk not in s.d:
+          s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
+        s.d[dk][smk[0],:]=x
+      elif len(i)==5:                # set a SM element
+        if dk not in s.d:
+          s.d[dk]=SM(0.0,shape=s.shape,dtype=np.complex128)
+        s.d[dk][smk[0],smk[1]]=x
+      else:
+        # ...
+        raise Exception('Error setting the (%s) part of the sparse matrix to (%s). Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
+        pass
+    else:
+      Keys=np.array(dk).tolist()
+      Keys=''.join(str(key) for key in Keys)
+      s.d.update(dict.fromkeys(Keys,x))
+    return
   def __str__(s):
     return str(s.d)
   def __repr__(s):
@@ -88,6 +108,15 @@ class DS:
     for x,y,z in product(range(s.nx),range(s.ny),range(s.nz)):
       den[x,y,z]=s.d[x,y,z].todense()
     return den
+  def stopcheck(s,i,j,k,p1,h):
+    if i>=p1[0] and j>=p1[1] and k>=p1[2]:
+      return 0
+    elif i>s.nx or j>s.ny or k>s.nz:
+      return 0
+    elif i<0 or j<0 or k<0:
+      return 0
+    else: return 1
+
 
 
 def sparse_angles(M):
