@@ -7,4 +7,4 @@
 *.html
 *.txt
 *.pyc
-.gitignore
+.gitignore*
