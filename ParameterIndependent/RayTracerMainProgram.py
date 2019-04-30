@@ -42,6 +42,7 @@ def RayTracer():
   Rays=Room.ray_bounce(Tx, int(Nre), int(Nra), Direc)
   print('-------------------------------')
   print('Trajectory calculation completed')
+  print('Time taken',Room.time)
   print('-------------------------------')
   np.save('RayPoints'+str(int(Nra))+'Refs'+str(int(Nre))+'n.npy',Rays)
   # The "Rays" file is Nra+1 x Nre+1 x 4 array containing the
@@ -87,7 +88,8 @@ def MeshProgram():
   print('-------------------------------')
   Mesh=Room.ray_mesh_bounce(Tx,int(Nre),int(Nra),Direc,Mesh)
   print('-------------------------------')
-  print('ray-launching complete')
+  print('Ray-launching complete')
+  print('Time taken',Room.time)
   print('-------------------------------')
   # This large mesh is initialised as empty. It contains reference to
   # every segment at every position in the room.
@@ -97,7 +99,7 @@ def MeshProgram():
 if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
-  #out=RayTracer()
+  out=RayTracer()
   out=MeshProgram()
   exit()
 
