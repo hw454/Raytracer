@@ -140,7 +140,7 @@ class room:
       raystart  =ry.Ray(start, Dir)
       Mesh=raystart.mesh_multiref(s,Nre,Mesh,Nra,it)
       raylist[it]=raystart.points[0:-2]
-    s.time=start_time-t.time()
+    s.time=t.time()-start_time
     return Mesh
   def ray_bounce(s,Tx,Nre,Nra,directions):
     ''' Traces ray's uniformly emitted from an origin around a room.
@@ -158,7 +158,7 @@ class room:
       raystart  =ry.Ray(start, Dir)
       raystart.multiref(s,Nre)
       raylist[it]=raystart.points[0:-2]
-    s.time=start_time-t.time()
+    s.time=t.time()-start_time
     return raylist
   def Plotroom(s,origin,width):
     ''' Plots all the edges in the room '''
