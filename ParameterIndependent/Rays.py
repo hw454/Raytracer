@@ -166,8 +166,7 @@ class Ray:
     # The ray distance travelled starts at 0.
     dist=0
     # Vector of the reflection angle entries in relevant positions.
-    shape=(Mesh.shape[0],1)
-    calcvec=SM(shape,dtype=np.complex128)
+    calcvec=SM((Mesh.shape[0],1),dtype=np.complex128)
     for nre in range(0,Nre+1):
       end=s.reflect_calc(room)
       if end:
@@ -203,8 +202,14 @@ class Ray:
     # Add the reflection angle to the vector of  ray history. s.points[-2][-1] is the obstacle number of the last hit.
     calcvec[int(nre*room.Nob+s.points[-2][-1])]=np.exp(1j*theta)
     for m1 in range(Ns):
-      #FIXME put the stop check into a function.
       stpch=Mesh.stopcheck(i1,j1,k1,endposition,h)
+      if m1>0:
+        if i2==i1 and j2==j1 and k2==k1:
+          pass
+        else: 
+          i1=i2
+          j1=j2
+          k1=k2
       if stpch:
         Mesh[i1,j1,k1,:,nra*Nre+m1-1]=dist*calcvec
         Nc=s.number_cone_steps(deldist,dist,Nra)
@@ -212,12 +217,14 @@ class Ray:
           p3=np.tile(p0,(Nup,1))+m2*deldist*norm
           conepositions=room.position(p3,h)
           Mesh[conepositions[:][0],conepositions[:][1],conepositions[:][2],:,nra*Nre+m1-1]=dist*calcvec
-          print(Mesh[conepositions[:][0],conepositions[:][1],conepositions[:][2],:,nra*Nre+m1-1])
-      # Compute the next point along the ray
-      p0=p0+deldist*direc
-      dist=dist+deldist
-      i1,j1,k1=room.position(p0,h)
-      # Check if the position is the same as previous
+          p=dist*calcvec
+        # Compute the next point along the ray
+        p0=p0+deldist*direc
+        dist=dist+deldist
+        i2,j2,k2=room.position(p0,h)
+        #FIXME check if the position is the same as the previous
+        if lf.length(np.array([p0,s.points[-2][0:3]]))<h:
+          break
     return Mesh,dist,calcvec
   def raytest(s,room,err):
     ''' Checks the reflection for errors'''
