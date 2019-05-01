@@ -60,9 +60,9 @@ class Ray:
       rcp=s.obst_collision_point(robj)
       # Find the intersection with all the walls and check which is the
       #closest. Verify that the intersection is not the current origin.
-      if all(p is None for p in rcp): Nob=0
-      else: Nob=1
-      rNob=Nob
+      Nob=1
+      if all(p is None for p in rcp): rNob=0
+      else: rNob=Nob
       for obj in room.obst:
         cp=s.obst_collision_point(obj)
         if any(c is None for c in cp):
@@ -134,7 +134,7 @@ class Ray:
       origin=s.points[-2][0:3]
       ray=np.array([origin,cp])
       # The reflection function returns a line segment
-      refray=ref.try_reflect_ray(ray,room.obst[nob]) # refray is the intersection point to a reflection point
+      refray=ref.try_reflect_ray(ray,room.obst[nob-1]) # refray is the intersection point to a reflection point
       # Update intersection point list
       s.points[-1]=np.append(cp, [nob])
       s.points=np.vstack((s.points,np.append(lf.Direction(refray),[0])))
@@ -143,7 +143,7 @@ class Ray:
     '''Find the reflection angle of the most recent intersected ray.'''
     nob=s.points[-2][-1]
     direc=s.points[-1][0:3]
-    obst=room.obst[int(nob)]
+    obst=room.obst[int(nob-1)]
     norm=np.cross(obst[1]-obst[0],obst[2]-obst[0])
     check=(np.inner(direc,norm)/(np.linalg.norm(direc)*np.linalg.norm(norm)))
     theta=ma.acos(check)
