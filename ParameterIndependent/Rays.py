@@ -60,31 +60,35 @@ class Ray:
       rcp=s.obst_collision_point(robj)
       # Find the intersection with all the walls and check which is the
       #closest. Verify that the intersection is not the current origin.
-      Nob=1
+      if all(p is None for p in rcp): Nob=0
+      else: Nob=1
       rNob=Nob
       for obj in room.obst:
         cp=s.obst_collision_point(obj)
-        if all(c is not None for c in cp):
-          if np.allclose(cp, s.points[-2][0:3],atol=epsilon):
-            #print("Collision point is the same as the previous")
-            pass
-            # Do not reassign collision point when it is the previous
-            # point, this shouldn't happen because of direction check though
-          else:
-            #print('cp accepted',cp)
-            leng2=s.ray_length(cp)
-            if (leng2<leng and leng2>-epsilon) :
-              leng=leng2
-              rcp=cp
-              robj=obj
-              rNob=Nob
+        if any(c is None for c in cp):
+          # There was no collision point with this obstacle
           Nob+=1
-        if any(c is None for c in rcp):
-          #print('No collision point found', rcp, cp)
           pass
-      return rcp, robj, rNob
+        elif all(c is not None for c in cp):
+          #if np.allclose(cp, s.points[-2][0:3],atol=epsilon):
+          # #print("Collision point is the same as the previous")
+          #  #pass
+          #  ## Do not reassign collision point when it is the previous
+          #  ## point, this shouldn't happen because of direction check though
+          #else:
+          #  ##print('cp accepted',cp)
+          leng2=s.ray_length(cp)
+          if (leng2<leng and leng2>-epsilon) :
+            leng=leng2
+            rcp=cp
+            robj=obj
+            rNob=Nob
+          Nob+=1
+        else:
+          raise Exception("Collision point is a mixture of None's and not None's")
+      return rcp, rNob
     else:
-      return np.array([None, None, None]), None, 0
+      return np.array([None, None, None]), 0
   def ray_length(s,inter):
     '''The length of the ray upto the intersection '''
     o=s.points[-2][0:3]
@@ -116,7 +120,7 @@ class Ray:
       #print('no cp at previous stage', s.points[-2:-1])
       s.points=np.vstack((s.points,np.array([None, None, None, None])))
       return 0
-    cp,obst,nob=s.room_collision_point(room)
+    cp, nob=s.room_collision_point(room)
     # Check that a collision does occur
     if any(p is None for p in cp):
       #print('no cp at collision ',len(s.points)-2,' before reflection.')
@@ -125,23 +129,16 @@ class Ray:
       # Replace the last point of the ray instead of keeping the direction term.
       s.points=np.vstack((s.points[0:-1],np.array([None, None, None, None]),np.array([None, None, None, None])))
       return 0
-    elif obst is None:
-      #print('no ob',s.points[1])
-      # Replace the last point of the ray instead of keeping the direction term.
-      s.points=np.vstack((s.points[0:-1],np.array([None, None, None, None]),np.array([None, None, None, None])))
-      return 0
-      #print('ray:',s.points)
-      #raise Error('Collision should occur')
     else:
       # Construct the incoming array
       origin=s.points[-2][0:3]
       ray=np.array([origin,cp])
       # The reflection function returns a line segment
-      refray=ref.try_reflect_ray(ray,obst) # refray is the intersection point to a reflection point
+      refray=ref.try_reflect_ray(ray,room.obst[nob]) # refray is the intersection point to a reflection point
       # Update intersection point list
       s.points[-1]=np.append(cp, [nob])
       s.points=np.vstack((s.points,np.append(lf.Direction(refray),[0])))
-    return 1
+      return 1
   def ref_angle(s,room):
     '''Find the reflection angle of the most recent intersected ray.'''
     nob=s.points[-2][-1]
