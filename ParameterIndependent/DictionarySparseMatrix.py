@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Hayley 2019-04-26
+# Hayley 2019-05-01
 
 import numpy as np
 from scipy.sparse import lil_matrix as SM
@@ -25,8 +25,9 @@ class DS:
     s.time=np.array([t.time()])
   def __getitem__(s,i):
     dk,smk=i[:3],i[3:]
-    if isinstance(dk[0],float): n=1
-    elif isinstance(dk[0],int): n=1
+    print(dk)
+    print(smk)
+    if isinstance(dk[0],(float,int,np.int64, np.complex128 )): n=1
     else:
       n=len(dk)
     if n==1:
@@ -58,11 +59,16 @@ class DS:
     return
   def __setitem__(s,i,x):
     dk,smk=i[:3],i[3:]
-    if isinstance(dk[0],float): n=1
-    elif isinstance(dk[0],int): n=1
+    print(dk)
+    print(smk)
+    if isinstance(dk[0],(float,int,np.int64, np.complex128 )): n=1
     else:
         n=len(dk)
     if n==1:
+     if isinstance(dk,(np.ndarray)):
+      Keys=np.array(dk).tolist()
+      Keys=''.join(str(key) for key in Keys)
+     else:
       if len(i)==3:
         # set a SM to an input SM
        if dk not in s.d:
@@ -99,7 +105,7 @@ class DS:
   def __repr__(s):
     return str(s.d) # TODO
   def nonzero(s):
-    for x,y,z in product(range(s.nx),range(s.ny),range(s.nz)):
+    for x,y,z in product(range(0,s.nx),range(0,s.ny),range(0,s.nz)):
       indicesM=s.d[x,y,z].nonzero()
       NI=len(indicesM[0])
       for j in range(0,NI):
@@ -134,11 +140,11 @@ def sparse_angles(M):
   AngM2=SM(M.shape,dtype=float)
   indices=M.nonzero()
   AngM2[indices]=np.angle(M.todense()[indices])
-  t1=time.time()
+  t1=t.time()
   AngM2[indices]=np.angle(M.todense()[indices])
-  t2=time.time()
+  t2=t.time()
   AngM[indices]=np.angle(M[indices].todense())
-  t3=time.time()
+  t3=t.time()
   print('first time', t2-t1)
   print('second time',t3-t2)
   print('Difference in times', t2-t1-t3+t2)
@@ -151,7 +157,11 @@ def dict_sparse_angles(DSM):
   AngDSM=DS(nx,ny,nz,na,nb)
   indices=DSM.nonzero()
   #DSM2=DSM.dense()
-  #AngDSM[indices]=np.angle(DSM.dense()[indices])
+  print('set ang')
+  for j in range(0,len(indices)+1):
+    #print(DSM.dense()[indices[j][0:-1]])
+    #x=DSM.dense()[indices[j][0:-1]]
+    AngDSM[indices[j]]=DSM[indices[j]]
   return 0
 
 def test_00():
@@ -282,8 +292,8 @@ def test_11():
 
 def test_12():
   '''Extract the cos of the reflection angles of the matrix'''
-  nx=3
-  ny=3
+  nx=2
+  ny=2
   nz=1
   na=3
   nb=3
@@ -298,8 +308,8 @@ def test_12():
 
 def test_13():
   '''Attempt to create an array of the indices nonzero element of SM inside dictionary'''
-  nx=3
-  ny=3
+  nx=2
+  ny=2
   nz=1
   na=3
   nb=3
@@ -310,8 +320,8 @@ def test_13():
 
 def test_14():
   '''Attempt to find angle of nonzero element of SM inside dictionary'''
-  nx=3
-  ny=3
+  nx=2
+  ny=2
   nz=1
   na=3
   nb=3
@@ -319,39 +329,8 @@ def test_14():
   ang=dict_sparse_angles(DSM)
   return 1
 
-def test_time_00():
-  '''Attempt to find angle of nonzero element of SM inside dictionary'''
-  nx=50
-  ny=50
-  nz=1
-  na=3
-  nb=3
-  nx=4
-  ny=4
-  ntests=50
-  timearray=np.zeros((ntests,1))
-  nsize=np.zeros((ntests,1))
-  for i in range(ntests):
-      nx=nx+2
-      ny=ny+2
-      nsize[i]=nx
-      tterm=0.0
-      for j in range(10):
-          t1=t.time()
-          DSM=DS(nx,ny,nz,na,nb)
-          t2=t.time()
-          tterm=tterm+t2-t1
-      tterm=tterm/10
-      timearray[i]=tterm
-  mp.plot(nsize,timearray)
-  #mp.show()
-  #print(DSM)
-  #print(DSM2)
-  # Running this test shows the updated DSM is faster than the original
-  return 1
-
 
 if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
-  test_02()
+  test_14()
