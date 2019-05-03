@@ -9,9 +9,9 @@ import sys
 # Compute Directions in here if Nra changes not in main program
 def DeclareParameters():
   print('Saving the parameters in ParameterInput.py')
-  Nra=100
-  Nre=5
-  h=0.25
+  Nra=10
+  Nre=2
+  h=1
 
   # Obstacles are all triangles in 3D.
   triangle1 =np.array([(0.0,0.0,0.0),(3.0, 0.0,0.0),(1.5,1.5,0.0)])
