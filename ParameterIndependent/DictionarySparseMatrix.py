@@ -25,8 +25,6 @@ class DS:
     s.time=np.array([t.time()])
   def __getitem__(s,i):
     dk,smk=i[:3],i[3:]
-    print(dk)
-    print(smk)
     if isinstance(dk[0],(float,int,np.int64, np.complex128 )): n=1
     else:
       n=len(dk)
@@ -45,22 +43,32 @@ class DS:
         raise Exception('Error getting the (%s) part of the sparse matrix. Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
         pass
     else:
-      Keys=np.array(dk).tolist()
-      Keys=''.join(str(key) for key in Keys)
-      if isinstance(smk,float): n2=1
-      elif isinstance(smk,int): n2=1
-      else:                     n2=len(smk)
-      if n2==1:  return [s.d[k][smk,:] for k in Keys]
+      if isinstance(smk,(float,int,np.complex128,np.int64)):
+        # If smk is just a value then all rows smk in every corresponding
+        # Key element must be returned
+        n2=1
+      else:
+        n2=len(smk)
+      if n2>2:
+        out=s.d[dk[0][0],dk[1][0],dk[2][0]][smk,:]
       elif n2==2:
-        return [s.d[k][smk[0],smk[1]] for k in Keys]
-      elif n2==0: return [s.d[k] for k in Keys]
+        out=s.d[dk[0][0],dk[1][0],dk[2][0]][ smk[0][0],smk[1][0]]
+      elif n2==0:
+        out=s.d[dk[0][0],dk[1][0],dk[2][0]]
       else:
         raise Exception('Error, not a valid SM dimension')
-    return
+      for j in range(1,len(dk[0])):
+        if n2>2:
+          out=np.vstack((out,s.d[dk[0][j],dk[1][j],dk[2][j]][smk,:]))
+        elif n2==2:
+          out=np.vstack((out,s.d[dk[0][j],dk[1][j],dk[2][j]][ smk[0][j],smk[1][j]]))
+        elif n2==0:
+          out=np.vstack((out,s.d[dk[0][j],dk[1][j],dk[2][j]]))
+        else:
+          raise Exception('Error, not a valid SM dimension')
+      return out
   def __setitem__(s,i,x):
     dk,smk=i[:3],i[3:]
-    print(dk)
-    print(smk)
     if isinstance(dk[0],(float,int,np.int64, np.complex128 )): n=1
     else:
         n=len(dk)
@@ -87,18 +95,42 @@ class DS:
         raise Exception('Error setting the (%s) part of the sparse matrix to (%s). Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
         pass
     else:
-      Keys=np.array(dk).tolist()
-      Keys=''.join(str(key) for key in Keys)
-      value=SM(s.shape,dtype=np.complex128)
-      if isinstance(smk,float): n2=1
-      elif isinstance(smk,int): n2=1
-      else:                     n2=len(smk)
-      if n2==1:  value[smk,:]=x
-      elif n2==2:value[smk[0],smk[1]]=x
-      elif n2==0:value=x
+      if isinstance(x,(float,int,np.complex128,np.int64)):
+        n1=0
+      elif x.shape==s.shape: n1=0
+      elif x.shape==s.shape[0]: n1=0
+      else: n1=len(x)
+      if isinstance(smk,(float,int,np.complex128,np.int64)):
+        # If smk is just a value then all rows in every corresponding
+        # Key element must be set to the same x
+        value=SM(s.shape,dtype=np.complex128)
+        if n1==0:
+          value[ smk, : ] = x
+        n2=1
       else:
-        raise Exception('Error, not a valid SM dimension')
-      s.d.update(dict.fromkeys(Keys,value))
+        value=SM(s.shape,dtype=np.complex128)
+        n2=len(smk)
+      for j in range(len(dk[0])):
+        if n2>2:
+          if n1==0:
+            value[ smk[j], : ]          = x         # Setting a row j to be x
+          else:
+            value[ smk[j], : ]          = x[j]      # Setting a row j to be the j'th x
+        elif n2==1 and n1>0:
+          value[ smk , : ]=x[j]                     # Setting the fixed row to be the j'th x
+        elif n2==2:
+          if n1==0:
+            value[ smk[0][j],smk[1][j]] = x         # Setting a point to be x
+          else:
+            value[ smk[0][j],smk[1][j]] = x[j]      # Setting a point to be j'th x
+        elif n2==0:
+          if n1==0:
+            value=x                                 # Setting the whole sparse matrix to be x
+          else:
+            value=x[j]                              # Setting the sparse matrix to be the j'th in x
+        else:
+          raise Exception('Error, not a valid SM dimension')
+        s.d[dk[0][j],dk[1][j],dk[2][j]]=value
       return
   def __str__(s):
     return str(s.d)
@@ -110,9 +142,9 @@ class DS:
       NI=len(indicesM[0])
       for j in range(0,NI):
         if x==0 and y==0 and z==0 and j==0:
-          indices=np.array([[0,0,0,indicesM[0][j],indicesM[1][j]]])
+          indices=np.array([0,0,0,indicesM[0][j],indicesM[1][j]])
         else:
-          indices=np.append(indices,[[x,y,z,indicesM[0][j],indicesM[1][j]]],axis=0)
+          indices=np.vstack((indices,[x,y,z,indicesM[0][j],indicesM[1][j]]))
     return indices
   def dense(s):
     (na,nb)=s.d[0,0,0].shape
@@ -126,11 +158,23 @@ class DS:
   def stopcheck(s,i,j,k,p1,h):
     #if i>=p1[0] and j>=p1[1] and k>=p1[2]:
     #  return 0
-    if i>s.nx or j>s.ny or k>s.nz:
-      return 0
-    elif i<0 or j<0 or k<0:
+    if i>s.nx or j>s.ny or k>s.nz or i<0 or j<0 or k<0:
       return 0
     else: return 1
+  def stopchecklist(s,ps,p1,h):
+    start=0
+    newps=np.array([])
+    for k in ps:
+      check=s.stopcheck(k[0],k[1],k[2],p1,h)
+      if check==1:
+        if start==0:
+          newps=np.array([[k[0]],[k[1]],[k[2]]])
+          start=1
+        else:
+          newps=np.hstack((newps,np.array([[k[0]],[k[1]],[k[2]]])))
+      else:
+        pass
+    return start, newps
 
 
 
@@ -155,14 +199,40 @@ def dict_sparse_angles(DSM):
   nx,ny,nz=DSM.nx, DSM.ny, DSM.nz
   na,nb=DSM[0,0,0].shape
   AngDSM=DS(nx,ny,nz,na,nb)
-  indices=DSM.nonzero()
-  #DSM2=DSM.dense()
-  print('set ang')
-  for j in range(0,len(indices)+1):
-    #print(DSM.dense()[indices[j][0:-1]])
-    #x=DSM.dense()[indices[j][0:-1]]
-    AngDSM[indices[j]]=DSM[indices[j]]
+  indices=np.transpose(DSM.nonzero())
+  AngDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.angle(DSM[indices[0],indices[1],indices[2],indices[3],indices[4]])
+  return AngDSM
+
+def ref_coef(DSM,roomcoefs):
   return 0
+
+def test_15():
+  ds=test_03(8,6,1,5,6)
+  Nob=4
+  mur=np.array([complex(1.0,0),complex(1.0,0),complex(1.0,0),complex(1.0,0)])
+  epsr=np.array([complex(3.6305,7.41E-2),complex(3.6305,7.41E-2),complex(3.6305,7.41E-2),complex(3.6305,7.41E-2)])
+  sigma=np.array([1.0E-2,1.0E-2,1.0E-2,1.0E-2])
+
+  # PHYSICAL CONSTANTS
+  mu0=4*np.pi*1E-6
+  c=2.99792458E+8
+  eps0=1/(mu0*c**2)#8.854187817E-12
+  Z1=(mu0/eps0)**0.5 #120*np.pi
+
+  # CALCULATE PARAMETERS
+  frequency=2*np.pi*2.43E+9                       # 2.43 GHz
+  gamma=np.sqrt(np.divide(complex(0,frequency*mu0)*mur,np.multiply(sigma,eps0*frequency*complex(0,1)*epsr)))
+  Z2=Z1*np.divide((1+gamma),(1-gamma)   )    # Characteristic impedance of the obstacles
+  refindex=np.sqrt(np.multiply(mur,epsr))     # Refractive index of the obstacles
+
+  AngDSM=dict_sparse_angles(ds)
+  # Znob[nonzero]*Cos(AngDSM[nonzero])-Z1cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
+  # Divide
+  # Znob[nonzero]*Cos(AngDSM[nonzero])+Z1cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
+  # Z1*Cos(AngDSM[nonzero])-Znob[nonzero]cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
+  # Divide
+  # Z1*Cos(AngDSM[nonzero])+Znob[nonzero]cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
+  return
 
 def test_00():
   ds=DS()
@@ -333,4 +403,4 @@ def test_14():
 if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
-  test_14()
+  test_15()
