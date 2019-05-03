@@ -105,9 +105,9 @@ class Ray:
      return Nc
   def normal_mat(s,Nra,d,dist,h):
      deltheta=(-2+np.sqrt(2.0*(Nra)))*(np.pi/(Nra-2)) # Calculate angle spacing
-     Nup=int(dist*ma.sin(deltheta)/h)+1
+     Nup=int(4*(2*np.sqrt(2)*dist*ma.sin(deltheta*0.5)/h+1))
      anglevec=np.linspace(0.0,2*np.pi,num=int(Nup), endpoint=False)
-     Norm=np.zeros((Nra,3),dtype=np.float)
+     Norm=np.zeros((Nup+1,3),dtype=np.float)
      check=0
      for j in range(0,Nup):
        Norm[j]=np.cross(d,np.array([np.cos(anglevec[j]),np.sin(anglevec[j]),0]))
@@ -208,13 +208,20 @@ class Ray:
           j1=j2
           k1=k2
       if stpch:
-        Mesh[i1,j1,k1,:,nra*Nre+m1-1]=dist*calcvec
+        Mesh[i1,j1,k1,:,nra*Nre+nre-1]=dist*calcvec
         Nc=s.number_cone_steps(deldist,dist,Nra)
         for m2 in range(Nc):
           p3=np.tile(p0,(Nup,1))+m2*alpha*norm
           conepositions=room.position(p3,h)
-          Mesh[conepositions[:][0],conepositions[:][1],conepositions[:][2],:,nra*Nre+m1-1]=dist*calcvec
-          p=dist*calcvec
+          start,conepositions=Mesh.stopchecklist(conepositions,endposition,h)
+          if start==1:
+            #FIXME try to set them all at once not one by one
+            for j in range(0,len(conepositions[0])):
+              Mesh[conepositions[0][j],conepositions[1][j],conepositions[2][j],:,nra*Nre+nre-1]=dist*calcvec
+            p=dist*calcvec
+          else:
+            # There are no cone positions
+            pass
         # Compute the next point along the ray
         p0=p0+alpha*direc
         dist=dist+deldist
