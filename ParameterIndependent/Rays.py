@@ -173,7 +173,7 @@ class Ray:
   def mesh_singleray(s,room,Mesh,dist,calcvec,Nra,Nre,nra):
     ''' Iterate between two intersection points and store the ray information in the Mesh '''
     # --- Set initial terms before beginning storage steps -------------
-    nre=len(s.points)-2     # The reflection number of the current ray
+    nre=len(s.points)-3     # The reflection number of the current ray
     h=room.get_meshwidth(Mesh)  # The Meshwidth for a room with Mesh spaces
     # Compute the direction - Since the Ray has reflected but we are
     # storing previous information we want the direction of the ray which
