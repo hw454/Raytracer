@@ -73,27 +73,40 @@ class DS:
     else:
         n=len(dk)
     if n==1:
-     if isinstance(dk,(np.ndarray)):
-      Keys=np.array(dk).tolist()
-      Keys=''.join(str(key) for key in Keys)
-     else:
-      if len(i)==3:
-        # set a SM to an input SM
-       if dk not in s.d:
-         s.d[dk]=SM(s.shape,dtype=np.complex128)
-       s.d[dk]=x
-      elif len(i)==4:                 # set a SM row
-        if dk not in s.d:
-          s.d[dk]=SM(s.shape,dtype=np.complex128)
-        s.d[dk][smk[0],:]=x
-      elif len(i)==5:                # set a SM element
-        if dk not in s.d:
-          s.d[dk]=SM(s.shape,dtype=np.complex128)
-        s.d[dk][smk[0],smk[1]]=x
-      else:
-        # ...
-        raise Exception('Error setting the (%s) part of the sparse matrix to (%s). Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
-        pass
+        if len(i)==3:
+          # set a SM to an input SM
+         if dk not in s.d:
+           s.d[dk]=SM(s.shape,dtype=np.complex128)
+         s.d[dk]=x
+        elif len(i)==4:                 # set a SM row
+          if isinstance(smk[0],(float,int,np.int64, np.complex128)): n2=1
+          else:
+            n2=len(smk[0]) 
+          if dk not in s.d:
+            s.d[dk]=SM(s.shape,dtype=np.complex128)
+          if n2==1:
+            s.d[dk][smk[0],:]=x
+          else:
+            p=0
+            for j in smk[0]:
+              s.d[dk][smk,:]=x[p]
+              p+=1
+        elif len(i)==5:                # set a SM element
+          if isinstance(smk[0],(float,int,np.int64, np.complex128)): n2=1
+          else:
+            n2=len(smk[0])
+          if dk not in s.d:
+            s.d[dk]=SM(s.shape,dtype=np.complex128)
+          if n2==1:
+            s.d[dk][smk[0],smk[1]]=x
+          else:
+            end=len(smk[0])
+            for c in range(0,end):
+              s.d[dk][smk[0][c],smk[1][c]]=x[c]
+        else:
+          # ...
+          raise Exception('Error setting the (%s) part of the sparse matrix to (%s). Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
+          pass
     else:
       if isinstance(x,(float,int,np.complex128,np.int64)):
         n1=0
@@ -113,21 +126,21 @@ class DS:
       for j in range(len(dk[0])):
         if n2>2:
           if n1==0:
-            value[ smk[j], : ]          = x         # Setting a row j to be x
+            value[ smk[j], : ]          = np.asscalar(x)         # Setting a row j to be x
           else:
-            value[ smk[j], : ]          = x[j]      # Setting a row j to be the j'th x
+            value[ smk[j], : ]          = np.asscalar(x[j])      # Setting a row j to be the j'th x
         elif n2==1 and n1>0:
           value[ smk , : ]=x[j]                     # Setting the fixed row to be the j'th x
         elif n2==2:
           if n1==0:
-            value[ smk[0][j],smk[1][j]] = x         # Setting a point to be x
+            value[ smk[0][j],smk[1][j]] = np.asscalar(x)         # Setting a point to be x
           else:
-            value[ smk[0][j],smk[1][j]] = x[j]      # Setting a point to be j'th x
+            value[ smk[0][j],smk[1][j]] = np.asscalar(x[j])      # Setting a point to be j'th x
         elif n2==0:
           if n1==0:
-            value=x                                 # Setting the whole sparse matrix to be x
+            value=np.asscalar(x)                                 # Setting the whole sparse matrix to be x
           else:
-            value=x[j]                              # Setting the sparse matrix to be the j'th in x
+            value=np.asscalar(x[j])                              # Setting the sparse matrix to be the j'th in x
         else:
           raise Exception('Error, not a valid SM dimension')
         s.d[dk[0][j],dk[1][j],dk[2][j]]=value
@@ -202,37 +215,50 @@ def dict_sparse_angles(DSM):
   indices=np.transpose(DSM.nonzero())
   AngDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.angle(DSM[indices[0],indices[1],indices[2],indices[3],indices[4]])
   return AngDSM
+  
+def dict_cos(DSM):
+  '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+  nx,ny,nz=DSM.nx, DSM.ny, DSM.nz
+  na,nb=DSM[0,0,0].shape
+  CosDSM=DS(nx,ny,nz,na,nb)
+  indices=np.transpose(DSM.nonzero())
+  CosDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.cos(DSM[indices[0],indices[1],indices[2],indices[3],indices[4]])
+  return CosDSM
+  
+def dict_sin(DSM):
+  '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+  nx,ny,nz=DSM.nx, DSM.ny, DSM.nz
+  na,nb=DSM[0,0,0].shape
+  SinDSM=DS(nx,ny,nz,na,nb)
+  indices=np.transpose(DSM.nonzero())
+  SinDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.sin(DSM[indices[0],indices[1],indices[2],indices[3],indices[4]])
+  return SinDSM
+  
+def dict_asin(DSM):
+  '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+  nx,ny,nz=DSM.nx, DSM.ny, DSM.nz
+  na,nb=DSM[0,0,0].shape
+  asinDSM=DS(nx,ny,nz,na,nb)
+  indices=np.transpose(DSM.nonzero())
+  asinDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.asin(DSM[indices[0],indices[1],indices[2],indices[3],indices[4]])
+  return asinDSM
+  
+def dict_vec_multiply(vec,DSM):
+  '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+  nx,ny,nz=DSM.nx, DSM.ny, DSM.nz
+  na,nb=DSM[0,0,0].shape
+  outDSM=DS(nx,ny,nz,na,nb)
+  indices=np.transpose(DSM.nonzero())
+  for i in indices[0]:
+    for j in indices[1]:
+      for k in indices[2]:
+        out=np.multiply(vec[indices[3],indices[4]],DSM[i,j,k,indices[3],indices[4]])
+        print(i,j,k)
+        outDSM[i,j,k,indices[3],indices[4]]=np.multiply(vec[indices[3],indices[4]],DSM[i,j,k,indices[3],indices[4]])
+  return outDSM 
 
 def ref_coef(DSM,roomcoefs):
   return 0
-
-def test_15():
-  ds=test_03(8,6,1,5,6)
-  Nob=4
-  mur=np.array([complex(1.0,0),complex(1.0,0),complex(1.0,0),complex(1.0,0)])
-  epsr=np.array([complex(3.6305,7.41E-2),complex(3.6305,7.41E-2),complex(3.6305,7.41E-2),complex(3.6305,7.41E-2)])
-  sigma=np.array([1.0E-2,1.0E-2,1.0E-2,1.0E-2])
-
-  # PHYSICAL CONSTANTS
-  mu0=4*np.pi*1E-6
-  c=2.99792458E+8
-  eps0=1/(mu0*c**2)#8.854187817E-12
-  Z1=(mu0/eps0)**0.5 #120*np.pi
-
-  # CALCULATE PARAMETERS
-  frequency=2*np.pi*2.43E+9                       # 2.43 GHz
-  gamma=np.sqrt(np.divide(complex(0,frequency*mu0)*mur,np.multiply(sigma,eps0*frequency*complex(0,1)*epsr)))
-  Z2=Z1*np.divide((1+gamma),(1-gamma)   )    # Characteristic impedance of the obstacles
-  refindex=np.sqrt(np.multiply(mur,epsr))     # Refractive index of the obstacles
-
-  AngDSM=dict_sparse_angles(ds)
-  # Znob[nonzero]*Cos(AngDSM[nonzero])-Z1cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
-  # Divide
-  # Znob[nonzero]*Cos(AngDSM[nonzero])+Z1cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
-  # Z1*Cos(AngDSM[nonzero])-Znob[nonzero]cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
-  # Divide
-  # Z1*Cos(AngDSM[nonzero])+Znob[nonzero]cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
-  return
 
 def test_00():
   ds=DS()
@@ -398,6 +424,42 @@ def test_14():
   DSM=test_03c(nx,ny,nz,na,nb)
   ang=dict_sparse_angles(DSM)
   return 1
+
+def test_15():
+  ds=test_03(8,6,1,11,6)
+  Nb=ds.shape[1]
+  # Number of obstacles and the corresponding coefficients
+  Nre=1
+  Nob=int((ds.shape[0]-1)/(Nre+1))
+  mur=np.full((Nob,1), complex(1.0,0))
+  epsr=np.full((Nob,1),complex(3.6305,7.41E-2))
+  sigma=np.full((Nob,1),1.0E-2)
+
+  # PHYSICAL CONSTANTS
+  mu0=4*np.pi*1E-6
+  c=2.99792458E+8
+  eps0=1/(mu0*c**2)#8.854187817E-12
+  Z1=(mu0/eps0)**0.5 #120*np.pi
+
+  # CALCULATE PARAMETERS
+  frequency=2*np.pi*2.43E+9                       # 2.43 GHz
+  gamma=np.sqrt(np.divide(complex(0,frequency*mu0)*mur,np.multiply(sigma,eps0*frequency*complex(0,1)*epsr)))
+  Znob=Z1*np.divide((1+gamma),(1-gamma)   )    # Characteristic impedance of the obstacles
+  Znob=np.tile(Znob,Nre+1)
+  Znob=np.insert(Znob,0,complex(0.0,0.0))
+  Znob=np.transpose(np.tile(Znob,(Nb,1)))
+  refindex=np.sqrt(np.multiply(mur,epsr))     # Refractive index of the obstacles
+
+  AngDSM=dict_sparse_angles(ds)
+  indices=AngDSM.nonzero()
+  S=dict_vec_multiply(Znob,dict_cos(AngDSM))#-Z1*np.cos(np.asin(np.divide(np.sin(AngDSM[indices]),refindex[indices])))
+  # np.multiply(Znob[indices],np.cos(AngDSM[indices])
+  # Divide
+  # Znob[nonzero]*Cos(AngDSM[nonzero])+Z1cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
+  # Z1*Cos(AngDSM[nonzero])-Znob[nonzero]cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
+  # Divide
+  # Z1*Cos(AngDSM[nonzero])+Znob[nonzero]cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
+  return
 
 
 if __name__=='__main__':
