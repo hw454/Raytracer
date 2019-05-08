@@ -187,7 +187,7 @@ class Ray:
     deldist=lf.length(np.array([(0,0,0),alpha*direc]))
     # Find the indexing position of the start of the ray segment and end.
     p0=s.points[-3][0:3]
-    i1,j1,k1=room.position(p0,h)    # Start
+    i1,j1,k1=room.position(p0,h)                   # Start
     endposition=room.position(s.points[-2][0:3],h) # Stopping terms
     # Compute the reflection angle
     theta=s.ref_angle(room)
@@ -218,7 +218,6 @@ class Ray:
             #FIXME try to set them all at once not one by one
             for j in range(0,len(conepositions[0])):
               Mesh[conepositions[0][j],conepositions[1][j],conepositions[2][j],:,nra*Nre+nre-1]=dist*calcvec
-            p=dist*calcvec
           else:
             # There are no cone positions
             pass
