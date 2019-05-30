@@ -81,7 +81,7 @@ class DS:
         elif len(i)==4:                 # set a SM row
           if isinstance(smk[0],(float,int,np.int64, np.complex128)): n2=1
           else:
-            n2=len(smk[0]) 
+            n2=len(smk[0])
           if dk not in s.d:
             s.d[dk]=SM(s.shape,dtype=np.complex128)
           if n2==1:
@@ -92,7 +92,7 @@ class DS:
               s.d[dk][smk,:]=x[p]
               p+=1
         elif len(i)==5:                # set a SM element
-          if isinstance(smk[0],(float,int,np.int64, np.complex128)): n2=1
+          if isinstance(smk[0],(float,int,np.int64, np.complex128,slice)): n2=1
           else:
             n2=len(smk[0])
           if dk not in s.d:
@@ -215,7 +215,7 @@ def dict_sparse_angles(DSM):
   indices=np.transpose(DSM.nonzero())
   AngDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.angle(DSM[indices[0],indices[1],indices[2],indices[3],indices[4]])
   return AngDSM
-  
+
 def dict_cos(DSM):
   '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
   nx,ny,nz=DSM.nx, DSM.ny, DSM.nz
@@ -224,7 +224,7 @@ def dict_cos(DSM):
   indices=np.transpose(DSM.nonzero())
   CosDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.cos(DSM[indices[0],indices[1],indices[2],indices[3],indices[4]])
   return CosDSM
-  
+
 def dict_sin(DSM):
   '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
   nx,ny,nz=DSM.nx, DSM.ny, DSM.nz
@@ -233,7 +233,7 @@ def dict_sin(DSM):
   indices=np.transpose(DSM.nonzero())
   SinDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.sin(DSM[indices[0],indices[1],indices[2],indices[3],indices[4]])
   return SinDSM
-  
+
 def dict_asin(DSM):
   '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
   nx,ny,nz=DSM.nx, DSM.ny, DSM.nz
@@ -242,7 +242,7 @@ def dict_asin(DSM):
   indices=np.transpose(DSM.nonzero())
   asinDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.asin(DSM[indices[0],indices[1],indices[2],indices[3],indices[4]])
   return asinDSM
-  
+
 def dict_vec_multiply(vec,DSM):
   '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
   nx,ny,nz=DSM.nx, DSM.ny, DSM.nz
@@ -255,7 +255,7 @@ def dict_vec_multiply(vec,DSM):
         out=np.multiply(vec[indices[3],indices[4]],DSM[i,j,k,indices[3],indices[4]])
         print(i,j,k)
         outDSM[i,j,k,indices[3],indices[4]]=np.multiply(vec[indices[3],indices[4]],DSM[i,j,k,indices[3],indices[4]])
-  return outDSM 
+  return outDSM
 
 def ref_coef(DSM,roomcoefs):
   return 0
