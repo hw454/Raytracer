@@ -9,16 +9,24 @@ import sys
 # Compute Directions in here if Nra changes not in main program
 def DeclareParameters():
   print('Saving the parameters in ParameterInput.py')
-  Nra=10
-  Nre=2
+  Nra=200
+  Nre=5
   h=1
 
   # Obstacles are all triangles in 3D.
-  triangle1 =np.array([(0.0,0.0,0.0),(3.0, 0.0,0.0),(1.5,1.5,0.0)])
-  triangle2=np.array([(0.0,0.0,0.0),(3.0, 0.0,0.0),(1.0,1.0,3.0)])
-  triangle3=np.array([(0.0,0.0,0.0),(1.5, 1.5,0.0),(1.0,1.0,3.0)])
-  triangle4=np.array([(1.5,1.5,0.0),(1.0, 1.0,3.0),(3.0,0.0,0.0)])
-  Oblist=3*np.array([triangle1,triangle2,triangle3,triangle4])
+  triangle1 =np.array([(0.0,0.0,0.0),(3.0, 0.0,0.0),(0.0,0.0,3.0)])
+  triangle2 =np.array([(0.0,0.0,3.0),(3.0, 0.0,3.0),(0.0,0.0,0.0)])
+  triangle3=np.array([(0.0,0.0,0.0),(0.0, 3.0,0.0),(0.0,0.0,3.0)])
+  triangle4 =np.array([(0.0,0.0,3.0),(0.0, 3.0,0.0),(0.0,3.0,3.0)])
+  triangle5 =np.array([(0.0,0.0,0.0),(3.0, 3.0,0.0),(0.0,3.0,0.0)])
+  triangle6 =np.array([(0.0,0.0,0.0),(3.0, 3.0,0.0),(3.0,0.0,0.0)])
+  triangle7 =np.array([(0.0,0.0,3.0),(3.0, 3.0,3.0),(3.0,0.0,3.0)])
+  triangle8 =np.array([(0.0,0.0,3.0),(3.0, 3.0,3.0),(0.0,3.0,3.0)])
+  triangle9 =np.array([(3.0,0.0,3.0),(3.0, 3.0,3.0),(3.0,3.0,0.0)])
+  triangle10=np.array([(3.0,0.0,3.0),(3.0, 0.0,0.0),(3.0,3.0,0.0)])
+  triangle11=np.array([(3.0,3.0,0.0),(3.0, 3.0,3.0),(0.0,3.0,3.0)])
+  triangle12=np.array([(3.0,3.0,0.0),(0.0, 3.0,3.0),(0.0,3.0,0.0)])
+  Oblist=2*np.array([triangle1,triangle2,triangle3,triangle4,triangle5,triangle6,triangle7,triangle8,triangle9,triangle10,triangle11,triangle12])
 
   #- Outer Boundary -
   # 3D co-ordinates forming a closed boundary.
@@ -44,7 +52,7 @@ def DeclareParameters():
    OuterBoundary4,OuterBoundary5,OuterBoundary6,OuterBoundary7,
    OuterBoundary8, OuterBoundary9, OuterBoundary10, OuterBoundary11,OuterBoundary12])
 
-  Tx=np.array([5.75,5.25,1.5]) # -Router location -co-ordinate of three real numbers
+  Tx=np.array([6.75,6.25,1.5]) # -Router location -co-ordinate of three real numbers
   #(the third is zero when modelling in 2D).
   deltheta      =(-2+np.sqrt(2.0*(Nra)))*(np.pi/(Nra-2)) # Calculate angle spacing
   xysteps       =int(2.0*np.pi/deltheta)

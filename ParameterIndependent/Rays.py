@@ -197,7 +197,13 @@ class Ray:
     norm=s.normal_mat(Nra,direc,dist,h) # Matrix of normals to the direc, all of distance 1 equally angle spaced
     Nup=len(norm)                       # The number of normal vectors
     # Add the reflection angle to the vector of  ray history. s.points[-2][-1] is the obstacle number of the last hit.
-    calcvec[int(nre*room.Nob+s.points[-2][-1])]=np.exp(1j*theta)
+    if nre==0:
+      calcvec[0]=1
+    elif nre==1:
+      calcvec[0]=0
+      calcvec[int((nre-1)*room.Nob+s.points[-2][-1])]=np.exp(1j*theta)
+    else:
+      calcvec[int((nre-1)*room.Nob+s.points[-2][-1])]=np.exp(1j*theta)
     for m1 in range(Ns):
       stpch=Mesh.stopcheck(i1,j1,k1,endposition,h)
       if m1>0:
@@ -208,7 +214,7 @@ class Ray:
           j1=j2
           k1=k2
       if stpch:
-        Mesh[i1,j1,k1,:,nra*Nre+nre-1]=dist*calcvec
+        Mesh[i1,j1,k1,:,nra*Nre+nre]=dist*calcvec
         Nc=s.number_cone_steps(deldist,dist,Nra)
         for m2 in range(Nc):
           p3=np.tile(p0,(Nup,1))+m2*alpha*norm
@@ -217,7 +223,7 @@ class Ray:
           if start==1:
             #FIXME try to set them all at once not one by one
             for j in range(0,len(conepositions[0])):
-              Mesh[conepositions[0][j],conepositions[1][j],conepositions[2][j],:,nra*Nre+nre-1]=dist*calcvec
+              Mesh[conepositions[0][j],conepositions[1][j],conepositions[2][j],:,nra*Nre+nre]=dist*calcvec
           else:
             # There are no cone positions
             pass

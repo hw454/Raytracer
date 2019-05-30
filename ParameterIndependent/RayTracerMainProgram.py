@@ -79,7 +79,7 @@ def MeshProgram():
   Nx=int(Room.maxxleng()/h)
   Ny=int(Room.maxyleng()/h)
   Nz=int(Room.maxzleng()/h)
-  Mesh=DSM.DS(Nx,Ny,Nz,int(Nob*(Nre+1)+1),int((Nre)*(Nra)))
+  Mesh=DSM.DS(Nx,Ny,Nz,int(Nob*Nre+1),int((Nre)*(Nra)+1))
   print('-------------------------------')
   print('Mesh built')
   print('-------------------------------')
