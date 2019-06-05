@@ -19,7 +19,7 @@ def PlotRays():
     Nra=int(np.sqrt(Nrao/2.0)-1)*int(np.sqrt(2.0*Nrao))+1
 
     ##---Retrieve the Ray points ---------------------------------------
-    data_matrix=np.load('RayMeshPoints'+str(int(Nrao))+'Refs'+str(int(Nre))+'n.npy')
+    data_matrix=np.load('RayPointsMesh'+str(int(Nrao))+'Refs'+str(int(Nre))+'n.npy')
 
     ##----Retrieve the environment--------------------------------------
     Oblist        =np.load('Parameters/Obstacles.npy')
@@ -57,7 +57,7 @@ def PlotRays():
             z=np.append(z,[data_matrix[j][l][2]])
             s=np.append(s,[data_matrix[j][l][3]])
       mlab.plot3d(x,y,z,color= (0, 1, 1))
-    mlab.savefig('Rayreflections.jpg')
+    mlab.savefig('ConeFigures/Rayreflections.jpg',size=(1000,1000))
     gui = GUI()
     gui.start_event_loop()
     return
