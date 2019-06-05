@@ -124,6 +124,19 @@ class room:
       return positions
     else:
       raise ValueError("Neither point nor array of points")
+  def coordinate(s,h,i,j,k):
+    ''' Return the centre point of the element i, j, k '''
+    if isinstance(i,(float,int,np.complex128,np.int64)): n=1
+    else:
+      n=len(i)
+    if n==1:
+      coord=s.bounds[0]+h*np.array([i,j,k])+h*np.array([0.5,0.5,0.5])
+      return coord
+    elif n>1:
+      coord=np.array((np.hstack([i,j,k])+np.tile(s.bounds[0]/h+np.array([0.5,0.5,0.5]),(n,1)))*h,dtype=int)
+      return coord
+    else:
+      raise ValueError("Neither point nor array of points")
   def ray_mesh_bounce(s,Tx,Nre,Nra,directions,Mesh):
     ''' Traces ray's uniformly emitted from an origin around a room.
     Number of rays is Nra, number of reflections Nre.

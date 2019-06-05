@@ -187,6 +187,7 @@ class Ray:
     deldist=lf.length(np.array([(0,0,0),alpha*direc]))
     # Find the indexing position of the start of the ray segment and end.
     p0=s.points[-3][0:3]
+    p1=p0
     i1,j1,k1=room.position(p0,h)                   # Start
     endposition=room.position(s.points[-2][0:3],h) # Stopping terms
     # Compute the reflection angle
@@ -214,25 +215,35 @@ class Ray:
           j1=j2
           k1=k2
       if stpch:
-        Mesh[i1,j1,k1,:,nra*Nre+nre]=dist*calcvec
+        # Calculate the co-ordinate of the center point
+        p2=room.coordinate(h,i1,j1,k1)
+        # Recalculate distance
+        Mesh[i1,j1,k1,:,nra*Nre+nre]=np.sqrt(np.dot((p0-p2),(p0-p2)))*calcvec
         Nc=s.number_cone_steps(deldist,dist,Nra)
         for m2 in range(Nc):
-          p3=np.tile(p0,(Nup,1))+m2*alpha*norm
+          p3=np.tile(p1,(Nup,1))+m2*alpha*norm
           conepositions=room.position(p3,h)
           start,conepositions=Mesh.stopchecklist(conepositions,endposition,h)
           if start==1:
             #FIXME try to set them all at once not one by one
             for j in range(0,len(conepositions[0])):
-              Mesh[conepositions[0][j],conepositions[1][j],conepositions[2][j],:,nra*Nre+nre]=dist*calcvec
+              # Jump the cone point to the centre of the element
+              coords=room.coordinate(h,conepositions[0][j],conepositions[1][j],conepositions[2][j])
+              r1=dist+(np.dot((coords-p3[j]),(coords-p3[j]))+(np.dot((coords-p3[j]),norm[j])**2)/(np.dot(norm[j],norm[j])))**0.5
+              alpha=(np.dot((r1*direc+p0-p3),norm[j]))
+              r2=r1/(np.cos(np.arctan(alpha/r1)))
+              print(r2)
+              Mesh[conepositions[0][j],conepositions[1][j],conepositions[2][j],:,nra*Nre+nre]=r2*calcvec
           else:
             # There are no cone positions
             pass
         # Compute the next point along the ray
-        p0=p0+alpha*direc
+        p1=p1+alpha*direc
         dist=dist+deldist
-        i2,j2,k2=room.position(p0,h)
+        i2,j2,k2=room.position(p1,h)
         #FIXME check if the position is the same as the previous
-        if lf.length(np.array([p0,s.points[-2][0:3]]))<h:
+        #FIXME don't stop at the end as the cone needs to be filled.
+        if lf.length(np.array([p1,s.points[-2][0:3]]))<h:
           break
     return Mesh,dist,calcvec
   def raytest(s,room,err):
