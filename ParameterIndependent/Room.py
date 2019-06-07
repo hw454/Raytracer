@@ -133,7 +133,7 @@ class room:
       coord=s.bounds[0]+h*np.array([i,j,k])+h*np.array([0.5,0.5,0.5])
       return coord
     elif n>1:
-      coord=np.array((np.hstack([i,j,k])+np.tile(s.bounds[0]/h+np.array([0.5,0.5,0.5]),(n,1)))*h,dtype=int)
+      coord=np.array((h*np.c_[i,j,k]+np.tile(s.bounds[0]+h*np.array([0.5,0.5,0.5]),(n,1))),dtype=float)
       return coord
     else:
       raise ValueError("Neither point nor array of points")
