@@ -104,13 +104,22 @@ class Ray:
      Nc=int(1+(conedist/h))
      return Nc
   def normal_mat(s,Nra,d,dist,h):
+     d=d/np.linalg.norm(d)
      deltheta=(-2+np.sqrt(2.0*(Nra)))*(np.pi/(Nra-2)) # Calculate angle spacing
      Nup=int(4*(2*np.sqrt(2)*dist*ma.sin(deltheta*0.5)/h+1))
      anglevec=np.linspace(0.0,2*np.pi,num=int(Nup), endpoint=False)
-     Norm=np.zeros((Nup+1,3),dtype=np.float)
+     Norm=np.zeros((Nup,3),dtype=np.float)
      check=0
+     if abs(d[2]-0)>0:
+       ptil=np.array([1,1,-d[0]/d[2]])
+       p1=(1/np.linalg.norm(ptil))*ptil # np.tile((1/np.linalg.norm(ptil))*ptil,(Nup,1))
+       p2=np.cross(p1,d)#np.tile(np.cross(p1,d),(Nup,1))
+     else:
+       p1=np.array([0,0,1])#np.tile(np.array([0,0,1]),(Nup,1))
+       p2=np.cross(p1,d)#np.tile(np.cross(p1,d),(Nup,1))
+     #Norm=np.multiply(np.cos(anglevec),p1)+np.multiply(np.sin(anglevec),p2)
      for j in range(0,Nup):
-       Norm[j]=np.cross(d,np.array([np.cos(anglevec[j]),np.sin(anglevec[j]),0]))
+       Norm[j]=np.cos(anglevec[j])*p1+np.sin(anglevec[j])*p2
      return Norm
   def reflect_calc(s,room):
     ''' finds the reflection of the ray inside a room'''
@@ -220,20 +229,31 @@ class Ray:
         # Recalculate distance
         Mesh[i1,j1,k1,:,nra*Nre+nre]=np.sqrt(np.dot((p0-p2),(p0-p2)))*calcvec
         Nc=s.number_cone_steps(deldist,dist,Nra)
+        # Step along all the normals until the edge of the cone (each normal) is reached.
         for m2 in range(Nc):
           p3=np.tile(p1,(Nup,1))+m2*alpha*norm
           conepositions=room.position(p3,h)
-          start,conepositions=Mesh.stopchecklist(conepositions,endposition,h)
+          start,conepositions,p3,norm2=Mesh.stopchecklist(conepositions,endposition,h,p3,norm)
           if start==1:
+            coords=room.coordinate(h,conepositions[0],conepositions[1],conepositions[2])
+            p3=np.transpose(p3)
+            norm2=np.transpose(norm2)
+            elementdiff=coords-p3
+            dist2 =lf.coordlistdistance(elementdiff) # The distance between the centre of the element and the point the cone entered the element
+            normlengths=lf.coordlistdistance(norm2)   # Each norm should have length one but compute them just in case
+            normdot=lf.coordlistdot(elementdiff,norm2)# Compute the dot between the vector between the two element points and corresponding normal.
+            r1=dist+np.sqrt((np.square(dist2)+np.divide(np.square(normdot),normlengths)))
+            n=len(conepositions[0])
+            Mult=np.zeros((n,3),dtype=np.float)
+            # Mult=[x*direc for x in r1]
+            for j in range(0,n):
+              Mult[j]=r1[j]*direc
+            alpha2=lf.coordlistdot((Mult+np.tile(p0,(n,1))-p3),norm2)
+            r2=np.divide(r1,(np.cos(np.arctan(np.divide(alpha2,r1)))))
             #FIXME try to set them all at once not one by one
-            for j in range(0,len(conepositions[0])):
-              # Jump the cone point to the centre of the element
-              coords=room.coordinate(h,conepositions[0][j],conepositions[1][j],conepositions[2][j])
-              r1=dist+(np.dot((coords-p3[j]),(coords-p3[j]))+(np.dot((coords-p3[j]),norm[j])**2)/(np.dot(norm[j],norm[j])))**0.5
-              alpha=(np.dot((r1*direc+p0-p3),norm[j]))
-              r2=r1/(np.cos(np.arctan(alpha/r1)))
-              print(r2)
-              Mesh[conepositions[0][j],conepositions[1][j],conepositions[2][j],:,nra*Nre+nre]=r2*calcvec
+            # Mesh[conepositions[0],conepositions[1],conepositions[2],:,nra*Nre+nre]=[x*calcvec for x in r2]
+            for j in range(0,n):
+              Mesh[conepositions[0][j],conepositions[1][j],conepositions[2][j],:,nra*Nre+nre]=r2[j]*calcvec
           else:
             # There are no cone positions
             pass
