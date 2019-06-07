@@ -174,20 +174,28 @@ class DS:
     if i>s.nx or j>s.ny or k>s.nz or i<0 or j<0 or k<0:
       return 0
     else: return 1
-  def stopchecklist(s,ps,p1,h):
+  def stopchecklist(s,ps,p1,h,p3,n):
     start=0
     newps=np.array([])
+    newp3=np.array([])
+    newn =np.array([])
+    j=0
     for k in ps:
       check=s.stopcheck(k[0],k[1],k[2],p1,h)
       if check==1:
         if start==0:
           newps=np.array([[k[0]],[k[1]],[k[2]]])
+          newp3=np.array([[p3[j][0]],[p3[j][1]],[p3[j][2]]])
+          newn =np.array([[n[j][0]], [n[j][1]], [n[j][2]]])
           start=1
         else:
           newps=np.hstack((newps,np.array([[k[0]],[k[1]],[k[2]]])))
+          newp3=np.hstack((newp3,np.array([[p3[j][0]],[p3[j][1]],[p3[j][2]]])))
+          newn =np.hstack((newn, np.array([[n[j][0]], [n[j][1]], [ n[j][2]]])))
       else:
         pass
-    return start, newps
+      j+=1
+    return start, newps, newp3, newn
 
 
 
