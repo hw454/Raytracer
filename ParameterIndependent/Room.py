@@ -75,7 +75,13 @@ class room:
     s.points+=obst0
     return
   def __set_insidepoint__(s,p):
-    # FIXME - Is this function needed??
+    ''' Add the point p to the list of inside points for the room.
+    s.insidepoints=[[x0,y0,z0],[x1,y1,z1],...,[xn,yn,zn]],
+    s.insidepoints[j]=[xj,yj,zj] '''
+    if len(s.inside_points)<1:                       # The array is initially empty
+      s.inside_points=np.array([p])                  # Set the array to contain it's first point
+    else:                                            # The array is not empty
+      s.inside_points=np.vstack((s.inside_points,p)) # Add the point underneath the previous array.
     return
   def __str__(s):
     return 'Rooom('+str(list(s.obst))+')'
@@ -173,12 +179,6 @@ class room:
       raylist[it]=raystart.points[0:-2]
     s.time=t.time()-start_time
     return raylist
-  def Plotroom(s,origin,width):
-    ''' Plots all the edges in the room '''
-    mp.plot((origin),marker='x',c='r')
-    for obst0 in s.obst:
-      hp.Plotedge(obst0,'g',width)
-    return
   def roomconstruct(s,obsts):
     ''' Takes in a set of wall segments and constructs a room object
     containing them all'''
@@ -201,9 +201,9 @@ class room:
       s.objectcorners=np.vstack((s.objectcorners,np.array([(n,j-1)])))
     return
   def roommesh(s,spacing):
-    Nx=int((s.xbounds[1]-s.xbounds[0])/spacing)
-    Ny=int((s.ybounds[1]-s.ybounds[0])/spacing)
-    Nz=int((s.zbounds[1]-s.zbounds[0])/spacing)
+    Nx=(s.xbounds[1]-s.xbounds[0])//spacing
+    Ny=(s.ybounds[1]-s.ybounds[0])//spacing
+    Nz=(s.zbounds[1]-s.zbounds[0])//spacing
     return rmes.roommesh(s.inside_points,s.objectcorners,(s.xbounds()),(s.ybounds()),spacing)
   # def room_collision_point_with_end(s,line,space):
     # ''' The closest intersection out of the possible intersections with
