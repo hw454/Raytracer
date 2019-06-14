@@ -86,7 +86,63 @@ def DeclareParameters():
   np.save('Parameters/Origin.npy',Tx)
   print('Origin of raytracer ', Tx)
   print('------------------------------------------------')
-  print('All parameters saved')
+  print('Geometrical parameters saved')
+  print('------------------------------------------------')
+  return 1
+
+def ObstacleCoefficients():
+  '''Retrieve the information saved in Declare parameters. Then define the obstacle coefficients. '''
+  print('Saving the material parameters in ParameterInput.py')
+  Oblist        =np.load('Parameters/Obstacles.npy')
+  OuterBoundary =np.load('Parameters/OuterBoundary.npy')
+  Oblist        =np.concatenate((Oblist,OuterBoundary),axis=0)
+  Nob=len(Oblist)
+  RTPar=np.load('Parameters/Raytracing.npy')
+  Nra=RTPar[0]
+  Nre=RTPar[1]
+  h=RTPar[2]
+  Na=int(Nob*Nre+1)
+  Nb=int((Nre)*(Nra)+1)                        # Number of columns on each Mesh element
+  Nob=len(Oblist)                              # The Number of obstacle.
+  mur=np.full((Nob,1), complex(1.0,0))         # Currently mur is
+                                               # the same for every obstacle.
+                                               # Array created to get functions correct.
+  epsr=np.full((Nob,1),complex(3.6305,7.41E-2))# Currently epsr is the
+                                               # same for every obstacle
+  sigma=np.full((Nob,1),1.0E-2)                # For this test sigma is the
+                                               # same for every obstacle
+
+  # PHYSICAL CONSTANTS
+  mu0=4*np.pi*1E-6
+  c=2.99792458E+8
+  eps0=1/(mu0*c**2)#8.854187817E-12
+  Z0=(mu0/eps0)**0.5 #120*np.pi
+  Freespace=np.array([mu0,eps0,Z0,c])
+
+  # CALCULATE PARAMETERS
+  frequency=2*np.pi*2.43E+9                       # 2.43 GHz
+  gamma=np.sqrt(np.divide(complex(0,frequency*mu0)*mur,np.multiply(sigma,eps0*frequency*complex(0,1)*epsr)))
+  Znob=Z0*np.divide((1+gamma),(1-gamma)   )   # Characteristic impedance of the obstacles
+  #Znob=np.transpose(np.tile(Znob,(Nb,1)))    # Tile the obstacle coefficient number to be the same size as a mesh array.
+  refindex=np.sqrt(np.multiply(mur,epsr))     # Refractive index of the obstacles
+
+  np.save('Parameters/FreeSpace.npy',Freespace)
+  np.save('Parameters/frequency.npy',frequency)
+  print('Permittivity of free space ', mu0)
+  print('Permeability of free space ', eps0)
+  print('Characteristic Impedence ', Z0)
+  print('Speed of light ', c)
+  print('Number of obstacles',Nob)
+  print('Relative Impedance of the obstacles ', Znob)
+  print('Refractive index of the obstacles ', refindex)
+  Znob=np.tile(Znob,Nre)                      # The number of rows is Nob*Nre+1. Repeat Nob
+  Znob=np.insert(Znob,0,complex(0.0,0.0))     # Use a zero for placement in the LOS row
+  refindex=np.tile(refindex,Nre)              # The number of rows is Nob*Nre+1. Repeat refindex
+  refindex=np.insert(refindex,0,complex(0,0)) # Use a zero for placement in the LOS row
+  np.save('Parameters/Znob.npy',Znob)
+  np.save('Parameters/refindex.npy',refindex)
+  print('------------------------------------------------')
+  print('Material parameters saved')
   print('------------------------------------------------')
   return 1
 
@@ -94,6 +150,9 @@ if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   out=DeclareParameters()
+  out=ObstacleCoefficients()
+
+  exit()
 
 
 
