@@ -96,10 +96,26 @@ def MeshProgram():
   # The history of the ray up to that point is stored in a vector at that reference point.
   return Mesh
 
+def RefCoefComputation(Mesh):
+  out=PI.ObstacleCoefficients()
+  FreeSpace=np.load('Parameters/FreeSpace.npy')
+  freq         =np.load('Parameters/frequency.npy')
+  Znob         =np.load('Parameters/Znob.npy')
+  refindex     =np.load('Parameters/refindex.npy')
+  print('-------------------------------')
+  print('Computing the reflection coeficients')
+  print('-------------------------------')
+  RefCoefPerp, RefCoefPar=DSM.ref_coef(Mesh,FreeSpace,freq,Znob,refindex)
+  print('-------------------------------')
+  print('Reflection coeficients found')
+  print('-------------------------------')
+  return RefCoef
+
 if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   out=RayTracer()
-  out=MeshProgram()
+  Mesh=MeshProgram()
+  RefCoef=RefCoefComputation(Mesh)
   exit()
 
