@@ -116,6 +116,6 @@ if __name__=='__main__':
   print(sys.version)
   out=RayTracer()
   Mesh=MeshProgram()
-  RefCoef=RefCoefComputation(Mesh)
+  RefCoefperp, Refcoefpar=RefCoefComputation(Mesh)
   exit()
 
