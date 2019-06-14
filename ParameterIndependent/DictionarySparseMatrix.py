@@ -8,7 +8,9 @@ import math
 import sys
 import time as t
 import matplotlib.pyplot as mp
+from six.moves import cPickle as pkl
 
+epsilon=sys.float_info.epsilon
 # dk is dictionary key, smk is sparse matrix key, SM is a sparse matrix
 
 class DS:
@@ -146,9 +148,121 @@ class DS:
         s.d[dk[0][j],dk[1][j],dk[2][j]]=value
       return
   def __str__(s):
-    return str(s.d)
+    keys=s.d.keys()
+    out=str()
+    for k in keys:
+      new= str(k) + str(s.d[k])
+      out= (""" {0}
+               {1}""").format(out,new)
+    return out
   def __repr__(s):
-    return str(s.d) # TODO
+    return str(s.d) # TODO #FIXME
+  def __add__(s, DSM):
+    out=DS(s.nx,s.ny,s.nz,s.shape[0],s.shape[1])
+    for x,y,z in product(range(0,s.nx),range(0,s.ny),range(0,s.nz)):
+      out[x,y,z]=s[x,y,z]+DSM[x,y,z]
+    return out
+  def __sub__(s, DSM):
+    out=DS(s.nx,s.ny,s.nz,s.shape[0],s.shape[1])
+    for x,y,z in product(range(0,s.nx),range(0,s.ny),range(0,s.nz)):
+      out[x,y,z]=s[x,y,z]-DSM[x,y,z]
+    return out
+  def __mul__(s, DSM):
+    t0=t.time()
+    out=DS(s.nx,s.ny,s.nz,s.shape[0],s.shape[1])
+    for x,y,z in product(range(0,s.nx),range(0,s.ny),range(0,s.nz)):
+      out[x,y,z]=np.multiply(s[x,y,z],DSM[x,y,z])
+    t1=t.time()-t0
+    print('time multiplying DSMs',t1)
+    return out
+  def __truediv__(s, DSM):
+    t0=t.time()
+    out=DS(s.nx,s.ny,s.nz,s.shape[0],s.shape[1])
+    for x,y,z in product(range(0,s.nx),range(0,s.ny),range(0,s.nz)):
+      ind=DSM[x,y,z].nonzero()
+      out[x,y,z][ind]=np.true_divide(s[x,y,z][ind],DSM[x,y,z][ind])
+    t1=t.time()-t0
+    print('time dividing DSMs',t1)
+    return out
+  def asin(s):
+    '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+    t0=t.time()
+    na,nb=s.shape
+    asinDSM=DS(s.nx,s.ny,s.nz,na,nb)
+    indices=np.transpose(s.nonzero())
+    asinDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.asin(DSM[indices[0],indices[1],indices[2],indices[3],indices[4]])
+    t1=t.time()-t0
+    print('time finding arcsin(theta)',t1)
+    return asinDSM
+  def cos(s):
+    '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+    t0=t.time()
+    na,nb=s.shape
+    CosDSM=DS(s.nx,s.ny,s.nz,na,nb)
+    indices=np.transpose(s.nonzero())
+    CosDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.cos(s[indices[0],indices[1],indices[2],indices[3],indices[4]])
+    t1=t.time()-t0
+    print('time finding cos(theta)',t1)
+    return CosDSM
+  def sin(s):
+    '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+    na,nb=s.shape
+    SinDSM=DS(s.nx,s.ny,s.nz,na,nb)
+    indices=np.transpose(s.nonzero())
+    SinDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.sin(s[indices[0],indices[1],indices[2],indices[3],indices[4]])
+    return SinDSM
+  def sparse_angles(s):
+    '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+    print('start angles')
+    t0=t.time()
+    na,nb=s.shape
+    AngDSM=DS(s.nx,s.ny,s.nz,na,nb)
+    t1=t.time()
+    print('before transpose',t1-t0)
+    indices=s.nonzero().T
+    t2=t.time()
+    print('before angles',t2-t0)
+    AngDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.angle(s[indices[0],indices[1],indices[2],indices[3],indices[4]])
+    t3=t.time()-t0
+    print('time finding angles',t3)
+    return AngDSM
+  def vec_multiply(s,vec):
+    '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+    na,nb=s.shape
+    outDSM=DS(s.nx,s.ny,s.nz,na,nb)
+    indices=s.nonzero()
+    Ni=len(indices)
+    for l in range(0,Ni):
+      out=np.multiply(vec[indices[l][3]],s[indices[l][0],indices[l][1],indices[l][2],indices[l][3],indices[l][4]])
+      outDSM[indices[l][0],indices[l][1],indices[l][2],indices[l][3],indices[l][4]]=out
+    return outDSM
+  def dict_DSM_divideby_vec(s,vec):
+    '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+    na,nb=s.shape
+    outDSM=DS(s.nx,s.ny,s.nz,na,nb)
+    indices=np.transpose(vec.nonzero())
+    for x,y,z,a,b in product(range(0,s.nx),range(0,s.ny),range(0,s.nz),indices,range(0,nb)):
+      a=a[0]
+      if abs(s[x,y,z,a,b])<epsilon:
+        pass
+      else:
+        out=np.divide(s[x,y,z,a,b],vec[a])
+        outDSM[x,y,z,a,b]=out
+    return outDSM
+  def dict_vec_divideby_DSM(s,vec):
+    '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+    na,nb=s.shape
+    outDSM=DS(s.nx,s.ny,s.nz,na,nb)
+    indices=s.nonzero()
+    Ni=len(indices[0])
+    for l in range(0,Ni):
+      out=np.divide(vec[indices[l][3]],s[indices[l][0],indices[l][1],indices[l][2],indices[l][3],indices[l][4]])
+      outDSM[indices[l][0],indices[l][1],indices[l][2],indices[l][3],indices[l][4]]=out
+    return outDSM
+  def save_dict(s, filename_):
+    with open(filename_, 'wb') as f:
+        pkl.dump(s.d, f)
+    return
   def nonzero(s):
     for x,y,z in product(range(0,s.nx),range(0,s.ny),range(0,s.nz)):
       indicesM=s.d[x,y,z].nonzero()
@@ -197,76 +311,47 @@ class DS:
       j+=1
     return start, newps, newp3, newn
 
+def load_dict(filename_):
+    with open(filename_, 'rb') as f:
+        ret_di = pkl.load(f)
+    return ret_di
 
+def ref_coef(Mesh,FreeSpace,freq,Znob,refindex):
+  print('-------------------------------')
+  print('Retrieving the angles of reflection')
+  print('-------------------------------')
+  AngDSM=Mesh.sparse_angles()                       # Get the angles of incidence from the mesh.
+  ind=AngDSM.nonzero()                              # Return the indices for the non-zero terms in the mesh.
+  ind=np.transpose(ind)
+  SIN=DS(Mesh.nx,Mesh.ny,Mesh.nz,Mesh.shape[0],Mesh.shape[1])   # Initialise a DSM which will be sin(theta)
+  cthi=DS(Mesh.nx,Mesh.ny,Mesh.nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta)
+  ctht=DS(Mesh.nx,Mesh.ny,Mesh.nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta_t)
+  print('-------------------------------')
+  print('Computing cos(theta_i) on all reflection terms')
+  print('-------------------------------')
+  cthi=AngDSM.cos()                                   # Compute cos(theta_i)
+  print('-------------------------------')
+  print('Computing cos(theta_t) on all reflection terms')
+  print('-------------------------------')
+  SIN[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.sin(AngDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]) # Compute sin(theta)
+  Div=SIN.dict_DSM_divideby_vec(refindex)             # Divide each column in DSM with refindex elementwise. Set any 0 term to 0.
+  ctht[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.cos(np.arcsin(Div[ind[0],ind[1],ind[2],ind[3],ind[4]]))
+  print('-------------------------------')
+  print('Multiplying by the impedances')
+  print('-------------------------------')
+  S1=(cthi).vec_multiply(Znob)                # Compute S1=Znob*cos(theta_i)
+  S2=Z0*ctht                                  # Compute S2=Z0*cos(theta_t)
+  S3=Z0*cthi                                  # Compute S3=Z0*cthi
+  S4=(ctht).vec_multiply(Znob)                # Compute S4=Znob*cos(theta_t)
+  print('-------------------------------')
+  print('Computing the reflection coefficients.')
+  print('-------------------------------')
+  Sper=(S1-S2)/(S1+S2)                        # Compute the Reflection coeficient perpendicular
+                                              # to the polarisiation S=(S1-S2)/(S1+S2)  S1=(cthi).vec_multiply(Znob)                # Compute S1=Znob*cos(theta_i)
 
-def sparse_angles(M):
-  '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
-  AngM=SM(M.shape,dtype=float)
-  AngM2=SM(M.shape,dtype=float)
-  indices=M.nonzero()
-  AngM2[indices]=np.angle(M.todense()[indices])
-  t1=t.time()
-  AngM2[indices]=np.angle(M.todense()[indices])
-  t2=t.time()
-  AngM[indices]=np.angle(M[indices].todense())
-  t3=t.time()
-  print('first time', t2-t1)
-  print('second time',t3-t2)
-  print('Difference in times', t2-t1-t3+t2)
-  return AngM
-
-def dict_sparse_angles(DSM):
-  '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
-  nx,ny,nz=DSM.nx, DSM.ny, DSM.nz
-  na,nb=DSM[0,0,0].shape
-  AngDSM=DS(nx,ny,nz,na,nb)
-  indices=np.transpose(DSM.nonzero())
-  AngDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.angle(DSM[indices[0],indices[1],indices[2],indices[3],indices[4]])
-  return AngDSM
-
-def dict_cos(DSM):
-  '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
-  nx,ny,nz=DSM.nx, DSM.ny, DSM.nz
-  na,nb=DSM[0,0,0].shape
-  CosDSM=DS(nx,ny,nz,na,nb)
-  indices=np.transpose(DSM.nonzero())
-  CosDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.cos(DSM[indices[0],indices[1],indices[2],indices[3],indices[4]])
-  return CosDSM
-
-def dict_sin(DSM):
-  '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
-  nx,ny,nz=DSM.nx, DSM.ny, DSM.nz
-  na,nb=DSM[0,0,0].shape
-  SinDSM=DS(nx,ny,nz,na,nb)
-  indices=np.transpose(DSM.nonzero())
-  SinDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.sin(DSM[indices[0],indices[1],indices[2],indices[3],indices[4]])
-  return SinDSM
-
-def dict_asin(DSM):
-  '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
-  nx,ny,nz=DSM.nx, DSM.ny, DSM.nz
-  na,nb=DSM[0,0,0].shape
-  asinDSM=DS(nx,ny,nz,na,nb)
-  indices=np.transpose(DSM.nonzero())
-  asinDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.asin(DSM[indices[0],indices[1],indices[2],indices[3],indices[4]])
-  return asinDSM
-
-def dict_vec_multiply(vec,DSM):
-  '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
-  nx,ny,nz=DSM.nx, DSM.ny, DSM.nz
-  na,nb=DSM[0,0,0].shape
-  outDSM=DS(nx,ny,nz,na,nb)
-  indices=np.transpose(DSM.nonzero())
-  for i in indices[0]:
-    for j in indices[1]:
-      for k in indices[2]:
-        out=np.multiply(vec[indices[3],indices[4]],DSM[i,j,k,indices[3],indices[4]])
-        print(i,j,k)
-        outDSM[i,j,k,indices[3],indices[4]]=np.multiply(vec[indices[3],indices[4]],DSM[i,j,k,indices[3],indices[4]])
-  return outDSM
-
-def ref_coef(DSM,roomcoefs):
-  return 0
+  Spar=(S3-S4)/(S3+S4)                        # Compute the Reflection coeficient parallel
+                                              # to the polarisiation S=(S3-S4)/(S3+S4)
+  return Sper, Spar
 
 def test_00():
   ds=DS()
@@ -434,35 +519,48 @@ def test_14():
   return 1
 
 def test_15():
-  ds=test_03(8,6,1,11,6)
-  Nb=ds.shape[1]
-  # Number of obstacles and the corresponding coefficients
-  Nre=1
-  Nob=int((ds.shape[0]-1)/(Nre+1))
-  mur=np.full((Nob,1), complex(1.0,0))
-  epsr=np.full((Nob,1),complex(3.6305,7.41E-2))
-  sigma=np.full((Nob,1),1.0E-2)
+  ds=test_03(8,6,1,11,6)                       # test_03() initialises a
+                                               # DSM with values on the
+                                               # diagonal of each mesh element
+  Nb=ds.shape[1]                               # Number of columns on each Mesh element
+  Nre=1                                        # Number of reflections
+  Nob=int((ds.shape[0]-1)/(Nre+1))             # The Number of obstacle.
+  mur=np.full((Nob,1), complex(1.0,0))         # For this test mur is
+                                               # the same for every obstacle.
+                                               # Array created to get functions correct.
+  epsr=np.full((Nob,1),complex(3.6305,7.41E-2))# For this test epsr is the
+                                               # same for every obstacle
+  sigma=np.full((Nob,1),1.0E-2)                # For this test sigma is the
+                                               # same for every obstacle
 
   # PHYSICAL CONSTANTS
   mu0=4*np.pi*1E-6
   c=2.99792458E+8
   eps0=1/(mu0*c**2)#8.854187817E-12
-  Z1=(mu0/eps0)**0.5 #120*np.pi
+  Z0=(mu0/eps0)**0.5 #120*np.pi
 
   # CALCULATE PARAMETERS
   frequency=2*np.pi*2.43E+9                       # 2.43 GHz
   gamma=np.sqrt(np.divide(complex(0,frequency*mu0)*mur,np.multiply(sigma,eps0*frequency*complex(0,1)*epsr)))
-  Znob=Z1*np.divide((1+gamma),(1-gamma)   )    # Characteristic impedance of the obstacles
-  Znob=np.tile(Znob,Nre+1)
-  Znob=np.insert(Znob,0,complex(0.0,0.0))
-  Znob=np.transpose(np.tile(Znob,(Nb,1)))
+  Znob=Z0*np.divide((1+gamma),(1-gamma)   )   # Characteristic impedance of the obstacles
+  Znob=np.tile(Znob,Nre)                      # The number of rows is Nob*Nre+1. Repeat Nob
+  Znob=np.insert(Znob,0,complex(0.0,0.0))     # Use a zero for placement in the LOS row
+  #Znob=np.transpose(np.tile(Znob,(Nb,1)))    # Tile the obstacle coefficient number to be the same size as a mesh array.
   refindex=np.sqrt(np.multiply(mur,epsr))     # Refractive index of the obstacles
+  refindex=np.tile(refindex,Nre)
+  refindex=np.insert(refindex,0,complex(0,0))
 
-  AngDSM=dict_sparse_angles(ds)
-  indices=AngDSM.nonzero()
-  S=dict_vec_multiply(Znob,dict_cos(AngDSM))#-Z1*np.cos(np.asin(np.divide(np.sin(AngDSM[indices]),refindex[indices])))
-  # np.multiply(Znob[indices],np.cos(AngDSM[indices])
-  # Divide
+  AngDSM=ds.sparse_angles()
+  ind=AngDSM.nonzero()
+  ind=np.transpose(ind)
+  SIN=DS(ds.nx,ds.ny,ds.nz,ds.shape[0],ds.shape[1])
+  S1=DS(ds.nx,ds.ny,ds.nz,ds.shape[0],ds.shape[1])
+  S2=DS(ds.nx,ds.ny,ds.nz,ds.shape[0],ds.shape[1])
+  S1=(AngDSM.cos()).vec_multiply(Znob)
+  SIN[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.sin(AngDSM[ind[0],ind[1],ind[2],ind[3],ind[4]])
+  Div=SIN.dict_DSM_divideby_vec(refindex)
+  S2[ind[0],ind[1],ind[2],ind[3],ind[4]]=Z0*np.cos(np.arcsin(Div[ind[0],ind[1],ind[2],ind[3],ind[4]]))
+  S=(S1-S2)/(S1+S2)
   # Znob[nonzero]*Cos(AngDSM[nonzero])+Z1cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
   # Z1*Cos(AngDSM[nonzero])-Znob[nonzero]cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
   # Divide
