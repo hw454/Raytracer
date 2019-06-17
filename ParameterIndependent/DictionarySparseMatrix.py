@@ -219,7 +219,9 @@ class DS:
     AngDSM=DS(s.nx,s.ny,s.nz,na,nb)
     t1=t.time()
     print('before transpose',t1-t0)
-    indices=s.nonzero().T
+    indices=s.nonzero()
+    print('indices shape', indices.shape)
+    indices=indices.T
     t2=t.time()
     print('before angles',t2-t0)
     AngDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.angle(s[indices[0],indices[1],indices[2],indices[3],indices[4]])
@@ -264,6 +266,25 @@ class DS:
         pkl.dump(s.d, f)
     return
   def nonzero(s):
+    # FIXME this is too slow and needs parallelising / speeding up.
+    for x,y,z in product(range(0,s.nx),range(0,s.ny),range(0,s.nz)):
+      indicesM=s.d[x,y,z].nonzero()
+      NI=len(indicesM[0])
+      for j in range(0,NI):
+        if x==0 and y==0 and z==0 and j==0:
+          indices=np.array([0,0,0,indicesM[0][j],indicesM[1][j]])
+        else:
+          indices=np.vstack((indices,[x,y,z,indicesM[0][j],indicesM[1][j]]))
+      #if x==0 and y==0 and z==0:
+      #  indices=np.array([0,0,0,indicesM[0][0],indicesM[1][0]])
+      #  indicesSec=np.c_[np.tile(np.array([x,y,z]),(1,NI-1)),IndicesM[1:-1]]
+      #  indices=np.vstack((indices,indicesSec))
+      #else:
+      #  indicesSec=np.c_[np.tile(np.array([x,y,z]),(1,NI)),IndicesM[0:-1]]
+      #  indices=np.vstack((indices,indicesSec))
+    return indices
+  def parnonzero(s):
+    # FIXME this is too slow and needs parallelising / speeding up.
     for x,y,z in product(range(0,s.nx),range(0,s.ny),range(0,s.nz)):
       indicesM=s.d[x,y,z].nonzero()
       NI=len(indicesM[0])
@@ -567,8 +588,27 @@ def test_15():
   # Z1*Cos(AngDSM[nonzero])+Znob[nonzero]cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
   return
 
+def test_16():
+  Nob=24
+  Nre=3
+  Nra=20
+  ktries=20
+  narray=np.zeros((ktries,1),dtype=np.float)
+  n=2
+  timevec=np.zeros((ktries,1),dtype=np.float)
+  for k in range(0,ktries):
+    narray[k]=n
+    DS=test_03(n,n,n,int(Nob*Nre+1),int((Nre)*(Nra)+1))
+    t0=t.time()
+    indices=DS.nonzero()
+    timevec[k]=t.time()-t0
+    print(timevec[k])
+    n=n*2
+  mp.plot(narray,timevec)
+  mp.show
+  return timevec
 
 if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
-  test_15()
+  test_16()
