@@ -20,7 +20,8 @@ epsilon=sys.float_info.epsilon
 
 class Ray:
   ''' A ray is a representation of the the trajectory of a reflecting line
-  and it's reflections. Ray.points is an array of co-ordinates representing
+  and its reflections.
+  Ray.points is an array of co-ordinates representing
   the collision points with the last term being the direction the ray ended in.
   And Ray.reflections is an array containing tuples of the angles of incidence
   and the number referring to the position of the obstacle in the obstacle list
@@ -242,7 +243,7 @@ class Ray:
                                                            # be for the centre point
         Nc=s.number_cone_steps(deldist,dist,Nra)           # No. of cone steps required for this ray step.
         for m2 in range(Nnor):
-          p3=np.tile(p1,(Nnor,1))+m2*alpha*norm              # Step along all the normals from the ray point p1.
+          p3=np.tile(p1,(Nnor,1))+m2*alpha*norm             # Step along all the normals from the ray point p1.
           conepositions=room.position(p3,h)                # Find the indices corresponding to the cone points.
           start,conepositions,p3,norm2=Mesh.stopchecklist(conepositions,endposition,h,p3,norm) # Check if the point is valid.
           if start==1:
