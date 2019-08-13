@@ -9,24 +9,56 @@ import sys
 import time as t
 import matplotlib.pyplot as mp
 from six.moves import cPickle as pkl
+from multiprocessing import Pool
+#import pp
 
 epsilon=sys.float_info.epsilon
 # dk is dictionary key, smk is sparse matrix key, SM is a sparse matrix
 
+## The DS class is a dictionary of sparse matrices.
+# The keys for the dictionary are (i,j,k) such that i is in [0,Nx],
+# j is in [0, Ny], and k is in [0,Nz].
+
 class DS:
-  def __init__(s,nx=1,ny=1,nz=1,na=1,nb=1):
-    '''nx,ny,nz are the maximums for the key for the dictionary and na
-    and nb are the dimensions of the sparse matrix associated with each key.'''
+  ''' The DS class is a dictionary of sparse matrices.
+  The keys for the dictionary are (i,j,k) such that i is in [0,Nx],
+  j is in [0, Ny], and k is in [0,Nz]. '''
+  ## The constructor.
+  # \par
+  # DSM is a dictionary of sparse matrices with keys (x,y,z) such that x is in [0,Nx],
+  # y is in [0, Ny], and z is in [0,Nz].
+  # @param Nx number of terms in the first index
+  # @param Ny number of terms in the second index
+  # @param Nz number of terms in the third index
+  # \par
+  # SM=DS[x,y,z] is a sparse matrix with dictionary key [x,y,z]
+  # @param na number of rows in each sparse matrix
+  # @param nb number of columns in each sparse matrix
+  def __init__(s,Nx=1,Ny=1,Nz=1,na=1,nb=1):
     s.shape=(na,nb)
-    Keys=product(range(nx),range(ny),range(nz))
+    Keys=product(range(Nx),range(Ny),range(Nz))
     default_value=SM(s.shape,dtype=np.complex128)
     s.d=dict.fromkeys(Keys,default_value)
-    s.nx=nx
-    s.ny=ny
-    s.nz=nz
+    s.Nx=Nx
+    s.Ny=Ny
+    s.Nz=Nz
     s.time=np.array([t.time()])
+  ## @param i
+  # - If 'i' has length 5, i=[x,y,z,k,j] then this is the position of a
+  # single term out=A[k,j] in a matrix A=DSM[x,y,z], return out.
+  # - 'i' has length 4 then i=[x,y,z,k], this is the position of a
+  # row out=A[k] (array of length nb) of a sparse matrix corresponding
+  # to the dictionary key A=DSM[x,y,z].
+  # - If 'i' has length 3 then i is the position of the whole sparse
+  # matrix out=A for the sparse matrix at location [x,y,z].
+  # .
+  # \par
+  # The 'k' and 'j' indices can be replaced with : to return rows or
+  # columns of the SM A=DSM[x,y,z].
+  # @return the 'i' term of the DSM
   def __getitem__(s,i):
     dk,smk=i[:3],i[3:]
+    # If dk is a number then one position (x,y,z) is being refered to.
     if isinstance(dk[0],(float,int,np.int64, np.complex128 )): n=1
     else:
       n=len(dk)
@@ -39,61 +71,102 @@ class DS:
         return s.d[dk][smk,:]         # return a SM row
       elif len(i)==5:
         dk,smk=i[:3],i[3:]
-        return s.d[dk][smk[0],smk[1]] # return a SM element if smk=[init,int], column if smk=[:,int], row if smk=[int,:], full SM if smk=[:,:]
+        return s.d[dk][smk[0],smk[1]] # If smk=[int,int] return element,
+                                      # If smk=[:,int] return column,
+                                      # If smk=[int,:] return row,
+                                      # If smk=[:,:] return full SM.
       else:
-        # ...
-        raise Exception('Error getting the (%s) part of the sparse matrix. Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
+        # Invalid 'i' the length does not match a possible position.
+        errmsg=str('''Error getting the (%s) part of the sparse matrix.
+        Invalid index (%s). A 3-tuple is required to return a sparse
+        matrix(SM), 4-tuple for the row of a SM or 5-tuple for the
+        element in the SM.''' %(i,i))
+        raise IndexError(errmsg)
         pass
+    # If dk[0] is not a number then multiple (x,y,z) terms are being called.
     else:
+      # If smk is just a value then all rows smk in every dk element is returned.
       if isinstance(smk,(float,int,np.complex128,np.int64)):
-        # If smk is just a value then all rows smk in every corresponding
-        # Key element must be returned
         n2=1
       else:
         n2=len(smk)
+      # Return the SMK rows for the [x,y,z] matrices in dk.
       if n2>2:
         out=s.d[dk[0][0],dk[1][0],dk[2][0]][smk,:]
+      # Return the SM[k,j] term for all [x,y,z] matrices in dk.
       elif n2==2:
         out=s.d[dk[0][0],dk[1][0],dk[2][0]][ smk[0][0],smk[1][0]]
+      # Return the entire SM matrix for all [x,y,z] matrices in dk
       elif n2==0:
         out=s.d[dk[0][0],dk[1][0],dk[2][0]]
+      # If smk is not a number or length 2 then it is invalid and can
+      # not be found in the sparse matrix
       else:
-        raise Exception('Error, not a valid SM dimension')
+        raise IndexError('Error, not a valid SM dimension')
+      ## Iterate through the list of (x,y,z) keys and return the
+      # corresponding element in the SM at that key.
       for j in range(1,len(dk[0])):
         if n2>2:
+          # Different rows
           out=np.vstack((out,s.d[dk[0][j],dk[1][j],dk[2][j]][smk,:]))
         elif n2==2:
           out=np.vstack((out,s.d[dk[0][j],dk[1][j],dk[2][j]][ smk[0][j],smk[1][j]]))
         elif n2==0:
           out=np.vstack((out,s.d[dk[0][j],dk[1][j],dk[2][j]]))
         else:
-          raise Exception('Error, not a valid SM dimension')
+          raise IndexError('Error, not a valid SM dimension')
       return out
+  ## Set a new value to all or part of a DSM.
+  # param i
+  # - If 'i' has length 5, i=[x,y,z,k,j] then this is the position of a
+  # single term out=A[k,j] in a matrix A=DSM[x,y,z], return out.
+  # - 'i' has length 4 then i=[x,y,z,k], this is the position of a
+  # row out=A[k] (array of length nb) of a sparse matrix corresponding
+  # to the dictionary key A=DSM[x,y,z].
+  # - If 'i' has length 3 then i is the position of the whole sparse
+  # matrix out=A for the sparse matrix at location [x,y,z].
+  # .
+  # \par
+  # The 'k' and 'j' indices can be replaced with : to return rows or
+  # columns of the SM A=DSM[x,y,z].
+  # @ param x the new value to be assigned to DSM[i]
+  # @return the 'i' term of the DSM
   def __setitem__(s,i,x):
     dk,smk=i[:3],i[3:]
+    # If dk is a number then one position (x,y,z) is being refered to.
     if isinstance(dk[0],(float,int,np.int64, np.complex128 )): n=1
     else:
         n=len(dk)
     if n==1:
+        # set a SM to an input SM
         if len(i)==3:
-          # set a SM to an input SM
-         if dk not in s.d:
-           s.d[dk]=SM(s.shape,dtype=np.complex128)
-         s.d[dk]=x
-        elif len(i)==4:                 # set a SM row
-          if isinstance(smk[0],(float,int,np.int64, np.complex128)): n2=1
-          else:
-            n2=len(smk[0])
+          # If dk is not already one of the dictionary keys add the new
+          # key to the DSM with an initialise SM.
           if dk not in s.d:
             s.d[dk]=SM(s.shape,dtype=np.complex128)
+          # Assign 'x' to the SM with key dk.
+          s.d[dk]=x
+        # set a SM row or multiple row.
+        elif len(i)==4:
+          # Set one row.
+          if isinstance(smk[0],(float,int,np.int64, np.complex128)): n2=1
+          # Set multiple rows.
+          else:
+            n2=len(smk[0])
+          # If the key isn't in the DSM add it with the initialised SM.
+          if dk not in s.d:
+            s.d[dk]=SM(s.shape,dtype=np.complex128)
+          # Set a row to the value 'x'
           if n2==1:
             s.d[dk][smk[0],:]=x
+          # Set multiple rows to the rows of 'x'.
           else:
             p=0
             for j in smk[0]:
               s.d[dk][smk,:]=x[p]
               p+=1
-        elif len(i)==5:                # set a SM element
+        # set a SM element or column if smk[0]=: (slice) or multiple elements or columns.
+        elif len(i)==5:
           if isinstance(smk[0],(float,int,np.int64, np.complex128,slice)): n2=1
           else:
             n2=len(smk[0])
@@ -106,8 +179,12 @@ class DS:
             for c in range(0,end):
               s.d[dk][smk[0][c],smk[1][c]]=x[c]
         else:
-          # ...
-          raise Exception('Error setting the (%s) part of the sparse matrix to (%s). Invalid index (%s). A 3-tuple is required to return a sparse matrix(SM), 4-tuple for the row of a SM or 5-tuple for the element in the SM.' %(i,x,i))
+          # Invalid 'i' the length does not match a possible position.
+          errmsg=str('''Error setting the (%s) part of the sparse matr
+          ix to (%s). Invalid index (%s). A 3-tuple is required to
+          return a sparse matrix(SM), 4-tuple for the row of a SM or
+          5-tuple for the element in the SM.''' %(i,x,i))
+          raise IndexError(errmsg)
           pass
     else:
       if isinstance(x,(float,int,np.complex128,np.int64)):
@@ -147,6 +224,10 @@ class DS:
           raise Exception('Error, not a valid SM dimension')
         s.d[dk[0][j],dk[1][j],dk[2][j]]=value
       return
+  ## String representation of the DSM s.
+  # constructs a string of the keys with their corresponding values
+  # (sparse matrices with the nonzero positions and values).
+  # @return the string of the DSM s.
   def __str__(s):
     keys=s.d.keys()
     out=str()
@@ -155,95 +236,155 @@ class DS:
       out= (""" {0}
                {1}""").format(out,new)
     return out
-  def __repr__(s):
-    return str(s.d) # TODO #FIXME
-  def __add__(s, DSM):
+  ## Add two DSM's together.
+  # Add sparse matrices from DSM and DSM2 elementwise if they have the
+  # same dictionary key (x,y,z).
+  # Return a new DSM with the same dimensions
+  def __add__(s, DSM2):
     out=DS(s.nx,s.ny,s.nz,s.shape[0],s.shape[1])
     for x,y,z in product(range(0,s.nx),range(0,s.ny),range(0,s.nz)):
       out[x,y,z]=s[x,y,z]+DSM[x,y,z]
     return out
+  ## Subtract DSM2 from DSM
+  # Subtract sparse matrices in DSM2 from DSM elementwise if they have the
+  # same dictionary key (x,y,z).
+  # Return a new DSM with the same dimensions
   def __sub__(s, DSM):
     out=DS(s.nx,s.ny,s.nz,s.shape[0],s.shape[1])
     for x,y,z in product(range(0,s.nx),range(0,s.ny),range(0,s.nz)):
       out[x,y,z]=s[x,y,z]-DSM[x,y,z]
     return out
-  def __mul__(s, DSM):
-    t0=t.time()
+  ## Multiply DSM2 with s
+  # Perform matrix multiplication AB for all sparse matrices A in s
+  # and B in DSM2 with the same key (x,y,z)
+  # @param DSM2 is a DSM with the same dimensions as s.
+  # @return a new DSM with the same dimensions
+  def __mul__(s, DSM2):
     out=DS(s.nx,s.ny,s.nz,s.shape[0],s.shape[1])
-    for x,y,z in product(range(0,s.nx),range(0,s.ny),range(0,s.nz)):
-      out[x,y,z]=np.multiply(s[x,y,z],DSM[x,y,z])
-    t1=t.time()-t0
-    print('time multiplying DSMs',t1)
+    for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
+      out[x,y,z]=np.multiply(s[x,y,z],DSM2[x,y,z])
     return out
-  def __truediv__(s, DSM):
-    t0=t.time()
+  ## Divide elementwise s with DSM2
+  # Perform elementwise division A/B for all sparse matrices A in DSM
+  # and B in DSM2 with the same key (x,y,z).
+  # @param DSM2 is a DSM with the same dimensions as s.
+  # @return a new DSM with the same dimensions
+  def __truediv__(s, DSM2):
     out=DS(s.nx,s.ny,s.nz,s.shape[0],s.shape[1])
-    for x,y,z in product(range(0,s.nx),range(0,s.ny),range(0,s.nz)):
-      ind=DSM[x,y,z].nonzero()
-      out[x,y,z][ind]=np.true_divide(s[x,y,z][ind],DSM[x,y,z][ind])
-    t1=t.time()-t0
-    print('time dividing DSMs',t1)
+    for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
+      #ind=DSM[x,y,z].nonzero()
+      out=[x,y,z]=np.true_divide(s[x,y,z],DSM2[x,y,z])
+      #out[x,y,z][ind]=np.true_divide(s[x,y,z][ind],DSM[x,y,z][ind])
     return out
+  ## Finds arcsin(theta) for all terms theta \!= 0 in DSM.
+  # @return a DSM with the same dimensions with arcsin(theta) in the
+  # same position as the corresponding theta terms.
   def asin(s):
-    '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+    """ Finds arcsin(s) for all terms theta \!= 0 in the DS s. Since \
+    all angles are in [0,pi/2] arcsin is not a problem.
+
+    :returns: DSM with the same dimensions as s, with arcsin(s)=theta in \
+     the same positions as the corresponding theta terms.
+    """
     t0=t.time()
     na,nb=s.shape
     asinDSM=DS(s.nx,s.ny,s.nz,na,nb)
     indices=np.transpose(s.nonzero())
     asinDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.asin(DSM[indices[0],indices[1],indices[2],indices[3],indices[4]])
-    t1=t.time()-t0
-    print('time finding arcsin(theta)',t1)
     return asinDSM
+  ## Finds cos(theta) for all terms theta \!= 0 in DSM.
+  # @return a DSM with the same dimensions with cos(theta) in the
+  # same position as the corresponding theta terms.
   def cos(s):
-    '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
-    t0=t.time()
+    """ Finds cos(theta) for all terms theta \!= 0 in the DS s.
+
+    :returns: A DSM with the same dimensions with cos(theta) in the \
+     same position as the corresponding theta terms.
+    """
     na,nb=s.shape
     CosDSM=DS(s.nx,s.ny,s.nz,na,nb)
-    indices=np.transpose(s.nonzero())
-    CosDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.cos(s[indices[0],indices[1],indices[2],indices[3],indices[4]])
-    t1=t.time()-t0
-    print('time finding cos(theta)',t1)
+    ind=np.transpose(s.nonzero())
+    CosDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.cos(s[ind[0],ind[1],ind[2],ind[3],ind[4]])
     return CosDSM
+  ## Finds sin(theta) for all terms theta \!= 0 in DSM.
+  # @return a DSM with the same dimensions with sin(theta) in the
+  # same position as the corresponding theta terms.
   def sin(s):
-    '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+    """ Finds sin(theta) for all terms theta \!= 0 in the DS s.
+
+    :return: A DSM with the same dimensions with sin(theta) in the \
+     same position as the corresponding theta terms.
+    """
     na,nb=s.shape
     SinDSM=DS(s.nx,s.ny,s.nz,na,nb)
     indices=np.transpose(s.nonzero())
-    SinDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.sin(s[indices[0],indices[1],indices[2],indices[3],indices[4]])
+    SinDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.sin(s[ind[0],ind[1],ind[2],ind[3],ind[4]])
     return SinDSM
+  ## Finds the angles theta which are the arguments of the nonzero
+  # complex terms in the DSM s.
+  # @return a DSM with the same dimensions with theta in the
+  # same position as the corresponding complex terms.
   def sparse_angles(s):
-    '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+    """ Finds the angles theta which are the arguments of the nonzero \
+     complex terms in the DSM s.
+
+    :return: A DSM with the same dimensions with theta in the same \
+     position as the corresponding complex terms.
+    """
     print('start angles')
     t0=t.time()
     na,nb=s.shape
-    AngDSM=DS(s.nx,s.ny,s.nz,na,nb)
+    AngDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
     t1=t.time()
     print('before transpose',t1-t0)
     indices=s.nonzero()
     print('indices shape', indices.shape)
-    indices=indices.T
+    ind=indices.T
     t2=t.time()
     print('before angles',t2-t0)
-    AngDSM[indices[0],indices[1],indices[2],indices[3],indices[4]]=np.angle(s[indices[0],indices[1],indices[2],indices[3],indices[4]])
+    AngDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.angle(s[ind[0],ind[1],ind[2],ind[3],ind[4]])
     t3=t.time()-t0
     print('time finding angles',t3)
     return AngDSM
+  ## Multiply every column of the DSM s elementwise with the vector vec.
+  # @param vec a row vector with length na.
+  # @return a DSM 'out' with the same dimensions as s.
+  # out[x,y,z,k,j]=vec[k]*DSM[x,y,z,k,j]
   def vec_multiply(s,vec):
-    '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+    """ Multiply every column of the DSM s elementwise with the
+    vector vec.
+
+    :param a: vec: a row vector with length na.
+
+    :rtype: A DSM 'out' with the same dimensions as s.
+
+    :returns: out[x,y,z,k,j]=vec[k]*DSM[x,y,z,k,j]
+     """
     na,nb=s.shape
     outDSM=DS(s.nx,s.ny,s.nz,na,nb)
-    indices=s.nonzero()
-    Ni=len(indices)
+    ind=s.nonzero()
+    Ni=len(np.transpose(ind)[4]) #FIXME find the nonzero columns without repeat column index for each term
     for l in range(0,Ni):
-      out=np.multiply(vec[indices[l][3]],s[indices[l][0],indices[l][1],indices[l][2],indices[l][3],indices[l][4]])
-      outDSM[indices[l][0],indices[l][1],indices[l][2],indices[l][3],indices[l][4]]=out
+      #out=np.multiply(vec,s[ind[l][3]],s[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]])
+      out=np.multiply(vec[ind[l][3]],s[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]])
+      outDSM[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]]=out
     return outDSM
+  ## Divide every column of the DSM s elementwise with the vector vec.
+  # @param vec a row vector with length na.
+  # @return a DSM 'out' with the same dimensions as s.
+  # out[x,y,z,k,j]=DSM[x,y,z,k,j]/vec[k]
   def dict_DSM_divideby_vec(s,vec):
-    '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+    """ Divide every column of the DSM s elementwise with the vector vec.
+
+    :param vec: a row vector with length na.
+
+    :rtype: a DSM 'out' with the same dimensions as s.
+
+    :return: out[x,y,z,k,j]=DSM[x,y,z,k,j]/vec[k] """
     na,nb=s.shape
     outDSM=DS(s.nx,s.ny,s.nz,na,nb)
-    indices=np.transpose(vec.nonzero())
-    for x,y,z,a,b in product(range(0,s.nx),range(0,s.ny),range(0,s.nz),indices,range(0,nb)):
+    #ind=np.transpose(vec.nonzero())
+    for x,y,z,a,b in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz),indices,range(0,nb)):
       a=a[0]
       if abs(s[x,y,z,a,b])<epsilon:
         pass
@@ -251,8 +392,19 @@ class DS:
         out=np.divide(s[x,y,z,a,b],vec[a])
         outDSM[x,y,z,a,b]=out
     return outDSM
+  ## Every column of the DSM s divides elementwise the vector vec.
+  # @param vec a row vector with length na.
+  # @return a DSM 'out' with the same dimensions as s.
+  # out[x,y,z,k,j]=vec[k]/DSM[x,y,z,k,j]
   def dict_vec_divideby_DSM(s,vec):
-    '''Takes in a complex sparse matrix M and outputs the arguments of the nonzero() entries'''
+    """ Every column of the DSM s divides elementwise the vector vec.
+
+    :param vec: a row vector with length na.
+
+    :rtype: a DSM 'out' with the same dimensions as s.
+
+    :return: out[x,y,z,k,j]=vec[k]/DSM[x,y,z,k,j]
+    """
     na,nb=s.shape
     outDSM=DS(s.nx,s.ny,s.nz,na,nb)
     indices=s.nonzero()
@@ -261,40 +413,90 @@ class DS:
       out=np.divide(vec[indices[l][3]],s[indices[l][0],indices[l][1],indices[l][2],indices[l][3],indices[l][4]])
       outDSM[indices[l][0],indices[l][1],indices[l][2],indices[l][3],indices[l][4]]=out
     return outDSM
+  ## Save the DSM s.
+  # @param filename_ the name of the file to save to.
+  # @return nothing
   def save_dict(s, filename_):
+    """ Save the DSM s.
+
+    :param filename_: the name of the file to save to.
+
+    :return: nothing
+    """
     with open(filename_, 'wb') as f:
         pkl.dump(s.d, f)
     return
+  ## Find the indices of the nonzero terms in the DSM s.
+  # The indices are found by iterating through all keys (x,y,z) for the
+  # DSM s and finding the nonzero indices of the corresponding sparse
+  # matrix. These indices are then combinded with the x,y,z key and
+  # stacked to create an 5xN array of all the nonzero terms in the DSM,
+  # where N is the number of nonzero terms.
+  # @return indices=[ [x1,y1,z1,k1,j1],...,[xn,yn,zn,kn,jn]]
   def nonzero(s):
+    """ Find the indices of the nonzero terms in the DSM s.
+
+      .. note::
+
+          The indices are found by iterating through all keys (x,y,z) \
+          for the DSM s and finding the nonzero indices of the \
+          corresponding sparse matrix. These indices are then combinded \
+          with the x,y,z key and stacked to create an 5xN array of all \
+          the nonzero terms in the DSM, where N is the number of nonzero \
+          terms.
+
+    :return: indices=[ [x1,y1,z1,k1,j1],...,[xn,yn,zn,kn,jn]]
+    """
     # FIXME this is too slow and needs parallelising / speeding up.
-    for x,y,z in product(range(0,s.nx),range(0,s.ny),range(0,s.nz)):
+    for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
       indicesM=s.d[x,y,z].nonzero()
       NI=len(indicesM[0])
-      for j in range(0,NI):
-        if x==0 and y==0 and z==0 and j==0:
-          indices=np.array([0,0,0,indicesM[0][j],indicesM[1][j]])
-        else:
-          indices=np.vstack((indices,[x,y,z,indicesM[0][j],indicesM[1][j]]))
-      #if x==0 and y==0 and z==0:
-      #  indices=np.array([0,0,0,indicesM[0][0],indicesM[1][0]])
-      #  indicesSec=np.c_[np.tile(np.array([x,y,z]),(1,NI-1)),IndicesM[1:-1]]
-      #  indices=np.vstack((indices,indicesSec))
-      #else:
-      #  indicesSec=np.c_[np.tile(np.array([x,y,z]),(1,NI)),IndicesM[0:-1]]
-      #  indices=np.vstack((indices,indicesSec))
+      if x==0 and y==0 and z==0:
+        indices=np.array([0,0,0,indicesM[0][0],indicesM[1][0]])
+        indicesSec=np.c_[np.tile(np.array([x,y,z]),(NI-1,1)),indicesM[0][1:],indicesM[1][1:]]
+        indices=np.vstack((indices,indicesSec))
+      else:
+        indicesSec=np.c_[np.tile(np.array([x,y,z]),(NI,1)),indicesM[0][0:],indicesM[1][0:]]
+        indices=np.vstack((indices,indicesSec))
     return indices
-  def parnonzero(s):
-    # FIXME this is too slow and needs parallelising / speeding up.
-    for x,y,z in product(range(0,s.nx),range(0,s.ny),range(0,s.nz)):
-      indicesM=s.d[x,y,z].nonzero()
-      NI=len(indicesM[0])
-      for j in range(0,NI):
-        if x==0 and y==0 and z==0 and j==0:
-          indices=np.array([0,0,0,indicesM[0][j],indicesM[1][j]])
-        else:
-          indices=np.vstack((indices,[x,y,z,indicesM[0][j],indicesM[1][j]]))
-    return indices
+  ## Find the indices of the nonzero terms for part of the DSM s.
+  # @param s the part of s that you want the nonzero indices for.
+  # .
+  # \par
+  # The indices are found by using the nonzero() function on s[cor]
+  # @return indices=[ [x1,y1,z1,k1,j1],...,[xn,yn,zn,kn,jn]]
+  def nonzeroMat(s,cor):
+    """ Find the indices of the nonzero terms for part of the DSM s.
+
+    :param cor: the part of s that you want the nonzero indices for.
+
+    The indices are found by using the :func: nonzero() function on s[cor]
+
+    :return: indices=[ [x1,y1,z1,k1,j1],...,[xn,yn,zn,kn,jn]]
+    """
+    if isinstance(cor,(float,int,np.int64, np.complex128)):
+      ns=1
+    else:
+      ns=len(cor)
+    for j in range(0,ns):
+      indM=s[cor[0],cor[1],cor[2]].nonzero()
+      NI=len(indM[0])
+      if j==0:
+        ind=np.r_[cor,indM[0][0],indM[1][0]]
+        ind=np.c_[np.tile(cor,(NI-1,1)),indM[0][1:],indM[1][1:]]
+      else:
+        indt=np.c_[np.tile(cor,(NI,1)),indM[0][0:],indM[1][0:]]
+        ind=np.vstack((ind,indt))
+    return ind
+  ## Fills the DSM s.
+  # @return a dense Nx*Ny*Nz*na*nb array with matching nonzero terms to
+  # the sparse matrix s and zeroes elsewhere.
   def dense(s):
+    """Fills the DSM s.
+
+    :returns: A dense Nx*Ny*Nz*na*nb array with matching nonzero terms to \
+     the sparse matrix s and zeroes elsewhere.
+    """
     (na,nb)=s.d[0,0,0].shape
     nx=s.nx
     ny=s.ny
@@ -302,14 +504,71 @@ class DS:
     den=np.zeros((nx,ny,nz,na,nb),dtype=np.complex128)
     for x,y,z in product(range(s.nx),range(s.ny),range(s.nz)):
       den[x,y,z]=s.d[x,y,z].todense()
-    return den
+    return
+  ## Check if the index [i,j,k] is valid.
+  # @param i is the index for the x axis.
+  # @param j is the index for the y axis.
+  # @param k is the index for the z axis.
+  # @param p1 is the point at the end of the ray.
+  # @param h is the mesh width
+  # @return 0 if valid, 1 if not.
   def stopcheck(s,i,j,k,p1,h):
+    """ Check if the index [i,j,k] is valid.
+
+    :param i: is the index for the x axis.
+
+    :param j: is the index for the y axis.
+
+    :param k: is the index for the z axis.
+
+    :param p1: is the point at the end of the ray.
+
+    :param h: is the mesh width
+
+    :return: 0 if valid, 1 if not.
+
+    .. todo:: add the inside check to this function
+
+    .. todo:: add the check for the end of the ray.
+    """
+    #FIXME add the inside check to this function
+    #FIXME add the check for the end of the ray.
     #if i>=p1[0] and j>=p1[1] and k>=p1[2]:
     #  return 0
-    if i>s.nx or j>s.ny or k>s.nz or i<0 or j<0 or k<0:
+    if i>s.Nx or j>s.Ny or k>s.Nz or i<0 or j<0 or k<0:
       return 0
     else: return 1
+  ## Check if the list of points is valid.
+  # @param ps the indices for the points in the list
+  # @param p1 the end of the ray
+  # @param h the meshwidth
+  # @param p3 the points on the cone vectors
+  # @param the normal vectors forming the cone.
+  # @return start=0 if no points were valid if at least 1 point was
+  # valid, ps=[[i1,j1,k1],...,[in,jn,kn]] the indices of the
+  # valid points, p3=[[x1,y1,z1],...,[xn,yn,zn]] co-ordinates of
+  # the valid points., N=[n0,...,Nn] the normal vectors corresponding to
+  # the valid points.
   def stopchecklist(s,ps,p1,h,p3,n):
+    """ Check if the list of points is valid.
+
+    :param ps: the indices for the points in the list
+
+    :param p1: the end of the ray
+
+    :param h: the meshwidth
+
+    :param p3: the points on the cone vectors
+
+    :param n: the normal vectors forming the cone.
+
+    start=0 if no points were valid if at least 1 point was valid,
+    ps=[[i1,j1,k1],...,[in,jn,kn]] the indices of the valid points,
+    p3=[[x1,y1,z1],...,[xn,yn,zn]] co-ordinates of the valid points,
+    N=[n0,...,Nn] the normal vectors corresponding to the valid points.
+
+    :return: start, ps, p3, N
+    """
     start=0
     newps=np.array([])
     newp3=np.array([])
@@ -346,7 +605,7 @@ def ref_coef(Mesh,FreeSpace,freq,Znob,refindex):
   ind=np.transpose(ind)
   SIN=DS(Mesh.nx,Mesh.ny,Mesh.nz,Mesh.shape[0],Mesh.shape[1])   # Initialise a DSM which will be sin(theta)
   cthi=DS(Mesh.nx,Mesh.ny,Mesh.nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta)
-  ctht=DS(Mesh.nx,Mesh.ny,Mesh.nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta_t)
+  ctht=DS(Mesh.nx,Mesh.ny,Mesh.nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta_t) #FIXME
   print('-------------------------------')
   print('Computing cos(theta_i) on all reflection terms')
   print('-------------------------------')
@@ -354,6 +613,7 @@ def ref_coef(Mesh,FreeSpace,freq,Znob,refindex):
   print('-------------------------------')
   print('Computing cos(theta_t) on all reflection terms')
   print('-------------------------------')
+  SIN[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.sin(AngDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]) # Compute sin(theta)
   SIN[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.sin(AngDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]) # Compute sin(theta)
   Div=SIN.dict_DSM_divideby_vec(refindex)             # Divide each column in DSM with refindex elementwise. Set any 0 term to 0.
   ctht[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.cos(np.arcsin(Div[ind[0],ind[1],ind[2],ind[3],ind[4]]))
@@ -374,39 +634,67 @@ def ref_coef(Mesh,FreeSpace,freq,Znob,refindex):
                                               # to the polarisiation S=(S3-S4)/(S3+S4)
   return Sper, Spar
 
+
+
+def parnonzero():
+  Nob=3
+  Nre=3
+  Nra=5
+  n=10
+  nj=4
+  DS=test_03(n,n,n,int(Nob*Nre+1),int((Nre)*(Nra)+1))
+  #p = Process(target=nonzeroMat, args=(cor,DS))
+  x=np.arange(0,DS.nx,1)
+  y=np.arange(0,DS.ny,1)
+  z=np.arange(0,DS.nz,1)
+  coords=np.transpose(np.meshgrid(x,y,z))
+  with Pool(processes=nj) as pool:         # start 4 worker processes
+    ind=pool.map(DS.nonzeroMat, product(range(DS.nx),range(DS.ny),range(DS.nz)))      # prints "[0, 1, 4,..., 81]"
+    #it = pool.imap(f, range(10))
+    #print(next(it))                     # prints "0"
+    #print(next(it))                     # prints "1"
+    #print(it.next(timeout=1))           # prints "4" unless your computer is *very* slow
+    #result = pool.apply_async(time.sleep, (10,))
+    #print(result.get(timeout=1))
+  #p.start()
+  #p.join
+  #FIXME
+  print(ind)
+  return 0
+
 def test_00():
   ds=DS()
   ds[1,2,3,0,0]=2+3j
   print(ds[1,2,3][0,0])
 
+## Test creation of dictionary containing sparse matrices
 def test_01(nx=3,ny=2,nz=1,na=5,nb=6):
-  '''testing creation of dictionary containing sparse matrices'''
   ds=DS(nx,ny,nz,na,nb)
 
+##  test creation of matrix and adding on element
 def test_02(nx=7,ny=6,nz=1,na=5,nb=6):
-  '''testing creation of matrix and adding on element'''
   ds=DS(nx,ny,nz,na,nb)
   ds[0,3,0,:,0]=2+3j
   print(ds[0,3,0])
 
+## Test creation of diagonal sparse matrices contained in every position
 def test_03(nx,ny,nz,na,nb):
-  '''testing creation of diagonal sparse matrices contained in every position'''
   ds=DS(nx,ny,nz,na,nb)
   for x,y,z,a in product(range(nx),range(ny),range(nz),range(na)):
     if a<nb:
       ds[x,y,z,a-1,a-1]=complex(a,a)
   return ds
 
+## Test creation of first column sparse matrices contained in every position
 def test_03b(nx,ny,nz,na,nb):
-  '''testing creation of first column sparse matrices contained in every position'''
   ds=DS(nx,ny,nz,na,nb)
   for x,y,z,a in product(range(nx),range(ny),range(nz),range(na)):
     if a<nb:
       ds[x,y,z,a-1,2]=complex(a,a)
   return ds
 
+## Test creation of lower triangular sparse matrices contained in every position
 def test_03c(nx,ny,nz,na,nb):
-  '''testing creation of lower triangular sparse matrices contained in every position'''
   ds=DS(nx,ny,nz,na,nb)
   for x,y,z,a in product(range(nx),range(ny),range(nz),range(na)):
     if a<nb:
@@ -414,31 +702,34 @@ def test_03c(nx,ny,nz,na,nb):
         ds[x,y,z,ai,a-1]=complex(a,a)
   return ds
 
+# Test matrix addition operation
 def test_04():
-  '''testing matrix addition operation'''
   ds=test_03(7,6,1,5,6)
   M=ds[2,0,0]+ds[0,1,0]
   ds[0,0,0]=M
   print(ds[0,0,0])
+  return
 
+##  Test get column
 def test_05():
-  '''testing get column'''
   ds=test_03b(7,6,1,6,5)
   print(ds[0,0,0,:,2])
   print(ds[0,0,0,0,:])
   print(ds[0,0,0,1:6:2,:])
+  return
 
+## Test matrix multiplication
 def test_06():
-  '''testing matrix multiplication'''
   ds1=test_03(7,6,1,5,5)
   ds2=test_03b(7,6,1,5,5)
   M0=ds1[0,0,0]*ds2[0,0,0]
   M1=ds1[5,5,0]*ds2[6,5,0]
   print(M0)
   print(M1)
+  return
 
+## Test getting angle from complex entries in matrix
 def test_07():
-  '''testing getting angle from complex entries in matrix'''
   ds=test_03(3,3,1,3,3)
   M0=ds[0,0,0]
   indices=zip(*M0.nonzero())
@@ -446,9 +737,10 @@ def test_07():
   for i,j in indices:
     M1[i,j]=np.angle(M0[i,j])
   print(M0,M1)
+  return
 
+## Test getting angle from complex entries in matrix then taking the cosine of every nonzero entry
 def test_08():
-  '''testing getting angle from complex entries in matrix then taking the cosine of every nonzero entry'''
   ds=test_03(3,3,1,3,3)
   M0=ds[0,0,0]
   indices=zip(*M0.nonzero())
@@ -456,9 +748,14 @@ def test_08():
   for i,j in indices:
     M1[i,j]=np.cos(np.angle(M0[i,j]))
   print(M0,M1)
+  return
 
+## test operation close to Fresnel reflection formula
+# On the [0,0,0] matrix in the DS
+# N1=Z1*cos(thetai)-Z2*cos(thetat)
+# N2=Z1*cos(thetai)+Z2*cos(thetat)
+# \todo N1/N2
 def test_09():
-  '''testing operation close to Fresnel reflection formula'''
   obs=np.array([1.0,2.0,3.0])
   obs=obs*np.eye(3)
   ds=test_03(3,3,1,3,3)
@@ -471,10 +768,11 @@ def test_09():
     M2[i,j]=np.cos(0.7*np.angle(M0[i,j]))
   N1=M1[:,0].T*obs-M2[:,0].T
   N2=M1[:,0].T*obs+M2[:,0].T
-  return (N1) #[N1.nonzero()]) #/(N2[N2.nonzero()]))
+  return (N1) # next step [N1.nonzero()]) #/(N2[N2.nonzero()]))
 
+##  Multiply by coefficient and sum the nonzero terms in the columns
+# On the [0,0,0] matrix of the DS
 def test_10():
-  '''Multiply by coefficient and sum the nonzero terms in the columns'''
   refcoef=test_09()
   ds=test_03b(3,3,1,3,3)
   M0=ds[0,0,0]
@@ -486,8 +784,8 @@ def test_10():
       field*=abs(M0[i,j])
   return 0
 
+## Extract reflection angles from DS
 def test_11():
-  '''Extract reflection angles from matrix'''
   nx=1
   ny=1
   nz=1
@@ -500,8 +798,8 @@ def test_11():
   #print(AngM)
   return AngM
 
+## Extract the cos of the reflection angles of the DS
 def test_12():
-  '''Extract the cos of the reflection angles of the matrix'''
   nx=2
   ny=2
   nz=1
@@ -516,20 +814,8 @@ def test_12():
   print(CosAngM)
   return CosAngM
 
+## Attempt to find angle of nonzero element of SM inside dictionary
 def test_13():
-  '''Attempt to create an array of the indices nonzero element of SM inside dictionary'''
-  nx=2
-  ny=2
-  nz=1
-  na=3
-  nb=3
-  DSM=test_03c(nx,ny,nz,na,nb)
-  print(DSM[0,0,0][DSM[0,0,0].nonzero()])
-  #print(DSM.nonzero())
-
-
-def test_14():
-  '''Attempt to find angle of nonzero element of SM inside dictionary'''
   nx=2
   ny=2
   nz=1
@@ -539,7 +825,8 @@ def test_14():
   ang=dict_sparse_angles(DSM)
   return 1
 
-def test_15():
+## Attempt to compute Reflection Coefficents on DS
+def test_14():
   ds=test_03(8,6,1,11,6)                       # test_03() initialises a
                                                # DSM with values on the
                                                # diagonal of each mesh element
@@ -588,6 +875,7 @@ def test_15():
   # Z1*Cos(AngDSM[nonzero])+Znob[nonzero]cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
   return
 
+## Timing nonzero indexing
 def test_16():
   Nob=24
   Nre=3
@@ -604,11 +892,18 @@ def test_16():
     timevec[k]=t.time()-t0
     print(timevec[k])
     n=n*2
-  mp.plot(narray,timevec)
-  mp.show
+  mp.plot(timevec,narray)
+  mp.title('Time against n for nonzero() function')
+  mp.savefig('timenonzero.png')
   return timevec
+
+## Attempting to parallelise nonzero function
+def test_17():
+  out=parnonzero()
+  return
 
 if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
-  test_16()
+  #job_server = pp.Server()
+  test_14()
