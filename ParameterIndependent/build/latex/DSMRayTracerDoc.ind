@@ -1,0 +1,76 @@
+\begin{theindex}
+\def\bigletter#1{{\Large\sffamily#1}\nopagebreak\vspace{1mm}}
+
+  \bigletter A
+  \item asin() (DictionarySparseMatrix.DS method), \hyperpage{11}
+
+  \indexspace
+  \bigletter C
+  \item cos() (DictionarySparseMatrix.DS method), \hyperpage{11}
+
+  \indexspace
+  \bigletter D
+  \item dense() (DictionarySparseMatrix.DS method), \hyperpage{11}
+  \item dict\_DSM\_divideby\_vec() (DictionarySparseMatrix.DS method), \hyperpage{11}
+  \item dict\_vec\_divideby\_DSM() (DictionarySparseMatrix.DS method), \hyperpage{11}
+  \item DictionarySparseMatrix (module), \hyperpage{11}
+  \item DS (class in DictionarySparseMatrix), \hyperpage{11}
+
+  \indexspace
+  \bigletter E
+  \item errorcheck() (in module reflection), \hyperpage{15}
+
+  \indexspace
+  \bigletter M
+  \item mesh\_multiref() (Rays.Ray method), \hyperpage{7}
+  \item mesh\_singleray() (Rays.Ray method), \hyperpage{7}
+  \item multiref() (Rays.Ray method), \hyperpage{7}
+
+  \indexspace
+  \bigletter N
+  \item nonzero() (DictionarySparseMatrix.DS method), \hyperpage{11}
+  \item nonzeroMat() (DictionarySparseMatrix.DS method), \hyperpage{12}
+  \item normal\_mat() (Rays.Ray method), \hyperpage{7}
+  \item number\_cone\_steps() (Rays.Ray method), \hyperpage{7}
+  \item number\_steps() (Rays.Ray method), \hyperpage{7}
+
+  \indexspace
+  \bigletter O
+  \item obst\_collision\_point() (Rays.Ray method), \hyperpage{7}
+  \item ObstacleCoefficients() (in module ParameterInput), \hyperpage{5}
+
+  \indexspace
+  \bigletter P
+  \item ParameterInput (module), \hyperpage{5}
+
+  \indexspace
+  \bigletter R
+  \item Ray (class in Rays), \hyperpage{7}
+  \item ray\_length() (Rays.Ray method), \hyperpage{7}
+  \item Rays (module), \hyperpage{7}
+  \item raytest() (Rays.Ray method), \hyperpage{7}
+  \item RayTracerMainProgram (module), \hyperpage{3}
+  \item ref\_angle() (Rays.Ray method), \hyperpage{7}
+  \item refangle() (in module reflection), \hyperpage{15}
+  \item reflect\_calc() (Rays.Ray method), \hyperpage{7}
+  \item reflection (module), \hyperpage{15}
+  \item Room (module), \hyperpage{9}
+  \item room\_collision\_point() (Rays.Ray method), \hyperpage{7}
+
+  \indexspace
+  \bigletter S
+  \item save\_dict() (DictionarySparseMatrix.DS method), \hyperpage{12}
+  \item sin() (DictionarySparseMatrix.DS method), \hyperpage{12}
+  \item sparse\_angles() (DictionarySparseMatrix.DS method), \hyperpage{12}
+  \item stopcheck() (DictionarySparseMatrix.DS method), \hyperpage{12}
+  \item stopchecklist() (DictionarySparseMatrix.DS method), \hyperpage{12}
+
+  \indexspace
+  \bigletter T
+  \item test3() (in module reflection), \hyperpage{15}
+
+  \indexspace
+  \bigletter V
+  \item vec\_multiply() (DictionarySparseMatrix.DS method), \hyperpage{13}
+
+\end{theindex}
