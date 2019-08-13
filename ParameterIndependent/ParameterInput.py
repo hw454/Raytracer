@@ -54,7 +54,7 @@ def DeclareParameters():
 
   Tx=np.array([6.75,6.25,1.5]) # -Router location -co-ordinate of three real numbers
   #(the third is zero when modelling in 2D).
-  deltheta      =(-2+np.sqrt(2.0*(Nra)))*(np.pi/(Nra-2)) # Calculate angle spacing
+  deltheta      =(np.sqrt(2.0))*(np.pi/(np.sqrt(Nra)+np.sqrt(2))) # Calculate angle spacing
   xysteps       =int(2.0*np.pi/deltheta)
   zsteps        =int(np.pi/deltheta-2)
   Nra           =xysteps*zsteps+2
