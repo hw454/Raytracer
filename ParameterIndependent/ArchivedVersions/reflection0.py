@@ -23,13 +23,8 @@ import math as ma
 
 epsilon=sys.float_info.epsilon
 
-##  Reflection of a ray with a triangle
-# @param ray=[p0,p1] p0 is the start of the ray and p1 should be the
-# point the ray intersects the triangle.
-# @param triangle=[T0,T1,T2]
-# .
-# \par
 def try_reflect_ray(ray,triangle):
+  ''' Reflection of a ray with a triangle'''
   # Find the distances which need to be translated
   trdist=-ray[1] # Make the intersection the origin
   direc=lf.Direction(ray)
@@ -133,6 +128,29 @@ def test2():
   #gui = GUI()
   #gui.start_event_loop()
   return 0
+
+def try_3D_reflect_ray(ray,plane):
+  ''' Take a ray and find it's reflection in a plane. '''
+  # Find the distances which need to be translated
+  trdist=-ray[1]
+  direc=lf.Direction3D(ray)
+  # Translate the points before the reflection
+  o=trdist
+  ray+=trdist
+  plane[0]+=trdist
+  # Find the image of the ray in the edge
+  Image=ray[1]+direc
+  # Find the normal to the edge
+  normedge=plane[1]
+  # Find the reflection using the Image
+  ReflPt=Image-2*np.dot(normedge,Image)*normedge
+  #Translate Back
+  ray-=trdist
+  plane[0]-=trdist
+  normedge-=trdist
+  ReflPt-=trdist
+  o-=trdist
+  return np.array([ray[1], ReflPt])
 
 def errorcheck(err,ray,ref,normedge):
   ''' Take the input ray and output ray and the normal to the edge,

@@ -19,6 +19,17 @@ def Direction(line):
   else:
     return np.zeros(n)
 
+def coordlistdistance(A):
+  ''' A= nx3 array. Return nx1 array of the L2 norms of each row'''
+  Out=np.sum(np.abs(A)**2,axis=-1)**(1./2)
+  return Out
+
+def coordlistdot(A,B):
+  '''A=nx3 array, B=nx3 array. Return nx1 array of the dot product of the
+  rows of A and B '''
+  Out=np.sum(A*B,axis=-1)
+  return Out
+
 def length(line):
   ''' line is given as a pair of two co-ordinates. Output the length of
   the line '''
