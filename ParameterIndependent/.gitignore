@@ -8,6 +8,7 @@
 *.txt
 *.pyc
 *.orig
+build/*
 *BACKUP
 *BASE
 *LOCAL
