@@ -10,8 +10,8 @@ import sys
 def DeclareParameters():
   print('Saving the parameters in ParameterInput.py')
   Nra=200
-  Nre=5
-  h=1
+  Nre=2
+  Ns=50 # Number of steps on longest axis.
 
   # Obstacles are all triangles in 3D.
   triangle1 =np.array([(0.0,0.0,0.0),(3.0, 0.0,0.0),(0.0,0.0,3.0)])
@@ -51,6 +51,10 @@ def DeclareParameters():
   OuterBoundary=5*np.array([OuterBoundary1,OuterBoundary2, OuterBoundary3,
    OuterBoundary4,OuterBoundary5,OuterBoundary6,OuterBoundary7,
    OuterBoundary8, OuterBoundary9, OuterBoundary10, OuterBoundary11,OuterBoundary12])
+
+  # Calculate relative mesh width
+  roomlengthscale=abs(np.amax(OuterBoundary)-np.amin(OuterBoundary))
+  h=roomlengthscale/Ns
 
   Tx=np.array([6.75,6.25,1.5]) # -Router location -co-ordinate of three real numbers
   #(the third is zero when modelling in 2D).
@@ -111,8 +115,8 @@ def ObstacleCoefficients():
   Oblist        =np.concatenate((Oblist,OuterBoundary),axis=0)
   Nob=len(Oblist)
   RTPar=np.load('Parameters/Raytracing.npy')
-  Nra=RTPar[0]
-  Nre=RTPar[1]
+  Nra=int(RTPar[0])
+  Nre=int(RTPar[1])
   h=RTPar[2]
   Na=int(Nob*Nre+1)
   Nb=int((Nre)*(Nra)+1)                        # Number of columns on each Mesh element
@@ -139,14 +143,10 @@ def ObstacleCoefficients():
   top=complex(0,frequency*mu0)*mur
   bottom=sigma+complex(0,eps0*frequency)*epsr
   Znob =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
-  del top, bottom
-  Znob=np.tile(Znob,Nre)                      # The number of rows is Nob*Nre+1. Repeat Nob
-  Znob=np.insert(Znob,0,complex(0.0,0.0))     # Use a zero for placement in the LOS row
-  #Znob=np.transpose(np.tile(Znob,(Nb,1)))    # Tile the obstacle coefficient number to be the same size as a mesh array.
   Znobrat=Znob/Z0
   refindex=np.sqrt(np.multiply(mur,epsr))     # Refractive index of the obstacles
-  refindex=np.tile(refindex,Nre)
-  refindex=np.insert(refindex,0,complex(0,0))
+  # CLEAR THE TERMS JUST FOR CALCULATION
+  del top, bottom,Znob
 
   # SAVE THE PARAMETERS
   np.save('Parameters/FreeSpace.npy',Freespace)
@@ -156,12 +156,14 @@ def ObstacleCoefficients():
   print('Characteristic Impedence ', Z0)
   print('Speed of light ', c)
   print('Number of obstacles',Nob)
-  print('Relative Impedance of the obstacles ', Znob)
+  print('Relative Impedance of the obstacles ', Znobrat)
   print('Refractive index of the obstacles ', refindex)
-  Znobrat=np.tile(Znob,Nre)                      # The number of rows is Nob*Nre+1. Repeat Nob
+
+  # Make the refindex and impedance vectors the right length to mathc the matrices.
+  Znobrat=np.tile(Znobrat,Nre)                    # The number of rows is Nob*Nre+1. Repeat Nob
   Znobrat=np.insert(Znobrat,0,complex(0.0,0.0))     # Use a zero for placement in the LOS row
-  refindex=np.tile(refindex,Nre)              # The number of rows is Nob*Nre+1. Repeat refindex
-  refindex=np.insert(refindex,0,complex(0,0)) # Use a zero for placement in the LOS row
+  refindex=np.tile(refindex,Nre)
+  refindex=np.insert(refindex,0,complex(0,0))
   np.save('Parameters/Znobrat.npy',Znobrat)
   np.save('Parameters/refindex.npy',refindex)
   print('------------------------------------------------')
