@@ -181,11 +181,14 @@ def RefCoefComputation(Mesh):
   print('-------------------------------')
   print('Computing the reflection coeficients')
   print('-------------------------------')
+  start=t.time()
   RefCoefPerp, RefCoefPar=DSM.ref_coef(Mesh,Znobrat,refindex)
+  end=t.time()
   print('-------------------------------')
   print('Reflection coeficients found')
+  print('Computation time',end-start)
   print('-------------------------------')
-  return RefCoef
+  return RefCoefPerp, RefCoefPar
 
 if __name__=='__main__':
   print('Running  on python version')
