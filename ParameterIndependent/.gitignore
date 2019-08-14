@@ -9,6 +9,7 @@
 *.pyc
 *.orig
 build/*
+testDS
 *BACKUP
 *BASE
 *LOCAL
