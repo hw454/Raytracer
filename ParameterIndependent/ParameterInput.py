@@ -91,7 +91,20 @@ def DeclareParameters():
   return 1
 
 def ObstacleCoefficients():
-  '''Retrieve the information saved in Declare parameters. Then define the obstacle coefficients. '''
+  '''Retrieve the information saved in Declare parameters.
+  Then define the obstacle coefficients.
+
+  * 'Obstacles.npy'-Co-ordinates of obstacles in the room
+  * 'OuterBoundary.npy'- Co-ordinates of the walls of the room
+  * 'Raytracing.npy'-[Nra (number of rays), Nre (number of reflections), \
+  h (relative meshwidth)]
+  * 'Freespace.npy'-[mu0 (permeability of air), \
+  eps0 (permittivity of air),Z0 (characteristic impedance of air), \
+  c (speed of light)]
+  * 'Znobrat.npy' - The characterics impedance divided by the impedance \
+  of air for all obstacles.
+  * 'refindex.npy' - The refractive index for each obstacle
+  '''
   print('Saving the material parameters in ParameterInput.py')
   Oblist        =np.load('Parameters/Obstacles.npy')
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')
@@ -104,28 +117,38 @@ def ObstacleCoefficients():
   Na=int(Nob*Nre+1)
   Nb=int((Nre)*(Nra)+1)                        # Number of columns on each Mesh element
   Nob=len(Oblist)                              # The Number of obstacle.
-  mur=np.full((Nob,1), complex(1.0,0))         # Currently mur is
+
+  # Relative Constants for the obstacles
+  mur=np.full((Nob,1), complex(3.0,0))         # For this test mur is
                                                # the same for every obstacle.
                                                # Array created to get functions correct.
-  epsr=np.full((Nob,1),complex(3.6305,7.41E-2))# Currently epsr is the
+  epsr=np.full((Nob,1),complex(2.9493, 0.1065))         # For this test epsr is the
                                                # same for every obstacle
-  sigma=np.full((Nob,1),1.0E-2)                # For this test sigma is the
+  sigma=np.full((Nob,1),1.0E-4)                # For this test sigma is the
                                                # same for every obstacle
 
-  # PHYSICAL CONSTANTS
+  # PHYSICAL CONSTANTS Do not change for obstacles for frequency
   mu0=4*np.pi*1E-6
   c=2.99792458E+8
   eps0=1/(mu0*c**2)#8.854187817E-12
-  Z0=(mu0/eps0)**0.5 #120*np.pi
+  Z0=(mu0/eps0)**0.5 #120*np.pi Characteristic impedance of free space.
   Freespace=np.array([mu0,eps0,Z0,c])
 
   # CALCULATE PARAMETERS
-  frequency=2*np.pi*2.43E+9                       # 2.43 GHz
-  gamma=np.sqrt(np.divide(complex(0,frequency*mu0)*mur,np.multiply(sigma,eps0*frequency*complex(0,1)*epsr)))
-  Znob=Z0*np.divide((1+gamma),(1-gamma)   )   # Characteristic impedance of the obstacles
+  frequency=2*np.pi*2.79E+08                   # 2.79 GHz
+  top=complex(0,frequency*mu0)*mur
+  bottom=sigma+complex(0,eps0*frequency)*epsr
+  Znob =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
+  del top, bottom
+  Znob=np.tile(Znob,Nre)                      # The number of rows is Nob*Nre+1. Repeat Nob
+  Znob=np.insert(Znob,0,complex(0.0,0.0))     # Use a zero for placement in the LOS row
   #Znob=np.transpose(np.tile(Znob,(Nb,1)))    # Tile the obstacle coefficient number to be the same size as a mesh array.
+  Znobrat=Znob/Z0
   refindex=np.sqrt(np.multiply(mur,epsr))     # Refractive index of the obstacles
+  refindex=np.tile(refindex,Nre)
+  refindex=np.insert(refindex,0,complex(0,0))
 
+  # SAVE THE PARAMETERS
   np.save('Parameters/FreeSpace.npy',Freespace)
   np.save('Parameters/frequency.npy',frequency)
   print('Permittivity of free space ', mu0)
@@ -135,11 +158,11 @@ def ObstacleCoefficients():
   print('Number of obstacles',Nob)
   print('Relative Impedance of the obstacles ', Znob)
   print('Refractive index of the obstacles ', refindex)
-  Znob=np.tile(Znob,Nre)                      # The number of rows is Nob*Nre+1. Repeat Nob
-  Znob=np.insert(Znob,0,complex(0.0,0.0))     # Use a zero for placement in the LOS row
+  Znobrat=np.tile(Znob,Nre)                      # The number of rows is Nob*Nre+1. Repeat Nob
+  Znobrat=np.insert(Znobrat,0,complex(0.0,0.0))     # Use a zero for placement in the LOS row
   refindex=np.tile(refindex,Nre)              # The number of rows is Nob*Nre+1. Repeat refindex
   refindex=np.insert(refindex,0,complex(0,0)) # Use a zero for placement in the LOS row
-  np.save('Parameters/Znob.npy',Znob)
+  np.save('Parameters/Znobrat.npy',Znobrat)
   np.save('Parameters/refindex.npy',refindex)
   print('------------------------------------------------')
   print('Material parameters saved')
