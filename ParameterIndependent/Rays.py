@@ -271,13 +271,14 @@ class Ray:
             # There are no cone positions
             pass
         # Compute the next point along the ray
-        p1=p1+alpha*direc
-        dist=dist+deldist
-        i2,j2,k2=room.position(p1,h)
-        #FIXME check if the position is the same as the previous
-        #FIXME don't stop at the end as the cone needs to be filled.
-        if lf.length(np.array([p1,s.points[-2][0:3]]))<h:
-          break
+      else: break                                         # In this instance stpch==0 and end of ray
+      p1=p1+alpha*direc
+      dist=dist+deldist
+      i2,j2,k2=room.position(p1,h)
+      #FIXME check if the position is the same as the previous
+      #FIXME don't stop at the end as the cone needs to be filled.
+      if lf.length(np.array([p1,s.points[-2][0:3]]))<h:
+        break
     return Mesh,dist,calcvec
   def raytest(s,room,err):
     ''' Checks the reflection for errors'''
