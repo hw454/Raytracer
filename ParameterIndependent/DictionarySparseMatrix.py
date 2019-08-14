@@ -22,7 +22,11 @@ epsilon=sys.float_info.epsilon
 class DS:
   ''' The DS class is a dictionary of sparse matrices.
   The keys for the dictionary are (i,j,k) such that i is in [0,Nx],
-  j is in [0, Ny], and k is in [0,Nz]. '''
+  j is in [0, Ny], and k is in [0,Nz].
+  SM=DS[x,y,z] is a na*nb sparse matrix, initialised with complex128 data type.
+  :math: 'na=(Nob*Nre+1)'
+  :math: 'nb=((Nre)*(Nra)+1)'
+  '''
   ## The constructor.
   # \par
   # DSM is a dictionary of sparse matrices with keys (x,y,z) such that x is in [0,Nx],
@@ -57,6 +61,22 @@ class DS:
   # columns of the SM A=DSM[x,y,z].
   # @return the 'i' term of the DSM
   def __getitem__(s,i):
+    ''' Get item i from s
+
+    :param i:
+     * If 'i' has length 5, i=[x,y,z,k,j] then this is the position of a \
+     single term out=A[k,j] in a matrix A=DSM[x,y,z], return out.
+     * 'i' has length 4 then i=[x,y,z,k], this is the position of a \
+     row out=A[k] (array of length nb) of a sparse matrix corresponding \
+     to the dictionary key A=DSM[x,y,z].
+     * If 'i' has length 3 then i is the position of the whole sparse
+     matrix out=A for the sparse matrix at location [x,y,z].
+
+    The 'k' and 'j' indices can be replaced with : to return rows or \
+    columns of the SM A=DSM[x,y,z].
+
+    :return: the 'i' term of the DSM
+    '''
     dk,smk=i[:3],i[3:]
     # If dk is a number then one position (x,y,z) is being refered to.
     if isinstance(dk[0],(float,int,np.int64, np.complex128 )): n=1
@@ -241,17 +261,17 @@ class DS:
   # same dictionary key (x,y,z).
   # Return a new DSM with the same dimensions
   def __add__(s, DSM2):
-    out=DS(s.nx,s.ny,s.nz,s.shape[0],s.shape[1])
-    for x,y,z in product(range(0,s.nx),range(0,s.ny),range(0,s.nz)):
-      out[x,y,z]=s[x,y,z]+DSM[x,y,z]
+    out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
+    for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
+      out[x,y,z]=s[x,y,z]+DSM2[x,y,z]
     return out
   ## Subtract DSM2 from DSM
   # Subtract sparse matrices in DSM2 from DSM elementwise if they have the
   # same dictionary key (x,y,z).
   # Return a new DSM with the same dimensions
   def __sub__(s, DSM):
-    out=DS(s.nx,s.ny,s.nz,s.shape[0],s.shape[1])
-    for x,y,z in product(range(0,s.nx),range(0,s.ny),range(0,s.nz)):
+    out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
+    for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
       out[x,y,z]=s[x,y,z]-DSM[x,y,z]
     return out
   ## Multiply DSM2 with s
@@ -270,11 +290,11 @@ class DS:
   # @param DSM2 is a DSM with the same dimensions as s.
   # @return a new DSM with the same dimensions
   def __truediv__(s, DSM2):
-    out=DS(s.nx,s.ny,s.nz,s.shape[0],s.shape[1])
+    out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
     for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
-      #ind=DSM[x,y,z].nonzero()
-      out=[x,y,z]=np.true_divide(s[x,y,z],DSM2[x,y,z])
-      #out[x,y,z][ind]=np.true_divide(s[x,y,z][ind],DSM[x,y,z][ind])
+      ind=DSM2[x,y,z].nonzero()
+      #out=[x,y,z]=np.true_divide(s[x,y,z],DSM2[x,y,z])
+      out[x,y,z][ind]=np.true_divide(s[x,y,z][ind],DSM2[x,y,z][ind])
     return out
   ## Finds arcsin(theta) for all terms theta \!= 0 in DSM.
   # @return a DSM with the same dimensions with arcsin(theta) in the
@@ -302,7 +322,7 @@ class DS:
      same position as the corresponding theta terms.
     """
     na,nb=s.shape
-    CosDSM=DS(s.nx,s.ny,s.nz,na,nb)
+    CosDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
     ind=np.transpose(s.nonzero())
     CosDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.cos(s[ind[0],ind[1],ind[2],ind[3],ind[4]])
     return CosDSM
@@ -361,7 +381,7 @@ class DS:
     :returns: out[x,y,z,k,j]=vec[k]*DSM[x,y,z,k,j]
      """
     na,nb=s.shape
-    outDSM=DS(s.nx,s.ny,s.nz,na,nb)
+    outDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
     ind=s.nonzero()
     Ni=len(np.transpose(ind)[4]) #FIXME find the nonzero columns without repeat column index for each term
     for l in range(0,Ni):
@@ -382,9 +402,9 @@ class DS:
 
     :return: out[x,y,z,k,j]=DSM[x,y,z,k,j]/vec[k] """
     na,nb=s.shape
-    outDSM=DS(s.nx,s.ny,s.nz,na,nb)
-    #ind=np.transpose(vec.nonzero())
-    for x,y,z,a,b in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz),indices,range(0,nb)):
+    outDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
+    ind=np.transpose(vec.nonzero())
+    for x,y,z,a,b in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz),ind,range(0,nb)):
       a=a[0]
       if abs(s[x,y,z,a,b])<epsilon:
         pass
@@ -406,7 +426,7 @@ class DS:
     :return: out[x,y,z,k,j]=vec[k]/DSM[x,y,z,k,j]
     """
     na,nb=s.shape
-    outDSM=DS(s.nx,s.ny,s.nz,na,nb)
+    outDSM=DS(s.Nx,s.ny,s.nz,na,nb)
     indices=s.nonzero()
     Ni=len(indices[0])
     for l in range(0,Ni):
@@ -498,11 +518,11 @@ class DS:
      the sparse matrix s and zeroes elsewhere.
     """
     (na,nb)=s.d[0,0,0].shape
-    nx=s.nx
-    ny=s.ny
-    nz=s.nz
-    den=np.zeros((nx,ny,nz,na,nb),dtype=np.complex128)
-    for x,y,z in product(range(s.nx),range(s.ny),range(s.nz)):
+    Nx=s.Nx
+    Ny=s.Ny
+    Nz=s.Nz
+    den=np.zeros((N,Ny,Nz,na,nb),dtype=np.complex128)
+    for x,y,z in product(range(s.Nx),range(s.Ny),range(s.Nz)):
       den[x,y,z]=s.d[x,y,z].todense()
     return
   ## Check if the index [i,j,k] is valid.
@@ -592,20 +612,43 @@ class DS:
     return start, newps, newp3, newn
 
 def load_dict(filename_):
-    with open(filename_, 'rb') as f:
-        ret_di = pkl.load(f)
-    return ret_di
+  ''' Load a DS as a dictionary and construct the DS again.
 
-def ref_coef(Mesh,FreeSpace,freq,Znob,refindex):
+  :param filename_: the name of the DS saved
+
+  :math: 'Nx=max(Keys[0])-min(Keys[0])'
+  :math: 'Ny=max(Keys[1])-min(Keys[1])'
+  :math: 'Nz=max(Keys[2])-min(Keys[2])'
+  '''
+  with open(filename_, 'rb') as f:
+    ret_di = pkl.load(f)
+  Keys=ret_di.keys()
+  Nx=max(Keys)[0]-min(Keys)[0]
+  Ny=max(Keys)[1]-min(Keys)[1]
+  Nz=max(Keys)[2]-min(Keys)[2]
+  na=ret_di[0,0,0].shape[0]
+  nb=ret_di[0,0,0].shape[1]
+  ret_ds=DS(Nx,Ny,Nz,na,nb)
+  default_value=SM((na,nb),dtype=np.complex128)
+  for k in Keys:
+    ret_ds.__setitem__(k,ret_di[k])
+  return ret_ds
+
+def ref_coef(Mesh,Znobrat,refindex):
+  ''' Find the reflection coefficients.
+
+  :param Mesh: The DS mesh which contains terms re^(itheta) with theta \
+  the reflection angle of incidence.
+  '''
   print('-------------------------------')
   print('Retrieving the angles of reflection')
   print('-------------------------------')
   AngDSM=Mesh.sparse_angles()                       # Get the angles of incidence from the mesh.
   ind=AngDSM.nonzero()                              # Return the indices for the non-zero terms in the mesh.
   ind=np.transpose(ind)
-  SIN=DS(Mesh.nx,Mesh.ny,Mesh.nz,Mesh.shape[0],Mesh.shape[1])   # Initialise a DSM which will be sin(theta)
-  cthi=DS(Mesh.nx,Mesh.ny,Mesh.nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta)
-  ctht=DS(Mesh.nx,Mesh.ny,Mesh.nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta_t) #FIXME
+  SIN =DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])   # Initialise a DSM which will be sin(theta)
+  cthi=DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta)
+  ctht=DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta_t) #FIXME
   print('-------------------------------')
   print('Computing cos(theta_i) on all reflection terms')
   print('-------------------------------')
@@ -614,25 +657,22 @@ def ref_coef(Mesh,FreeSpace,freq,Znob,refindex):
   print('Computing cos(theta_t) on all reflection terms')
   print('-------------------------------')
   SIN[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.sin(AngDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]) # Compute sin(theta)
-  SIN[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.sin(AngDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]) # Compute sin(theta)
   Div=SIN.dict_DSM_divideby_vec(refindex)             # Divide each column in DSM with refindex elementwise. Set any 0 term to 0.
   ctht[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.cos(np.arcsin(Div[ind[0],ind[1],ind[2],ind[3],ind[4]]))
   print('-------------------------------')
   print('Multiplying by the impedances')
   print('-------------------------------')
-  S1=(cthi).vec_multiply(Znob)                # Compute S1=Znob*cos(theta_i)
-  S2=Z0*ctht                                  # Compute S2=Z0*cos(theta_t)
-  S3=Z0*cthi                                  # Compute S3=Z0*cthi
-  S4=(ctht).vec_multiply(Znob)                # Compute S4=Znob*cos(theta_t)
+  S1=(cthi).vec_multiply(Znobrat)                # Compute S1=Znob*cos(theta_i)
+  S2=(ctht).vec_multiply(Znobrat)                # Compute S2=Znob*cos(theta_t)
   print('-------------------------------')
   print('Computing the reflection coefficients.')
   print('-------------------------------')
-  Sper=(S1-S2)/(S1+S2)                        # Compute the Reflection coeficient perpendicular
-                                              # to the polarisiation S=(S1-S2)/(S1+S2)  S1=(cthi).vec_multiply(Znob)                # Compute S1=Znob*cos(theta_i)
+  Rper=(S1-ctht)/(S1+ctht)                        # Compute the Reflection coeficient perpendicular
+                                                  # to the polarisiation Rper=(Zm/Z0cos(theta_i)-cos(theta_t))/(Zm/Z0cos(theta_i)+cos(theta_t))
 
-  Spar=(S3-S4)/(S3+S4)                        # Compute the Reflection coeficient parallel
-                                              # to the polarisiation S=(S3-S4)/(S3+S4)
-  return Sper, Spar
+  Rpar=(cthi-S2)/(cthi+S2)                        # Compute the Reflection coeficient parallel
+                                                  # to the polarisiation Rpar=(cos(theta_i)-Zm/Z0cos(theta_t))/(cos(theta_i)+Zm/Z0cos(theta_t))
+  return Rper, Rpar
 
 
 
@@ -644,9 +684,9 @@ def parnonzero():
   nj=4
   DS=test_03(n,n,n,int(Nob*Nre+1),int((Nre)*(Nra)+1))
   #p = Process(target=nonzeroMat, args=(cor,DS))
-  x=np.arange(0,DS.nx,1)
-  y=np.arange(0,DS.ny,1)
-  z=np.arange(0,DS.nz,1)
+  x=np.arange(0,DS.Nx,1)
+  y=np.arange(0,DS.Ny,1)
+  z=np.arange(0,DS.Nz,1)
   coords=np.transpose(np.meshgrid(x,y,z))
   with Pool(processes=nj) as pool:         # start 4 worker processes
     ind=pool.map(DS.nonzeroMat, product(range(DS.nx),range(DS.ny),range(DS.nz)))      # prints "[0, 1, 4,..., 81]"
@@ -668,35 +708,35 @@ def test_00():
   print(ds[1,2,3][0,0])
 
 ## Test creation of dictionary containing sparse matrices
-def test_01(nx=3,ny=2,nz=1,na=5,nb=6):
-  ds=DS(nx,ny,nz,na,nb)
+def test_01(Nx=3,Ny=2,Nz=1,na=5,nb=6):
+  ds=DS(Nx,Ny,Nz,na,nb)
 
 ##  test creation of matrix and adding on element
-def test_02(nx=7,ny=6,nz=1,na=5,nb=6):
-  ds=DS(nx,ny,nz,na,nb)
+def test_02(Nx=7,Ny=6,Nz=1,na=5,nb=6):
+  ds=DS(Nx,Ny,Nz,na,nb)
   ds[0,3,0,:,0]=2+3j
   print(ds[0,3,0])
 
 ## Test creation of diagonal sparse matrices contained in every position
-def test_03(nx,ny,nz,na,nb):
-  ds=DS(nx,ny,nz,na,nb)
-  for x,y,z,a in product(range(nx),range(ny),range(nz),range(na)):
+def test_03(Nx,Ny,Nz,na,nb):
+  ds=DS(Nx,Ny,Nz,na,nb)
+  for x,y,z,a in product(range(Nx),range(Ny),range(Nz),range(na)):
     if a<nb:
       ds[x,y,z,a-1,a-1]=complex(a,a)
   return ds
 
 ## Test creation of first column sparse matrices contained in every position
-def test_03b(nx,ny,nz,na,nb):
+def test_03b(Nx,Ny,Nz,na,nb):
   ds=DS(nx,ny,nz,na,nb)
-  for x,y,z,a in product(range(nx),range(ny),range(nz),range(na)):
+  for x,y,z,a in product(range(Nx),range(Ny),range(Nz),range(na)):
     if a<nb:
       ds[x,y,z,a-1,2]=complex(a,a)
   return ds
 
 ## Test creation of lower triangular sparse matrices contained in every position
-def test_03c(nx,ny,nz,na,nb):
+def test_03c(Nx,Ny,Nz,na,nb):
   ds=DS(nx,ny,nz,na,nb)
-  for x,y,z,a in product(range(nx),range(ny),range(nz),range(na)):
+  for x,y,z,a in product(range(Nx),range(N),range(Nz),range(na)):
     if a<nb:
       for ai in range(a-1,na):
         ds[x,y,z,ai,a-1]=complex(a,a)
@@ -786,13 +826,13 @@ def test_10():
 
 ## Extract reflection angles from DS
 def test_11():
-  nx=1
-  ny=1
-  nz=1
+  Nx=1
+  Ny=1
+  Nz=1
   na=1000
   nb=1000
-  DSM=test_03c(nx,ny,nz,na,nb)
-  for i,j,k in product(range(nx),range(ny),range(nz)):
+  DSM=test_03c(Nx,Ny,Nz,na,nb)
+  for i,j,k in product(range(Nx),range(Ny),range(Nz)):
       M=DSM[i,j,k]
       AngM=sparse_angles(M)
   #print(AngM)
@@ -800,13 +840,13 @@ def test_11():
 
 ## Extract the cos of the reflection angles of the DS
 def test_12():
-  nx=2
-  ny=2
-  nz=1
+  Nx=2
+  Ny=2
+  Nz=1
   na=3
   nb=3
-  DSM=test_03c(nx,ny,nz,na,nb)
-  for i,j,k in product(range(nx),range(ny),range(nz)):
+  DSM=test_03c(Nx,Ny,Nz,na,nb)
+  for i,j,k in product(range(Nx),range(Ny),range(Nz)):
       M=DSM[i,j,k]
       indices=M.nonzero()
       CosAngM=SM(M.shape,dtype=float)
@@ -816,63 +856,64 @@ def test_12():
 
 ## Attempt to find angle of nonzero element of SM inside dictionary
 def test_13():
-  nx=2
-  ny=2
-  nz=1
+  Nx=2
+  Ny=2
+  Nz=1
   na=3
   nb=3
-  DSM=test_03c(nx,ny,nz,na,nb)
+  DSM=test_03c(Nx,Ny,Nz,na,nb)
   ang=dict_sparse_angles(DSM)
   return 1
 
 ## Attempt to compute Reflection Coefficents on DS
 def test_14():
-  ds=test_03(8,6,1,11,6)                       # test_03() initialises a
+  ''' This is a test of the reflection coefficient function.
+  It sets test versions for the input parameters required and fills a DS \
+  with dummy values.
+  It then computes the reflection coefficients associated with those \
+  dummy parameters and values.
+  '''
+  Nre=7                                        # Number of reflections
+  Nob=12                                       # The Number of obstacle.
+  Nra=100                                      # Number of rays
+  na=Nob*Nre+1                                 # Number of rows in each SM in the DS
+  nb=Nre*Nra+1                                 # Number of columns in each SM in the DS
+  Nx=5                                         # Number of x spaces
+  Ny=5
+  Nz=5
+  ds=test_03( Nx , Ny , Nz , na , nb )         # test_03() initialises a
                                                # DSM with values on the
                                                # diagonal of each mesh element
-  Nb=ds.shape[1]                               # Number of columns on each Mesh element
-  Nre=1                                        # Number of reflections
-  Nob=int((ds.shape[0]-1)/(Nre+1))             # The Number of obstacle.
-  mur=np.full((Nob,1), complex(1.0,0))         # For this test mur is
+  mur=np.full((Nob,1), complex(3.0,0))         # For this test mur is
                                                # the same for every obstacle.
                                                # Array created to get functions correct.
-  epsr=np.full((Nob,1),complex(3.6305,7.41E-2))# For this test epsr is the
+  epsr=np.full((Nob,1),complex(2.9493, 0.1065))         # For this test epsr is the
                                                # same for every obstacle
-  sigma=np.full((Nob,1),1.0E-2)                # For this test sigma is the
+  sigma=np.full((Nob,1),0)                # For this test sigma is the
                                                # same for every obstacle
 
   # PHYSICAL CONSTANTS
   mu0=4*np.pi*1E-6
   c=2.99792458E+8
   eps0=1/(mu0*c**2)#8.854187817E-12
-  Z0=(mu0/eps0)**0.5 #120*np.pi
+  Z0=(mu0/eps0)**0.5 #120*np.pi Characteristic impedance of free space.
 
   # CALCULATE PARAMETERS
-  frequency=2*np.pi*2.43E+9                       # 2.43 GHz
-  gamma=np.sqrt(np.divide(complex(0,frequency*mu0)*mur,np.multiply(sigma,eps0*frequency*complex(0,1)*epsr)))
-  Znob=Z0*np.divide((1+gamma),(1-gamma)   )   # Characteristic impedance of the obstacles
+  frequency=2*np.pi*2.79E+08                   # 2.43 GHz
+  top=complex(0,frequency*mu0)*mur
+  bottom=sigma+complex(0,eps0*frequency)*epsr
+  Znob =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
+  del top, bottom
   Znob=np.tile(Znob,Nre)                      # The number of rows is Nob*Nre+1. Repeat Nob
   Znob=np.insert(Znob,0,complex(0.0,0.0))     # Use a zero for placement in the LOS row
   #Znob=np.transpose(np.tile(Znob,(Nb,1)))    # Tile the obstacle coefficient number to be the same size as a mesh array.
+  Znobrat=Znob/Z0
   refindex=np.sqrt(np.multiply(mur,epsr))     # Refractive index of the obstacles
   refindex=np.tile(refindex,Nre)
   refindex=np.insert(refindex,0,complex(0,0))
 
-  AngDSM=ds.sparse_angles()
-  ind=AngDSM.nonzero()
-  ind=np.transpose(ind)
-  SIN=DS(ds.nx,ds.ny,ds.nz,ds.shape[0],ds.shape[1])
-  S1=DS(ds.nx,ds.ny,ds.nz,ds.shape[0],ds.shape[1])
-  S2=DS(ds.nx,ds.ny,ds.nz,ds.shape[0],ds.shape[1])
-  S1=(AngDSM.cos()).vec_multiply(Znob)
-  SIN[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.sin(AngDSM[ind[0],ind[1],ind[2],ind[3],ind[4]])
-  Div=SIN.dict_DSM_divideby_vec(refindex)
-  S2[ind[0],ind[1],ind[2],ind[3],ind[4]]=Z0*np.cos(np.arcsin(Div[ind[0],ind[1],ind[2],ind[3],ind[4]]))
-  S=(S1-S2)/(S1+S2)
-  # Znob[nonzero]*Cos(AngDSM[nonzero])+Z1cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
-  # Z1*Cos(AngDSM[nonzero])-Znob[nonzero]cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
-  # Divide
-  # Z1*Cos(AngDSM[nonzero])+Znob[nonzero]cos(asin(sin(AngDSM[nonzero])/ref[nonzero]))
+  Rper,Rpar=ref_coef(ds,Znobrat,refindex)
+  print(Rper,Rpar)
   return
 
 ## Timing nonzero indexing
@@ -902,8 +943,26 @@ def test_17():
   out=parnonzero()
   return
 
+def test_18():
+  '''Testing the save and load pickle functions. '''
+  Nre=7                                        # Number of reflections
+  Nob=12                                       # The Number of obstacle.
+  Nra=100                                      # Number of rays
+  na=Nob*Nre+1                                 # Number of rows in each SM in the DS
+  nb=Nre*Nra+1                                 # Number of columns in each SM in the DS
+  Nx=5                                         # Number of x spaces
+  Ny=5
+  Nz=10
+  ds=test_03( Nx , Ny , Nz , na , nb )         # test_03() initialises a
+                                               # DSM with values on the
+                                               # diagonal of each mesh element
+  filename=str('testDS')
+  ds.save_dict(filename)
+  ds=load_dict(filename)
+  return
+
 if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   #job_server = pp.Server()
-  test_14()
+  test_18()
