@@ -96,7 +96,7 @@ class room:
   # @return s.points[i]
   def get_meshwidth(s,Mesh):
     if abs(s.meshwidth)<epsilon:
-      return s.maxlength[1]/Mesh.nx
+      return s.maxlength[1]/Mesh.Nx
     else:
       return s.meshwidth
   ## Add a new obst to the room.
