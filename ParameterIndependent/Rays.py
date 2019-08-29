@@ -19,12 +19,13 @@ import sys
 epsilon=sys.float_info.epsilon
 
 class Ray:
-  ''' A ray is a representation of the the trajectory of a reflecting line
-  and its reflections.
+  ''' A ray is a representation of the the trajectory of a reflecting \
+  line and its reflections.
   Ray.points is an array of co-ordinates representing
   the collision points with the last term being the direction the ray ended in.
   And Ray.reflections is an array containing tuples of the angles of incidence
   and the number referring to the position of the obstacle in the obstacle list
+
   '''
   def __init__(s,origin,direc):
     s.points=np.vstack(
@@ -106,7 +107,46 @@ class Ray:
                             # that would fit in that distance.
      return Nc
   def normal_mat(s,Ncones,Nra,d,dist,h):
-     ''' Form a matrix of vectors representing the plane which is normal to d '''
+     ''' Form a matrix of vectors representing the plane which is \
+     normal to d
+
+     * Normalise the direction of the ray :math:`d=d/||d||`
+     * Calculate angle spacing between rays \
+     :math:`deltheta=2\\arcsin(\frac{1}{Ncones})`
+     * Calculate the number of normals. \
+     :math:`Nnor=1+\frac{(2\\pi)}{deltheta}`
+     * Create an array of all the angles.
+
+     .. code::
+
+        anglevec=np.linspace(0.0,2*ma.pi,num=int(Nnor), endpoint=False)
+
+     * The dot product of the direction and the normal needs to be 0.\
+     Choose :math:`(1,1,-(dx+dy)/dz)` as the first vector \
+     (unless dz==0). Use this to compute another vector in the plane. \
+     This forms a co-ordinate axis for the normal vectors.
+     ..  code::if :math:`dz!=0`
+         p=(1,1,-(dx+dy)/dz)
+         N[0]=(1/||p||)*p
+         y=N[0] x d
+         y=(1/||y||)*y
+     If dz==0 then instead choose the vector :math:`(0,0,1)` and \
+     repeat the process for the additional axis vector.
+     .. code::
+        N[0]=(0,0,1)
+        y=N[0] x d
+        y=(1/||y||)*y
+
+     * Use the ais vectors as multiples of :math:`\\cos(\\theta)` \
+     :math:`\\sin(\\theta)` to form equally space vectors.
+
+     .. code::
+
+       N=cos(anglevec)* N[0]+sin(anglevec)*y
+
+     :returns: N
+
+     '''
      d=d/np.linalg.norm(d)                  # Normalise the direction of the ray
      deltheta=2*np.arcsin(1/Ncones)         # Calculate angle spacing so that
                                             # the ends of the cone are less than two meshwidth apart.
@@ -127,22 +167,27 @@ class Ray:
                                                                           # and cos(theta) parts.
      return Norm
   def reflect_calc(s,room):
-    ''' finds the reflection of the ray inside a room'''
+    ''' Finds the reflection of the ray inside a room.
+
+    Method:
+
+    * If: the previous collision point was None then don't find the /
+    next one.
+    * Else:
+
+    '''
     if any(c is None for c in s.points[-1][0:2]):
       # If there was no previous collision point then there won't
       # be one at the next step.
-      #print('no cp at previous stage', s.points[-2:-1])
       s.points=np.vstack((s.points,np.array([None, None, None, None])))
-      return 0
+      return 1
     cp, nob=s.room_collision_point(room)
     # Check that a collision does occur
     if any(p is None for p in cp):
-      #print('no cp at collision ',len(s.points)-2,' before reflection.')
-      #print('Collision point ',cp,' Previous instersection ', s.points[-2:-1])
       # If there is no collision then None's are stored as place holders
       # Replace the last point of the ray instead of keeping the direction term.
       s.points=np.vstack((s.points[0:-1],np.array([None, None, None, None]),np.array([None, None, None, None])))
-      return 0
+      return 1
     else:
       # Construct the incoming array
       origin=s.points[-2][0:3]
@@ -152,49 +197,166 @@ class Ray:
       # Update intersection point list
       s.points[-1]=np.append(cp, [nob])
       s.points=np.vstack((s.points,np.append(lf.Direction(refray),[0])))
-      return 1
+      return 0
   def ref_angle(s,room):
-    '''Find the reflection angle of the most recent intersected ray.'''
+    '''Find the reflection angle of the most recent intersected ray.
+
+    :param room: :py:mod:`Room`. :py:class:`room` object which \
+    contains all the obstacles in the room.
+
+    Use the ray number stored in s.points[-2][-1] to retrieve \
+    the obstacle number then retrieve that obstacle from room.
+
+    .. code::
+
+       norm=edge1 x edge2
+
+       c = (ray_direc . norm ) / (||ray_direc|| ||norm||)
+
+       theta=arccos(c)
+
+    :rtype: float
+
+    :return: theta
+
+    '''
     nob=s.points[-2][-1]
     direc=s.points[-1][0:3]
     obst=room.obst[int(nob-1)]
     norm=np.cross(obst[1]-obst[0],obst[2]-obst[0])
-    check=(np.inner(direc,norm)/(np.linalg.norm(direc)*np.linalg.norm(norm)))
-    theta=ma.acos(check)
+    unitnorm=norm/(np.linalg.norm(norm))
+    check=(np.linalg.norm(direc)*np.linalg.norm(unitnorm))
+    if abs(check-0.0)<=epsilon:
+      raise ValueError('direction or normal has no length')
+    else:
+      nleng=np.linalg.norm(unitnorm)
+      dleng=np.linalg.norm(direc)
+      cleng=np.linalg.norm(unitnorm-direc)
+      frac=(dleng**2+nleng**2-cleng**2)/(2*nleng*dleng)
+    theta=ma.acos(frac)
     return theta
-  def multiref(s,room,m):
-    ''' Takes a ray and finds the first five reflections within a room'''
-    for i in range(0,m+1):
+  def multiref(s,room,Nre):
+    ''' Takes a ray and finds the first five reflections within a room.
+
+    :param room: :py:class:`Room.room` object which \
+    contains all the obstacles in the room.
+
+    :param Nre: The number of reflections. Integer value.
+
+    Using the function :py:func:`reflect_calc(room)` find the \
+    co-ordinate of the reflected ray. Store this in s.points \
+    and return whether the function was successful.
+
+    :rtype: 3x1 numpy array.
+
+    :return: end=1 if unsuccessful, 0 is successful.
+
+    '''
+    for i in range(0,Nre+1):
       end=s.reflect_calc(room)
     return
   def mesh_multiref(s,room,Nre,Mesh,Nra,nra):
     ''' Takes a ray and finds the first Nre reflections within a room.
     As each reflection is found the ray is stepped through and
     information added to the Mesh.
-    Inputs: Room- Obstacle co-ordinates, Nre- Number of reflections,
-    Mesh- 3D array with each element corresponding to a sparse matrix.
-    Nra- Total number of rays.'''
+    :param room: Obstacle co-ordinates, :py:mod:`Room`. :py:class:`room`.
+    :param Nre: Number of reflections, integer.
+    :param Mesh: A grid with corresponding sparse matrices, this \
+    is a :py:mod:`DictionarySparseMatrix`. :py:class:`DS` object.
+    :param Nra: Total number of rays, integer.
+
+    Method:
+
+    * Create a temporary vector vec.
+    * For each ray segment use \
+    :py:func:`mesh_singleray(room,Mesh,dist,vec,Nra,Nre,nra)` to \
+     segment storing r*calcvec in the Mesh. With r being the distance \
+     ray travelled to get  centre of the grid point the ray has gone \
+     through.
+
+    :returns: Mesh
+
+    '''
     # The ray distance travelled starts at 0.
     dist=0
     # Vector of the reflection angle entries in relevant positions.
-    calcvec=SM((Mesh.shape[0],1),dtype=np.complex128)
+    vec=SM((Mesh.shape[0],1),dtype=np.complex128)
     for nre in range(0,Nre+1):
       end=s.reflect_calc(room)
-      if end:
-          Mesh,dist,calcvec=s.mesh_singleray(room,Mesh,dist,calcvec,Nra,Nre,nra)
+      if abs(end)<epsilon:
+          Mesh,dist,vec=s.mesh_singleray(room,Mesh,dist,vec,Nra,Nre,nra)
       else: pass
+    del dist,vec
     return Mesh
   def mesh_singleray(s,room,Mesh,dist,calcvec,Nra,Nre,nra):
-    ''' Iterate between two intersection points and store the ray information in the Mesh '''
+    ''' Iterate between two intersection points and store the ray \
+    information in the Mesh
+
+    :param room: :py:mod:`Room`. :py:class:`room` object which \
+    contains the co-ordinates of the obstacles.
+    :param Mesh: :py:mod:`DictionarySparseMatrix`. :py:class:`DS` \
+    which will store all of the ray information.
+    :param dist: A scalar variable which is the distance the ray \
+    travelled at the start of the ray segment.
+    :param calcvec: A vector containing :math:`e^{i\theta}` terms \
+    for reflection angles :math:`\theta`. These terms are stored \
+    in row nre*Nob+nob with nre being the current reflection number, \
+    Nob the maximum obstacle number and nob the number of the \
+    obstacle which was hit with the corresponding angle.
+    :param Nra: Total number of rays.
+    :param Nre: Maximum number of reflections.
+    :param nra: Current ray number.
+
+    Method:
+
+    * Calculate :math:`\\theta` the reflection angle using \
+    :func:`reflect_angle(room)`.
+    * Find the number of steps :math:`Ns` to the end of the ray segment \
+    using :py:func:`number_steps(meshwidth)`.
+    * Compute an array of normal vectors representing the ray cone.
+    * Check the reflection number:
+      * If 0 then the :math:`calcvec[0]` term is 1.
+      * ElseIf 1 then set :math:`calcvec[0]=0` and \
+      :math:`calcvec[nre*Nob+nob]=e^{i \\theta}`.
+      * Else set :math:`calcvec[nre*Nob+nob]=e^{i \\theta}`.
+
+    * Step along the ray, For :math:`m1\\in[0,Ns):`
+      * Check if the ray point is outside the domain.
+      * Calculate the co-ordinate of the centre.
+      * Recalculate distance to be for the centre point \
+      :math:`Mesh[i1,j1,k1,:,col]=np.sqrt(np.dot((p0-p2),(p0-p2)))*calcvec`.
+      * For each normal:
+        * Find the next cone point :math:`p3` from the previous point \
+        :math:`p1`, using the distance through a grid cube \
+        :math:`\\alpha`. This is given by:math:`p3=p1+m2*\\alpha*norm`.
+        * Find the co-ordinate for the centre of the grid point z
+        corresponding to the :math:`p3`'s.
+        * Find the distance to this centre point.
+        * Set the column :math:`nra*Nre+nre` of the mesh term at \
+        these grid points to the distance times the vector of \
+        reflection angles.
+
+        .. code::
+
+           Mesh[cpos[0][j],cpos[1][j],cpos[2][j],:,col]=r2[j]*calcvec
+
+      * Find the co-ordinate for the next ray point. \
+      :math:`p1=p1+alpha*direc`.
+
+    :returns: Mesh, dist, calcvec
+
+    '''
     # --- Set initial terms before beginning storage steps -------------
     nre=len(s.points)-3         # The reflection number of the current ray
     h=room.get_meshwidth(Mesh)  # The Meshwidth for a room with Mesh spaces
+    nob=s.points[-2][-1]        # The obstacle number of the last reflection
 
     # Compute the direction - Since the Ray has reflected but we are
     # storing previous information we want the direction of the ray which
     # hit the object not the outgoing ray.
     direc=lf.Direction(np.array([s.points[-3][0:3],s.points[-2][0:3]]))
-
+    col=int(Nra*nre+nra)
+    del nra
     if abs(direc.any()-0.0)>epsilon:                       # Before computing the dist travelled through a mesh cube
                                                            # check the direction isn't 0.
       alpha=h/max(abs(direc))                              # Find which boundary of a unit cube gets hit first when
@@ -213,6 +375,7 @@ class Ray:
     del segleng                                            # This distance is no longer needed.
     norm=s.normal_mat(Nc,Nra,direc,dist,h)                 # Matrix of normals to the direc, all of distance 1 equally
                                                            # angle spaced
+    del Nc
     Nnor=len(norm)                                         # The number of normal vectors
     # Add the reflection angle to the vector of  ray history. s.points[-2][-1] is the obstacle number of the last hit.
     if nre==0:                                             # Before reflection use a 1 so that the distance is still stored
@@ -220,28 +383,29 @@ class Ray:
     elif nre==1:                                           # The first reflection needs to reset and start storing
                                                            # reflection coefficients.
       calcvec[0]=0                                         # Reset the first term which was only for line of sight
-      calcvec[int((nre-1)*room.Nob+s.points[-2][-1])]=np.exp(1j*theta)  # Use a complex exponential to store the reflection
+      calcvec[int((nre-1)*room.Nob+nob)]=np.exp(1j*theta)  # Use a complex exponential to store the reflection
                                                            # angle. This will allow us to multiply by the distance and
                                                            # store both pieces of information in the same place.
     else:
-      calcvec[int((nre-1)*room.Nob+s.points[-2][-1])]=np.exp(1j*theta) # After the first reflection all reflection angles
-                                                           # continue to be stored in calcvec.
-    for m1 in range(0,Ns):                                   # Step through the ray
+      calcvec[int((nre-1)*room.Nob+nob)]=np.exp(1j*theta)  # After the first reflection all reflection angles
+    del nre, nob, theta                                    # continue to be stored in calcvec.
+    for m1 in range(0,Ns):                                 # Step through the ray
       stpch=Mesh.stopcheck(i1,j1,k1,endposition,h)         # Check if the ray point is outside the domain.
       if m1>0:                                             # After the first step check that each iteration is moving into
                                                            # a new element.
         if i2==i1 and j2==j1 and k2==k1:                   # If the indices are equal pass as no new element.
           pass
         else:
-          i2=i1                                            # Reset the check indices for the next check.
-          j2=j1
-          k2=k1
-      if stpch:                                            # stpch==1 if the positions are valid.
+          i1=i2                                            # Reset the check indices for the next check.
+          j1=j2
+          k1=k2
+      if stpch:
+        del stpch                                          # stpch==1 if the positions are valid.
         p2=room.coordinate(h,i1,j1,k1)                     # Calculate the co-ordinate of the center
                                                            # of the element the ray hit.
-        Mesh[i1,j1,k1,:,nra*Nre+nre]=np.sqrt(np.dot((p0-p2),(p0-p2)))*calcvec  # Recalculate distance to
+        Mesh[i1,j1,k1,:,col]=np.sqrt(np.dot((p0-p2),(p0-p2)))*calcvec  # Recalculate distance to
                                                            # be for the centre point
-        Nc=s.number_cone_steps(deldist,dist,Nra)           # No. of cone steps required for this ray step.
+        #Nc=s.number_cone_steps(deldist,dist,Nra)           # No. of cone steps required for this ray step.
         for m2 in range(Nnor):
           p3=np.tile(p1,(Nnor,1))+m2*alpha*norm             # Step along all the normals from the ray point p1.
           conepositions=room.position(p3,h)                # Find the indices corresponding to the cone points.
@@ -266,22 +430,26 @@ class Ray:
             r2=np.divide(r1,(np.cos(np.arctan(np.divide(alpha2,r1)))))
             #FIXME try to set them all at once not one by one
             for j in range(0,n):
-              Mesh[conepositions[0][j],conepositions[1][j],conepositions[2][j],:,nra*Nre+nre]=r2[j]*calcvec
+              Mesh[conepositions[0][j],conepositions[1][j],conepositions[2][j],:,col]=r2[j]*calcvec
           else:
             # There are no cone positions
             pass
         # Compute the next point along the ray
       else: break                                         # In this instance stpch==0 and end of ray
-      p1=p1+alpha*direc
-      dist=dist+deldist
+      #del Nc
+      p1+=alpha*direc
+      dist+=deldist
       i2,j2,k2=room.position(p1,h)
       #FIXME check if the position is the same as the previous
       #FIXME don't stop at the end as the cone needs to be filled.
       if lf.length(np.array([p1,s.points[-2][0:3]]))<h:
         break
+    del Nnor, Ns, i2, j2, k2, p1, h, alpha, direc,p2, p3, conepositions
+    del start, normlengths, normdot, r1, n, Mult, alpha2, r2,
+    print(Mesh.__self_eq__())
     return Mesh,dist,calcvec
   def raytest(s,room,err):
-    ''' Checks the reflection for errors'''
+    ''' Checks the reflection function for errors'''
     cp,wall=s.room_collision_point(room)
     # Check that a collision does occur
     if cp[0] is None: return
@@ -297,40 +465,3 @@ class Ray:
       s.ray=np.vstack((s.ray,lf.Direction(refray)))
       #print('ray',ray, 'refray', refray, 'error', err)
     return err
-# --- Archive reflect function
-# def reflect(s,room):
-    # ''' finds the reflection of the ray inside a room'''
-    # if any(c is None for c in s.points[-1][0:2]):
-      # # If there was no previous collision point then there won't
-      # # be one at the next step.
-      # #print('no cp at previous stage', s.points[-2:-1])
-      # s.points=np.vstack((s.points,np.array([None, None, None, None])))
-      # return 0
-    # cp,obst,nob=s.room_collision_point(room)
-    # # Check that a collision does occur
-    # if any(p is None for p in cp):
-      # #print('no cp at collision ',len(s.points)-2,' before reflection.')
-      # #print('Collision point ',cp,' Previous instersection ', s.points[-2:-1])
-      # # If there is no collision then None's are stored as place holders
-      # # Replace the last point of the ray instead of keeping the direction term.
-      # s.points=np.vstack((s.points[0:-1],np.array([None, None, None, None]),np.array([None, None, None, None])))
-      # return 0
-    # elif obst is None:
-      # #print('no ob',s.points[1])
-      # # Replace the last point of the ray instead of keeping the direction term.
-      # s.points=np.vstack((s.points[0:-1],np.array([None, None, None, None]),np.array([None, None, None, None])))
-      # return 0
-      # #print('ray:',s.points)
-      # #raise Error('Collision should occur')
-    # else:
-      # # Construct the incoming array
-      # origin=s.points[-2][0:3]
-      # ray=np.array([origin,cp])
-      # # The reflection function returns a line segment
-      # refray=ref.try_reflect_ray(ray,obst) # refray is the intersection point to a reflection point
-      # # update self...
-      # s.points[-1]=np.append(cp, [nob])
-      # s.points=np.vstack((s.points,np.append(lf.Direction(refray),[0])))
-    # return 1
-
-
