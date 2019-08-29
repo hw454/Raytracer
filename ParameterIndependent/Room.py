@@ -20,27 +20,31 @@ import sys
 
 epsilon=sys.float_info.epsilon
 
-# class obstacle_segment:
-  # ' a line segment from p0 to p1 '
-  # def __init__(s,p0,p1):
-    # assert not (p0==p1).all()
-    # s.p=np.vstack(
-      # (np.array(p0,dtype=np.float),
-       # np.array(p1,dtype=np.float),
-    # ))
-  # def __getitem__(s,i):
-    # return s.p[i]
-  # def firstpoint(s):
-    # return s.p[0]
-  # def secondpoint(s):
-    # return s.p[1]
-  # def __str__(s):
-    # return 'Wall_segment('+str(list(s.p))+')'
-
-## \class room Room.py
-# A room is given by a an array of obstacles. Each obst is a triangle
-# formed of 3, 3D co-ordinates.
 class room:
+  ''' A room is where the obstacle co-ordinates are contained.
+
+  :param obst: is a Nobx3x[3x1] array, where Nob is the number of \
+    obstacles.
+
+  obst[j] is a 3x[3x1] array which is 3, 3D co-ordinates \
+  which form a triangle.
+
+  This array of triangles forms the obstacles in the room.
+
+  Attributes of room:
+    * s.obst=obst
+    * .points[3*j]=obst[j][0]
+    * s.maxlength is a 4x1 array initialised as empty. Once assigned \
+    this is the maximum length in theroom and in the x, y, and z axis.
+    *  s.bounds is a 3x2 array \
+    :math:`s.bounds= [ [minx, miny, minz], [maxx,maxy,maxz]]`
+    * s.inside_points is an initial empty array. Points which are known \
+    to be inside obstacles are added to this array later.
+    * s.time is an array with the time the room was created.
+    * s.meshwidth is initialised as zero but is stored once asked for \
+    using get_meshwidth.
+
+  '''
   ## Constructor
   # @param obst is a Nobx3x[3x1] array, where Nob is the number of
   # obstacles. obst[j] is a 3x[3x1] array which is 3, 3D co-ordinates
@@ -134,6 +138,17 @@ class room:
   # length between points in s.points.
   # @return s.maxlength[a]
   def maxleng(s,a=0):
+    ''' Get the maximum length in the room or axis.
+
+    :param a: the axis or room. a=0 maximum length in room, a=1 for \
+    x-axis, a=2 for y-axis a=3 for z-axis.
+
+    If the maxlength[a] hasn't been found yet find it by comparing the \
+    between points in s.points.
+
+    :return: s.maxlength[a]
+
+    '''
     # Has the maxlength in the room been found yet? If no compute it.
     if abs(s.maxlength[a])<epsilon:
       leng=0
@@ -172,6 +187,28 @@ class room:
   # out=[(p0-[minx,miny,minz])//h,...,(pn-[minx,miny,minz])//h]
   # @return out
   def position(s,p,h):
+    ''' Find the indexing position in a mesh with width h for point p \
+    lying in the room s.
+
+    :param p: =[x,y,z] the co-ordinate of the point p or an array of
+    :math:`points p=[[x0,y0,z0],...,[xn,yn,zn]]`
+    :param h: is the meshwidth, once assigned this matches s.meshwidth
+
+    If p is one point,
+
+    .. code::
+
+       out=(p-[minx,miny,minz])//h,
+
+    If p is an array of points,
+
+    .. code::
+
+       out=[(p0-[minx,miny,minz])//h,...,(pn-[minx,miny,minz])//h]
+
+    :return: out
+
+    '''
     if isinstance(p[0],float): n=1
     elif isinstance(p[0],int): n=1
     else:
@@ -201,6 +238,35 @@ class room:
   # [minx,miny,minz] +h*[in+0.5,jn+0.5,kn+0.5 ]\f$ \endelseif
   # @return p
   def coordinate(s,h,i,j,k):
+    ''' Find the co-ordinate of the point at the centre of the element.
+
+    :param h: the meshwdith. Once assigned this matches s.meshwidth
+
+    :param i: the first index or an array corresponding to the first \
+    index for multiple points.
+
+    :param j: the second index or an array corresponding to the second \
+    index for multiple points.
+
+    :param k: the third index or an array corresponding to the third \
+    index for multiple points.
+
+    If there is only 1 i, 1 j, and 1 k,
+
+    .. code::
+
+       p=[minx,miny,minz] +h*[i+0.5,j+0.5,k+0.5]
+
+    ElseIf there's arrays for i,j, and k,
+
+    .. code::
+
+       p=[[minx,miny,minz] +h*[i0+0.5,j0+0.5,k0+0.5],...,
+         [minx,miny,minz] +h*[in+0.5,jn+0.5,kn+0.5 ]
+
+    :return: p
+
+    '''
     if isinstance(i,(float,int,np.complex128,np.int64)): n=1
     else:
       n=len(i)
@@ -236,6 +302,38 @@ class room:
  # to complete the function.
  # @return raylist, Mesh
   def ray_mesh_bounce(s,Tx,Nre,Nra,directions,Mesh):
+    ''' Traces ray's uniformly emitted from an origin around a room.
+
+    :param Tx: the co-ordinate of the transmitter location
+    :param Nra: Number of rays
+    :param Nre: number of reflections
+    :param directions: Nra*3 array of the initial direction for \
+    each ray.
+    :param Mesh: a Nx*Ny*Nz*na*nb array (actually a dictionary of \
+    sparse matrices using class DS but built to have similar \
+    structure to an array).
+
+    .. code::
+
+       na=int(Nob*Nre+1), nb=int((Nre)*(Nra)+1)
+
+    The rays are reflected Nre times with the obstacles s.obst. \
+    The points of intersection with the obstacles are stored in z
+    raylist. This is done using the mesh_multiref function.
+    As each intersection is found the mesh_multiref function \
+    forms the line segment between intersection points and the \
+    corresponding ray cone. All mesh elements in the ray cone store \
+    the reflection angles and the distance along the ray cone from the \
+    source to the centre of each mesh element. This is stored in Mesh.
+    See :py:func:`Rays.mesh_multiref` for more details on the \
+    reflections and storage.
+
+    When complete the time in s.time() is assigned to the time taken \
+    to complete the function.
+
+    :return: raylist, Mesh
+
+    '''
     start_time    =t.time()         # Start the time counter
     r             =s.maxleng()
     raylist       =np.empty([Nra+1, Nre+1,4])
@@ -262,6 +360,23 @@ class room:
  # raylist=[[p00,p01,...,p0Nre],[p10,...,p1Nre],...,[pNra0,...,pNraNre]]
  #  \f$
   def ray_bounce(s,Tx,Nre,Nra,directions):
+    ''' Trace ray's uniformly emitted from an origin around a room.
+
+    :param Nra: Number of rays
+    :param Nre: number of reflections Nre
+    :param directions: A Nra*3 array of the initial directions \
+    for each ray.
+
+    The multiref function is used to find the Nre reflections for \
+    the Nra rays with the obstacles s.obst.
+
+    :math:`raylist=[[p00,p01,...,p0Nre],[p10,...,p1Nre],...,[pNra0,...,pNraNre]]`
+
+    :rtype: An array of the ray points.
+
+    :return: raylist
+
+    '''
     start_time    =t.time()         # Start the time counter
     r             =s.maxleng()
     directions    =r*directions
