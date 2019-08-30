@@ -6,17 +6,20 @@
 Welcome to DSMRayTracerDoc's documentation!
 ===========================================
 
-Contents:
-
 .. toctree::
    :maxdepth: 2
+
+   Main Program
+   Input of the parameters
+   Ray class
+   Room class
+   Mesh class
+   Reflection function
 
 Main Program
 ============
 .. automodule:: RayTracerMainProgram
    :members:
-
-This is something I want to say that is not in the docstring.
 
 Input the parameters
 ====================
@@ -46,6 +49,7 @@ Reflection
 
 Indices and tables
 ==================
+Write an rst file for the notation.
 
 * :ref:`genindex`
 * :ref:`modindex`
