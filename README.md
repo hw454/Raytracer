@@ -4,7 +4,7 @@ ParameterIndependent:
 The current Raytracer uses a method for iterating along rays and storing information then outputs a mesh. This mesh is then input into another function to compute power.
 To run the program run "RayTracerMainProgram.py".
 To change any parameters edit "ParameterInput.py"
-- To edit the ray tracer parameters (number of rays, number of grid points, number of reflections, length scale) edit "DeclarParameters()".
+- To edit the ray tracer parameters (number of rays, number of grid points, number of reflections, length scale) edit "DeclareParameters()".
 - To edit the geometry edit "DeclareParameters()"
 - To edit obstacle coefficients edit "ObstacleCoefficients()"
 - To edit antenna gains or wavelength edit "ObstacleCoefficients()"
