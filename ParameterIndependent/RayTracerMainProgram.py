@@ -1,6 +1,34 @@
 #!/usr/bin/env python3
 # Updated Hayley Wragg 2019-03-15
-''' Code to trace rays around a room. This code computes the trajectories only.'''
+''' Code to trace rays around a room. This code uses:
+
+  * the function :py:func:`RayTracer` to compute the points for \
+  the ray trajectories.
+  * the function :py:func:`MeshProgram` to compute the points for \
+  the ray trajectories and iterate along the rays storing the \
+  information in a :py:class:`DictionarySparseMatrix.DS` and outputing \
+  the points and mesh.
+  * the function :py:func:`power_grid` which loads the last saved \
+  and loads the antenna and obstacle physical parameters from \
+  :py:func:`ParameterInput.ObstacleCoefficients`. It uses these and \
+  the functions :py:func:`RefCoefComputation` which output Rper \
+  and Rpar the perpendicular and parallel to polarisation reflection \
+  coefficients, and the function :py:func:`RefCombine` to \
+  get the loss from reflection for each ray segment entering each grid \
+  point. This is then combine with the distance of each raysegments \
+  travel from the mesh and the antenna gains to get the Power in \
+  decibels.
+
+  * The ray points from :py:func:`RayTracer` are saved as:
+    'RayPoints\ **Nra**\ Refs\ **Nre**\ n.npy' with **Nra** replaced by the \
+    number of rays and **Nre** replaced by the number of reflections.
+  * The ray points from :py:func:`MeshProgram` are saved as:
+    'RayMeshPoints\ **Nra**\ Refs\ **Nre**\ n.npy' with **Nra** replaced \
+    by the \
+    number of rays and **Nre** replaced by the number of reflections. \
+    The mesh is saved as 'DSM\ **Nra**\ Refs\ **Nre**\ m.npy'.
+
+  '''
 import numpy as np
 import Room  as rom
 import raytracerfunction as rayt
@@ -13,8 +41,9 @@ import matplotlib.pyplot as mp
 def RayTracer():
   ''' Refect rays and output the points of reflection.
 
-  Parameters for the raytracer are input in :py:mod:`ParameterInput`
-  The raytracing parameters defined in this module are saved and then loaded.
+  Parameters for the raytracer are input in \
+  :py:func:`ParameterInput.DeclareParameters()` The raytracing \
+  parameters defined in this function are saved and then loaded.
 
   * 'Raytracing.npy' - An array of 4 floats which is saved to \
   [Nra (number of rays), Nre (number of reflections), \
@@ -44,8 +73,8 @@ def RayTracer():
   A room is initialised with *Oblist* using the :class:`room` \
   class in :py:mod:`Room`.
 
-  Find the reflection points of the rays using :py:class:`room`. \
-  :func:`ray_bounce(Tx,Nre,Nra)` function.
+  Find the reflection points of the rays using \
+  :py:func:`room.ray_bounce` function.
 
   .. code::
 
@@ -126,7 +155,7 @@ def MeshProgram():
   * 'Directions.npy' - An Nrax3x1 array containing the vectors which \
   correspond to the initial direction of each ray. This is save to Direc.
 
-  A room is initialised with *Oblist* using the :class:`room` \
+  A room is initialised with *Oblist* using the py:class:`Room.room` \
   class in :py:mod:`Room`.
 
   The number of obstacles and the number of x, y and z steps is found
@@ -138,7 +167,8 @@ def MeshProgram():
       Ny=int(Room.maxyleng()/h)
       Nz=int(Room.maxzleng()/h)
 
-  Initialise a :py:mod:`DictionarySparseMatrix`. :py:class:`DS` with the \
+  Initialise a `DSM`. \
+  :py:class:`DictionarySparseMatrix.DS` with the \
   number of spaces in the x, y and z axis Nx, Ny, Nz, the number of \
   obstacles Nob, the number of reflections Nre and the number of rays Nra.
 
@@ -147,8 +177,8 @@ def MeshProgram():
     Mesh=DSM.DS(Nx,Ny,Nz,int(Nob*Nre+1),int((Nre)*(Nra)+1))
 
   Find the reflection points of the rays and store the distance and \
-  reflection angles of the rays in the Mesh. Use the :py:class:`room`. \
-  :func:`ray_mesh_bounce(Tx,Nre,Nra,Direc,Mesh)` function.
+  reflection angles of the rays in the Mesh. Use the \
+  py:func:`Room.room.ray_mesh_bounce` function.
 
   .. code::
 
@@ -208,7 +238,33 @@ def MeshProgram():
 
 def power_grid():
   ''' Calculate the field on a grid using enviroment parameters and the \
-  ray Mesh. '''
+  ray Mesh.
+
+  Loads:
+
+  * (*Nra*\ = number of rays, *Nre*\ = number of reflections, \
+  *h*\ = meshwidth, *L*\ = room length scale)=`Paramters/Raytracing.npy`
+  * (*Nob*\ =number of obstacles)=`Parameters/Nob.npy`
+  * (*Gt*\ =transmitter gains)=`Parameters/TxGains.npy`
+  * (*freq*\ = frequency)=`Parameters/frequency.npy`
+  * (*Freespace*\ = permittivity, permeabilty \
+  and spead of light)=`Parameters/Freespace.npy`
+  * (*Znobrat*\ = Znob/Z0, the ratio of the impedance of obstacles and \
+  the impedance in freespace.) = `Parameters/Znobrat.npy`
+  * (*refindex*\ = the refractive index of the obstacles)=\
+  Paramerters/refindex.npy`
+  * (*Mesh*)=`DSM\ **Nra**\ Refs\ **Nre**\ m.npy`
+
+  Method:
+  * Initialise Grid using the number of x, y, and z steps in *Mesh*.
+  * Use the function :py:func:`DictionarySparseMatrix.DS.power_compute`
+  to compute the power.
+
+  :rtype: Nx \ Ny x Nz numpy array of floats.
+
+  :returns: Grid
+
+  '''
 
   ##----Retrieve the Raytracing Parameters-----------------------------
   Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
@@ -238,7 +294,7 @@ def power_grid():
   Nx=Mesh.Nx
   Ny=Mesh.Ny
   Nz=Mesh.Nz
-  Grid=np.zeros((Nx,Ny,Nz),dtype=np.complex128)
+  Grid=np.zeros((Nx,Ny,Nz),dtype=float)
 
   Grid=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt)
 
@@ -253,16 +309,20 @@ def RefCoefComputation(Mesh):
   :param Mesh: The DS mesh which contains the angles and distances rays \
   have travelled.
 
-  Load the physical parameters using :py:mod:`ParameterInput`.\
-  :func:`.ObstacleCoefficients()`
+  Load the physical parameters using \
+  :py:func:`ParameterInput.ObstacleCoefficients`
   * Znobrat - is the vector of characteristic impedances for obstacles \
   divided by the characteristic impedance of air.
   * refindex - if the vector of refractive indexes for the obstacles.
 
   Compute the Reflection coefficients (RefCoefper,Refcoefpar) using:
-  :py:mod:`DictionarySparseMatrix`.\
-  :func:`ref_coef((Mesh,Znobrat,refindex)`
-  :return: (RefCoefper,Refcoefpar)
+  :py:func:`DictionarySparseMatrix.ref_coef`
+
+  :rtype: (:py:class:`DictionarySparseMatrix.DS'(Nx,Ny,Nz,na,nb)\
+  ,:py:class:`DictionarySparseMatrix.DS'(Nx,Ny,Nz,na,nb))
+
+  :returns: (RefCoefper,Refcoefpar)
+
   '''
   out=PI.ObstacleCoefficients()
   Znobrat      =np.load('Parameters/Znobrat.npy')
@@ -328,7 +388,8 @@ def RefCombine(Rper,Rpar):
   :param Rpar: The mesh corresponding to reflection coefficients \
   parallel to the polarisation.
 
-  :rtype: DS(Nx,Ny,Nz,1,nb)
+  :rtype: (:py:class:`DictionarySparseMatrix.DS'(Nx,Ny,Nz,1,nb), \
+  :py:class:`DictionarySparseMatrix.DS'(Nx,Ny,Nz,na,nb))
 
   :return: Combper, Combpar
 
@@ -338,6 +399,12 @@ def RefCombine(Rper,Rpar):
   return Combper, Combpar
 
 def plot_grid():
+  ''' Plots slices of a 3D power grid.
+
+  Loads `Power_grid.npy` and for each z step plots a heatmap of the \
+  values at the (x,y) position.
+  '''
+
   P=np.load('Power_grid.npy')
   n=len(P[0])
   for i in range(n):
