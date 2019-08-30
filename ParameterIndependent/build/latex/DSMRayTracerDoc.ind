@@ -2,75 +2,105 @@
 \def\bigletter#1{{\Large\sffamily#1}\nopagebreak\vspace{1mm}}
 
   \bigletter A
-  \item asin() (DictionarySparseMatrix.DS method), \hyperpage{11}
+  \item asin() (DictionarySparseMatrix.DS method), \hyperpage{17}
 
   \indexspace
   \bigletter C
-  \item cos() (DictionarySparseMatrix.DS method), \hyperpage{11}
+  \item coordinate() (Room.room method), \hyperpage{13}
+  \item cos() (DictionarySparseMatrix.DS method), \hyperpage{17}
 
   \indexspace
   \bigletter D
-  \item dense() (DictionarySparseMatrix.DS method), \hyperpage{11}
-  \item dict\_DSM\_divideby\_vec() (DictionarySparseMatrix.DS method), \hyperpage{11}
-  \item dict\_vec\_divideby\_DSM() (DictionarySparseMatrix.DS method), \hyperpage{11}
-  \item DictionarySparseMatrix (module), \hyperpage{11}
-  \item DS (class in DictionarySparseMatrix), \hyperpage{11}
+  \item DeclareParameters() (in module ParameterInput), \hyperpage{7}
+  \item dense() (DictionarySparseMatrix.DS method), \hyperpage{17}
+  \item dict\_col\_mult() (DictionarySparseMatrix.DS method), \hyperpage{17}
+  \item dict\_DSM\_divideby\_vec() (DictionarySparseMatrix.DS method), \hyperpage{17}
+  \item dict\_row\_vec\_multiply() (DictionarySparseMatrix.DS method), \hyperpage{18}
+  \item dict\_scal\_mult() (DictionarySparseMatrix.DS method), \hyperpage{18}
+  \item dict\_vec\_divideby\_DSM() (DictionarySparseMatrix.DS method), \hyperpage{18}
+  \item dict\_vec\_multiply() (DictionarySparseMatrix.DS method), \hyperpage{19}
+  \item DictionarySparseMatrix (module), \hyperpage{17}
+  \item DS (class in DictionarySparseMatrix), \hyperpage{17}
 
   \indexspace
   \bigletter E
-  \item errorcheck() (in module reflection), \hyperpage{15}
+  \item errorcheck() (in module reflection), \hyperpage{25}
+
+  \indexspace
+  \bigletter L
+  \item load\_dict() (in module DictionarySparseMatrix), \hyperpage{21}
 
   \indexspace
   \bigletter M
-  \item mesh\_multiref() (Rays.Ray method), \hyperpage{7}
-  \item mesh\_singleray() (Rays.Ray method), \hyperpage{7}
-  \item multiref() (Rays.Ray method), \hyperpage{7}
+  \item maxleng() (Room.room method), \hyperpage{14}
+  \item mesh\_multiref() (Rays.Ray method), \hyperpage{9}
+  \item mesh\_singleray() (Rays.Ray method), \hyperpage{9}
+  \item MeshProgram() (in module RayTracerMainProgram), \hyperpage{3}
+  \item multiref() (Rays.Ray method), \hyperpage{10}
 
   \indexspace
   \bigletter N
-  \item nonzero() (DictionarySparseMatrix.DS method), \hyperpage{11}
-  \item nonzeroMat() (DictionarySparseMatrix.DS method), \hyperpage{12}
-  \item normal\_mat() (Rays.Ray method), \hyperpage{7}
-  \item number\_cone\_steps() (Rays.Ray method), \hyperpage{7}
-  \item number\_steps() (Rays.Ray method), \hyperpage{7}
+  \item nonzero() (DictionarySparseMatrix.DS method), \hyperpage{19}
+  \item nonzero\_bycol() (in module DictionarySparseMatrix), \hyperpage{21}
+  \item nonzeroMat() (DictionarySparseMatrix.DS method), \hyperpage{19}
+  \item normal\_mat() (Rays.Ray method), \hyperpage{10}
+  \item number\_cone\_steps() (Rays.Ray method), \hyperpage{11}
+  \item number\_steps() (Rays.Ray method), \hyperpage{11}
 
   \indexspace
   \bigletter O
-  \item obst\_collision\_point() (Rays.Ray method), \hyperpage{7}
-  \item ObstacleCoefficients() (in module ParameterInput), \hyperpage{5}
+  \item obst\_collision\_point() (Rays.Ray method), \hyperpage{11}
+  \item ObstacleCoefficients() (in module ParameterInput), \hyperpage{7}
 
   \indexspace
   \bigletter P
-  \item ParameterInput (module), \hyperpage{5}
+  \item ParameterInput (module), \hyperpage{7}
+  \item parnonzero() (in module DictionarySparseMatrix), \hyperpage{21}
+  \item phase\_calc() (in module DictionarySparseMatrix), \hyperpage{21}
+  \item position() (Room.room method), \hyperpage{14}
+  \item power\_compute() (in module DictionarySparseMatrix), \hyperpage{22}
+  \item power\_grid() (in module RayTracerMainProgram), \hyperpage{5}
 
   \indexspace
   \bigletter R
-  \item Ray (class in Rays), \hyperpage{7}
-  \item ray\_length() (Rays.Ray method), \hyperpage{7}
-  \item Rays (module), \hyperpage{7}
-  \item raytest() (Rays.Ray method), \hyperpage{7}
+  \item Ray (class in Rays), \hyperpage{9}
+  \item ray\_bounce() (Room.room method), \hyperpage{14}
+  \item ray\_length() (Rays.Ray method), \hyperpage{11}
+  \item ray\_mesh\_bounce() (Room.room method), \hyperpage{14}
+  \item Rays (module), \hyperpage{9}
+  \item raytest() (Rays.Ray method), \hyperpage{11}
+  \item RayTracer() (in module RayTracerMainProgram), \hyperpage{4}
   \item RayTracerMainProgram (module), \hyperpage{3}
-  \item ref\_angle() (Rays.Ray method), \hyperpage{7}
-  \item refangle() (in module reflection), \hyperpage{15}
-  \item reflect\_calc() (Rays.Ray method), \hyperpage{7}
-  \item reflection (module), \hyperpage{15}
-  \item Room (module), \hyperpage{9}
-  \item room\_collision\_point() (Rays.Ray method), \hyperpage{7}
+  \item ref\_angle() (Rays.Ray method), \hyperpage{11}
+  \item ref\_coef() (in module DictionarySparseMatrix), \hyperpage{22}
+  \item refangle() (in module reflection), \hyperpage{25}
+  \item RefCoefComputation() (in module RayTracerMainProgram), \hyperpage{4}
+  \item RefCombine() (in module RayTracerMainProgram), \hyperpage{4}
+  \item reflect\_calc() (Rays.Ray method), \hyperpage{11}
+  \item reflection (module), \hyperpage{25}
+  \item room (class in Room), \hyperpage{13}
+  \item Room (module), \hyperpage{13}
+  \item room\_collision\_point() (Rays.Ray method), \hyperpage{11}
+  \item row\_sum() (DictionarySparseMatrix.DS method), \hyperpage{19}
 
   \indexspace
   \bigletter S
-  \item save\_dict() (DictionarySparseMatrix.DS method), \hyperpage{12}
-  \item sin() (DictionarySparseMatrix.DS method), \hyperpage{12}
-  \item sparse\_angles() (DictionarySparseMatrix.DS method), \hyperpage{12}
-  \item stopcheck() (DictionarySparseMatrix.DS method), \hyperpage{12}
-  \item stopchecklist() (DictionarySparseMatrix.DS method), \hyperpage{12}
+  \item save\_dict() (DictionarySparseMatrix.DS method), \hyperpage{20}
+  \item sin() (DictionarySparseMatrix.DS method), \hyperpage{20}
+  \item sparse\_angles() (DictionarySparseMatrix.DS method), \hyperpage{20}
+  \item stopcheck() (DictionarySparseMatrix.DS method), \hyperpage{20}
+  \item stopchecklist() (DictionarySparseMatrix.DS method), \hyperpage{21}
 
   \indexspace
   \bigletter T
-  \item test3() (in module reflection), \hyperpage{15}
-
-  \indexspace
-  \bigletter V
-  \item vec\_multiply() (DictionarySparseMatrix.DS method), \hyperpage{13}
+  \item test3() (in module reflection), \hyperpage{25}
+  \item test\_14() (in module DictionarySparseMatrix), \hyperpage{23}
+  \item test\_15() (in module DictionarySparseMatrix), \hyperpage{23}
+  \item test\_17() (in module DictionarySparseMatrix), \hyperpage{23}
+  \item test\_18() (in module DictionarySparseMatrix), \hyperpage{23}
+  \item test\_19() (in module DictionarySparseMatrix), \hyperpage{23}
+  \item test\_20() (in module DictionarySparseMatrix), \hyperpage{23}
+  \item test\_21() (in module DictionarySparseMatrix), \hyperpage{24}
+  \item togrid() (DictionarySparseMatrix.DS method), \hyperpage{21}
 
 \end{theindex}

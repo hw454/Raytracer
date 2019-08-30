@@ -1,37 +1,67 @@
 \indexentry{RayTracerMainProgram (module)|hyperpage}{3}
-\indexentry{ParameterInput (module)|hyperpage}{5}
-\indexentry{ObstacleCoefficients() (in module ParameterInput)|hyperpage}{5}
-\indexentry{Rays (module)|hyperpage}{7}
-\indexentry{Ray (class in Rays)|hyperpage}{7}
-\indexentry{mesh\_multiref() (Rays.Ray method)|hyperpage}{7}
-\indexentry{mesh\_singleray() (Rays.Ray method)|hyperpage}{7}
-\indexentry{multiref() (Rays.Ray method)|hyperpage}{7}
-\indexentry{normal\_mat() (Rays.Ray method)|hyperpage}{7}
-\indexentry{number\_cone\_steps() (Rays.Ray method)|hyperpage}{7}
-\indexentry{number\_steps() (Rays.Ray method)|hyperpage}{7}
-\indexentry{obst\_collision\_point() (Rays.Ray method)|hyperpage}{7}
-\indexentry{ray\_length() (Rays.Ray method)|hyperpage}{7}
-\indexentry{raytest() (Rays.Ray method)|hyperpage}{7}
-\indexentry{ref\_angle() (Rays.Ray method)|hyperpage}{7}
-\indexentry{reflect\_calc() (Rays.Ray method)|hyperpage}{7}
-\indexentry{room\_collision\_point() (Rays.Ray method)|hyperpage}{7}
-\indexentry{Room (module)|hyperpage}{9}
-\indexentry{DictionarySparseMatrix (module)|hyperpage}{11}
-\indexentry{DS (class in DictionarySparseMatrix)|hyperpage}{11}
-\indexentry{asin() (DictionarySparseMatrix.DS method)|hyperpage}{11}
-\indexentry{cos() (DictionarySparseMatrix.DS method)|hyperpage}{11}
-\indexentry{dense() (DictionarySparseMatrix.DS method)|hyperpage}{11}
-\indexentry{dict\_DSM\_divideby\_vec() (DictionarySparseMatrix.DS method)|hyperpage}{11}
-\indexentry{dict\_vec\_divideby\_DSM() (DictionarySparseMatrix.DS method)|hyperpage}{11}
-\indexentry{nonzero() (DictionarySparseMatrix.DS method)|hyperpage}{11}
-\indexentry{nonzeroMat() (DictionarySparseMatrix.DS method)|hyperpage}{12}
-\indexentry{save\_dict() (DictionarySparseMatrix.DS method)|hyperpage}{12}
-\indexentry{sin() (DictionarySparseMatrix.DS method)|hyperpage}{12}
-\indexentry{sparse\_angles() (DictionarySparseMatrix.DS method)|hyperpage}{12}
-\indexentry{stopcheck() (DictionarySparseMatrix.DS method)|hyperpage}{12}
-\indexentry{stopchecklist() (DictionarySparseMatrix.DS method)|hyperpage}{12}
-\indexentry{vec\_multiply() (DictionarySparseMatrix.DS method)|hyperpage}{13}
-\indexentry{reflection (module)|hyperpage}{15}
-\indexentry{errorcheck() (in module reflection)|hyperpage}{15}
-\indexentry{refangle() (in module reflection)|hyperpage}{15}
-\indexentry{test3() (in module reflection)|hyperpage}{15}
+\indexentry{MeshProgram() (in module RayTracerMainProgram)|hyperpage}{3}
+\indexentry{RayTracer() (in module RayTracerMainProgram)|hyperpage}{4}
+\indexentry{RefCoefComputation() (in module RayTracerMainProgram)|hyperpage}{4}
+\indexentry{RefCombine() (in module RayTracerMainProgram)|hyperpage}{4}
+\indexentry{power\_grid() (in module RayTracerMainProgram)|hyperpage}{5}
+\indexentry{ParameterInput (module)|hyperpage}{7}
+\indexentry{DeclareParameters() (in module ParameterInput)|hyperpage}{7}
+\indexentry{ObstacleCoefficients() (in module ParameterInput)|hyperpage}{7}
+\indexentry{Rays (module)|hyperpage}{9}
+\indexentry{Ray (class in Rays)|hyperpage}{9}
+\indexentry{mesh\_multiref() (Rays.Ray method)|hyperpage}{9}
+\indexentry{mesh\_singleray() (Rays.Ray method)|hyperpage}{9}
+\indexentry{multiref() (Rays.Ray method)|hyperpage}{10}
+\indexentry{normal\_mat() (Rays.Ray method)|hyperpage}{10}
+\indexentry{number\_cone\_steps() (Rays.Ray method)|hyperpage}{11}
+\indexentry{number\_steps() (Rays.Ray method)|hyperpage}{11}
+\indexentry{obst\_collision\_point() (Rays.Ray method)|hyperpage}{11}
+\indexentry{ray\_length() (Rays.Ray method)|hyperpage}{11}
+\indexentry{raytest() (Rays.Ray method)|hyperpage}{11}
+\indexentry{ref\_angle() (Rays.Ray method)|hyperpage}{11}
+\indexentry{reflect\_calc() (Rays.Ray method)|hyperpage}{11}
+\indexentry{room\_collision\_point() (Rays.Ray method)|hyperpage}{11}
+\indexentry{Room (module)|hyperpage}{13}
+\indexentry{room (class in Room)|hyperpage}{13}
+\indexentry{coordinate() (Room.room method)|hyperpage}{13}
+\indexentry{maxleng() (Room.room method)|hyperpage}{14}
+\indexentry{position() (Room.room method)|hyperpage}{14}
+\indexentry{ray\_bounce() (Room.room method)|hyperpage}{14}
+\indexentry{ray\_mesh\_bounce() (Room.room method)|hyperpage}{14}
+\indexentry{DictionarySparseMatrix (module)|hyperpage}{17}
+\indexentry{DS (class in DictionarySparseMatrix)|hyperpage}{17}
+\indexentry{asin() (DictionarySparseMatrix.DS method)|hyperpage}{17}
+\indexentry{cos() (DictionarySparseMatrix.DS method)|hyperpage}{17}
+\indexentry{dense() (DictionarySparseMatrix.DS method)|hyperpage}{17}
+\indexentry{dict\_DSM\_divideby\_vec() (DictionarySparseMatrix.DS method)|hyperpage}{17}
+\indexentry{dict\_col\_mult() (DictionarySparseMatrix.DS method)|hyperpage}{17}
+\indexentry{dict\_row\_vec\_multiply() (DictionarySparseMatrix.DS method)|hyperpage}{18}
+\indexentry{dict\_scal\_mult() (DictionarySparseMatrix.DS method)|hyperpage}{18}
+\indexentry{dict\_vec\_divideby\_DSM() (DictionarySparseMatrix.DS method)|hyperpage}{18}
+\indexentry{dict\_vec\_multiply() (DictionarySparseMatrix.DS method)|hyperpage}{19}
+\indexentry{nonzero() (DictionarySparseMatrix.DS method)|hyperpage}{19}
+\indexentry{nonzeroMat() (DictionarySparseMatrix.DS method)|hyperpage}{19}
+\indexentry{row\_sum() (DictionarySparseMatrix.DS method)|hyperpage}{19}
+\indexentry{save\_dict() (DictionarySparseMatrix.DS method)|hyperpage}{20}
+\indexentry{sin() (DictionarySparseMatrix.DS method)|hyperpage}{20}
+\indexentry{sparse\_angles() (DictionarySparseMatrix.DS method)|hyperpage}{20}
+\indexentry{stopcheck() (DictionarySparseMatrix.DS method)|hyperpage}{20}
+\indexentry{stopchecklist() (DictionarySparseMatrix.DS method)|hyperpage}{21}
+\indexentry{togrid() (DictionarySparseMatrix.DS method)|hyperpage}{21}
+\indexentry{load\_dict() (in module DictionarySparseMatrix)|hyperpage}{21}
+\indexentry{nonzero\_bycol() (in module DictionarySparseMatrix)|hyperpage}{21}
+\indexentry{parnonzero() (in module DictionarySparseMatrix)|hyperpage}{21}
+\indexentry{phase\_calc() (in module DictionarySparseMatrix)|hyperpage}{21}
+\indexentry{power\_compute() (in module DictionarySparseMatrix)|hyperpage}{22}
+\indexentry{ref\_coef() (in module DictionarySparseMatrix)|hyperpage}{22}
+\indexentry{test\_14() (in module DictionarySparseMatrix)|hyperpage}{23}
+\indexentry{test\_15() (in module DictionarySparseMatrix)|hyperpage}{23}
+\indexentry{test\_17() (in module DictionarySparseMatrix)|hyperpage}{23}
+\indexentry{test\_18() (in module DictionarySparseMatrix)|hyperpage}{23}
+\indexentry{test\_19() (in module DictionarySparseMatrix)|hyperpage}{23}
+\indexentry{test\_20() (in module DictionarySparseMatrix)|hyperpage}{23}
+\indexentry{test\_21() (in module DictionarySparseMatrix)|hyperpage}{24}
+\indexentry{reflection (module)|hyperpage}{25}
+\indexentry{errorcheck() (in module reflection)|hyperpage}{25}
+\indexentry{refangle() (in module reflection)|hyperpage}{25}
+\indexentry{test3() (in module reflection)|hyperpage}{25}

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2019.6.30)  13 AUG 2019 16:14
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2019.6.30)  30 AUG 2019 11:49
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1107,82 +1107,123 @@ LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <14.4> not available
 (Font)              Font shape `T1/ptm/b/n' tried instead on input line 150.
 LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <24.88> not available
 (Font)              Font shape `T1/ptm/b/n' tried instead on input line 150.
-[3] [4
-
-]
-Chapter 2.
 LaTeX Font Info:    Try loading font information for T1+pcr on input line 1.
 (/usr/share/texlive/texmf-dist/tex/latex/psnfss/t1pcr.fd
 File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
 )
 LaTeX Font Info:    Font shape `T1/pcr/bx/n' in size <10> not available
 (Font)              Font shape `T1/pcr/b/n' tried instead on input line 1.
+LaTeX Font Info:    Font shape `T1/pcr/m/it' in size <10> not available
+(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 1.
+LaTeX Font Info:    Try loading font information for TS1+ptm on input line 162.
+
+
+(/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1ptm.fd
+File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
+) [3] [4]
+LaTeX Font Info:    Font shape `T1/pcr/bx/n' in size <9> not available
+(Font)              Font shape `T1/pcr/b/n' tried instead on input line 303.
  [5] [6
 
 ]
-Chapter 3.
+Chapter 2.
 [7] [8]
-Chapter 4.
+Chapter 3.
 [9
 
-] [10
+]
+Underfull \hbox (badness 10000) in paragraph at lines 589--590
+[]\T1/ptm/m/n/10 Find the num-ber of steps $\OML/cmm/m/it/10 Ns$ \T1/ptm/m/n/10
+ to the end of the ray seg-ment us-ing
+ []
+
+[10] [11] [12]
+Chapter 4.
+[13
+
+] [14] [15] [16
 
 ]
 Chapter 5.
-[11]
-LaTeX Font Info:    Try loading font information for TS1+ptm on input line 468.
 
- (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1ptm.fd
-File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
-) [12] [13]
-[14
+Underfull \hbox (badness 10000) in paragraph at lines 1060--1060
+[]\T1/ptm/m/it/10 s\T1/ptm/m/n/10 , \T1/ptm/m/it/10 Nx=1\T1/ptm/m/n/10 , \T1/pt
+m/m/it/10 Ny=1\T1/ptm/m/n/10 , \T1/ptm/m/it/10 Nz=1\T1/ptm/m/n/10 , \T1/ptm/m/i
+t/10 na=1\T1/ptm/m/n/10 , \T1/ptm/m/it/10 nb=1\T1/ptm/m/n/10 , \T1/ptm/m/it/10 
+dt=<class
+ []
 
-]
+[17] [18] [19] [20] [21] [22] [23] [24]
 Chapter 6.
-[15] [16
+[25
+
+] [26
 
 ]
 Chapter 7.
-[17] [18
+[27] [28
 
-] [19
-
-
-] (./DSMRayTracerDoc.ind [20
+] [29
 
 
-] [21
+] (./DSMRayTracerDoc.ind [30
+
+
+]
+Underfull \hbox (badness 10000) in paragraph at lines 18--19
+[]\T1/ptm/m/n/10 dict_row_vec_multiply() (Dic-tio-naryS-parse-Ma-trix.DS
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 21--22
+[]\T1/ptm/m/n/10 dict_vec_multiply() (Dic-tio-naryS-parse-Ma-trix.DS
+ []
+
+[31
+
+] [32
 
 ])
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 627.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 627.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1908.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1908.
  (./DSMRayTracerDoc.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 627.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 627.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1908.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1908.
+
 Package rerunfilecheck Info: File `DSMRayTracerDoc.out' has not changed.
-(rerunfilecheck)             Checksum: E4030611529796A8F699C54C7B9F51B7;892.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 627.
+(rerunfilecheck)             Checksum: 495C4FC56648826FD894CF5A5503325B;892.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1908.
  ) 
 Here is how much of TeX's memory you used:
- 13528 strings out of 494805
- 184097 string characters out of 6178000
- 268783 words of memory out of 5000000
- 16508 multiletter control sequences out of 15000+600000
- 49075 words of font info for 61 fonts, out of 8000000 for 9000
+ 13637 strings out of 494805
+ 186110 string characters out of 6178000
+ 282745 words of memory out of 5000000
+ 16554 multiletter control sequences out of 15000+600000
+ 55633 words of font info for 75 fonts, out of 8000000 for 9000
  82 hyphenation exceptions out of 8191
- 35i,11n,45p,377b,627s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 35i,12n,45p,475b,635s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texliv
-e/texmf-dist/fonts/type1/urw/courier/ucrb8a.pfb></usr/share/texlive/texmf-dist/
-fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/u
-rw/helvetic/uhvb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/
-uhvbo8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb>
-</usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/tex
-live/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist
-/fonts/type1/urw/times/utmri8a.pfb>
-Output written on DSMRayTracerDoc.pdf (25 pages, 108768 bytes).
+e/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texm
+f-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist
+/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texlive/texmf-dist/fonts/
+type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/p
+ublic/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/a
+msfonts/cm/cmr5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy1
+0.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb><
+/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/sh
+are/texlive/texmf-dist/fonts/type1/urw/courier/ucrb8a.pfb></usr/share/texlive/t
+exmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fon
+ts/type1/urw/courier/ucrro8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw
+/helvetic/uhvb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uh
+vbo8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb></
+usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texli
+ve/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/f
+onts/type1/urw/times/utmri8a.pfb>
+Output written on DSMRayTracerDoc.pdf (36 pages, 257673 bytes).
 PDF statistics:
- 290 PDF objects out of 1000 (max. 8388607)
- 247 compressed objects within 3 object streams
- 68 named destinations out of 1000 (max. 500000)
+ 485 PDF objects out of 1000 (max. 8388607)
+ 418 compressed objects within 5 object streams
+ 109 named destinations out of 1000 (max. 500000)
  93 words of extra memory for PDF output out of 10000 (max. 10000000)
 
