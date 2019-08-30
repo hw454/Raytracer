@@ -4,15 +4,12 @@
 *.png
 *.aux
 *.toc
-*.html
 *.txt
 *.pyc
 *.orig
-build/*
 testDS
 *BACKUP
 *BASE
 *LOCAL
 *REMOTE
-build
 *.tar.gz
