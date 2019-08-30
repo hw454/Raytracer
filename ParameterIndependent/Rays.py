@@ -171,9 +171,17 @@ class Ray:
 
     Method:
 
-    * If: the previous collision point was None then don't find the /
-    next one.
-    * Else:
+    * If: the previous collision point was *None* then don't find the \
+    next one. Return: 1
+    * Else: Compute the next collision point.
+
+      * If: the collision point doesn't exist. Return: 1
+      * Else: use the collision point to compute the reflected ray. \
+      Return: 0
+
+    :rtype: 0 or 1 indicator of success.
+
+    :returns: 0 if  reflection was computed 1 if not.
 
     '''
     if any(c is None for c in s.points[-1][0:2]):
