@@ -445,7 +445,7 @@ class Ray:
       if lf.length(np.array([p1,s.points[-2][0:3]]))<h:
         break
     del Nnor, Ns, i2, j2, k2, p1, h, alpha, direc,p2, p3, conepositions
-    del start, normlengths, normdot, r1, n, Mult, alpha2, r2,
+    del start, normlengths, normdot, r1, n, Mult, alpha2, r2, coords, norm2
     print(Mesh.__self_eq__())
     return Mesh,dist,calcvec
   def raytest(s,room,err):
