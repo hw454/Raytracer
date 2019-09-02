@@ -276,8 +276,12 @@ class DS:
             s.d[dk]=SM(s.shape,dtype=np.complex128)
           if n2==1:
             s.d[dk][smk[0],smk[1]]=x
-            #DEBUG for some reason this step is assigned this value to
-            #every term in s.d ? even though s.d[dk] is a specific term.
+            SMtemp=s.d[dk]
+            SMtemp[smk[0],smk[1]]=x
+            s.d[dk]=SMtemp
+            #DEBUG All terms in the dictionary point to the same value.
+            # When reassigning the value this is reassigning the term
+            # they all point to. Not sure how to correct this.
           else:
             end=len(smk[0])
             for c in range(0,end):
@@ -290,7 +294,7 @@ class DS:
           5-tuple for the element in the SM.''' %(i,x,i))
           raise IndexError(errmsg)
           pass
-    else:
+    else: #FIXME what case is this for?
       if isinstance(x,(float,int,np.complex128,np.int64)):
         n1=0
       elif x.shape==s.shape: n1=0
@@ -1693,17 +1697,20 @@ def test_22():
   nb=5
   Mesh=DS(Nx,Ny,Nz,na,nb)
   count=0
-  # vec=np.ones((nb,1))
-  # for x,y,z in product(range(Nx),range(Ny),range(Nz)):
-    # col=int(nb/2)
-    # Mesh[x,y,z,:,col]=count*vec
-    # count+=1
-    # count=0
   vec=np.ones((nb,1))
   for x,y,z in product(range(Nx),range(Ny),range(Nz)):
     col=int(nb/2)
     for j in range(na):
       Mesh[x,y,z,j,col]=count*vec[j]
+      count+=1
+  if Mesh.__self_eq__():
+    print(Mesh)
+    return 1
+  count=0
+  Mesh=DS(Nx,Ny,Nz,na,nb)
+  for x,y,z in product(range(Nx),range(Ny),range(Nz)):
+    col=int(nb/2)
+    Mesh[x,y,z,:,col]=count*vec
     count+=1
   if Mesh.__self_eq__():
     #print(Mesh)
