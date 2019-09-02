@@ -404,7 +404,6 @@ def plot_grid():
   Loads `Power_grid.npy` and for each z step plots a heatmap of the \
   values at the (x,y) position.
   '''
-
   P=np.load('Power_grid.npy')
   n=len(P[0])
   for i in range(n):
