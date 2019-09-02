@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 # Hayley 2019-05-01
+'''Code for the dictionary of sparse matrices class :py:class:`DS` which\
+ indexes like a multidimensional array but the array is sparse. \
+ To exploit :py:mod:`scipy.sparse.dok_matrix`=SM the `DS` uses a key for \
+ each x,y, z position and associates a SM.
+
+ This module also contains functions which are not part of the class \
+ but act on it.
+
+ '''
+
 
 import numpy as np
 from scipy.sparse import dok_matrix as SM
@@ -171,27 +181,75 @@ class DS:
       The 'k' and 'j' indices can be replaced with : to return rows or \
       columns of the SM A=DSM[x,y,z].
 
+    Method:
+
+    * .. code::
+
+         dk,smk=i[:3],i[3:]
+
+    * If dk[0],dk[1], and dk[2] are all numbers and smk[0] and smk[1] \
+      are not numbers of slices then :math:`k=1`. This means that a \
+      whole sparse matrix is being set at the (x,y,z) position.
+
+    * k indicates which (x,y,z) terms are being set.
+
+      * If k==-1: Set only one grid position (x,y,z).
+      * If k==0. Set all x positions with (y,z) co-ordinates.
+      * If k==1. Set all y positions with (x,z) co-ordinates.
+      * If k==2. Set all z positions with (x,y) co-ordinates.
+      * If k==3. Set all x and y positions with (z) co-ordinates.
+      * If k==4. Set all x and z  positions with (y) co-ordinates.
+      * If k==5. Set all y and z  positions with (x) co-ordinates
+      * If k==6. Set all x, y and z positions.
+
+    * n indicates whether a whole SM is set, a row or a column.
+
+      * If n==0 a whole SM.
+      * If n==1 a row or rows.
+        * n2 is the number of rows.
+      * If n==2 a column or columns.
+        * n2 is the number of columns.
+
     :param x: the new value to be assigned to DSM[i]
 
     :return: the 'i' term of the DSM
 
     '''
     dk,smk=i[:3],i[3:]
-    # If dk is a number then one position (x,y,z) is being refered to.
-    if isinstance(dk[0],(float,int,np.int64, np.complex128 )): n=1
+    # If dk[0], dk[1], and dk[2] are numbers then one position (x,y,z)
+    # is being refered to.
+    if isinstance(dk[0],(float,int,np.int64, np.complex128 )):
+      if isinstance(dk[1],(float,int,np.int64, np.complex128 )):
+        if isinstance(dk[2],(float,int,np.int64, np.complex128 )):
+          k=-1
+        else:
+          k=2
+      else:
+        if isinstance(dk[2],(float,int,np.int64, np.complex128 )):
+          k=1
+        else:
+          k==3
     else:
-        n=len(dk)
-    if n==1:
-        # set a SM to an input SM
-        if len(i)==3:
+      if isinstance(dk[1],(float,int,np.int64, np.complex128 )):
+        if isinstance(dk[2],(float,int,np.int64, np.complex128 )):
+          k=0
+        else:
+          k=4
+      else:
+        if isinstance(dk[2],(float,int,np.int64, np.complex128 )):
+          k=5
+        else:
+          k==6
+    n=len(i)-3
+    if k==-1:
+        if n==0:
           # If dk is not already one of the dictionary keys add the new
           # key to the DSM with an initialise SM.
           if dk not in s.d:
             s.d[dk]=SM(s.shape,dtype=np.complex128)
           # Assign 'x' to the SM with key dk.
           s.d[dk]=x
-        # set a SM row or multiple row.
-        elif len(i)==4:
+        elif n==1:
           # Set one row.
           if isinstance(smk[0],(float,int,np.int64, np.complex128)): n2=1
           # Set multiple rows.
@@ -202,15 +260,15 @@ class DS:
             s.d[dk]=SM(s.shape,dtype=np.complex128)
           # Set a row to the value 'x'
           if n2==1:
-            s.d[dk][smk[0],:]=x
+            s.d[dk][smk,:]=x
           # Set multiple rows to the rows of 'x'.
           else:
             p=0
-            for j in smk[0]:
-              s.d[dk][smk,:]=x[p]
+            for j in smk:
+              s.d[dk][j,:]=x[p]
               p+=1
         # set a SM element or column if smk[0]=: (slice) or multiple elements or columns.
-        elif len(i)==5:
+        elif n==2:
           if isinstance(smk[0],(float,int,np.int64, np.complex128,slice)): n2=1
           else:
             n2=len(smk[0])
@@ -218,6 +276,8 @@ class DS:
             s.d[dk]=SM(s.shape,dtype=np.complex128)
           if n2==1:
             s.d[dk][smk[0],smk[1]]=x
+            #DEBUG for some reason this step is assigned this value to
+            #every term in s.d ? even though s.d[dk] is a specific term.
           else:
             end=len(smk[0])
             for c in range(0,end):
@@ -1624,9 +1684,28 @@ def test_21():
       else : pass
   return 0
 
+def test_22():
+  ''' Test the set_item() function for setting columns in a DSM '''
+  Nx=3
+  Ny=3
+  Nz=3
+  na=5
+  nb=5
+  Mesh=DS(Nx,Ny,Nz,na,nb)
+  count=0
+  vec=np.ones((nb,1))
+  for x,y,z in product(range(Nx),range(Ny),range(Nz)):
+    col=int(nb/2)
+    Mesh[x,y,z,:,col]=count*vec
+    count+=1
+  if Mesh.__self_eq__():
+    #print(Mesh)
+    return 1
+  else: return 0
+
 if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   #job_server = pp.Server()
-  t=test_14()
+  t=test_22()
   print(t)
