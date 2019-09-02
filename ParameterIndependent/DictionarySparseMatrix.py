@@ -1693,10 +1693,17 @@ def test_22():
   nb=5
   Mesh=DS(Nx,Ny,Nz,na,nb)
   count=0
+  # vec=np.ones((nb,1))
+  # for x,y,z in product(range(Nx),range(Ny),range(Nz)):
+    # col=int(nb/2)
+    # Mesh[x,y,z,:,col]=count*vec
+    # count+=1
+    # count=0
   vec=np.ones((nb,1))
   for x,y,z in product(range(Nx),range(Ny),range(Nz)):
     col=int(nb/2)
-    Mesh[x,y,z,:,col]=count*vec
+    for j in range(na):
+      Mesh[x,y,z,j,col]=count*vec[j]
     count+=1
   if Mesh.__self_eq__():
     #print(Mesh)
