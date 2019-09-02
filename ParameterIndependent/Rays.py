@@ -364,7 +364,7 @@ class Ray:
     # hit the object not the outgoing ray.
     direc=lf.Direction(np.array([s.points[-3][0:3],s.points[-2][0:3]]))
     col=int(Nra*nre+nra)
-    del nra
+    #del nra
     if abs(direc.any()-0.0)>epsilon:                       # Before computing the dist travelled through a mesh cube
                                                            # check the direction isn't 0.
       alpha=h/max(abs(direc))                              # Find which boundary of a unit cube gets hit first when
@@ -410,9 +410,18 @@ class Ray:
       if stpch:
         del stpch                                          # stpch==1 if the positions are valid.
         p2=room.coordinate(h,i1,j1,k1)                     # Calculate the co-ordinate of the center
-                                                           # of the element the ray hit.
-        Mesh[i1,j1,k1,:,col]=np.sqrt(np.dot((p0-p2),(p0-p2)))*calcvec  # Recalculate distance to
-                                                           # be for the centre point
+                                                           # of the element the ray hit
+        # Recalculate distance to be for the centre point
+        Mesh[i1,j1,k1,:,col]=np.sqrt(np.dot((p0-p2),(p0-p2)))*calcvec
+        #FIXME check i1, j1, k1
+        #DEBUG
+        print('after ray term assignment',nra, m1, Mesh.__self_eq__())
+        if Mesh.__self_eq__():
+          print('Mesh',Mesh)
+          print('Calcvec',calcvec)
+          print('positions',i1,j1,k1)
+          print('after ray term assignment',nra, m1)
+          raise ValueError('Mesh equals itself everywhere')
         #Nc=s.number_cone_steps(deldist,dist,Nra)           # No. of cone steps required for this ray step.
         for m2 in range(Nnor):
           p3=np.tile(p1,(Nnor,1))+m2*alpha*norm             # Step along all the normals from the ray point p1.
@@ -439,6 +448,11 @@ class Ray:
             #FIXME try to set them all at once not one by one
             for j in range(0,n):
               Mesh[conepositions[0][j],conepositions[1][j],conepositions[2][j],:,col]=r2[j]*calcvec
+              print('After cone assignment',nra,m1,j, Mesh.__self_eq__())
+              if Mesh.__self_eq__():
+                print('Mesh',Mesh)
+                print('Calcvec',calcvec)
+                raise ValueError('Mesh equals itself everywhere')
           else:
             # There are no cone positions
             pass
@@ -452,12 +466,19 @@ class Ray:
       #FIXME don't stop at the end as the cone needs to be filled.
       if lf.length(np.array([p1,s.points[-2][0:3]]))<h:
         break
-    del Nnor, Ns, i2, j2, k2, p1, h, alpha, direc,p2, p3, conepositions
+    del Nnor, Ns, p1, h, alpha, direc,p2, p3, conepositions
     del start, normlengths, normdot, r1, n, Mult, alpha2, r2, coords, norm2
-    print(Mesh.__self_eq__())
+    print(nra, Mesh.__self_eq__())
+    if Mesh.__self_eq__():
+      print('Mesh',Mesh)
+      print('Calcvec',calcvec)
+      raise ValueError('Mesh equals itself everywhere')
     return Mesh,dist,calcvec
   def raytest(s,room,err):
-    ''' Checks the reflection function for errors'''
+    ''' Checks the reflection function for errors using the test \
+    functions in :py:mod:`reflection`.
+
+    '''
     cp,wall=s.room_collision_point(room)
     # Check that a collision does occur
     if cp[0] is None: return
