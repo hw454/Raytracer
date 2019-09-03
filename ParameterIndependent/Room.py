@@ -344,20 +344,7 @@ class room:
       Dir       =directions[it]
       start     =np.append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
-      #DEBUG
-      ch=Mesh.__self_eq__()
-      print('Before multiref',nra, m1,ch)
-      if ch:
-        print('Mesh',Mesh)
-        print('Before multiref',nra, m1)
-        raise ValueError('Mesh equals itself everywhere')
       Mesh=raystart.mesh_multiref(s,Nre,Mesh,Nra,it)
-      #DEBUG
-      print('After multiref',nra, m1,ch)
-      if ch:
-        print('Mesh',Mesh)
-        print('Before multiref',nra, m1)
-        raise ValueError('Mesh equals itself everywhere')
       raylist[it]=raystart.points[0:-2]
     s.time=t.time()-start_time
     return raylist, Mesh
