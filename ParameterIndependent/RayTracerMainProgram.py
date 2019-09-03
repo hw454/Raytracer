@@ -425,7 +425,7 @@ if __name__=='__main__':
   #RefCoefperp, RefCoefpar=RefCoefComputation(Mesh)
   #Combper,Combpar=RefCombine(RefCoefperp,RefCoefpar)
   Grid=power_grid()
-  #plot_grid()
+  plot_grid()
   end=t.time()
   print('-------------------------------')
   print('Time to complete program')
