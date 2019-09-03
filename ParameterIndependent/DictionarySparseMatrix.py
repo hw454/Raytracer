@@ -21,14 +21,14 @@ import time as t
 import matplotlib.pyplot as mp
 from six.moves import cPickle as pkl
 from multiprocessing import Pool
-#import pp
+#from collections import defaultdict
 
 epsilon=sys.float_info.epsilon
+#----------------------------------------------------------------------
+# NOTATION IN COMMENTS
+#----------------------------------------------------------------------
 # dk is dictionary key, smk is sparse matrix key, SM is a sparse matrix
-
-## The DS class is a dictionary of sparse matrices.
-# The keys for the dictionary are (i,j,k) such that i is in [0,Nx],
-# j is in [0, Ny], and k is in [0,Nz].
+# DS or DSM is a DS object which is a dictionary of sparse matrices.
 
 class DS:
   ''' The DS class is a dictionary of sparse matrices.
@@ -37,22 +37,19 @@ class DS:
   SM=DS[x,y,z] is a na*nb sparse matrix, initialised with complex128 data type.
   :math:`na=(Nob*Nre+1)`
   :math:`nb=((Nre)*(Nra)+1)`
-  '''  ## The constructor.
-  # \par
-  # DSM is a dictionary of sparse matrices with keys (x,y,z) such that x is in [0,Nx],
-  # y is in [0, Ny], and z is in [0,Nz].
-  # @param Nx number of terms in the first index
-  # @param Ny number of terms in the second index
-  # @param Nz number of terms in the third index
-  # \par
-  # SM=DS[x,y,z] is a sparse matrix with dictionary key [x,y,z]
-  # @param na number of rows in each sparse matrix
-  # @param nb number of columns in each sparse matrix
+  The DS is initialised with keys Nx, Ny, and Nz to a dictionary with \
+  keys, :math:`(x,y,z) \forall x \in [0,Nx), y \in [0,Ny), z \in [0,Nz)'.
+  With the value at each key being an na*nb SM.
+  '''
   def __init__(s,Nx=1,Ny=1,Nz=1,na=1,nb=1,dt=np.complex128):
     s.shape=(na,nb)
     Keys=product(range(Nx),range(Ny),range(Nz))
-    default_value=SM(s.shape,dtype=dt)
-    s.d=dict.fromkeys(Keys,default_value)
+    #default_value=SM(s.shape,dtype=dt)
+    #s.d=dict.fromkeys(Keys,SM(s.shape,dtype=dt))
+    s.d={}
+    #s.d=defaultdict(default_value)
+    for k in Keys:
+      s.d[k]=SM(s.shape,dtype=dt)
     s.Nx=Nx
     s.Ny=Ny
     s.Nz=Nz
@@ -163,6 +160,61 @@ class DS:
   # columns of the SM A=DSM[x,y,z].
   # @ param x the new value to be assigned to DSM[i]
   # @return the 'i' term of the DSM
+  def __set_SM__(s,smk,dk,x,n):
+    ''' Set a SM at the position dk=[x,y,z].
+    * n indicates whether a whole SM is set, a row or a column.
+    * If n==0 a whole SM.
+    * If n==1 a row or rows.
+      * n2 is the number of rows.
+    * If n==2 a column or columns.
+      * n2 is the number of columns.
+    '''
+    if n==0:
+      # If dk is not already one of the dictionary keys add the new
+      # key to the DSM with an initialise SM.
+      if dk not in s.d:
+        s.d[dk]=SM(s.shape,dtype=np.complex128)
+      # Assign 'x' to the SM with key dk.
+      s.d[dk]=x
+    elif n==1:
+      # Set one row.
+      if isinstance(smk[0],(float,int,np.int64, np.complex128)): n2=1
+      # Set multiple rows.
+      else:
+        n2=len(smk[0])
+      # If the key isn't in the DSM add it with the initialised SM.
+      if dk not in s.d:
+        s.d[dk]=SM(s.shape,dtype=np.complex128)
+      # Set a row to the value 'x'
+      if n2==1:
+        s.d[dk][smk,:]=x
+      # Set multiple rows to the rows of 'x'.
+      else:
+        p=0
+        for j in smk:
+          s.d[dk][j,:]=x[p]
+          p+=1
+    # set a SM element or column if smk[0]=: (slice) or multiple elements or columns.
+    elif n==2:
+      if isinstance(smk[0],(float,int,np.int64, np.complex128,slice)): n2=1
+      else:
+        n2=len(smk[0])
+      if dk not in s.d:
+        s.d[dk]=SM(s.shape,dtype=np.complex128)
+      if n2==1:
+        s.d[dk][smk[0],smk[1]]=x
+      else:
+        end=len(smk[0])
+        for c in range(0,end):
+          s.d[dk][smk[0][c],smk[1][c]]=x[c]
+    else:
+      # Invalid 'i' the length does not match a possible position.
+      errmsg=str('''Error setting the (%s) part of the sparse matr
+      ix to (%s). Invalid index (%s). A 3-tuple is required to
+      return a sparse matrix(SM), 4-tuple for the row of a SM or
+      5-tuple for the element in the SM.''' %(i,x,i))
+      raise IndexError(errmsg)
+      pass
   def __setitem__(s,i,x):
     ''' Set a new value to all or part of a DSM.
 
@@ -239,98 +291,41 @@ class DS:
         if isinstance(dk[2],(float,int,np.int64, np.complex128 )):
           k=5
         else:
-          k==6
+          k=6
     n=len(i)-3
     if k==-1:
-        if n==0:
-          # If dk is not already one of the dictionary keys add the new
-          # key to the DSM with an initialise SM.
-          if dk not in s.d:
-            s.d[dk]=SM(s.shape,dtype=np.complex128)
-          # Assign 'x' to the SM with key dk.
-          s.d[dk]=x
-        elif n==1:
-          # Set one row.
-          if isinstance(smk[0],(float,int,np.int64, np.complex128)): n2=1
-          # Set multiple rows.
-          else:
-            n2=len(smk[0])
-          # If the key isn't in the DSM add it with the initialised SM.
-          if dk not in s.d:
-            s.d[dk]=SM(s.shape,dtype=np.complex128)
-          # Set a row to the value 'x'
-          if n2==1:
-            s.d[dk][smk,:]=x
-          # Set multiple rows to the rows of 'x'.
-          else:
-            p=0
-            for j in smk:
-              s.d[dk][j,:]=x[p]
-              p+=1
-        # set a SM element or column if smk[0]=: (slice) or multiple elements or columns.
-        elif n==2:
-          if isinstance(smk[0],(float,int,np.int64, np.complex128,slice)): n2=1
-          else:
-            n2=len(smk[0])
-          if dk not in s.d:
-            s.d[dk]=SM(s.shape,dtype=np.complex128)
-          if n2==1:
-            s.d[dk][smk[0],smk[1]]=x
-            SMtemp=s.d[dk]
-            SMtemp[smk[0],smk[1]]=x
-            s.d[dk]=SMtemp
-            #DEBUG All terms in the dictionary point to the same value.
-            # When reassigning the value this is reassigning the term
-            # they all point to. Not sure how to correct this.
-          else:
-            end=len(smk[0])
-            for c in range(0,end):
-              s.d[dk][smk[0][c],smk[1][c]]=x[c]
-        else:
-          # Invalid 'i' the length does not match a possible position.
-          errmsg=str('''Error setting the (%s) part of the sparse matr
-          ix to (%s). Invalid index (%s). A 3-tuple is required to
-          return a sparse matrix(SM), 4-tuple for the row of a SM or
-          5-tuple for the element in the SM.''' %(i,x,i))
-          raise IndexError(errmsg)
-          pass
-    else: #FIXME what case is this for?
-      if isinstance(x,(float,int,np.complex128,np.int64)):
-        n1=0
-      elif x.shape==s.shape: n1=0
-      elif x.shape==s.shape[0]: n1=0
-      else: n1=len(x)
-      if isinstance(smk,(float,int,np.complex128,np.int64)):
-        # If smk is just a value then all rows in every corresponding
-        # Key element must be set to the same x
-        value=SM(s.shape,dtype=np.complex128)
-        if n1==0:
-          value[ smk, : ] = x
-        n2=1
+      s.__set_SM__(smk,dk,x,n)
+    elif k==0:
+      for x in range(0,s.Nx):
+        dk=[x,dk[1],dk[2]]
+        s.__set_SM__(smk,dk,x,n)
+    elif k==1:
+      for y in range(0,s.Ny):
+        dk=[dk[0],y,dk[2]]
+        s.__set_SM__(smk,dk,x,n)
+    elif k==2:
+      for z in range(0,s.Nz):
+        dk=[dk[0],y,dk[2]]
+        s.__set_SM__(smk,dk,x,n)
+    elif k==3:
+      for x,y in product(range(0,s.Nx),range(0,s.Ny)):
+        dk=[x,y,dk[2]]
+        s.__set_SM__(smk,dk,x,n)
+    elif k==4:
+       for x,z in product(range(0,s.Nx),range(0,s.Nz)):
+        dk=[x,dk[1],z]
+        s.__set_SM__(smk,dk,x,n)
+    elif k==5:
+      for y,z in product(range(0,s.Ny),range(0,s.Nz)):
+        dk=[dk[0],y,z]
+        s.__set_SM__(smk,dk,x,n)
+    elif k==6:
+      if isinstance(x,DS):
+        for k in s.d.keys():
+          s.d[k]=x[k]
       else:
-        value=SM(s.shape,dtype=np.complex128)
-        n2=len(smk)
-      for j in range(len(dk[0])):
-        if n2>2:
-          if n1==0:
-            value[ smk[j], : ]          = np.asscalar(x)         # Setting a row j to be x
-          else:
-            value[ smk[j], : ]          = np.asscalar(x[j])      # Setting a row j to be the j'th x
-        elif n2==1 and n1>0:
-          value[ smk , : ]=x[j]                     # Setting the fixed row to be the j'th x
-        elif n2==2:
-          if n1==0:
-            value[ smk[0][j],smk[1][j]] = np.asscalar(x)         # Setting a point to be x
-          else:
-            value[ smk[0][j],smk[1][j]] = np.asscalar(x[j])      # Setting a point to be j'th x
-        elif n2==0:
-          if n1==0:
-            value=np.asscalar(x)                                 # Setting the whole sparse matrix to be x
-          else:
-            value=np.asscalar(x[j])                              # Setting the sparse matrix to be the j'th in x
-        else:
-          raise Exception('Error, not a valid SM dimension')
-        s.d[dk[0][j],dk[1][j],dk[2][j]]=value
+        for dk in s.d.keys():
+          s.__set_SM__(smk,dk,x,n)
       return
   ## String representation of the DSM s.
   # constructs a string of the keys with their corresponding values
@@ -1109,10 +1104,7 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt):
   khat,lam,L = Antpar
 
   # Compute the reflection coefficients
-  print(Mesh[0,0,0],Mesh[1,1,1])
-  print('Mesh equal check', Mesh.__self_eq__()) #DEBUG
   Rper, Rpar=ref_coef(Mesh,Znobrat,refindex)
-  print('Ref equal check', Rper.__self_eq__()) #DEBUG
 
   # Combine the reflection coefficients to get the reflection loss on each ray.
   t1=t.time()
@@ -1128,17 +1120,14 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt):
   print('----------------------------------------------------------')
   # Get the distances for each ray segment from the Mesh
   RadMesh=Mesh.__get_rad__()
-  print('Radius equal check',RadMesh.__self_eq__()) #DEBUG
   # Compute the mesh of phases
   pha=phase_calc(RadMesh,khat,L)
-  print('Phase equal check',pha.__self_eq__()) #DEBUG
   # Divide by the rads
   pharad=pha/RadMesh
   # Multiply by the gains.
   Gtpha=pharad.dict_row_vec_multiply(np.sqrt(Gt))
   # Combine Gains, phase and reflection
   GtphaRpe=Gtpha*Comper
-  print(GtphaRpe.__self_eq__())
   GtphaRpa=Gtpha*Compar
   # At this stage the terms are still different.
   # Sum cols
@@ -1243,10 +1232,12 @@ def ref_coef(Mesh,Znobrat,refindex):
   print('----------------------------------------------------------')
   print('Retrieving the angles of reflection')
   print('----------------------------------------------------------')
+  print('Make DS for angles')
   AngDSM=Mesh.sparse_angles()                       # Get the angles of incidence from the mesh.
-  print('Angles equal check', AngDSM.__self_eq__()) #DEBUG
+  print('Getting nonzero indices')
   ind=AngDSM.nonzero()                              # Return the indices for the non-zero terms in the mesh.
   ind=np.transpose(ind)
+  print('Initialising cthi, ctht, SIN')
   SIN =DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])   # Initialise a DSM which will be sin(theta)
   cthi=DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta)
   ctht=DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta_t) #FIXME
@@ -1704,7 +1695,7 @@ def test_22():
       Mesh[x,y,z,j,col]=count*vec[j]
       count+=1
   if Mesh.__self_eq__():
-    print(Mesh)
+    #print(Mesh) #DEBUG
     return 1
   count=0
   Mesh=DS(Nx,Ny,Nz,na,nb)
@@ -1715,7 +1706,8 @@ def test_22():
   if Mesh.__self_eq__():
     #print(Mesh)
     return 1
-  else: return 0
+  else:
+    return 0
 
 if __name__=='__main__':
   print('Running  on python version')
