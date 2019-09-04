@@ -67,99 +67,176 @@ class DS:
   # The 'k' and 'j' indices can be replaced with : to return rows or
   # columns of the SM A=DSM[x,y,z].
   # @return the 'i' term of the DSM
+  def __get_SM__(s,smk,dk,n):
+    ''' Get a SM at the position dk=[x,y,z].
+    * n indicates whether a whole SM is set, a row or a column.
+    * If n==0 a whole SM.
+    * If n==1 a row or rows.
+      * n2 is the number of rows.
+    * If n==2 a column or columns.
+      * n2 is the number of columns.
+    '''
+    out=SM(s.shape,dtype=np.complex128)
+    if n==0:
+      out=s.d[dk]
+    elif n==1:
+      # Set one row.
+      if isinstance(smk[0],(float,int,np.int64, np.complex128)): n2=1
+      # Set multiple rows.
+      else:
+        n2=len(smk[0])
+      # Get a row to the value 'x'
+      if n2==1:
+        out[smk,:]=s.d[dk][smk,:]
+      # Set multiple rows to the rows of 'x'.
+      else:
+        p=0
+        for j in smk:
+          out[j,:]=s.d[dk][j,:]
+          p+=1
+    # set a SM element or column if smk[0]=: (slice) or multiple elements or columns.
+    elif n==2:
+      if isinstance(smk[0],(float,int,np.int64, np.complex128,slice)): n2=1
+      else:
+        n2=len(smk[0])
+      if n2==1:
+        print(smk[0],smk[1],dk)
+        out[smk[0],smk[1]]=s.d[dk][smk[0],smk[1]]
+      else:
+        end=len(smk[0])
+        for c in range(0,end):
+          out[smk[0],smk[1]]=s.d[dk][smk[0][c],smk[1][c]]
+    else:
+      # Invalid 'i' the length does not match a possible position.
+      errmsg=str('''Error setting the (%s) part of the sparse matr
+      ix to (%s). Invalid index (%s). A 3-tuple is required to
+      return a sparse matrix(SM), 4-tuple for the row of a SM or
+      5-tuple for the element in the SM.''' %(i,x,i))
+      raise IndexError(errmsg)
+      pass
   def __getitem__(s,i):
-    ''' Get item i from s
+    ''' Set a new value to all or part of a DSM.
 
     :param i:
-     * If 'i' has length 5, :math:`i=[x,y,z,k,j]` then this is the \
-     position of a single term out=A[k,j] in a matrix \
-     :math:`A=DSM[x,y,z]`, return out.
-     * 'i' has length 4 then :math:`i=[x,y,z,k]`, this is the \
-     position of a row out=A[k] (array of length nb) of a sparse \
-      matrix corresponding to the dictionary key A=DSM[x,y,z].
-     * If 'i' has length 3 then i is the position of the whole sparse
-     matrix out=A for the sparse matrix at location [x,y,z].
 
-    The 'k' and 'j' indices can be replaced with : to return rows or \
-    columns of the SM A=DSM[x,y,z].
+      * If 'i' has length 5, i=[x,y,z,k,j] then this is the position of \
+      a single term out=A[k,j] in a matrix A=DSM[x,y,z], return out.
+
+      * 'i' has length 4 then i=[x,y,z,k], this is the position of a \
+      row out=A[k] (array of length nb) of a sparse matrix corresponding \
+      to the dictionary key A=DSM[x,y,z].
+
+      * If 'i' has length 3 then i is the position of the whole sparse \
+      matrix out=A for the sparse matrix at location [x,y,z].
+
+      The 'k' and 'j' indices can be replaced with : to return rows or \
+      columns of the SM A=DSM[x,y,z].
+
+    Method:
+
+    * .. code::
+
+         dk,smk=i[:3],i[3:]
+
+    * If dk[0],dk[1], and dk[2] are all numbers and smk[0] and smk[1] \
+      are not numbers of slices then :math:`k=1`. This means that a \
+      whole sparse matrix is being set at the (x,y,z) position.
+
+    * k indicates which (x,y,z) terms are being set.
+
+      * If k==-1: Set only one grid position (x,y,z).
+      * If k==0. Set all x positions with (y,z) co-ordinates.
+      * If k==1. Set all y positions with (x,z) co-ordinates.
+      * If k==2. Set all z positions with (x,y) co-ordinates.
+      * If k==3. Set all x and y positions with (z) co-ordinates.
+      * If k==4. Set all x and z  positions with (y) co-ordinates.
+      * If k==5. Set all y and z  positions with (x) co-ordinates
+      * If k==6. Set all x, y and z positions.
+      * If k==7. Set all [x1,...,xn] , [y1,...,y1], [z1,...,zn] terms.
+
+    * n indicates whether a whole SM is set, a row or a column.
+
+      * If n==0 a whole SM.
+      * If n==1 a row or rows.
+        * n2 is the number of rows.
+      * If n==2 a column or columns.
+        * n2 is the number of columns.
+
+    :param x: the new value to be assigned to DSM[i]
 
     :return: the 'i' term of the DSM
 
     '''
     dk,smk=i[:3],i[3:]
-    # If dk is a number then one position (x,y,z) is being refered to.
-    if isinstance(dk[0],(float,int,np.int64, np.complex128 )): n=1
-    else:
-      n=len(dk)
-    if n==1:
-      if len(i)==3:
-        dk=i[:3]
-        return s.d[dk]                # return a SM
-      elif len(i)==4:
-        dk,smk=i[:3],i[3]
-        return s.d[dk][smk,:]         # return a SM row
-      elif len(i)==5:
-        dk,smk=i[:3],i[3:]
-        return s.d[dk][smk[0],smk[1]] # If smk=[int,int] return element,
-                                      # If smk=[:,int] return column,
-                                      # If smk=[int,:] return row,
-                                      # If smk=[:,:] return full SM.
-      else:
-        # Invalid 'i' the length does not match a possible position.
-        errmsg=str('''Error getting the (%s) part of the sparse matrix.
-        Invalid index (%s). A 3-tuple is required to return a sparse
-        matrix(SM), 4-tuple for the row of a SM or 5-tuple for the
-        element in the SM.''' %(i,i))
-        raise IndexError(errmsg)
-        pass
-    # If dk[0] is not a number then multiple (x,y,z) terms are being called.
-    else:
-      # If smk is just a value then all rows smk in every dk element is returned.
-      if isinstance(smk,(float,int,np.complex128,np.int64)):
-        n2=1
-      else:
-        n2=len(smk)
-      # Return the SMK rows for the [x,y,z] matrices in dk.
-      if n2>2:
-        out=s.d[dk[0][0],dk[1][0],dk[2][0]][smk,:]
-      # Return the SM[k,j] term for all [x,y,z] matrices in dk.
-      elif n2==2:
-        out=s.d[dk[0][0],dk[1][0],dk[2][0]][ smk[0][0],smk[1][0]]
-      # Return the entire SM matrix for all [x,y,z] matrices in dk
-      elif n2==0:
-        out=s.d[dk[0][0],dk[1][0],dk[2][0]]
-      # If smk is not a number or length 2 then it is invalid and can
-      # not be found in the sparse matrix
-      else:
-        raise IndexError('Error, not a valid SM dimension')
-      ## Iterate through the list of (x,y,z) keys and return the
-      # corresponding element in the SM at that key.
-      for j in range(1,len(dk[0])):
-        if n2>2:
-          # Different rows
-          out=np.vstack((out,s.d[dk[0][j],dk[1][j],dk[2][j]][smk,:]))
-        elif n2==2:
-          out=np.vstack((out,s.d[dk[0][j],dk[1][j],dk[2][j]][ smk[0][j],smk[1][j]]))
-        elif n2==0:
-          out=np.vstack((out,s.d[dk[0][j],dk[1][j],dk[2][j]]))
+    # If dk[0], dk[1], and dk[2] are numbers then one position (x,y,z)
+    # is being refered to.
+    if isinstance(dk[0],(float,int,np.int64, np.complex128 )):
+      if isinstance(dk[1],(float,int,np.int64, np.complex128 )):
+        if isinstance(dk[2],(float,int,np.int64, np.complex128 )):
+          k=-1
         else:
-          raise IndexError('Error, not a valid SM dimension')
-      return out
-  ## Set a new value to all or part of a DSM.
-  # param i
-  # - If 'i' has length 5, i=[x,y,z,k,j] then this is the position of a
-  # single term out=A[k,j] in a matrix A=DSM[x,y,z], return out.
-  # - 'i' has length 4 then i=[x,y,z,k], this is the position of a
-  # row out=A[k] (array of length nb) of a sparse matrix corresponding
-  # to the dictionary key A=DSM[x,y,z].
-  # - If 'i' has length 3 then i is the position of the whole sparse
-  # matrix out=A for the sparse matrix at location [x,y,z].
-  # .
-  # \par
-  # The 'k' and 'j' indices can be replaced with : to return rows or
-  # columns of the SM A=DSM[x,y,z].
-  # @ param x the new value to be assigned to DSM[i]
-  # @return the 'i' term of the DSM
+          k=2
+      else:
+        if isinstance(dk[2],(float,int,np.int64, np.complex128 )):
+          k=1
+        else:
+          k=3
+    elif len(dk[0])>1 and  len(dk[1])>1 and len(dk[2])>1:
+      k=7
+    else:
+      if isinstance(dk[1],(float,int,np.int64, np.complex128 )):
+        if isinstance(dk[2],(float,int,np.int64, np.complex128 )):
+          k=0
+        else:
+          k=4
+      else:
+        if isinstance(dk[2],(float,int,np.int64, np.complex128 )):
+          k=5
+        else:
+          k=6
+    n=len(i)-3
+    out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
+    if k==-1:
+      out[dk]=s.__get_SM__(smk,dk,n)
+    elif k==0:
+      for x in range(0,s.Nx):
+        dk=[x,dk[1],dk[2]]
+        out[dk]=s.__get_SM__(smk,dk,n)
+    elif k==1:
+      for y in range(0,s.Ny):
+        dk=[dk[0],y,dk[2]]
+        out[dk]=s.__get_SM__(smk,dk,n)
+    elif k==2:
+      for z in range(0,s.Nz):
+        dk=[dk[0],y,dk[2]]
+        out[dk]=s.__get_SM__(smk,dk,n)
+    elif k==3:
+      for x,y in product(range(0,s.Nx),range(0,s.Ny)):
+        dk=[x,y,dk[2]]
+        out[dk]=s.__get_SM__(smk,dk,n)
+    elif k==4:
+       for x,z in product(range(0,s.Nx),range(0,s.Nz)):
+        dk=[x,dk[1],z]
+        out[dk]=s.__get_SM__(smk,dk,n)
+    elif k==5:
+      for y,z in product(range(0,s.Ny),range(0,s.Nz)):
+        dk=[dk[0],y,z]
+        out[dk]=s.__get_SM__(smk,dk,n)
+    elif k==6:
+      if isinstance(x,DS):
+        for k in s.d.keys():
+          out[k]=s.d[k]
+      else:
+        for dk in s.d.keys():
+          out[dk]=s.__get_SM__(smk,dk,n)
+    elif k==7:
+      count=0
+      dk=np.transpose(dk)
+      for k in dk:
+        sm=[smk[0][count],smk[1][count]]
+        out=s.__get_SM__(sm,k,n)
+    else: raise ValueError('no k has been assigned')
+    return out
   def __set_SM__(s,smk,dk,x,n):
     ''' Set a SM at the position dk=[x,y,z].
     * n indicates whether a whole SM is set, a row or a column.
@@ -253,6 +330,7 @@ class DS:
       * If k==4. Set all x and z  positions with (y) co-ordinates.
       * If k==5. Set all y and z  positions with (x) co-ordinates
       * If k==6. Set all x, y and z positions.
+      * If k==7. Set all [x1,...,xn] , [y1,...,y1], [z1,...,zn] terms.
 
     * n indicates whether a whole SM is set, a row or a column.
 
@@ -281,6 +359,8 @@ class DS:
           k=1
         else:
           k==3
+    elif len(dk[0])>1 and  len(dk[1])>1 and len(dk[2])>1:
+      k==7
     else:
       if isinstance(dk[1],(float,int,np.int64, np.complex128 )):
         if isinstance(dk[2],(float,int,np.int64, np.complex128 )):
@@ -326,7 +406,14 @@ class DS:
       else:
         for dk in s.d.keys():
           s.__set_SM__(smk,dk,x,n)
-      return
+    elif k==7:
+      count=0
+      dk=np.transpose(dk)
+      for k in dk:
+        sm=[smk[0][count],smk[1][count]]
+        s.__set_SM__(sm,k,x,n)
+    else: raise ValueError('no k has been assigned')
+    return
   ## String representation of the DSM s.
   # constructs a string of the keys with their corresponding values
   # (sparse matrices with the nonzero positions and values).
