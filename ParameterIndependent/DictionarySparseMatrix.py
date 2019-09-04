@@ -76,36 +76,40 @@ class DS:
     * If n==2 a column or columns.
       * n2 is the number of columns.
     '''
-    out=SM(s.shape,dtype=np.complex128)
+    #out=SM(s.shape,dtype=np.complex128)
+    dt=type(s.d[0,0,0][0,0])
     if n==0:
       out=s.d[dk]
     elif n==1:
-      # Set one row.
+      # Get one row.
       if isinstance(smk[0],(float,int,np.int64, np.complex128)): n2=1
-      # Set multiple rows.
+      # Get multiple rows.
       else:
         n2=len(smk[0])
-      # Get a row to the value 'x'
+      # Get a row
       if n2==1:
-        out[smk,:]=s.d[dk][smk,:]
-      # Set multiple rows to the rows of 'x'.
+        out=s.d[dk][smk,:]
+      # Get multiple rows
       else:
         p=0
+        nkeys=len(smk)
+        nb=s.shape[1]
+        out=np.zeros((nkeys,nb),dtype=dt)
         for j in smk:
           out[j,:]=s.d[dk][j,:]
           p+=1
-    # set a SM element or column if smk[0]=: (slice) or multiple elements or columns.
+    # Get a  column or columns.
     elif n==2:
-      if isinstance(smk[0],(float,int,np.int64, np.complex128,slice)): n2=1
+      if isinstance(smk[1],(float,int,np.int64, np.complex128)): n2=1
       else:
-        n2=len(smk[0])
+        n2=len(smk[1])
       if n2==1:
-        print(smk[0],smk[1],dk)
-        out[smk[0],smk[1]]=s.d[dk][smk[0],smk[1]]
+        out=s.d[dk][smk[0],smk[1]]
       else:
-        end=len(smk[0])
-        for c in range(0,end):
-          out[smk[0],smk[1]]=s.d[dk][smk[0][c],smk[1][c]]
+        na=s.shape[0]
+        out=np.zeros((na,n2),dtype=dt)
+        for c in range(0,n2):
+          out[:,c]=s.d[dk][smk[0][c],smk[1][c]]
     else:
       # Invalid 'i' the length does not match a possible position.
       errmsg=str('''Error setting the (%s) part of the sparse matr
@@ -114,8 +118,9 @@ class DS:
       5-tuple for the element in the SM.''' %(i,x,i))
       raise IndexError(errmsg)
       pass
+    return out
   def __getitem__(s,i):
-    ''' Set a new value to all or part of a DSM.
+    ''' Get all or part of a DSM.
 
     :param i:
 
@@ -153,6 +158,7 @@ class DS:
       * If k==5. Set all y and z  positions with (x) co-ordinates
       * If k==6. Set all x, y and z positions.
       * If k==7. Set all [x1,...,xn] , [y1,...,y1], [z1,...,zn] terms.
+        In this case a numpy array is returned.
 
     * n indicates whether a whole SM is set, a row or a column.
 
@@ -195,46 +201,76 @@ class DS:
         else:
           k=6
     n=len(i)-3
-    out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
+    dt=type(s.d[0,0,0][0,0])
     if k==-1:
-      out[dk]=s.__get_SM__(smk,dk,n)
+    ## Returning a scalar variable or sparse matrix at an exact \
+    # position (dk0,dk1,dk2,smk0,smk1). Only return a sparse matrix is
+    # smk is empty of slices.
+      out=s.__get_SM__(smk,dk,n)
     elif k==0:
+    ## Return a DS for all x in (0,Nx) and exact y=dk1, z=dk2, \
+    # Each x,y,z term is either a SM or a scalar variable depending on
+    # smk.
+      out=DS(s.Nx,1,1,s.shape[0],s.shape[1])
       for x in range(0,s.Nx):
         dk=[x,dk[1],dk[2]]
         out[dk]=s.__get_SM__(smk,dk,n)
     elif k==1:
+    ## Return a DS for all y in (0,Ny) and exact x=dk0, z=dk2, \
+    # Each x,y,z term is either a SM or a scalar variable depending on
+    # smk.
+      out=DS(1,s.Ny,1,s.shape[0],s.shape[1])
       for y in range(0,s.Ny):
         dk=[dk[0],y,dk[2]]
         out[dk]=s.__get_SM__(smk,dk,n)
     elif k==2:
+    ## Return a DS for all z in (0,Nz) and exact x=dk0, y=dk1 \
+    # Each x,y,z term is either a SM or a scalar variable depending on
+    # smk.
+      out=DS(1,1,s.Nz,s.shape[0],s.shape[1])
       for z in range(0,s.Nz):
         dk=[dk[0],y,dk[2]]
         out[dk]=s.__get_SM__(smk,dk,n)
     elif k==3:
+    ## Return a DS for all x in (0,Nx) and y in (0,Ny), and exact z=dk2, \
+    # Each x,y,z term is either a SM or a scalar variable depending on
+    # smk.
+      out=DS(s.Nx,s.Ny,1,s.shape[0],s.shape[1])
       for x,y in product(range(0,s.Nx),range(0,s.Ny)):
         dk=[x,y,dk[2]]
         out[dk]=s.__get_SM__(smk,dk,n)
     elif k==4:
-       for x,z in product(range(0,s.Nx),range(0,s.Nz)):
+    ## Return a DS for all x in (0,Nx) and z in (0,Nz) and exact y=dk1 \
+    # Each x,y,z term is either a SM or a scalar variable depending on
+    # smk.
+      out=DS(s.Nx,1,s.Nz,s.shape[0],s.shape[1])
+      for x,z in product(range(0,s.Nx),range(0,s.Nz)):
         dk=[x,dk[1],z]
         out[dk]=s.__get_SM__(smk,dk,n)
     elif k==5:
+    ## Return a DS for all i in (0,Ny), z in (0,Nz) and exact x=dk0 \
+    # Each x,y,z term is either a SM or a scalar variable depending on
+    # smk.
+      out=DS(1,s.Ny,s.Nz,s.shape[0],s.shape[1])
       for y,z in product(range(0,s.Ny),range(0,s.Nz)):
         dk=[dk[0],y,z]
         out[dk]=s.__get_SM__(smk,dk,n)
     elif k==6:
-      if isinstance(x,DS):
-        for k in s.d.keys():
-          out[k]=s.d[k]
-      else:
-        for dk in s.d.keys():
-          out[dk]=s.__get_SM__(smk,dk,n)
+    ## Return a DS for all x in (0,Nx), y in (0,Ny) and z in (0,Nz) \
+    # Each x,y,z term is either a SM or a scalar variable depending on
+    # smk.
+      out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
+      for dk in s.d.keys():
+        out[dk]=s.__get_SM__(smk,dk,n)
     elif k==7:
-      count=0
-      dk=np.transpose(dk)
-      for k in dk:
+      ## In the case when an 5xn co-ordinates are input output a nx1
+      # array containing the terms in the respective positions.
+      nkey=len(dk[0])
+      out=np.zeros((nkey,1),dtype=dt)
+      for count in range(0,nkey):
         sm=[smk[0][count],smk[1][count]]
-        out=s.__get_SM__(sm,k,n)
+        k=(dk[0][count],dk[1][count],dk[2][count])
+        out[count]=s.__get_SM__(sm,k,n)
     else: raise ValueError('no k has been assigned')
     return out
   def __set_SM__(s,smk,dk,x,n):
@@ -279,6 +315,7 @@ class DS:
       if dk not in s.d:
         s.d[dk]=SM(s.shape,dtype=np.complex128)
       if n2==1:
+        #print(x) #DEBUG
         s.d[dk][smk[0],smk[1]]=x
       else:
         end=len(smk[0])
@@ -360,7 +397,7 @@ class DS:
         else:
           k==3
     elif len(dk[0])>1 and  len(dk[1])>1 and len(dk[2])>1:
-      k==7
+      k=7
     else:
       if isinstance(dk[1],(float,int,np.int64, np.complex128 )):
         if isinstance(dk[2],(float,int,np.int64, np.complex128 )):
@@ -407,11 +444,11 @@ class DS:
         for dk in s.d.keys():
           s.__set_SM__(smk,dk,x,n)
     elif k==7:
-      count=0
-      dk=np.transpose(dk)
-      for k in dk:
+      nkey=len(dk[0])
+      for count in range(0,nkey):
+        k=(dk[0][count],dk[1][count],dk[2][count])
         sm=[smk[0][count],smk[1][count]]
-        s.__set_SM__(sm,k,x,n)
+        s.__set_SM__(sm,k,x[count],n)
     else: raise ValueError('no k has been assigned')
     return
   ## String representation of the DSM s.
@@ -433,7 +470,7 @@ class DS:
   def __add__(s, DSM2):
     out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
     for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
-      out[x,y,z]=s[x,y,z]+DSM2[x,y,z]
+      out[x,y,z]=s.d[x,y,z]+DSM2[x,y,z]
     return out
   ## Subtract DSM2 from DSM
   # Subtract sparse matrices in DSM2 from DSM elementwise if they have the
@@ -442,7 +479,7 @@ class DS:
   def __sub__(s, DSM):
     out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
     for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
-      out[x,y,z]=s[x,y,z]-DSM[x,y,z]
+      out[x,y,z]=s.d[x,y,z]-DSM[x,y,z]
     return out
   ## Multiply DSM2 with s
   # Perform matrix multiplication AB for all sparse matrices A in s
@@ -638,6 +675,7 @@ class DS:
     t1=t.time()
     indices=s.nonzero()
     ind=indices.T
+    #print(s[ind[0],ind[1],ind[2],ind[3],ind[4]]) #DEBUG
     AngDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.angle(s[ind[0],ind[1],ind[2],ind[3],ind[4]])
     t3=t.time()-t0
     print('time finding angles',t3)
