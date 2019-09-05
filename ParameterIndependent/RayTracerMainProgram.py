@@ -103,7 +103,7 @@ def RayTracer():
   Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
   Direc         =np.load('Parameters/Directions.npy')         # Matrix of intial ray directions for Nra rays.
-  Oblist        =np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+  Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
   #Nob           =len(Oblist)                                 # The number of obstacles in the room
 
   # Room contains all the obstacles and walls.
@@ -210,7 +210,7 @@ def MeshProgram():
   Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
   Direc         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
-  Oblist        =np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+  Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
 
   # Room contains all the obstacles and walls.
   Room=rom.room(Oblist)
@@ -407,10 +407,11 @@ def plot_grid():
   P=np.load('Power_grid.npy')
   n=len(P[0])
   for i in range(n):
-    print(P[:,i])
     mp.figure(i)
     #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-    mp.imshow(P[:,i], cmap='viridis', interpolation='nearest')#,extent=extent)
+    mp.imshow(P[:,:,i], cmap='viridis', interpolation='nearest')#,extent=extent)
+    filename=str()
+    mp.savefig()
     #mp.colourbar()
   mp.show()
   return
