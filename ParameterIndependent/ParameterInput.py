@@ -36,8 +36,8 @@ def DeclareParameters():
   # -------------------------------------------------------------------
 
   print('Saving ray-launcher parameters')
-  Nra=20 # Number of rays
-  Nre=2  # Number of reflections
+  Nra=100 # Number of rays
+  Nre=5  # Number of reflections
   Ns=25   # Number of steps on longest axis.
   l1=2   # Interior obstacle scale
   l2=9   # Outer Boundary length scale
@@ -227,7 +227,7 @@ def ObstacleCoefficients():
   RTPar         =np.load('Parameters/Raytracing.npy')
   Oblist        =np.load('Parameters/Obstacles.npy')
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')
-  Oblist        =np.concatenate((Oblist,OuterBoundary),axis=0)
+  Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)
   Nra=int(RTPar[0])                           # Number of rays
   Nre=int(RTPar[1])                           # Number of reflections
   Nob=len(Oblist)                             # The Number of obstacle.
