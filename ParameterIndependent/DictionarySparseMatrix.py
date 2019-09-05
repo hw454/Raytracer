@@ -82,7 +82,7 @@ class DS:
       out=s.d[dk]
     elif n==1:
       # Get one row.
-      if isinstance(smk[0],(float,int,np.int64, np.complex128)): n2=1
+      if isinstance(smk[0],(float,int,np.int32,np.int64, np.complex128)): n2=1
       # Get multiple rows.
       else:
         n2=len(smk[0])
@@ -100,7 +100,7 @@ class DS:
           p+=1
     # Get a  column or columns.
     elif n==2:
-      if isinstance(smk[1],(float,int,np.int64, np.complex128)): n2=1
+      if isinstance(smk[1],(float,int,np.int32,np.int64, np.complex128)): n2=1
       else:
         n2=len(smk[1])
       if n2==1:
@@ -291,7 +291,7 @@ class DS:
       s.d[dk]=x
     elif n==1:
       # Set one row.
-      if isinstance(smk[0],(float,int,np.int64, np.complex128)): n2=1
+      if isinstance(smk[0],(float,int,np.int32,np.int64, np.complex128)): n2=1
       # Set multiple rows.
       else:
         n2=len(smk[0])
@@ -958,13 +958,15 @@ class DS:
 
     """
     # FIXME this is too slow and needs parallelising / speeding up.
+    check=-1
     for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
       indicesM=s.d[x,y,z].nonzero()
       NI=len(indicesM[0])
       if abs(NI)<epsilon:
         pass
       else:
-        if x==0 and y==0 and z==0:
+        if check==-1:
+          check=0
           indices=np.array([0,0,0,indicesM[0][0],indicesM[1][0]])
           indicesSec=np.c_[np.tile(np.array([x,y,z]),(NI-1,1)),indicesM[0][1:],indicesM[1][1:]]
           indices=np.vstack((indices,indicesSec))
@@ -1258,12 +1260,12 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt):
   # Sum cols
   Grid0pe=GtphaRpe.row_sum()
   Grid0pa=GtphaRpa.row_sum()
-  # Multiply by the lambda\L
-  Gridpe=Grid0pe.dict_scal_mult(lam*L/(4*np.pi))
-  Gridpa=Grid0pa.dict_scal_mult(lam*L/(4*np.pi))
   # Turn into numpy array
-  Gridpe=Gridpe.togrid()
-  Gridpa=Gridpa.togrid()
+  Gridpe=Grid0pe.togrid()
+  Gridpa=Grid0pa.togrid()
+  # Multiply by the lambda\L
+  Gridpe=Gridpe*(lam*L/(4*np.pi))
+  Gridpa=Gridpa*(lam*L/(4*np.pi))
   # FIXME polarisation dummy
   aper=np.array([1,1,1])
   apar=np.array([0,0,0])
