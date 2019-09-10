@@ -404,14 +404,15 @@ def plot_grid():
   Loads `Power_grid.npy` and for each z step plots a heatmap of the \
   values at the (x,y) position.
   '''
+  Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
   P=np.load('Power_grid.npy')
-  n=len(P[0])
-  for i in range(n):
+  n=P.shape[2]
+  for i in range(n-1):
     mp.figure(i)
     #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
     mp.imshow(P[:,:,i], cmap='viridis', interpolation='nearest')#,extent=extent)
-    filename=str()
-    mp.savefig()
+    filename=str('HayleyMethodPowerFigures/PowerSlice'+str(i)+'Nra'+str(Nra)+'n'+str(n)+'Nref'+str(Nre)+'.png')
+    mp.savefig(filename)
     #mp.colourbar()
   mp.show()
   return
