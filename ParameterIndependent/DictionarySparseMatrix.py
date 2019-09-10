@@ -82,7 +82,7 @@ class DS:
       out=s.d[dk]
     elif n==1:
       # Get one row.
-      if isinstance(smk[0],(float,int,np.int32,np.int64, np.complex128)): n2=1
+      if singletype(smk[0]): n2=1
       # Get multiple rows.
       else:
         n2=len(smk[0])
@@ -100,7 +100,7 @@ class DS:
           p+=1
     # Get a  column or columns.
     elif n==2:
-      if isinstance(smk[1],(float,int,np.int32,np.int64, np.complex128)): n2=1
+      if singletype(smk[1]): n2=1
       else:
         n2=len(smk[1])
       if n2==1:
@@ -176,27 +176,27 @@ class DS:
     dk,smk=i[:3],i[3:]
     # If dk[0], dk[1], and dk[2] are numbers then one position (x,y,z)
     # is being refered to.
-    if isinstance(dk[0],(float,int,np.int64, np.complex128 )):
-      if isinstance(dk[1],(float,int,np.int64, np.complex128 )):
-        if isinstance(dk[2],(float,int,np.int64, np.complex128 )):
+    if singletype(dk[0]):
+      if singletype(dk[1]):
+        if singletype(dk[2]):
           k=-1
         else:
           k=2
       else:
-        if isinstance(dk[2],(float,int,np.int64, np.complex128 )):
+        if singletype(dk[2]):
           k=1
         else:
           k=3
     elif len(dk[0])>1 and  len(dk[1])>1 and len(dk[2])>1:
       k=7
     else:
-      if isinstance(dk[1],(float,int,np.int64, np.complex128 )):
-        if isinstance(dk[2],(float,int,np.int64, np.complex128 )):
+      if singletype(dk[1]):
+        if singletype(dk[2]):
           k=0
         else:
           k=4
       else:
-        if isinstance(dk[2],(float,int,np.int64, np.complex128 )):
+        if singletype(dk[2]):
           k=5
         else:
           k=6
@@ -291,7 +291,7 @@ class DS:
       s.d[dk]=x
     elif n==1:
       # Set one row.
-      if isinstance(smk[0],(float,int,np.int32,np.int64, np.complex128)): n2=1
+      if singletype(smk[0]): n2=1
       # Set multiple rows.
       else:
         n2=len(smk[0])
@@ -309,14 +309,25 @@ class DS:
           p+=1
     # set a SM element or column if smk[0]=: (slice) or multiple elements or columns.
     elif n==2:
-      if isinstance(smk[0],(float,int,np.int64, np.complex128,slice)): n2=1
+      if singletype(smk[0]) or isinstance(smk[0],(slice)): n2=1
       else:
         n2=len(smk[0])
       if dk not in s.d:
         s.d[dk]=SM(s.shape,dtype=np.complex128)
       if n2==1:
         #print(x) #DEBUG
-        s.d[dk][smk[0],smk[1]]=x
+        if isinstance(smk[0],(slice)):
+          n3=s.shape[0]
+          if singletype(x):
+            for i in range(n3):
+              s.d[dk][i,smk[1]]=x
+          else:
+            if singletype(x[0]):
+              s.d[dk][:,smk[1]]=x
+            else:
+              s.d[dk][:,smk[1]]=x[:,0]
+        else:
+          s.d[dk][smk[0],smk[1]]=x
       else:
         end=len(smk[0])
         for c in range(0,end):
@@ -487,6 +498,7 @@ class DS:
   # @param DSM2 is a DSM with the same dimensions as s.
   # @return a new DSM with the same dimensions
   def __mul__(s, DSM2):
+    #LOOKAT could use nonzero indices but is finding the indices slower than repeating.
     out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
     for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
       out[x,y,z]=s[x,y,z].multiply(DSM2[x,y,z])
@@ -497,13 +509,10 @@ class DS:
   # @param DSM2 is a DSM with the same dimensions as s.
   # @return a new DSM with the same dimensions
   def __truediv__(s, DSM2):
+    ind=DSM2.nonzero()
     out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
-    for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
-      ind=DSM2[x,y,z].nonzero()
-      #out=[x,y,z]=np.true_divide(s[x,y,z],DSM2[x,y,z])
-      n=len(ind[0])
-      for i in range(0,n):
-        out[x,y,z][ind[0][i],ind[1][i]]=np.true_divide(s[x,y,z][ind[0][i],ind[1][i]],DSM2[x,y,z][ind[0][i],ind[1][i]])
+    ind=ind.T
+    out[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.true_divide(s[ind[0],ind[1],ind[2],ind[3],ind[4]],DSM2[ind[0],ind[1],ind[2],ind[3],ind[4]])
     return out
   def __eq__(s,DSM2):
     ''' If all non-zero terms aren't equal then matrices aren't equal.
@@ -556,7 +565,7 @@ class DS:
     out=DS(s.Nx,s.Ny,s.Nz,1,s.shape[1],float)
     # Find the nonzero indices. There's no need to retrieve distances on 0 terms.
     ind=s.nonzero()
-    ind=ind.transpose()
+    ind=ind.T
     n=len(ind[0])
     p=-1
     l=-1
@@ -583,6 +592,30 @@ class DS:
   ## Finds arcsin(theta) for all terms theta \!= 0 in DSM.
   # @return a DSM with the same dimensions with arcsin(theta) in the
   # same position as the corresponding theta terms.
+  def truediv_withind(s,DSM2,ind):
+    out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
+    ind=ind.T
+    out[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.true_divide(s[ind[0],ind[1],ind[2],ind[3],ind[4]],DSM2[ind[0],ind[1],ind[2],ind[3],ind[4]])
+    return out
+  def mul_withind(s,DSM2,ind):
+    out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
+    ind=ind.T
+    n=len(ind[0])
+    p=-1
+    l=-1
+    m=-1
+    for i in range(n):
+      x=ind[0][i]
+      y=ind[1][i]
+      z=ind[2][i]
+      if x==p and y==l and z==m:
+        pass
+      else:
+        p=x
+        l=y
+        m=z
+        out[x,y,z]=s[x,y,z].multiply(DSM2[x,y,z])
+    return out
   def togrid(s):
     ''' Computethe matrix norm at each grid point and return a \
     3d numpy array.
@@ -602,7 +635,7 @@ class DS:
       Grid[x,y,z]=scipy.sparse.linalg.norm(s[x,y,z],1)
     return Grid
 
-  def asin(s):
+  def asin(s,ind=-1):
     """ Finds
 
     :math:`\\theta=\\arcsin(x)` for all terms :math:`x != 0` in \
@@ -615,16 +648,19 @@ class DS:
      the same positions as the corresponding theta terms.
 
     """
-    t0=t.time()
+    if isinstance(ind, type(-1)):
+      ind=s.nonzero()
+    else:
+      pass
     na,nb=s.shape
     asinDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
-    ind=np.transpose(s.nonzero())
+    ind=np.transpose(ind)
     asinDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.arcsin(s[ind[0],ind[1],ind[2],ind[3],ind[4]])
     return asinDSM
   ## Finds cos(theta) for all terms theta \!= 0 in DSM.
   # @return a DSM with the same dimensions with cos(theta) in the
   # same position as the corresponding theta terms.
-  def cos(s):
+  def cos(s,ind=-1):
     """ Finds :math:`\\cos(\\theta)` for all terms \
     :math:`\\theta != 0` in the DS s.
 
@@ -633,15 +669,37 @@ class DS:
      same position as the corresponding theta terms.
 
     """
+    if isinstance(ind, type(-1)):
+      ind=s.nonzero()
+    else:
+      pass
     na,nb=s.shape
     CosDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
-    ind=np.transpose(s.nonzero())
+    ind=np.transpose(ind)
     CosDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.cos(s[ind[0],ind[1],ind[2],ind[3],ind[4]])
+    return CosDSM
+  def cos_asin(s,ind=-1):
+    """ Finds :math:`\\cos( \\asin( \\theta))` for all terms \
+    :math:`\\theta != 0` in the DS s.
+
+    :returns: A DSM with the same dimensions with \
+    :math:`\\cos( \\asin( \\theta))` in the \
+     same position as the corresponding theta terms.
+
+    """
+    if isinstance(ind, type(-1)):
+      ind=s.nonzero()
+    else:
+      pass
+    na,nb=s.shape
+    CosDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
+    ind=np.transpose(ind)
+    CosDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.cos(np.arcsin(s[ind[0],ind[1],ind[2],ind[3],ind[4]]))
     return CosDSM
   ## Finds sin(theta) for all terms theta \!= 0 in DSM.
   # @return a DSM with the same dimensions with sin(theta) in the
   # same position as the corresponding theta terms.
-  def sin(s):
+  def sin(s,ind=-1):
     """ Finds :math:`\\sin(\\theta)` for all terms \
     :math:`\\theta != 0` in the DS s.
 
@@ -650,16 +708,20 @@ class DS:
      same position as the corresponding theta terms.
 
     """
+    if isinstance(ind, type(-1)):
+      ind=s.nonzero()
+    else:
+      pass
     na,nb=s.shape
     SinDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
-    ind=np.transpose(s.nonzero())
+    ind=np.transpose(ind)
     SinDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.sin(s[ind[0],ind[1],ind[2],ind[3],ind[4]])
     return SinDSM
   ## Finds the angles theta which are the arguments of the nonzero
   # complex terms in the DSM s.
   # @return a DSM with the same dimensions with theta in the
   # same position as the corresponding complex terms.
-  def sparse_angles(s):
+  def sparse_angles(s,ind=-1):
     """ Finds the angles :math:`\\theta` which are the arguments \
     of the nonzero complex terms in the DSM s.
 
@@ -668,13 +730,16 @@ class DS:
      position as the corresponding complex terms.
 
     """
-    print('start angles')
+    #print('start angles')
     t0=t.time()
     na,nb=s.shape
     AngDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
     t1=t.time()
-    indices=s.nonzero()
-    ind=indices.T
+    if isinstance(ind, type(-1)):
+      ind=s.nonzero()
+    else:
+      pass
+    ind=ind.T
     #print(s[ind[0],ind[1],ind[2],ind[3],ind[4]]) #DEBUG
     AngDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.angle(s[ind[0],ind[1],ind[2],ind[3],ind[4]])
     t3=t.time()-t0
@@ -809,14 +874,62 @@ class DS:
     na,nb=s.shape
     outDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
     ind=np.transpose(vec.nonzero())
-    for x,y,z,a,b in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz),ind,range(0,nb)):
-      a=a[0]
-      if abs(s[x,y,z,a,b])<epsilon:
-        pass
-      else:
-        out=np.divide(s[x,y,z,a,b],vec[a])
-        outDSM[x,y,z,a,b]=out
+    for x,y,z,b in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz),range(0,nb)):
+        # #a=a[0]
+        # if abs(s[x,y,z,0,b])<epsilon:
+        # pass
+        # else:
+        out=np.divide(s[x,y,z,:,b],vec)
+        print(out)
+        outDSM[x,y,z,:,b]=out
     return outDSM
+  def dict_DSM_divideby_vec_withind(s,vec,ind):
+    """ Divide every column of the DSM s elementwise with the vector vec.
+
+    :param vec: a row vector with length na.
+
+    For integers :math:`x,y,z,k` and :math:`j` such that,
+    :math:`x \in [0,Nx), y \in [0,Ny), z \in [0,Nz), k \in [0,na),j \in [0,nb)`,
+
+    .. code::
+
+       out[x,y,z,k,j]=DSM[x,y,z,k,j]/vec[k]
+
+    :rtype: a DSM 'out' with the same dimensions as s.
+
+    :return:  out
+
+    """
+    na,nb=s.shape
+    outDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
+    ind=ind.T
+    #ind=np.transpose(vec.nonzero())
+    #for x,y,z,b in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz),range(0,nb)):
+    p=-1
+    l=-1
+    m=-1
+    q=-1
+    n=len(ind[0])
+    for i in range(n):
+        # #a=a[0]
+        # if abs(s[x,y,z,0,b])<epsilon:
+        # pass
+        # else:
+        x=ind[0][i]
+        y=ind[1][i]
+        z=ind[2][i]
+        bi=ind[4][i]
+        if x==p and y==l and z==m and q==bi:
+          pass
+        else:
+          out=s.d[x,y,z][:,bi]/vec
+          outDSM[x,y,z,:,bi]=out
+          q=bi
+          p=x
+          l=y
+          m=z
+    return outDSM
+
   ## Every column of the DSM s divides elementwise the vector vec.
   # @param vec a row vector with length na.
   # @return a DSM 'out' with the same dimensions as s.
@@ -1231,38 +1344,40 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt):
   khat,lam,L = Antpar
 
   # Compute the reflection coefficients
-  Rper, Rpar=ref_coef(Mesh,Znobrat,refindex)
+  Rper, Rpar, ind=ref_coef(Mesh,Znobrat,refindex)
 
   # Combine the reflection coefficients to get the reflection loss on each ray.
   t1=t.time()
   print('----------------------------------------------------------')
   print('Multiplying reflection coefficients ')
   print('----------------------------------------------------------')
-  Comper=Rper.dict_col_mult()
-  print('Ref after mult equal check',Comper.__self_eq__()) #DEBUG
-  Compar=Rpar.dict_col_mult()
+  Comper=Rper.dict_col_mult() # with ind
+  #print('Ref after mult equal check',Comper.__self_eq__()) #DEBUG
+  Compar=Rpar.dict_col_mult() # with ind
   t2=t.time()
   print('----------------------------------------------------------')
   print('Reflection coefficients multiplied, time taken ', t2-t1)
   print('----------------------------------------------------------')
   # Get the distances for each ray segment from the Mesh
-  RadMesh=Mesh.__get_rad__()
+  RadMesh=Mesh.__get_rad__() # with ind
+  #FIXME get ind from Mesh nonzeros to the rad versions. So SMs no longer have rows.
   # Compute the mesh of phases
-  pha=phase_calc(RadMesh,khat,L)
+  ind=RadMesh.nonzero()
+  pha=phase_calc(RadMesh,khat,L) # with ind
   # Divide by the rads
-  pharad=pha/RadMesh
+  pharad=pha.truediv_withind(RadMesh,ind)
   # Multiply by the gains.
-  Gtpha=pharad.dict_row_vec_multiply(np.sqrt(Gt))
+  Gtpha=pharad.dict_row_vec_multiply(np.sqrt(Gt)) #with ind
   # Combine Gains, phase and reflection
-  GtphaRpe=Gtpha*Comper
-  GtphaRpa=Gtpha*Compar
+  GtphaRpe=Gtpha.mul_withind(Comper,ind) # with ind
+  GtphaRpa=Gtpha.mul_withind(Compar,ind) # with ind
   # At this stage the terms are still different.
   # Sum cols
-  Grid0pe=GtphaRpe.row_sum()
-  Grid0pa=GtphaRpa.row_sum()
+  Grid0pe=GtphaRpe.row_sum() # with ind
+  Grid0pa=GtphaRpa.row_sum() # with ind
   # Turn into numpy array
-  Gridpe=Grid0pe.togrid()
-  Gridpa=Grid0pa.togrid()
+  Gridpe=Grid0pe.togrid() # with ind
+  Gridpa=Grid0pa.togrid() # with ind
   # Multiply by the lambda\L
   Gridpe=Gridpe*(lam*L/(4*np.pi))
   Gridpa=Gridpa*(lam*L/(4*np.pi))
@@ -1292,6 +1407,10 @@ def nonzero_bycol(SM):
 # FUNCTIONS CONNECTED TO DS BUT AREN'T PART OF THE OBJECT
 #=======================================================================
 
+def singletype(x):
+  if isinstance(x,(float,int,np.int32,np.int64, np.complex128 )):
+    return True
+  else: return False
 
 def load_dict(filename_):
   ''' Load a DS as a dictionary and construct the DS again.
@@ -1359,19 +1478,19 @@ def ref_coef(Mesh,Znobrat,refindex):
   print('----------------------------------------------------------')
   print('Retrieving the angles of reflection')
   print('----------------------------------------------------------')
+  print('Getting nonzero indices')
+  ind=Mesh.nonzero()
   print('Make DS for angles')
   AngDSM=Mesh.sparse_angles()                       # Get the angles of incidence from the mesh.
-  print('Getting nonzero indices')
-  ind=AngDSM.nonzero()                              # Return the indices for the non-zero terms in the mesh.
-  ind=np.transpose(ind)
   print('Initialising cthi, ctht, SIN')
   SIN =DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])   # Initialise a DSM which will be sin(theta)
   cthi=DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta)
   ctht=DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta_t) #FIXME
+  #FIXME this section is far too slow and needs speeding up.
   print('----------------------------------------------------------')
   print('Computing cos(theta_i) on all reflection terms')
   print('----------------------------------------------------------')
-  cthi=AngDSM.cos()                                   # Compute cos(theta_i)
+  cthi=AngDSM.cos(ind)                                   # Compute cos(theta_i)
   t1=t.time()
   print('----------------------------------------------------------')
   print('cos(theta_i) found time taken ', t1-t0)
@@ -1381,38 +1500,49 @@ def ref_coef(Mesh,Znobrat,refindex):
   print('----------------------------------------------------------')
   #SIN[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.sin(AngDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]) # Compute sin(theta)
   #ctht[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.cos(np.arcsin(Div[ind[0],ind[1],ind[2],ind[3],ind[4]]))
-  SIN=AngDSM.sin()
-  Div=SIN.dict_DSM_divideby_vec(refindex)             # Divide each column in DSM with refindex elementwise. Set any 0 term to 0.
-  ctht=(Div.asin()).cos()
+  SIN=AngDSM.sin(ind)
   t2=t.time()
+  print('Time to get sin of angles',t2-t1)
+  # FIXME I think it is this step slowing things down.
+  Div=SIN.dict_DSM_divideby_vec_withind(refindex,ind)             # Divide each column in DSM with refindex elementwise. Set any 0 term to 0.
+  t3=t.time()
+  print('Time to divide by refindex', t3-t2)
+  ctht=Div.cos_asin(ind)
+  t4=t.time()
+  print('Time to do cos arcsin',t4-t3)
+  del t3, t2
   print('----------------------------------------------------------')
-  print('cos(theta_t) found time taken ', t2-t1)
+  print('cos(theta_t) found time taken ', t4-t1)
+  del t1
   print('----------------------------------------------------------')
   print('----------------------------------------------------------')
   print('Multiplying by the impedances')
   print('----------------------------------------------------------')
   S1=(cthi).dict_vec_multiply(Znobrat)                # Compute S1=Znob*cos(theta_i)
   S2=(ctht).dict_vec_multiply(Znobrat)                # Compute S2=Znob*cos(theta_t)
-  t3=t.time()
+  t5=t.time()
   print('----------------------------------------------------------')
-  print('Multiplication done time taken ', t3-t2)
+  print('Multiplication done time taken ', t5-t4)
+  del t4
   print('----------------------------------------------------------')
   print('----------------------------------------------------------')
   print('Computing the reflection coefficients.')
   print('----------------------------------------------------------')
-  Rper=(S1-ctht)/(S1+ctht)                        # Compute the Reflection coeficient perpendicular
+  Rper=(S1-ctht).truediv_withind(S1+ctht,ind)                        # Compute the Reflection coeficient perpendicular
                                                   # to the polarisiation Rper=(Zm/Z0cos(theta_i)-cos(theta_t))/(Zm/Z0cos(theta_i)+cos(theta_t))
 
-  Rpar=(cthi-S2)/(cthi+S2)                        # Compute the Reflection coeficient parallel
+  Rpar=(cthi-S2).truediv_withind(cthi+S2,ind)                        # Compute the Reflection coeficient parallel
                                                   # to the polarisiation Rpar=(cos(theta_i)-Zm/Z0cos(theta_t))/(cos(theta_i)+Zm/Z0cos(theta_t))
-  t4=t.time()
+  t6=t.time()
   print('----------------------------------------------------------')
-  print('Reflection coefficients found, time taken ', t4-t3)
+  print('Reflection coefficients found, time taken ', t6-t5)
+  del t5
   print('----------------------------------------------------------')
   print('----------------------------------------------------------')
-  print('Total time to compute reflection coefficients from Mesh ', t4-t0)
+  print('Total time to compute reflection coefficients from Mesh ', t6-t0)
+  del t6, t0
   print('----------------------------------------------------------')
-  return Rper, Rpar
+  return Rper, Rpar, ind
 
 def parnonzero(nj,DS):
   ''' Parallel version of a program with a dummy DS and a function for \
