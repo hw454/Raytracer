@@ -407,14 +407,14 @@ def plot_grid():
   Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
   P=np.load('Power_grid.npy')
   n=P.shape[2]
-  for i in range(n-1):
+  for i in range(n):
     mp.figure(i)
     #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
     mp.imshow(P[:,:,i], cmap='viridis', interpolation='nearest')#,extent=extent)
     filename=str('HayleyMethodPowerFigures/PowerSlice'+str(i)+'Nra'+str(Nra)+'n'+str(n)+'Nref'+str(Nre)+'.png')
     mp.savefig(filename)
     #mp.colourbar()
-  mp.show()
+  #mp.show()
   return
 
 if __name__=='__main__':
