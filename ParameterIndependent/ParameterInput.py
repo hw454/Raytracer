@@ -284,7 +284,7 @@ def ObstacleCoefficients():
   Znobrat=np.tile(Znobrat,Nre)                    # The number of rows is Nob*Nre+1. Repeat Nob
   Znobrat=np.insert(Znobrat,0,complex(0.0,0.0))     # Use a zero for placement in the LOS row
   refindex=np.tile(refindex,Nre)
-  refindex=np.insert(refindex,0,complex(0,0))
+  refindex=np.insert(refindex,0,1+0j)
   Gt=np.tile(Gt,(Nre+1,1))
 
   # --------------------------------------------------------------------
