@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # Hayley Wragg 2019-29-04
 ''' Code to construct the ray-tracing objects rays'''
-from scipy.sparse import lil_matrix as SM
+#from scipy.sparse import lil_matrix as SM
 import numpy as np
+from scipy.sparse import dok_matrix as SM
 import reflection as ref
 import intersection as ins
 import linefunctions as lf
