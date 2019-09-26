@@ -21,6 +21,7 @@ import time as t
 import matplotlib.pyplot as mp
 from six.moves import cPickle as pkl
 from multiprocessing import Pool
+import timeit
 #from collections import defaultdict
 
 epsilon=sys.float_info.epsilon
@@ -875,13 +876,7 @@ class DS:
     outDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
     ind=np.transpose(vec.nonzero())
     for x,y,z,b in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz),range(0,nb)):
-        # #a=a[0]
-        # if abs(s[x,y,z,0,b])<epsilon:
-        # pass
-        # else:
-        out=np.divide(s[x,y,z,:,b],vec)
-        print(out)
-        outDSM[x,y,z,:,b]=out
+        outDSM[x,y,z,:,b]=s[x,y,z,:,b].toarray()/vec
     return outDSM
   def dict_DSM_divideby_vec_withind(s,vec,ind):
     """ Divide every column of the DSM s elementwise with the vector vec.
@@ -922,8 +917,7 @@ class DS:
         if x==p and y==l and z==m and q==bi:
           pass
         else:
-          out=s.d[x,y,z][:,bi]/vec
-          outDSM[x,y,z,:,bi]=out
+          outDSM[x,y,z,:,bi]=s.d[x,y,z][:,bi].toarray()/vec
           q=bi
           p=x
           l=y
@@ -934,6 +928,42 @@ class DS:
   # @param vec a row vector with length na.
   # @return a DSM 'out' with the same dimensions as s.
   # out[x,y,z,k,j]=vec[k]/DSM[x,y,z,k,j]
+  def costhetat(s,refindex,ind):
+    ''' Takes in a Mesh of angles with nonzero terms at ind. Computes
+    cos of thetat at those angles using the refractive index's.
+    :param ind: The indices of the nonzero terms.
+    :param refindex: The refractive index's of the obstacles in a vector.
+
+    .. code::
+       SIN=sin(s)
+       thetat=asin(SIN/refindex)
+       ctht=cos(thetat)
+
+    :rtype: DSM
+    :returns: ctht'''
+    na,nb=s.shape
+    ctht=DS(s.Nx,s.Ny,s.Nz,na,nb)
+    ind=ind.T
+    #ind=np.transpose(vec.nonzero())
+    #for x,y,z,b in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz),range(0,nb)):
+    p=-1
+    l=-1
+    m=-1
+    q=-1
+    n=len(ind[0])
+    for i in range(n):
+        # #a=a[0]
+        # if abs(s[x,y,z,0,b])<epsilon:
+        # pass
+        # else:
+        x=ind[0][i]
+        y=ind[1][i]
+        z=ind[2][i]
+        ai=ind[3][i]
+        bi=ind[4][i]
+        thetat=np.arcsin(np.sin(s.d[x,y,z][ai,bi])/refindex[ai])
+        ctht[x,y,z,ai,bi]=np.cos(thetat)
+    return ctht
   def dict_col_mult(s):
     ''' Multiply all nonzero terms in a column.
 
@@ -1086,6 +1116,8 @@ class DS:
         else:
           indicesSec=np.c_[np.tile(np.array([x,y,z]),(NI,1)),indicesM[0][0:],indicesM[1][0:]]
           indices=np.vstack((indices,indicesSec))
+    if check==-1:
+      indices=np.array([])
     return indices
   def row_sum(s):
     ''' Sum all nonzero terms in a row.
@@ -1343,6 +1375,7 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt):
   # Retrieve the parameters
   khat,lam,L = Antpar
 
+  print(Mesh)
   # Compute the reflection coefficients
   Rper, Rpar, ind=ref_coef(Mesh,Znobrat,refindex)
 
@@ -1474,6 +1507,7 @@ def ref_coef(Mesh,Znobrat,refindex):
   :returns: Rper, Rpar
 
   '''
+  # FIXME rewrite this whole section so loops aren't repeated.
   t0=t.time()
   print('----------------------------------------------------------')
   print('Retrieving the angles of reflection')
@@ -1486,34 +1520,44 @@ def ref_coef(Mesh,Znobrat,refindex):
   SIN =DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])   # Initialise a DSM which will be sin(theta)
   cthi=DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta)
   ctht=DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta_t) #FIXME
-  #FIXME this section is far too slow and needs speeding up.
-  print('----------------------------------------------------------')
-  print('Computing cos(theta_i) on all reflection terms')
-  print('----------------------------------------------------------')
+  # #FIXME this section is far too slow and needs speeding up.
+  # print('----------------------------------------------------------')
+  # print('Computing cos(theta_i) on all reflection terms')
+  # print('----------------------------------------------------------')
   cthi=AngDSM.cos(ind)                                   # Compute cos(theta_i)
-  t1=t.time()
-  print('----------------------------------------------------------')
-  print('cos(theta_i) found time taken ', t1-t0)
-  print('----------------------------------------------------------')
-  print('----------------------------------------------------------')
-  print('Computing cos(theta_t) on all reflection terms')
-  print('----------------------------------------------------------')
-  #SIN[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.sin(AngDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]) # Compute sin(theta)
-  #ctht[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.cos(np.arcsin(Div[ind[0],ind[1],ind[2],ind[3],ind[4]]))
-  SIN=AngDSM.sin(ind)
-  t2=t.time()
-  print('Time to get sin of angles',t2-t1)
-  # FIXME I think it is this step slowing things down.
-  Div=SIN.dict_DSM_divideby_vec_withind(refindex,ind)             # Divide each column in DSM with refindex elementwise. Set any 0 term to 0.
-  t3=t.time()
-  print('Time to divide by refindex', t3-t2)
-  ctht=Div.cos_asin(ind)
+  # t1=t.time()
+  # print('----------------------------------------------------------')
+  # print('cos(theta_i) found time taken ', t1-t0)
+  # print('----------------------------------------------------------')
+  # print('----------------------------------------------------------')
+  # print('Computing cos(theta_t) on all reflection terms')
+  # print('----------------------------------------------------------')
+  # #SIN[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.sin(AngDSM[ind[0],ind[1],ind[2],ind[3],ind[4]]) # Compute sin(theta)
+  # #ctht[ind[0],ind[1],ind[2],ind[3],ind[4]]=np.cos(np.arcsin(Div[ind[0],ind[1],ind[2],ind[3],ind[4]]))
+  # SIN=AngDSM.sin(ind)
+  # t2=t.time()
+  # print('Time to get sin of angles',t2-t1)
+  # # FIXME I think it is this step slowing things down.
+  # # FIXME this is sin and ref seperate. do both together?
+  # # FIXME Use matrix division with tesselated vector rather than iterating?
+  # # FIXME write function for cos(thetat) so non of this iteration is repeated.
+  # # ctht=AngDSM.costhetat(refindex,ind)
+  # Div=SIN.dict_DSM_divideby_vec_withind(refindex,ind)             # Divide each column in DSM with refindex elementwise. Set any 0 term to 0.
+  # t3=t.time()
+  # print('Time to divide by refindex', t3-t2)
+  # ctht=Div.cos_asin(ind)
   t4=t.time()
-  print('Time to do cos arcsin',t4-t3)
-  del t3, t2
-  print('----------------------------------------------------------')
-  print('cos(theta_t) found time taken ', t4-t1)
-  del t1
+  # print('Time to do cos arcsin',t4-t3)
+  # del t3, t2
+  # print('----------------------------------------------------------')
+  # print('cos(theta_t) found time taken ', t4-t1)
+  # del t1
+  # print('Finding cos(theta_t) with other function')
+  ctht=AngDSM.costhetat(refindex,ind)
+  t2=t.time()
+  print('New function finished',t2-t4)
+  t4=t2
+  del t2
   print('----------------------------------------------------------')
   print('----------------------------------------------------------')
   print('Multiplying by the impedances')
@@ -1966,9 +2010,79 @@ def test_22():
   else:
     return 0
 
+def test_23():
+  Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
+  Nra=int(Nra)
+  Nre=int(Nre)
+  Nob            =np.load('Parameters/Nob.npy')
+
+  #PI.ObstacleCoefficients()
+  ##----Retrieve the antenna parameters--------------------------------------
+  Gt            = np.load('Parameters/TxGains.npy')
+  freq          = np.load('Parameters/frequency.npy')
+  Freespace     = np.load('Parameters/Freespace.npy')
+  c             =Freespace[3]
+  khat          =freq*L/c
+  lam           =(2*np.pi*c)/freq
+  Antpar        =np.array([khat,lam,L])
+
+  ##----Retrieve the Obstacle Parameters--------------------------------------
+  Znobrat      =np.load('Parameters/Znobrat.npy')
+  refindex     =np.load('Parameters/refindex.npy')
+
+  ##----Retrieve the Mesh--------------------------------------
+  meshname=str('DSM'+str(Nra)+'Refs'+str(Nre)+'m.npy')
+  Mesh= load_dict(meshname)
+  ind=Mesh.nonzero()
+  AngDSM=Mesh.sparse_angles()
+
+  ctht=DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta_t) #FIXME
+  SIN=AngDSM.sin(ind)
+  Div=SIN.dict_DSM_divideby_vec_withind(refindex,ind)             # Divide each column in DSM with refindex elementwise. Set any 0 term to 0.
+  ctht=Div.cos_asin(ind)
+  return ctht
+
+def test_24():
+  Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
+  Nra=int(Nra)
+  Nre=int(Nre)
+  Nob            =np.load('Parameters/Nob.npy')
+
+  #PI.ObstacleCoefficients()
+  ##----Retrieve the antenna parameters--------------------------------------
+  Gt            = np.load('Parameters/TxGains.npy')
+  freq          = np.load('Parameters/frequency.npy')
+  Freespace     = np.load('Parameters/Freespace.npy')
+  c             =Freespace[3]
+  khat          =freq*L/c
+  lam           =(2*np.pi*c)/freq
+  Antpar        =np.array([khat,lam,L])
+
+  ##----Retrieve the Obstacle Parameters--------------------------------------
+  Znobrat      =np.load('Parameters/Znobrat.npy')
+  refindex     =np.load('Parameters/refindex.npy')
+
+  ##----Retrieve the Mesh--------------------------------------
+  meshname=str('DSM'+str(Nra)+'Refs'+str(Nre)+'m.npy')
+  Mesh= load_dict(meshname)
+  ind=Mesh.nonzero()
+  AngDSM=Mesh.sparse_angles()
+
+  ctht=DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta_t) #FIXME
+  ctht=AngDSM.costhetat(refindex,ind)
+  return ctht
+
+
 if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   #job_server = pp.Server()
-  t=test_22()
-  print(t)
+  t1=t.time()
+  ctht=test_24()
+  t2=t.time()
+  print(t2-t1)
+  ctht=test_23()
+  t3=t.time()
+  print(t3-t2)
+  print(timeit.timeit("test_23()",setup="from __main__ import test_23"))
+  print(timeit.timeit("test_24()",setup="from __main__ import test_24"))

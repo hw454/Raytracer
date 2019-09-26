@@ -36,8 +36,8 @@ def DeclareParameters():
   # -------------------------------------------------------------------
 
   print('Saving ray-launcher parameters')
-  Nra=500 # Number of rays
-  Nre=10  # Number of reflections
+  Nra=300 # Number of rays
+  Nre=15  # Number of reflections
   Ns=30   # Number of steps on longest axis.
   l1=2   # Interior obstacle scale
   l2=9   # Outer Boundary length scale
@@ -248,7 +248,7 @@ def ObstacleCoefficients():
   mur=np.full((Nob,1), complex(3.0,0))         # For this test mur is
                                                # the same for every obstacle.
                                                # Array created to get functions correct.
-  epsr=np.full((Nob,1),complex(2.9493, 0.1065))# For this test epsr is the
+  epsr=np.full((Nob,1),complex(2949.3, 0.1065))# For this test epsr is the
                                                # same for every obstacle
 
   sigma=np.full((Nob,1),1.0E-4)                # For this test sigma is the

@@ -411,7 +411,7 @@ def plot_grid():
     mp.figure(i)
     #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
     mp.imshow(P[:,:,i], cmap='viridis', interpolation='nearest')#,extent=extent)
-    filename=str('HayleyMethodPowerFigures/PowerSlice'+str(i)+'Nra'+str(Nra)+'n'+str(n)+'Nref'+str(Nre)+'.png')
+    filename=str('HayleyMethodPowerFigures/PowerSlice'+str(int(i))+'Nra'+str(int(Nra))+'n'+str(int(n))+'Nref'+str(int(Nre))+'.eps')
     mp.savefig(filename)
     #mp.colourbar()
   #mp.show()
