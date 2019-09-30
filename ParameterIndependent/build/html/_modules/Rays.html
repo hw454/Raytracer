@@ -1,0 +1,559 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Rays &#8212; DSMRayTracerDoc 0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="DSMRayTracerDoc 0 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Rays</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># Hayley Wragg 2019-29-04</span>
+<span class="sd">&#39;&#39;&#39; Code to construct the ray-tracing objects rays&#39;&#39;&#39;</span>
+<span class="c1">#from scipy.sparse import lil_matrix as SM</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="k">import</span> <span class="n">dok_matrix</span> <span class="k">as</span> <span class="n">SM</span>
+<span class="kn">import</span> <span class="nn">reflection</span> <span class="k">as</span> <span class="nn">ref</span>
+<span class="kn">import</span> <span class="nn">intersection</span> <span class="k">as</span> <span class="nn">ins</span>
+<span class="kn">import</span> <span class="nn">linefunctions</span> <span class="k">as</span> <span class="nn">lf</span>
+<span class="c1">#import HayleysPlotting as hp</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">mp</span>
+<span class="kn">import</span> <span class="nn">math</span> <span class="k">as</span> <span class="nn">ma</span>
+<span class="c1">#from math import sin,cos,atan2,hypot,sqrt,copysign</span>
+<span class="c1">#import roommesh as rmes</span>
+<span class="kn">import</span> <span class="nn">time</span> <span class="k">as</span> <span class="nn">t</span>
+<span class="kn">import</span> <span class="nn">random</span> <span class="k">as</span> <span class="nn">rnd</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">product</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="n">epsilon</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">float_info</span><span class="o">.</span><span class="n">epsilon</span>
+
+<div class="viewcode-block" id="Ray"><a class="viewcode-back" href="../index.html#Rays.Ray">[docs]</a><span class="k">class</span> <span class="nc">Ray</span><span class="p">:</span>
+  <span class="sd">&#39;&#39;&#39; A ray is a representation of the the trajectory of a reflecting \</span>
+<span class="sd">  line and its reflections.</span>
+<span class="sd">  Ray.points is an array of co-ordinates representing</span>
+<span class="sd">  the collision points with the last term being the direction the ray ended in.</span>
+<span class="sd">  And Ray.reflections is an array containing tuples of the angles of incidence</span>
+<span class="sd">  and the number referring to the position of the obstacle in the obstacle list</span>
+
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">origin</span><span class="p">,</span><span class="n">direc</span><span class="p">):</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span>
+      <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">origin</span><span class="p">,</span>  <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">),</span>
+       <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">direc</span><span class="p">,</span>   <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+    <span class="p">))</span>
+    <span class="c1">#s.reflections=np.vstack()</span>
+  <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s1">&#39;Ray(</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="s1">&#39;)&#39;</span>
+  <span class="k">def</span> <span class="nf">_get_intersection</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; The second to last term in the np array is the starting</span>
+<span class="sd">    co-ordinate of the travelling ray &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">ray</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">_get_direction</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; The direction of the travelling ray is the last term in the ray</span>
+<span class="sd">    array. &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">ray</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">_get_travellingray</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;The ray which is currently travelling. Should return the recent</span>
+<span class="sd">    origin and direction. &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]]</span>
+<div class="viewcode-block" id="Ray.obst_collision_point"><a class="viewcode-back" href="../index.html#Rays.Ray.obst_collision_point">[docs]</a>  <span class="k">def</span> <span class="nf">obst_collision_point</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">surface</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; intersection of the ray with a wall_segment &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">ins</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">_get_travellingray</span><span class="p">(),</span><span class="n">surface</span><span class="p">)</span></div>
+<div class="viewcode-block" id="Ray.room_collision_point"><a class="viewcode-back" href="../index.html#Rays.Ray.room_collision_point">[docs]</a>  <span class="k">def</span> <span class="nf">room_collision_point</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">room</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; The closest intersection out of the possible intersections with</span>
+<span class="sd">    the wall_segments in room. Returns the intersection point and the</span>
+<span class="sd">    wall intersected with &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+      <span class="c1"># Retreive the Maximum length from the Room</span>
+      <span class="n">leng</span><span class="o">=</span><span class="n">room</span><span class="o">.</span><span class="n">maxleng</span><span class="p">()</span>
+      <span class="c1"># Initialise the point and wall</span>
+      <span class="n">robj</span><span class="o">=</span><span class="n">room</span><span class="o">.</span><span class="n">obst</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="n">rcp</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">obst_collision_point</span><span class="p">(</span><span class="n">robj</span><span class="p">)</span>
+      <span class="c1"># Find the intersection with all the walls and check which is the</span>
+      <span class="c1">#closest. Verify that the intersection is not the current origin.</span>
+      <span class="n">Nob</span><span class="o">=</span><span class="mi">1</span>
+      <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">p</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">rcp</span><span class="p">):</span> <span class="n">rNob</span><span class="o">=</span><span class="mi">0</span>
+      <span class="k">else</span><span class="p">:</span> <span class="n">rNob</span><span class="o">=</span><span class="n">Nob</span>
+      <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">room</span><span class="o">.</span><span class="n">obst</span><span class="p">:</span>
+        <span class="n">cp</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">obst_collision_point</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">c</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cp</span><span class="p">):</span>
+          <span class="c1"># There was no collision point with this obstacle</span>
+          <span class="n">Nob</span><span class="o">+=</span><span class="mi">1</span>
+          <span class="k">pass</span>
+        <span class="k">elif</span> <span class="nb">all</span><span class="p">(</span><span class="n">c</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cp</span><span class="p">):</span>
+          <span class="c1">#if np.allclose(cp, s.points[-2][0:3],atol=epsilon):</span>
+          <span class="c1"># #print(&quot;Collision point is the same as the previous&quot;)</span>
+          <span class="c1">#  #pass</span>
+          <span class="c1">#  ## Do not reassign collision point when it is the previous</span>
+          <span class="c1">#  ## point, this shouldn&#39;t happen because of direction check though</span>
+          <span class="c1">#else:</span>
+          <span class="c1">#  ##print(&#39;cp accepted&#39;,cp)</span>
+          <span class="n">leng2</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">ray_length</span><span class="p">(</span><span class="n">cp</span><span class="p">)</span>
+          <span class="k">if</span> <span class="p">(</span><span class="n">leng2</span><span class="o">&lt;</span><span class="n">leng</span> <span class="ow">and</span> <span class="n">leng2</span><span class="o">&gt;-</span><span class="n">epsilon</span><span class="p">)</span> <span class="p">:</span>
+            <span class="n">leng</span><span class="o">=</span><span class="n">leng2</span>
+            <span class="n">rcp</span><span class="o">=</span><span class="n">cp</span>
+            <span class="n">robj</span><span class="o">=</span><span class="n">obj</span>
+            <span class="n">rNob</span><span class="o">=</span><span class="n">Nob</span>
+          <span class="n">Nob</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Collision point is a mixture of None&#39;s and not None&#39;s&quot;</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">rcp</span><span class="p">,</span> <span class="n">rNob</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]),</span> <span class="mi">0</span></div>
+<div class="viewcode-block" id="Ray.ray_length"><a class="viewcode-back" href="../index.html#Rays.Ray.ray_length">[docs]</a>  <span class="k">def</span> <span class="nf">ray_length</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">inter</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;The length of the ray upto the intersection &#39;&#39;&#39;</span>
+    <span class="n">o</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">ray</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">o</span><span class="p">,</span><span class="n">inter</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">lf</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="n">ray</span><span class="p">)</span></div>
+<div class="viewcode-block" id="Ray.number_steps"><a class="viewcode-back" href="../index.html#Rays.Ray.number_steps">[docs]</a>  <span class="k">def</span> <span class="nf">number_steps</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">meshwidth</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;The number of steps along the ray between intersection points&#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">lf</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])))</span><span class="o">/</span><span class="n">meshwidth</span><span class="p">)</span></div>
+<div class="viewcode-block" id="Ray.number_cone_steps"><a class="viewcode-back" href="../index.html#Rays.Ray.number_cone_steps">[docs]</a>  <span class="k">def</span> <span class="nf">number_cone_steps</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">dist</span><span class="p">,</span><span class="n">Nra</span><span class="p">):</span>
+     <span class="sd">&#39;&#39;&#39;find the number of steps taken along one normal in the cone&#39;&#39;&#39;</span>
+     <span class="n">ta</span><span class="o">=</span><span class="n">ma</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="n">Nra</span><span class="p">)</span>   <span class="c1"># Nra&gt;2 and an integer. Therefore tan(pi/Nra) exists.</span>
+     <span class="n">Nc</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="p">(</span><span class="n">dist</span><span class="o">*</span><span class="n">ta</span><span class="p">)</span><span class="o">/</span><span class="n">h</span><span class="p">)</span> <span class="c1"># Compute the distance of the normal vector</span>
+                            <span class="c1"># for the cone and the number of mesh points</span>
+                            <span class="c1"># that would fit in that distance.</span>
+     <span class="k">return</span> <span class="n">Nc</span></div>
+<div class="viewcode-block" id="Ray.normal_mat"><a class="viewcode-back" href="../index.html#Rays.Ray.normal_mat">[docs]</a>  <span class="k">def</span> <span class="nf">normal_mat</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">Ncones</span><span class="p">,</span><span class="n">Nra</span><span class="p">,</span><span class="n">d</span><span class="p">,</span><span class="n">dist</span><span class="p">,</span><span class="n">h</span><span class="p">):</span>
+     <span class="sd">&#39;&#39;&#39; Form a matrix of vectors representing the plane which is \</span>
+<span class="sd">     normal to d</span>
+
+<span class="sd">     * Normalise the direction of the ray :math:`d=d/||d||`</span>
+<span class="sd">     * Calculate angle spacing between rays \</span>
+<span class="sd">     :math:`deltheta=2\\arcsin(\frac{1}{Ncones})`</span>
+<span class="sd">     * Calculate the number of normals. \</span>
+<span class="sd">     :math:`Nnor=1+\frac{(2\\pi)}{deltheta}`</span>
+<span class="sd">     * Create an array of all the angles.</span>
+
+<span class="sd">     .. code::</span>
+
+<span class="sd">        anglevec=np.linspace(0.0,2*ma.pi,num=int(Nnor), endpoint=False)</span>
+
+<span class="sd">     * The dot product of the direction and the normal needs to be 0.\</span>
+<span class="sd">     Choose :math:`(1,1,-(dx+dy)/dz)` as the first vector \</span>
+<span class="sd">     (unless dz==0). Use this to compute another vector in the plane. \</span>
+<span class="sd">     This forms a co-ordinate axis for the normal vectors.</span>
+<span class="sd">     ..  code::if :math:`dz!=0`</span>
+<span class="sd">         p=(1,1,-(dx+dy)/dz)</span>
+<span class="sd">         N[0]=(1/||p||)*p</span>
+<span class="sd">         y=N[0] x d</span>
+<span class="sd">         y=(1/||y||)*y</span>
+<span class="sd">     If dz==0 then instead choose the vector :math:`(0,0,1)` and \</span>
+<span class="sd">     repeat the process for the additional axis vector.</span>
+<span class="sd">     .. code::</span>
+<span class="sd">        N[0]=(0,0,1)</span>
+<span class="sd">        y=N[0] x d</span>
+<span class="sd">        y=(1/||y||)*y</span>
+
+<span class="sd">     * Use the ais vectors as multiples of :math:`\\cos(\\theta)` \</span>
+<span class="sd">     :math:`\\sin(\\theta)` to form equally space vectors.</span>
+
+<span class="sd">     .. code::</span>
+
+<span class="sd">       N=cos(anglevec)* N[0]+sin(anglevec)*y</span>
+
+<span class="sd">     :returns: N</span>
+
+<span class="sd">     &#39;&#39;&#39;</span>
+     <span class="n">d</span><span class="o">=</span><span class="n">d</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>                  <span class="c1"># Normalise the direction of the ray</span>
+     <span class="n">deltheta</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">Ncones</span><span class="p">)</span>         <span class="c1"># Calculate angle spacing so that</span>
+                                            <span class="c1"># the ends of the cone are less than two meshwidth apart.</span>
+     <span class="n">Nnor</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">/</span><span class="n">deltheta</span><span class="p">)</span>         <span class="c1"># Calculate the number of normals.</span>
+     <span class="n">anglevec</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">ma</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="n">num</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Nnor</span><span class="p">),</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># Create an array of all the angles</span>
+     <span class="n">Norm</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Nnor</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span> <span class="c1"># Initialise the matrix of normals</span>
+     <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="mi">0</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+       <span class="n">ptil</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="n">d</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span><span class="c1"># This vector will lie in the plane unless d_z=0</span>
+       <span class="n">Norm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">ptil</span><span class="p">))</span><span class="o">*</span><span class="n">ptil</span> <span class="c1"># Normalise the vector</span>
+       <span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">Norm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">d</span><span class="p">)</span>                 <span class="c1"># Compute another vector in the plane for the axis.</span>
+       <span class="n">y</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">y</span><span class="p">))</span><span class="o">*</span><span class="n">y</span>             <span class="c1"># Normalise y. y and Norm[0] are now the co-ordinate axis in the plane.</span>
+     <span class="k">else</span><span class="p">:</span>
+       <span class="n">Norm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>            <span class="c1"># If d_z is 0 then this vector is always in the plane.</span>
+       <span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">Norm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">d</span><span class="p">)</span>                <span class="c1"># Compute another vector in the plane to form co-ordinate axis.</span>
+       <span class="n">y</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">y</span><span class="p">))</span><span class="o">*</span><span class="n">y</span>            <span class="c1"># Normalise y. y and Norm[0] are now the co-ordinate axis in the plane.</span>
+     <span class="n">Norm</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">anglevec</span><span class="p">),</span><span class="n">Norm</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">anglevec</span><span class="p">),</span><span class="n">y</span><span class="p">)</span> <span class="c1"># Use the outer product to multiple the axis</span>
+                                                                          <span class="c1"># Norm[0] and y by their corresponding sin(theta),</span>
+                                                                          <span class="c1"># and cos(theta) parts.</span>
+     <span class="k">return</span> <span class="n">Norm</span></div>
+<div class="viewcode-block" id="Ray.reflect_calc"><a class="viewcode-back" href="../index.html#Rays.Ray.reflect_calc">[docs]</a>  <span class="k">def</span> <span class="nf">reflect_calc</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">room</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Finds the reflection of the ray inside a room.</span>
+
+<span class="sd">    Method:</span>
+
+<span class="sd">    * If: the previous collision point was *None* then don&#39;t find the \</span>
+<span class="sd">    next one. Return: 1</span>
+<span class="sd">    * Else: Compute the next collision point.</span>
+
+<span class="sd">      * If: the collision point doesn&#39;t exist. Return: 1</span>
+<span class="sd">      * Else: use the collision point to compute the reflected ray. \</span>
+<span class="sd">      Return: 0</span>
+
+<span class="sd">    :rtype: 0 or 1 indicator of success.</span>
+
+<span class="sd">    :returns: 0 if  reflection was computed 1 if not.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">c</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]):</span>
+      <span class="c1"># If there was no previous collision point then there won&#39;t</span>
+      <span class="c1"># be one at the next step.</span>
+      <span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">])))</span>
+      <span class="k">return</span> <span class="mi">1</span>
+    <span class="n">cp</span><span class="p">,</span> <span class="n">nob</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">room_collision_point</span><span class="p">(</span><span class="n">room</span><span class="p">)</span>
+    <span class="c1"># Check that a collision does occur</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">p</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">cp</span><span class="p">):</span>
+      <span class="c1"># If there is no collision then None&#39;s are stored as place holders</span>
+      <span class="c1"># Replace the last point of the ray instead of keeping the direction term.</span>
+      <span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]),</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">])))</span>
+      <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="c1"># Construct the incoming array</span>
+      <span class="n">origin</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+      <span class="n">ray</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">origin</span><span class="p">,</span><span class="n">cp</span><span class="p">])</span>
+      <span class="c1"># The reflection function returns a line segment</span>
+      <span class="n">refray</span><span class="o">=</span><span class="n">ref</span><span class="o">.</span><span class="n">try_reflect_ray</span><span class="p">(</span><span class="n">ray</span><span class="p">,</span><span class="n">room</span><span class="o">.</span><span class="n">obst</span><span class="p">[</span><span class="n">nob</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="c1"># refray is the intersection point to a reflection point</span>
+      <span class="c1"># Update intersection point list</span>
+      <span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cp</span><span class="p">,</span> <span class="p">[</span><span class="n">nob</span><span class="p">])</span>
+      <span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lf</span><span class="o">.</span><span class="n">Direction</span><span class="p">(</span><span class="n">refray</span><span class="p">),[</span><span class="mi">0</span><span class="p">])))</span>
+      <span class="k">return</span> <span class="mi">0</span></div>
+<div class="viewcode-block" id="Ray.ref_angle"><a class="viewcode-back" href="../index.html#Rays.Ray.ref_angle">[docs]</a>  <span class="k">def</span> <span class="nf">ref_angle</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">room</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Find the reflection angle of the most recent intersected ray.</span>
+
+<span class="sd">    :param room: :py:mod:`Room`. :py:class:`room` object which \</span>
+<span class="sd">    contains all the obstacles in the room.</span>
+
+<span class="sd">    Use the ray number stored in s.points[-2][-1] to retrieve \</span>
+<span class="sd">    the obstacle number then retrieve that obstacle from room.</span>
+
+<span class="sd">    .. code::</span>
+
+<span class="sd">       norm=edge1 x edge2</span>
+
+<span class="sd">       c = (ray_direc . norm ) / (||ray_direc|| ||norm||)</span>
+
+<span class="sd">       theta=arccos(c)</span>
+
+<span class="sd">    :rtype: float</span>
+
+<span class="sd">    :return: theta</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">nob</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">direc</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">obst</span><span class="o">=</span><span class="n">room</span><span class="o">.</span><span class="n">obst</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">nob</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+    <span class="n">norm</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">obst</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">obst</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">obst</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="n">obst</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">unitnorm</span><span class="o">=</span><span class="n">norm</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">norm</span><span class="p">))</span>
+    <span class="n">check</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">direc</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">unitnorm</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">check</span><span class="o">-</span><span class="mf">0.0</span><span class="p">)</span><span class="o">&lt;=</span><span class="n">epsilon</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;direction or normal has no length&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">nleng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">unitnorm</span><span class="p">)</span>
+      <span class="n">dleng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">direc</span><span class="p">)</span>
+      <span class="n">cleng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">unitnorm</span><span class="o">-</span><span class="n">direc</span><span class="p">)</span>
+      <span class="n">frac</span><span class="o">=</span><span class="p">(</span><span class="n">dleng</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">nleng</span><span class="o">**</span><span class="mi">2</span><span class="o">-</span><span class="n">cleng</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">nleng</span><span class="o">*</span><span class="n">dleng</span><span class="p">)</span>
+    <span class="n">theta</span><span class="o">=</span><span class="n">ma</span><span class="o">.</span><span class="n">acos</span><span class="p">(</span><span class="n">frac</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">theta</span></div>
+<div class="viewcode-block" id="Ray.multiref"><a class="viewcode-back" href="../index.html#Rays.Ray.multiref">[docs]</a>  <span class="k">def</span> <span class="nf">multiref</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">room</span><span class="p">,</span><span class="n">Nre</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Takes a ray and finds the first five reflections within a room.</span>
+
+<span class="sd">    :param room: :py:class:`Room.room` object which \</span>
+<span class="sd">    contains all the obstacles in the room.</span>
+
+<span class="sd">    :param Nre: The number of reflections. Integer value.</span>
+
+<span class="sd">    Using the function :py:func:`reflect_calc(room)` find the \</span>
+<span class="sd">    co-ordinate of the reflected ray. Store this in s.points \</span>
+<span class="sd">    and return whether the function was successful.</span>
+
+<span class="sd">    :rtype: 3x1 numpy array.</span>
+
+<span class="sd">    :return: end=1 if unsuccessful, 0 is successful.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">Nre</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+      <span class="n">end</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">reflect_calc</span><span class="p">(</span><span class="n">room</span><span class="p">)</span>
+    <span class="k">return</span></div>
+<div class="viewcode-block" id="Ray.mesh_multiref"><a class="viewcode-back" href="../index.html#Rays.Ray.mesh_multiref">[docs]</a>  <span class="k">def</span> <span class="nf">mesh_multiref</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">room</span><span class="p">,</span><span class="n">Nre</span><span class="p">,</span><span class="n">Mesh</span><span class="p">,</span><span class="n">Nra</span><span class="p">,</span><span class="n">nra</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Takes a ray and finds the first Nre reflections within a room.</span>
+<span class="sd">    As each reflection is found the ray is stepped through and</span>
+<span class="sd">    information added to the Mesh.</span>
+<span class="sd">    :param room: Obstacle co-ordinates, :py:mod:`Room`. :py:class:`room`.</span>
+<span class="sd">    :param Nre: Number of reflections, integer.</span>
+<span class="sd">    :param Mesh: A grid with corresponding sparse matrices, this \</span>
+<span class="sd">    is a :py:mod:`DictionarySparseMatrix`. :py:class:`DS` object.</span>
+<span class="sd">    :param Nra: Total number of rays, integer.</span>
+
+<span class="sd">    Method:</span>
+
+<span class="sd">    * Create a temporary vector vec.</span>
+<span class="sd">    * For each ray segment use \</span>
+<span class="sd">    :py:func:`mesh_singleray(room,Mesh,dist,vec,Nra,Nre,nra)` to \</span>
+<span class="sd">     segment storing r*calcvec in the Mesh. With r being the distance \</span>
+<span class="sd">     ray travelled to get  centre of the grid point the ray has gone \</span>
+<span class="sd">     through.</span>
+
+<span class="sd">    :returns: Mesh</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># The ray distance travelled starts at 0.</span>
+    <span class="n">dist</span><span class="o">=</span><span class="mi">0</span>
+    <span class="c1"># Vector of the reflection angle entries in relevant positions.</span>
+    <span class="n">vec</span><span class="o">=</span><span class="n">SM</span><span class="p">((</span><span class="n">Mesh</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mi">1</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">nre</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">Nre</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+      <span class="n">end</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">reflect_calc</span><span class="p">(</span><span class="n">room</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">end</span><span class="p">)</span><span class="o">&lt;</span><span class="n">epsilon</span><span class="p">:</span>
+          <span class="n">Mesh</span><span class="p">,</span><span class="n">dist</span><span class="p">,</span><span class="n">vec</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">mesh_singleray</span><span class="p">(</span><span class="n">room</span><span class="p">,</span><span class="n">Mesh</span><span class="p">,</span><span class="n">dist</span><span class="p">,</span><span class="n">vec</span><span class="p">,</span><span class="n">Nra</span><span class="p">,</span><span class="n">Nre</span><span class="p">,</span><span class="n">nra</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span> <span class="k">pass</span>
+    <span class="k">del</span> <span class="n">dist</span><span class="p">,</span><span class="n">vec</span>
+    <span class="k">return</span> <span class="n">Mesh</span></div>
+<div class="viewcode-block" id="Ray.mesh_singleray"><a class="viewcode-back" href="../index.html#Rays.Ray.mesh_singleray">[docs]</a>  <span class="k">def</span> <span class="nf">mesh_singleray</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">room</span><span class="p">,</span><span class="n">_Mesh</span><span class="p">,</span><span class="n">_dist</span><span class="p">,</span><span class="n">_calcvec</span><span class="p">,</span><span class="n">Nra</span><span class="p">,</span><span class="n">Nre</span><span class="p">,</span><span class="n">nra</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Iterate between two intersection points and store the ray \</span>
+<span class="sd">    information in the Mesh</span>
+
+<span class="sd">    :param room: :py:mod:`Room`. :py:class:`room` object which \</span>
+<span class="sd">    contains the co-ordinates of the obstacles.</span>
+<span class="sd">    :param Mesh: :py:mod:`DictionarySparseMatrix`. :py:class:`DS` \</span>
+<span class="sd">    which will store all of the ray information.</span>
+<span class="sd">    :param dist: A scalar variable which is the distance the ray \</span>
+<span class="sd">    travelled at the start of the ray segment.</span>
+<span class="sd">    :param calcvec: A vector containing :math:`e^{i\theta}` terms \</span>
+<span class="sd">    for reflection angles :math:`\theta`. These terms are stored \</span>
+<span class="sd">    in row nre*Nob+nob with nre being the current reflection number, \</span>
+<span class="sd">    Nob the maximum obstacle number and nob the number of the \</span>
+<span class="sd">    obstacle which was hit with the corresponding angle.</span>
+<span class="sd">    :param Nra: Total number of rays.</span>
+<span class="sd">    :param Nre: Maximum number of reflections.</span>
+<span class="sd">    :param nra: Current ray number.</span>
+
+<span class="sd">    Method:</span>
+
+<span class="sd">    * Calculate :math:`\\theta` the reflection angle using \</span>
+<span class="sd">    :func:`reflect_angle(room)`.</span>
+<span class="sd">    * Find the number of steps :math:`Ns` to the end of the ray segment \</span>
+<span class="sd">    using :py:func:`number_steps(meshwidth)`.</span>
+<span class="sd">    * Compute an array of normal vectors representing the ray cone.</span>
+<span class="sd">    * Check the reflection number:</span>
+<span class="sd">      * If 0 then the :math:`calcvec[0]` term is 1.</span>
+<span class="sd">      * ElseIf 1 then set :math:`calcvec[0]=0` and \</span>
+<span class="sd">      :math:`calcvec[nre*Nob+nob]=e^{i \\theta}`.</span>
+<span class="sd">      * Else set :math:`calcvec[nre*Nob+nob]=e^{i \\theta}`.</span>
+
+<span class="sd">    * Step along the ray, For :math:`m1\\in[0,Ns):`</span>
+<span class="sd">      * Check if the ray point is outside the domain.</span>
+<span class="sd">      * Calculate the co-ordinate of the centre.</span>
+<span class="sd">      * Recalculate distance to be for the centre point \</span>
+<span class="sd">      :math:`Mesh[i1,j1,k1,:,col]=np.sqrt(np.dot((p0-p2),(p0-p2)))*calcvec`.</span>
+<span class="sd">      * For each normal:</span>
+<span class="sd">        * Find the next cone point :math:`p3` from the previous point \</span>
+<span class="sd">        :math:`p1`, using the distance through a grid cube \</span>
+<span class="sd">        :math:`\\alpha`. This is given by:math:`p3=p1+m2*\\alpha*norm`.</span>
+<span class="sd">        * Find the co-ordinate for the centre of the grid point z</span>
+<span class="sd">        corresponding to the :math:`p3`&#39;s.</span>
+<span class="sd">        * Find the distance to this centre point.</span>
+<span class="sd">        * Set the column :math:`nra*Nre+nre` of the mesh term at \</span>
+<span class="sd">        these grid points to the distance times the vector of \</span>
+<span class="sd">        reflection angles.</span>
+
+<span class="sd">        .. code::</span>
+
+<span class="sd">           Mesh[cpos[0][j],cpos[1][j],cpos[2][j],:,col]=r2[j]*calcvec</span>
+
+<span class="sd">      * Find the co-ordinate for the next ray point. \</span>
+<span class="sd">      :math:`p1=p1+alpha*direc`.</span>
+
+<span class="sd">    :returns: Mesh, dist, calcvec</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># --- Set initial terms before beginning storage steps -------------</span>
+    <span class="n">nre</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">)</span><span class="o">-</span><span class="mi">3</span>         <span class="c1"># The reflection number of the current ray</span>
+    <span class="n">h</span><span class="o">=</span><span class="n">room</span><span class="o">.</span><span class="n">get_meshwidth</span><span class="p">(</span><span class="n">_Mesh</span><span class="p">)</span>  <span class="c1"># The Meshwidth for a room with Mesh spaces</span>
+    <span class="n">nob</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>        <span class="c1"># The obstacle number of the last reflection</span>
+
+    <span class="c1"># Compute the direction - Since the Ray has reflected but we are</span>
+    <span class="c1"># storing previous information we want the direction of the ray which</span>
+    <span class="c1"># hit the object not the outgoing ray.</span>
+    <span class="n">direc</span><span class="o">=</span><span class="n">lf</span><span class="o">.</span><span class="n">Direction</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]]))</span>
+    <span class="n">col</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Nra</span><span class="o">*</span><span class="n">nre</span><span class="o">+</span><span class="n">nra</span><span class="p">)</span>
+    <span class="c1">#del nra</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">direc</span><span class="o">.</span><span class="n">any</span><span class="p">()</span><span class="o">-</span><span class="mf">0.0</span><span class="p">)</span><span class="o">&gt;</span><span class="n">epsilon</span><span class="p">:</span>                       <span class="c1"># Before computing the dist travelled through a mesh cube</span>
+                                                           <span class="c1"># check the direction isn&#39;t 0.</span>
+      <span class="n">alpha</span><span class="o">=</span><span class="n">h</span><span class="o">/</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">direc</span><span class="p">))</span>                              <span class="c1"># Find which boundary of a unit cube gets hit first when</span>
+                                                           <span class="c1"># direc goes through it.</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">_Mesh</span><span class="p">,</span> <span class="n">_dist</span><span class="p">,</span> <span class="n">_calcvec</span>                    <span class="c1"># If the direction vector is 0 nothing is happening.</span>
+    <span class="n">deldist</span><span class="o">=</span><span class="n">lf</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="n">alpha</span><span class="o">*</span><span class="n">direc</span><span class="p">]))</span>     <span class="c1"># Calculate the distance travelled through a mesh cube</span>
+    <span class="n">p0</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>                                   <span class="c1"># Set the initial point to the start of the segment.</span>
+    <span class="n">p1</span><span class="o">=</span><span class="n">p0</span>                                                  <span class="c1"># p0 should remain constant and p1 is stepped.</span>
+    <span class="n">i1</span><span class="p">,</span><span class="n">j1</span><span class="p">,</span><span class="n">k1</span><span class="o">=</span><span class="n">room</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span><span class="n">h</span><span class="p">)</span>                           <span class="c1"># Find the indices for position p0</span>
+    <span class="n">endposition</span><span class="o">=</span><span class="n">room</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span><span class="n">h</span><span class="p">)</span>         <span class="c1"># The indices of the end of the segment</span>
+    <span class="n">theta</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">ref_angle</span><span class="p">(</span><span class="n">room</span><span class="p">)</span>                                <span class="c1"># Compute the reflection angle</span>
+    <span class="n">Ns</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">number_steps</span><span class="p">(</span><span class="n">deldist</span><span class="p">)</span>                             <span class="c1"># Compute the number of steps that&#39;ll be taken along the ray.</span>
+    <span class="n">segleng</span><span class="o">=</span><span class="n">lf</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])))</span> <span class="c1"># Length of the ray segment</span>
+    <span class="c1"># Compute a matrix with rows corresponding to normals for the cone.</span>
+    <span class="n">Nc</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">number_cone_steps</span><span class="p">(</span><span class="n">deldist</span><span class="p">,</span><span class="n">_dist</span><span class="o">+</span><span class="n">segleng</span><span class="p">,</span><span class="n">Nra</span><span class="p">)</span>
+    <span class="n">norm</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">normal_mat</span><span class="p">(</span><span class="n">Nc</span><span class="p">,</span><span class="n">Nra</span><span class="p">,</span><span class="n">direc</span><span class="p">,</span><span class="n">_dist</span><span class="p">,</span><span class="n">h</span><span class="p">)</span>                 <span class="c1"># Matrix of normals to the direc, all of distance 1 equally</span>
+                                                           <span class="c1"># angle spaced</span>
+    <span class="n">Nnor</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">norm</span><span class="p">)</span>                                         <span class="c1"># The number of normal vectors</span>
+    <span class="c1"># Add the reflection angle to the vector of  ray history. s.points[-2][-1] is the obstacle number of the last hit.</span>
+    <span class="k">if</span> <span class="n">nre</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>                                             <span class="c1"># Before reflection use a 1 so that the distance is still stored</span>
+      <span class="n">_calcvec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span>                                        <span class="c1"># The first row corresponds to line of sight terms</span>
+    <span class="k">elif</span> <span class="n">nre</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>                                           <span class="c1"># The first reflection needs to reset and start storing</span>
+                                                           <span class="c1"># reflection coefficients.</span>
+      <span class="n">_calcvec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>                                        <span class="c1"># Reset the first term which was only for line of sight</span>
+      <span class="n">_calcvec</span><span class="p">[</span><span class="nb">int</span><span class="p">((</span><span class="n">nre</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">room</span><span class="o">.</span><span class="n">Nob</span><span class="o">+</span><span class="n">nob</span><span class="p">)]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">theta</span><span class="p">)</span> <span class="c1"># Use a complex exponential to store the reflection</span>
+                                                           <span class="c1"># angle. This will allow us to multiply by the distance and</span>
+                                                           <span class="c1"># store both pieces of information in the same place.</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">_calcvec</span><span class="p">[</span><span class="nb">int</span><span class="p">((</span><span class="n">nre</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">room</span><span class="o">.</span><span class="n">Nob</span><span class="o">+</span><span class="n">nob</span><span class="p">)]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">theta</span><span class="p">)</span> <span class="c1"># After the first reflection all reflection angles</span>
+    <span class="k">del</span> <span class="n">nre</span><span class="p">,</span> <span class="n">nob</span><span class="p">,</span> <span class="n">theta</span>                                    <span class="c1"># continue to be stored in calcvec.</span>
+    <span class="k">for</span> <span class="n">m1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">Ns</span><span class="p">):</span>                                 <span class="c1"># Step through the ray</span>
+      <span class="n">stpch</span><span class="o">=</span><span class="n">_Mesh</span><span class="o">.</span><span class="n">stopcheck</span><span class="p">(</span><span class="n">i1</span><span class="p">,</span><span class="n">j1</span><span class="p">,</span><span class="n">k1</span><span class="p">,</span><span class="n">endposition</span><span class="p">,</span><span class="n">h</span><span class="p">)</span>         <span class="c1"># Check if the ray point is outside the domain.</span>
+      <span class="k">if</span> <span class="n">m1</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>                                             <span class="c1"># After the first step check that each iteration is moving into</span>
+                                                           <span class="c1"># a new element.</span>
+        <span class="k">if</span> <span class="n">i2</span><span class="o">==</span><span class="n">i1</span> <span class="ow">and</span> <span class="n">j2</span><span class="o">==</span><span class="n">j1</span> <span class="ow">and</span> <span class="n">k2</span><span class="o">==</span><span class="n">k1</span><span class="p">:</span>                   <span class="c1"># If the indices are equal pass as no new element.</span>
+          <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">i1</span><span class="o">=</span><span class="n">i2</span>                                            <span class="c1"># Reset the check indices for the next check.</span>
+          <span class="n">j1</span><span class="o">=</span><span class="n">j2</span>
+          <span class="n">k1</span><span class="o">=</span><span class="n">k2</span>
+      <span class="k">if</span> <span class="n">stpch</span><span class="p">:</span>
+        <span class="n">p2</span><span class="o">=</span><span class="n">room</span><span class="o">.</span><span class="n">coordinate</span><span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="n">i1</span><span class="p">,</span><span class="n">j1</span><span class="p">,</span><span class="n">k1</span><span class="p">)</span>                     <span class="c1"># Calculate the co-ordinate of the center</span>
+                                                           <span class="c1"># of the element the ray hit</span>
+        <span class="c1"># Recalculate distance to be for the centre point</span>
+        <span class="n">_Mesh</span><span class="p">[</span><span class="n">i1</span><span class="p">,</span><span class="n">j1</span><span class="p">,</span><span class="n">k1</span><span class="p">,:,</span><span class="n">col</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">((</span><span class="n">p0</span><span class="o">-</span><span class="n">p2</span><span class="p">),(</span><span class="n">p0</span><span class="o">-</span><span class="n">p2</span><span class="p">)))</span><span class="o">*</span><span class="n">_calcvec</span>
+        <span class="c1">#Nc=s.number_cone_steps(deldist,dist,Nra)           # No. of cone steps required for this ray step.</span>
+        <span class="k">for</span> <span class="n">m2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nnor</span><span class="p">):</span>
+          <span class="n">p3</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">p1</span><span class="p">,(</span><span class="n">Nnor</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span><span class="o">+</span><span class="n">m2</span><span class="o">*</span><span class="n">alpha</span><span class="o">*</span><span class="n">norm</span>             <span class="c1"># Step along all the normals from the ray point p1.</span>
+          <span class="n">copos</span><span class="o">=</span><span class="n">room</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">p3</span><span class="p">,</span><span class="n">h</span><span class="p">)</span>                         <span class="c1"># Find the indices corresponding to the cone points.</span>
+          <span class="n">start</span><span class="p">,</span><span class="n">copos</span><span class="p">,</span><span class="n">p3</span><span class="p">,</span><span class="n">norm2</span><span class="o">=</span><span class="n">_Mesh</span><span class="o">.</span><span class="n">stopchecklist</span><span class="p">(</span><span class="n">copos</span><span class="p">,</span><span class="n">endposition</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">p3</span><span class="p">,</span><span class="n">norm</span><span class="p">)</span> <span class="c1"># Check if the point is valid.</span>
+          <span class="k">if</span> <span class="n">start</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">coords</span><span class="o">=</span><span class="n">room</span><span class="o">.</span><span class="n">coordinate</span><span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="n">copos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">copos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">copos</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="c1"># Find the centre of</span>
+                                                           <span class="c1"># element point for each cone normal.</span>
+            <span class="n">p3</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">p3</span><span class="p">)</span>                            <span class="c1"># Change orientation for stacking co-ordinates.</span>
+            <span class="n">norm2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">norm2</span><span class="p">)</span>
+            <span class="n">elementdiff</span><span class="o">=</span><span class="n">coords</span><span class="o">-</span><span class="n">p3</span>                          <span class="c1"># Find the distance from the original cone point to the cone</span>
+                                                           <span class="c1"># element centre.</span>
+            <span class="n">dist2</span> <span class="o">=</span><span class="n">lf</span><span class="o">.</span><span class="n">coordlistdistance</span><span class="p">(</span><span class="n">elementdiff</span><span class="p">)</span> <span class="c1"># The distance between the centre of the element and the point the cone entered the element</span>
+            <span class="n">normlengths</span><span class="o">=</span><span class="n">lf</span><span class="o">.</span><span class="n">coordlistdistance</span><span class="p">(</span><span class="n">norm2</span><span class="p">)</span>   <span class="c1"># Each norm should have length one but compute them just in case</span>
+            <span class="n">normdot</span><span class="o">=</span><span class="n">lf</span><span class="o">.</span><span class="n">coordlistdot</span><span class="p">(</span><span class="n">elementdiff</span><span class="p">,</span><span class="n">norm2</span><span class="p">)</span><span class="c1"># Compute the dot between the vector between the two element points and corresponding normal.</span>
+            <span class="n">r1</span><span class="o">=</span><span class="n">_dist</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">dist2</span><span class="p">)</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">normdot</span><span class="p">),</span><span class="n">normlengths</span><span class="p">)))</span>
+            <span class="n">n</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">copos</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">Mult</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+            <span class="n">Mult</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">r1</span><span class="p">,</span><span class="n">direc</span><span class="p">)</span>
+            <span class="c1">#for j in range(0,n):</span>
+            <span class="c1">#  Mult[j]=r1[j]*direc</span>
+            <span class="n">alpha2</span><span class="o">=</span><span class="n">lf</span><span class="o">.</span><span class="n">coordlistdot</span><span class="p">((</span><span class="n">Mult</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">p0</span><span class="p">,(</span><span class="n">n</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span><span class="o">-</span><span class="n">p3</span><span class="p">),</span><span class="n">norm2</span><span class="p">)</span>
+            <span class="n">r2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">r1</span><span class="p">,(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">alpha2</span><span class="p">,</span><span class="n">r1</span><span class="p">)))))</span>
+            <span class="c1">#FIXME try to set them all at once not one by one</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+              <span class="n">_Mesh</span><span class="p">[</span><span class="n">copos</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">],</span><span class="n">copos</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="p">],</span><span class="n">copos</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">j</span><span class="p">],:,</span><span class="n">col</span><span class="p">]</span><span class="o">=</span><span class="n">r2</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="n">_calcvec</span>
+          <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># There are no cone positions</span>
+            <span class="k">pass</span>
+        <span class="c1"># Compute the next point along the ray</span>
+      <span class="k">else</span><span class="p">:</span> <span class="k">break</span>                                         <span class="c1"># In this instance stpch==0 and end of ray</span>
+      <span class="c1">#del Nc</span>
+      <span class="n">p1</span><span class="o">+=</span><span class="n">alpha</span><span class="o">*</span><span class="n">direc</span>
+      <span class="n">_dist</span><span class="o">+=</span><span class="n">deldist</span>
+      <span class="n">i2</span><span class="p">,</span><span class="n">j2</span><span class="p">,</span><span class="n">k2</span><span class="o">=</span><span class="n">room</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span><span class="n">h</span><span class="p">)</span>
+      <span class="c1">#FIXME don&#39;t stop at the end as the cone needs to be filled.</span>
+      <span class="k">if</span> <span class="n">lf</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p1</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]]))</span><span class="o">&lt;</span><span class="n">h</span><span class="p">:</span>
+        <span class="k">break</span>
+    <span class="k">return</span> <span class="n">_Mesh</span><span class="p">,</span><span class="n">_dist</span><span class="p">,</span><span class="n">_calcvec</span></div>
+<div class="viewcode-block" id="Ray.raytest"><a class="viewcode-back" href="../index.html#Rays.Ray.raytest">[docs]</a>  <span class="k">def</span> <span class="nf">raytest</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">room</span><span class="p">,</span><span class="n">err</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Checks the reflection function for errors using the test \</span>
+<span class="sd">    functions in :py:mod:`reflection`.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">cp</span><span class="p">,</span><span class="n">wall</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">room_collision_point</span><span class="p">(</span><span class="n">room</span><span class="p">)</span>
+    <span class="c1"># Check that a collision does occur</span>
+    <span class="k">if</span> <span class="n">cp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="c1"># Construct the incoming array</span>
+      <span class="n">origin</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">_get_origin</span><span class="p">()</span>
+      <span class="n">ray</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">origin</span><span class="p">,</span><span class="n">cp</span><span class="p">])</span>
+      <span class="c1"># The reflection function returns a line segment</span>
+      <span class="n">refray</span><span class="p">,</span><span class="n">n</span><span class="o">=</span><span class="n">ref</span><span class="o">.</span><span class="n">try_reflect_ray</span><span class="p">(</span><span class="n">ray</span><span class="p">,</span><span class="n">wall</span><span class="o">.</span><span class="n">p</span><span class="p">)</span>
+      <span class="n">err</span><span class="o">=</span><span class="n">ref</span><span class="o">.</span><span class="n">errorcheck</span><span class="p">(</span><span class="n">err</span><span class="p">,</span><span class="n">ray</span><span class="p">,</span><span class="n">refray</span><span class="p">,</span><span class="n">n</span><span class="p">)</span>
+      <span class="c1"># update self...</span>
+      <span class="n">s</span><span class="o">.</span><span class="n">ray</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">cp</span>
+      <span class="n">s</span><span class="o">.</span><span class="n">ray</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">s</span><span class="o">.</span><span class="n">ray</span><span class="p">,</span><span class="n">lf</span><span class="o">.</span><span class="n">Direction</span><span class="p">(</span><span class="n">refray</span><span class="p">)))</span>
+      <span class="c1">#print(&#39;ray&#39;,ray, &#39;refray&#39;, refray, &#39;error&#39;, err)</span>
+    <span class="k">return</span> <span class="n">err</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Hayley.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

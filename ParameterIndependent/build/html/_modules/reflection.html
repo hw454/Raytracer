@@ -1,0 +1,243 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>reflection &#8212; DSMRayTracerDoc 0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="DSMRayTracerDoc 0 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for reflection</h1><div class="highlight"><pre>
+<span></span>
+<span class="c1">#!/usr/bin/env python3</span>
+<span class="c1"># Keith Briggs 2017-02-02</span>
+<span class="c1"># Hayley Wragg 2017-03-28</span>
+<span class="c1"># Hayley Wragg 2017-04-12</span>
+<span class="c1"># Hayley Wragg 2017-05-15</span>
+<span class="sd">&#39;&#39;&#39; Code to Reflect a line in an edge without using Shapely &#39;&#39;&#39;</span>
+
+<span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">atan2</span><span class="p">,</span><span class="n">hypot</span><span class="p">,</span><span class="n">sqrt</span><span class="p">,</span><span class="n">copysign</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">linalg</span> <span class="k">as</span> <span class="n">la</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="c1">#import matplotlib.pyplot as mp</span>
+<span class="kn">import</span> <span class="nn">HayleysPlotting</span> <span class="k">as</span> <span class="nn">hp</span>
+<span class="kn">import</span> <span class="nn">intersection</span> <span class="k">as</span> <span class="nn">inter</span>
+<span class="kn">import</span> <span class="nn">linefunctions</span> <span class="k">as</span> <span class="nn">lf</span>
+<span class="c1">#from mayavi.core.api import Engine</span>
+<span class="c1">#from mayavi.sources.vtk_file_reader import VTKFileReader</span>
+<span class="c1">#from mayavi.modules.surface import Surface</span>
+<span class="c1">#from mayavi import mlab</span>
+<span class="c1">#from pyface.api import GUI</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">math</span> <span class="k">as</span> <span class="nn">ma</span>
+
+<span class="n">epsilon</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">float_info</span><span class="o">.</span><span class="n">epsilon</span>
+
+<span class="c1">##  Reflection of a ray with a triangle</span>
+<span class="c1"># @param ray=[p0,p1] p0 is the start of the ray and p1 should be the</span>
+<span class="c1"># point the ray intersects the triangle.</span>
+<span class="c1"># @param triangle=[T0,T1,T2]</span>
+<span class="c1"># .</span>
+<span class="c1"># \par</span>
+<span class="k">def</span> <span class="nf">try_reflect_ray</span><span class="p">(</span><span class="n">ray</span><span class="p">,</span><span class="n">triangle</span><span class="p">):</span>
+  <span class="c1"># Find the distances which need to be translated</span>
+  <span class="n">trdist</span><span class="o">=-</span><span class="n">ray</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Make the intersection the origin</span>
+  <span class="n">direc</span><span class="o">=</span><span class="n">lf</span><span class="o">.</span><span class="n">Direction</span><span class="p">(</span><span class="n">ray</span><span class="p">)</span>
+  <span class="c1"># Translate the points before the reflection</span>
+  <span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+=</span><span class="n">trdist</span>
+  <span class="n">ray</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+=</span><span class="n">trdist</span>
+  <span class="n">edge1</span><span class="o">=</span><span class="n">triangle</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">triangle</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+  <span class="n">edge2</span><span class="o">=</span><span class="n">triangle</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">triangle</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+  <span class="n">edge3</span><span class="o">=</span><span class="n">triangle</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="n">triangle</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+  <span class="n">normedge</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">edge1</span><span class="p">,</span><span class="n">edge2</span><span class="p">)</span>
+  <span class="n">normedge</span><span class="o">=</span><span class="n">normedge</span><span class="o">/</span><span class="n">la</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">normedge</span><span class="p">)</span>
+  <span class="c1"># Find the image of the ray in the edge</span>
+  <span class="c1"># The image point is the point if the ray was to continue going through the surface</span>
+  <span class="n">Image</span><span class="o">=</span><span class="n">ray</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">direc</span>
+  <span class="n">normcoef</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Image</span><span class="o">-</span><span class="n">ray</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">normedge</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">normedge</span><span class="p">,</span><span class="n">normedge</span><span class="p">)</span>
+  <span class="n">normedge</span><span class="o">=</span><span class="n">normcoef</span><span class="o">*</span><span class="n">normedge</span>
+  <span class="c1"># Find the reflection using the Image</span>
+  <span class="n">ReflPt</span><span class="o">=</span><span class="n">Image</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">normedge</span>
+  <span class="c1">#Translate Back</span>
+  <span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-=</span><span class="n">trdist</span>
+  <span class="n">ray</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-=</span><span class="n">trdist</span>
+  <span class="n">normedge</span><span class="o">-=</span><span class="n">trdist</span>
+  <span class="n">ReflPt</span><span class="o">-=</span><span class="n">trdist</span>
+  <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ray</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ReflPt</span><span class="p">])</span>
+
+<span class="c1"># FIXME The plotting for the tests should go elsewhere</span>
+<span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
+  <span class="n">triangle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">),(</span><span class="mf">3.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)])</span>
+  <span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">triangle</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">triangle</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">triangle</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">triangle</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]])</span>
+  <span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">triangle</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">triangle</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">triangle</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">triangle</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
+  <span class="n">z</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">triangle</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span><span class="n">triangle</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span><span class="n">triangle</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span><span class="n">triangle</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]])</span>
+  <span class="c1">#mlab.plot3d(x,y,z,color= (1, 1, 1))</span>
+  <span class="n">ray</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mf">2.25</span><span class="p">)])</span>
+  <span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">ray</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]])</span>
+  <span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">ray</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
+  <span class="n">z</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="n">ray</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]])</span>
+  <span class="c1">#mlab.plot3d(x,y,z,color= (0, 1, 1))</span>
+  <span class="n">ray</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">inter</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">ray</span><span class="p">,</span><span class="n">triangle</span><span class="p">)</span>
+  <span class="n">rayout</span><span class="o">=</span><span class="n">try_reflect_ray</span><span class="p">(</span><span class="n">ray</span><span class="p">,</span><span class="n">triangle</span><span class="p">)</span>
+  <span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">rayout</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">rayout</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]])</span>
+  <span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">rayout</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">rayout</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
+  <span class="n">z</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span><span class="n">rayout</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span><span class="n">rayout</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]])</span>
+  <span class="c1">#mlab.plot3d(x,y,z,color= (0, 0, 1))</span>
+  <span class="c1">#gui = GUI()</span>
+  <span class="c1">#gui.start_event_loop()</span>
+  <span class="k">return</span> <span class="mi">0</span>
+
+<span class="c1">#FIXME test the refangle calculation</span>
+<div class="viewcode-block" id="refangle"><a class="viewcode-back" href="../index.html#reflection.refangle">[docs]</a><span class="k">def</span> <span class="nf">refangle</span><span class="p">(</span><span class="n">line</span><span class="p">,</span><span class="n">obst</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;Find the reflection angle for the line reflection on the surface obst&#39;&#39;&#39;</span>
+  <span class="n">edge1</span><span class="o">=</span><span class="n">obst</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+  <span class="n">edge2</span><span class="o">=</span><span class="n">obst</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+  <span class="n">norm</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">edge1</span><span class="p">,</span><span class="n">edge2</span><span class="p">)</span>
+  <span class="n">linedge</span><span class="o">=</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+  <span class="n">angle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">norm</span><span class="p">,</span><span class="n">linedge</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">la</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">norm</span><span class="p">)</span><span class="o">*</span><span class="n">la</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">line</span><span class="p">))))</span>
+  <span class="k">return</span> <span class="n">angle</span></div>
+
+<div class="viewcode-block" id="test3"><a class="viewcode-back" href="../index.html#reflection.test3">[docs]</a><span class="k">def</span> <span class="nf">test3</span><span class="p">():</span>
+  <span class="sd">&#39;&#39;&#39;angle test&#39;&#39;&#39;</span>
+  <span class="n">line</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">5.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">3.0</span><span class="p">)])</span> <span class="c1">#FIXME</span>
+  <span class="n">surface</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)])</span>
+  <span class="n">angle</span><span class="o">=</span><span class="n">refangle</span><span class="p">(</span><span class="n">line</span><span class="p">,</span><span class="n">surface</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+  <span class="k">return</span> <span class="mi">0</span></div>
+
+<span class="k">def</span> <span class="nf">test2</span><span class="p">():</span>
+  <span class="n">triangle</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)])</span>
+  <span class="n">triangle2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">3.0</span><span class="p">)])</span>
+  <span class="n">triangle3</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">3.0</span><span class="p">)])</span>
+  <span class="n">triangle4</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span><span class="mf">3.0</span><span class="p">),(</span><span class="mf">3.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)])</span>
+  <span class="n">Trilist</span><span class="o">=</span><span class="mi">10</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">triangle</span><span class="p">,</span><span class="n">triangle2</span><span class="p">,</span><span class="n">triangle3</span><span class="p">,</span><span class="n">triangle4</span><span class="p">])</span>
+  <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">):</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">Trilist</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">Trilist</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">Trilist</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">Trilist</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]])</span>
+    <span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">Trilist</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">Trilist</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">Trilist</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">Trilist</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">z</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">Trilist</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span><span class="n">Trilist</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span><span class="n">Trilist</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span><span class="n">Trilist</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]])</span>
+    <span class="c1">#mlab.plot3d(x,y,z,color= (1, 1, 1))</span>
+  <span class="n">ray</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.25</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mf">2.25</span><span class="p">)])</span>
+  <span class="n">r</span> <span class="o">=</span><span class="mf">10.0</span>
+  <span class="n">Nra</span><span class="o">=</span><span class="mi">20</span>
+  <span class="n">theta</span><span class="o">=</span><span class="p">((</span><span class="mf">2.0</span><span class="o">*</span><span class="n">ma</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">/</span><span class="n">Nra</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">Nra</span><span class="p">)</span>
+  <span class="n">Tx</span><span class="o">=</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+  <span class="n">TxMat</span>       <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">Tx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">Nra</span><span class="p">),</span><span class="n">Tx</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">Nra</span><span class="p">),</span><span class="n">Tx</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">Nra</span><span class="p">)])</span>
+  <span class="n">directions</span>  <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">TxMat</span><span class="o">+</span><span class="n">r</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Nra</span><span class="p">)]))</span> <span class="c1">#FIXME rotate in z axis too.</span>
+  <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">Nra</span><span class="p">):</span>
+    <span class="n">ray</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">Tx</span><span class="p">,</span><span class="n">directions</span><span class="p">[</span><span class="n">j</span><span class="p">]])</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">ray</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]])</span>
+    <span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">ray</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">z</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="n">ray</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]])</span>
+    <span class="c1">#mlab.plot3d(x,y,z,color= (0, 1, 1))</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">):</span>
+      <span class="n">ray</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">Tx</span><span class="p">,</span><span class="n">directions</span><span class="p">[</span><span class="n">j</span><span class="p">]])</span>
+      <span class="n">ray</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">inter</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">ray</span><span class="p">,</span><span class="n">Trilist</span><span class="p">[</span><span class="n">l</span><span class="p">])</span>
+      <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ray</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">pass</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">rayout</span><span class="o">=</span><span class="n">try_reflect_ray</span><span class="p">(</span><span class="n">ray</span><span class="p">,</span><span class="n">Trilist</span><span class="p">[</span><span class="n">l</span><span class="p">])</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">rayout</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">rayout</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">rayout</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">rayout</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
+        <span class="n">z</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ray</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span><span class="n">rayout</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span><span class="n">rayout</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]])</span>
+        <span class="c1">#mlab.plot3d(x,y,z,color= (0, 0, 1))</span>
+  <span class="c1">#gui = GUI()</span>
+  <span class="c1">#gui.start_event_loop()</span>
+  <span class="k">return</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="errorcheck"><a class="viewcode-back" href="../index.html#reflection.errorcheck">[docs]</a><span class="k">def</span> <span class="nf">errorcheck</span><span class="p">(</span><span class="n">err</span><span class="p">,</span><span class="n">ray</span><span class="p">,</span><span class="n">ref</span><span class="p">,</span><span class="n">normedge</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39; Take the input ray and output ray and the normal to the edge,</span>
+<span class="sd">  check that both vectors have the same angle to the normal&#39;&#39;&#39;</span>
+  <span class="c1"># Convert to the Direction vectors</span>
+  <span class="n">ray</span><span class="o">=</span><span class="n">lf</span><span class="o">.</span><span class="n">Direction</span><span class="p">(</span><span class="n">ray</span><span class="p">)</span>
+  <span class="n">normedge</span><span class="o">=</span><span class="n">lf</span><span class="o">.</span><span class="n">Direction</span><span class="p">(</span><span class="n">normedge</span><span class="p">)</span>
+  <span class="n">ref</span><span class="o">=</span><span class="n">lf</span><span class="o">.</span><span class="n">Direction</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+  <span class="c1"># Find the angles</span>
+  <span class="c1">#FIXME check the cosine rule</span>
+  <span class="n">theta1</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">ray</span><span class="p">,</span><span class="n">normedge</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">ray</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">normedge</span><span class="p">)))</span>
+  <span class="n">theta2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span><span class="n">normedge</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">normedge</span><span class="p">)))</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">theta1</span><span class="o">-</span><span class="n">theta2</span><span class="p">)</span><span class="o">&gt;</span><span class="mf">1.0E-7</span><span class="p">):</span>
+    <span class="n">err</span><span class="o">+=</span><span class="mf">1.0</span>
+  <span class="k">return</span> <span class="n">err</span></div>
+
+<span class="k">if</span> <span class="n">__name__</span><span class="o">==</span><span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+  <span class="n">test3</span><span class="p">()</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Running  on python version&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Hayley.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

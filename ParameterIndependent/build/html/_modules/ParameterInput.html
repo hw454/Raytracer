@@ -1,0 +1,401 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ParameterInput &#8212; DSMRayTracerDoc 0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="DSMRayTracerDoc 0 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for ParameterInput</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># Hayley Wragg 2019-03-20</span>
+<span class="sd">&#39;&#39;&#39; The code saves the values for the parameters in a ray tracer &#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<div class="viewcode-block" id="DeclareParameters"><a class="viewcode-back" href="../index.html#ParameterInput.DeclareParameters">[docs]</a><span class="k">def</span> <span class="nf">DeclareParameters</span><span class="p">():</span>
+  <span class="sd">&#39;&#39;&#39;All input parameters for the ray-launching method are entered in</span>
+<span class="sd">  this function which will then save them inside a Parameters folder.</span>
+
+<span class="sd">  * Nra - Number of rays</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">       Due to need of integer steps the input number of rays can not</span>
+<span class="sd">       always be used if everything is equally spaced.</span>
+
+<span class="sd">  * Nre - Number of reflections</span>
+<span class="sd">  * Ns - Number of steps to split longest axis.</span>
+<span class="sd">  * l1 - Interior obstacle scale</span>
+<span class="sd">  * l2 - Boundary scale.</span>
+<span class="sd">  * triangle1 - First interior obstacle</span>
+<span class="sd">  * ...</span>
+<span class="sd">  * triangleN - Last interior obstacle</span>
+<span class="sd">  * OuterBoundary1 - First obstacle forming the boundary of the \</span>
+<span class="sd">  environment</span>
+<span class="sd">  * ...</span>
+<span class="sd">  * OuterBoundaryN - Last obstacle forming the boundary of the \</span>
+<span class="sd">  environment.</span>
+
+<span class="sd">  :return: 0 if successfully completed.</span>
+
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="c1"># -------------------------------------------------------------------</span>
+  <span class="c1"># INPUT PARAMETERS FOR RAY LAUNCHER----------------------------------</span>
+  <span class="c1"># -------------------------------------------------------------------</span>
+
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saving ray-launcher parameters&#39;</span><span class="p">)</span>
+  <span class="n">Nra</span><span class="o">=</span><span class="mi">300</span> <span class="c1"># Number of rays</span>
+  <span class="n">Nre</span><span class="o">=</span><span class="mi">15</span>  <span class="c1"># Number of reflections</span>
+  <span class="n">Ns</span><span class="o">=</span><span class="mi">30</span>   <span class="c1"># Number of steps on longest axis.</span>
+  <span class="n">l1</span><span class="o">=</span><span class="mi">2</span>   <span class="c1"># Interior obstacle scale</span>
+  <span class="n">l2</span><span class="o">=</span><span class="mi">9</span>   <span class="c1"># Outer Boundary length scale</span>
+
+  <span class="c1"># Obstacles are all triangles in 3D.</span>
+  <span class="n">triangle1</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">)])</span>
+  <span class="n">triangle2</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)])</span>
+  <span class="n">triangle3</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">)])</span>
+  <span class="n">triangle4</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">)])</span>
+  <span class="n">triangle5</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)])</span>
+  <span class="n">triangle6</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)])</span>
+  <span class="n">triangle7</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">)])</span>
+  <span class="n">triangle8</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">)])</span>
+  <span class="n">triangle9</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)])</span>
+  <span class="n">triangle10</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)])</span>
+  <span class="n">triangle11</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">)])</span>
+  <span class="n">triangle12</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)])</span>
+
+  <span class="c1">#- Outer Boundary -</span>
+  <span class="c1"># 3D co-ordinates forming a closed boundary.</span>
+  <span class="c1"># Wall 1</span>
+  <span class="n">OuterBoundary1</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)])</span>
+  <span class="n">OuterBoundary2</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">)])</span>
+  <span class="c1"># Wall 2</span>
+  <span class="n">OuterBoundary3</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">)])</span>
+  <span class="n">OuterBoundary4</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)])</span>
+  <span class="c1"># Wall 3</span>
+  <span class="n">OuterBoundary5</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)])</span>
+  <span class="n">OuterBoundary6</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">)])</span>
+  <span class="c1"># Wall 4</span>
+  <span class="n">OuterBoundary7</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)])</span>
+  <span class="n">OuterBoundary8</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">)])</span>
+  <span class="c1"># Ceiling</span>
+  <span class="n">OuterBoundary9</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">)])</span>
+  <span class="n">OuterBoundary10</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.3</span><span class="p">)])</span>
+  <span class="c1"># Floor</span>
+  <span class="n">OuterBoundary11</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)])</span>
+  <span class="n">OuterBoundary12</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">),(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)])</span>
+
+  <span class="c1"># -Router location -co-ordinate of three real numbers</span>
+  <span class="n">Tx</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.45</span><span class="p">,</span><span class="mf">0.417</span><span class="p">,</span><span class="mf">0.1</span><span class="p">])</span>
+
+  <span class="c1"># CONSTRUCT THE ARRAYS FOR STORING OBSTACLES</span>
+  <span class="n">Oblist</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">l1</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">triangle1</span><span class="p">,</span><span class="n">triangle2</span><span class="p">,</span><span class="n">triangle3</span><span class="p">,</span><span class="n">triangle4</span><span class="p">,</span><span class="n">triangle5</span><span class="p">,</span>
+  <span class="n">triangle6</span><span class="p">,</span><span class="n">triangle7</span><span class="p">,</span><span class="n">triangle8</span><span class="p">,</span><span class="n">triangle9</span><span class="p">,</span><span class="n">triangle10</span><span class="p">,</span><span class="n">triangle11</span><span class="p">,</span>
+  <span class="n">triangle12</span><span class="p">])</span>
+
+  <span class="n">OuterBoundary</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">OuterBoundary1</span><span class="p">,</span><span class="n">OuterBoundary2</span><span class="p">,</span>
+  <span class="n">OuterBoundary3</span><span class="p">,</span> <span class="n">OuterBoundary4</span><span class="p">,</span><span class="n">OuterBoundary5</span><span class="p">,</span><span class="n">OuterBoundary6</span><span class="p">,</span>
+  <span class="n">OuterBoundary7</span><span class="p">,</span> <span class="n">OuterBoundary8</span><span class="p">,</span> <span class="n">OuterBoundary9</span><span class="p">,</span> <span class="n">OuterBoundary10</span><span class="p">,</span>
+  <span class="n">OuterBoundary11</span><span class="p">,</span><span class="n">OuterBoundary12</span><span class="p">])</span>
+
+  <span class="c1"># -------------------------------------------------------------------</span>
+  <span class="c1"># CALCULATED PARAMETERS TO SAVE</span>
+  <span class="c1"># -------------------------------------------------------------------</span>
+
+  <span class="c1"># CALCULATE RELATIVE MESHWIDTH</span>
+  <span class="n">roomlengthscale</span><span class="o">=</span><span class="n">l2</span><span class="o">*</span><span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">OuterBoundary</span><span class="p">)</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">OuterBoundary</span><span class="p">))</span> <span class="c1"># SCALE WITHIN THE UNIT CO-ORDINATES.</span>
+  <span class="n">h</span><span class="o">=</span><span class="mf">1.0</span><span class="o">/</span><span class="n">Ns</span>
+
+  <span class="c1"># CALCULATE ANGLE SPACING</span>
+  <span class="n">deltheta</span>      <span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span><span class="p">))</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Nra</span><span class="p">)</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span> <span class="c1"># Calculate angle spacing</span>
+  <span class="n">xysteps</span>       <span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">2.0</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="n">deltheta</span><span class="p">)</span>
+  <span class="n">zsteps</span>        <span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="n">deltheta</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+  <span class="n">Nra</span>           <span class="o">=</span><span class="n">xysteps</span><span class="o">*</span><span class="n">zsteps</span><span class="o">+</span><span class="mi">2</span>
+  <span class="c1"># ^^ Due to need of integer steps the input number of rays can not</span>
+  <span class="c1"># always be used if everything is equally spaced ^^</span>
+  <span class="n">theta1</span>        <span class="o">=</span><span class="n">deltheta</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">xysteps</span><span class="p">)</span>
+  <span class="n">theta2</span>        <span class="o">=</span><span class="n">deltheta</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">zsteps</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+  <span class="n">xydirecs</span>      <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta1</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta1</span><span class="p">))))</span>
+  <span class="n">z</span>             <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">tensordot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta2</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">xysteps</span><span class="p">),</span><span class="n">axes</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+  <span class="c1"># COMBINE THE RAY-LAUNCHER PARAMETERS INTO ONE ARRAY</span>
+  <span class="n">RTPar</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">Nra</span><span class="p">,</span><span class="n">Nre</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">roomlengthscale</span><span class="p">])</span>
+
+  <span class="c1"># FORM THE ARRAY OF INITIAL RAY DIRECTIONS</span>
+  <span class="n">directions</span>    <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Nra</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+  <span class="n">directions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">])</span>
+  <span class="n">directions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">])</span>
+  <span class="c1">#FIXME try to form this without a loop</span>
+  <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">zsteps</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+      <span class="n">st</span><span class="o">=</span><span class="p">(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">xysteps</span><span class="o">+</span><span class="mi">1</span>
+      <span class="n">ed</span><span class="o">=</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="o">*</span><span class="n">xysteps</span><span class="o">+</span><span class="mi">1</span>
+      <span class="n">sinalpha</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta2</span><span class="p">[</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+      <span class="n">coords</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">sinalpha</span><span class="o">*</span><span class="n">xydirecs</span><span class="p">,</span><span class="n">z</span><span class="p">[</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+      <span class="n">directions</span><span class="p">[</span><span class="n">st</span><span class="p">:</span><span class="n">ed</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">coords</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">xysteps</span><span class="p">)]</span>
+
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Number of requested rays &#39;</span><span class="p">,</span> <span class="n">Nra</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Number of reflections &#39;</span><span class="p">,</span> <span class="n">Nre</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mesh spacing &#39;</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Origin of raytracer &#39;</span><span class="p">,</span> <span class="n">Tx</span><span class="p">)</span>
+
+  <span class="c1"># --------------------------------------------------------------------</span>
+  <span class="c1"># SAVE THE PARAMETERS IN A FOLDER TITLED `Parameters`</span>
+  <span class="c1"># --------------------------------------------------------------------</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/Raytracing.npy&#39;</span><span class="p">,</span><span class="n">RTPar</span><span class="p">)</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/Directions.npy&#39;</span><span class="p">,</span><span class="n">directions</span><span class="p">)</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/Obstacles.npy&#39;</span><span class="p">,</span><span class="n">Oblist</span><span class="p">)</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/OuterBoundary.npy&#39;</span><span class="p">,</span><span class="n">OuterBoundary</span><span class="p">)</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/Origin.npy&#39;</span><span class="p">,</span><span class="n">Tx</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;------------------------------------------------&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Geometrical parameters saved&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;------------------------------------------------&#39;</span><span class="p">)</span>
+  <span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="ObstacleCoefficients"><a class="viewcode-back" href="../index.html#ParameterInput.ObstacleCoefficients">[docs]</a><span class="k">def</span> <span class="nf">ObstacleCoefficients</span><span class="p">():</span>
+  <span class="sd">&#39;&#39;&#39; Input the paramters for obstacles and the antenna. To ensure \</span>
+<span class="sd">  arrays are of the right length for compatibility for the \</span>
+<span class="sd">  ray-launcher retrieve the ray-launching parameters in \</span>
+<span class="sd">  :py:func:`DeclareParameters()`</span>
+
+<span class="sd">  Load:</span>
+
+<span class="sd">  * &#39;Obstacles.npy&#39;     -Co-ordinates of obstacles in the room</span>
+<span class="sd">  * &#39;OuterBoundary.npy&#39; - Co-ordinates of the walls of the room</span>
+<span class="sd">  * &#39;Raytracing.npy&#39;    -[Nra (number of rays), Nre (number of reflections), \</span>
+<span class="sd">  h (relative meshwidth)]</span>
+
+<span class="sd">  Calculate:</span>
+
+<span class="sd">  * Nob=len([Obstacles,OuterBoundary])</span>
+
+<span class="sd">  Input:</span>
+
+<span class="sd">  * `Freespace` -[mu0 (permeability of air), \</span>
+<span class="sd">  eps0 (permittivity of air),Z0 (characteristic impedance of air), \</span>
+<span class="sd">  c (speed of light)]</span>
+<span class="sd">  * `frequency` - :math:`\\omega` angular frequency of the wave out \</span>
+<span class="sd">  the antenna.</span>
+<span class="sd">  * `mur`       - :math:`\\mu_r` The relative permeability for all obstacles. \</span>
+<span class="sd">  This should be an array with the same number of terms as the number \</span>
+<span class="sd">  of obstacles Nob.</span>
+<span class="sd">  * `epsr`     - :math:`\\epsilon_r` The relative permittivity for each obstacle. \</span>
+<span class="sd">  This should be an array with the same number of terms as the number \</span>
+<span class="sd">  of obstacles Nob.</span>
+<span class="sd">  * `sigma`     - :math:`\\sigma` The electrical conductivity of the obstacles. \</span>
+<span class="sd">  This should be an array with the same number of terms as the number \</span>
+<span class="sd">  of obstacles.</span>
+<span class="sd">  * `Gt`        - The gains of the antenna. The should be an array with \</span>
+<span class="sd">  the same number of terms as the number of rays Nra.</span>
+
+<span class="sd">  Calculate:</span>
+
+<span class="sd">  * `eps0`   - :math:`\\epsilon_0=\\frac{1}{\\mu_0 c^2}`  permittivity of \</span>
+<span class="sd">  freespace.</span>
+<span class="sd">  * `Z0`     - :math:`Z_0=\\sqrt{\\frac{\\mu_0}{\\epsilon_0}}` characteristic \</span>
+<span class="sd">  impedance of freespace.</span>
+<span class="sd">  * `refindex` - The refreactive index \</span>
+<span class="sd">  :math:`n=\\sqrt{\\mu_r\\epsilon_r}`</span>
+<span class="sd">  * `Znobrat`- The relative impedance of the obstacles given by,</span>
+<span class="sd">    :math:`\\hat{Z}_{Nob}=\\frac{Z_{Nob}}{Z_0}`. The impedance of each \</span>
+<span class="sd">    obstacle :math:`Z_{Nob}` is given by \</span>
+<span class="sd">    :math:`Z_{Nob}=\\sqrt{\\frac{i\\omega\\mu_0\\mu_r}{\\sigma+i\\epsilon_0\\epsilon_r}}`.</span>
+
+
+<span class="sd">  The Znobrat and refindex terms are then reformatted so that they \</span>
+<span class="sd">  repeat Nre times with an extra term. The extra term corresponds to \</span>
+<span class="sd">  the line of sight path. This makes them the same length as a column \</span>
+<span class="sd">  in a matrix in a :py:class:`DictionarySparseMatrix.DS`. \</span>
+<span class="sd">  Each term corresponds to a possible obstacle reflection combination.</span>
+
+<span class="sd">  The Gains matrix is also reformated to that it repeats (Nre+1) times. \</span>
+<span class="sd">  This corresponds to every possible ray reflection number combination \</span>
+<span class="sd">  This makes them the same length as a row in a matrix in a \</span>
+<span class="sd">  :py:class:`DictionarySparseMatrix.DS`. \</span>
+<span class="sd">  Each term corresponds to a possible obstacle reflection combination.</span>
+
+<span class="sd">  Save:</span>
+<span class="sd">  * `frequency.npy`- The angular frequency :math:`\\omega`.</span>
+<span class="sd">  * `refindex.npy` - The refractive index of the obstacles.</span>
+<span class="sd">  * `Znobrat.npy`  - The relative characteristic impedance.</span>
+<span class="sd">  * `TxGains.npy`  - The gains of the antenna.</span>
+<span class="sd">  * `Freespace.npy`- The freespace parameters.</span>
+
+<span class="sd">  .. code::</span>
+
+<span class="sd">     Freespace=np.array([mu0,eps0,Z0,c])</span>
+
+<span class="sd">  :return: 0 if successfully completed.</span>
+
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saving the physical parameters for obstacles and antenna&#39;</span><span class="p">)</span>
+
+  <span class="c1"># -------------------------------------------------------------------</span>
+  <span class="c1"># RETRIEVE RAY LAUNCHER PARAMETERS FOR ARRAY LENGTHS-----------------</span>
+  <span class="c1"># -------------------------------------------------------------------</span>
+  <span class="n">RTPar</span>         <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Raytracing.npy&#39;</span><span class="p">)</span>
+  <span class="n">Oblist</span>        <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Obstacles.npy&#39;</span><span class="p">)</span>
+  <span class="n">OuterBoundary</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/OuterBoundary.npy&#39;</span><span class="p">)</span>
+  <span class="n">Oblist</span>        <span class="o">=</span><span class="n">OuterBoundary</span> <span class="c1">#np.concatenate((Oblist,OuterBoundary),axis=0)</span>
+  <span class="n">Nra</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">RTPar</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>                           <span class="c1"># Number of rays</span>
+  <span class="n">Nre</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">RTPar</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>                           <span class="c1"># Number of reflections</span>
+  <span class="n">Nob</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">Oblist</span><span class="p">)</span>                             <span class="c1"># The Number of obstacle.</span>
+
+  <span class="c1"># -------------------------------------------------------------------</span>
+  <span class="c1"># INPUT PARAMETERS FOR POWER CALCULATIONS----------------------------</span>
+  <span class="c1"># -------------------------------------------------------------------</span>
+
+  <span class="c1"># Gains of the rays</span>
+  <span class="n">Gt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">Nra</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
+
+  <span class="c1"># PHYSICAL CONSTANTS Do not change for obstacles for frequency</span>
+  <span class="n">mu0</span><span class="o">=</span><span class="mi">4</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">1</span><span class="n">E</span><span class="o">-</span><span class="mi">6</span>
+  <span class="n">c</span><span class="o">=</span><span class="mf">2.99792458E+8</span>
+  <span class="n">frequency</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mf">2.79E+08</span>                   <span class="c1"># 2.79 GHz #FIXME make this a table and choose a frequency option</span>
+
+  <span class="c1"># Relative Constants for the obstacles</span>
+  <span class="n">mur</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">Nob</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="nb">complex</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>         <span class="c1"># For this test mur is</span>
+                                               <span class="c1"># the same for every obstacle.</span>
+                                               <span class="c1"># Array created to get functions correct.</span>
+  <span class="n">epsr</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">Nob</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="nb">complex</span><span class="p">(</span><span class="mf">2949.3</span><span class="p">,</span> <span class="mf">0.1065</span><span class="p">))</span><span class="c1"># For this test epsr is the</span>
+                                               <span class="c1"># same for every obstacle</span>
+
+  <span class="n">sigma</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">Nob</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="mf">1.0E-4</span><span class="p">)</span>                <span class="c1"># For this test sigma is the</span>
+                                               <span class="c1"># same for every obstacle</span>
+  <span class="c1"># CALCULATE FREESPACE PARAMETERS</span>
+
+  <span class="n">eps0</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">mu0</span><span class="o">*</span><span class="n">c</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>  <span class="c1">#8.854187817E-12</span>
+  <span class="n">Z0</span><span class="o">=</span><span class="p">(</span><span class="n">mu0</span><span class="o">/</span><span class="n">eps0</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span> <span class="c1">#120*np.pi Characteristic impedance of free space.</span>
+
+  <span class="c1"># STORE FREESPACE PARAMETERS IN ONE ARRAY</span>
+  <span class="n">Freespace</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">mu0</span><span class="p">,</span><span class="n">eps0</span><span class="p">,</span><span class="n">Z0</span><span class="p">,</span><span class="n">c</span><span class="p">])</span>
+
+  <span class="c1"># CALCULATE OBSTACLE PARAMETERS</span>
+  <span class="n">top</span><span class="o">=</span><span class="nb">complex</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">frequency</span><span class="o">*</span><span class="n">mu0</span><span class="p">)</span><span class="o">*</span><span class="n">mur</span>
+  <span class="n">bottom</span><span class="o">=</span><span class="n">sigma</span><span class="o">+</span><span class="nb">complex</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">eps0</span><span class="o">*</span><span class="n">frequency</span><span class="p">)</span><span class="o">*</span><span class="n">epsr</span>
+  <span class="n">Znob</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">top</span><span class="o">/</span><span class="n">bottom</span><span class="p">)</span>                    <span class="c1"># Wave impedance of the obstacles</span>
+  <span class="n">Znobrat</span><span class="o">=</span><span class="n">Znob</span><span class="o">/</span><span class="n">Z0</span>
+  <span class="n">refindex</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">mur</span><span class="p">,</span><span class="n">epsr</span><span class="p">))</span>     <span class="c1"># Refractive index of the obstacles</span>
+  <span class="c1"># CLEAR THE TERMS JUST FOR CALCULATION</span>
+  <span class="k">del</span> <span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span><span class="n">Znob</span>
+
+  <span class="c1"># PRINT THE PARAMETERS</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Permittivity of free space &#39;</span><span class="p">,</span> <span class="n">mu0</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Permeability of free space &#39;</span><span class="p">,</span> <span class="n">eps0</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Characteristic Impedence &#39;</span><span class="p">,</span> <span class="n">Z0</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Speed of light &#39;</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Number of obstacles&#39;</span><span class="p">,</span><span class="n">Nob</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Relative Impedance of the obstacles &#39;</span><span class="p">,</span> <span class="n">Znobrat</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Refractive index of the obstacles &#39;</span><span class="p">,</span> <span class="n">refindex</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+  <span class="c1"># Make the refindex, impedance and gains vectors the right length to</span>
+  <span class="c1"># match the matrices.</span>
+  <span class="n">Znobrat</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">Znobrat</span><span class="p">,</span><span class="n">Nre</span><span class="p">)</span>                    <span class="c1"># The number of rows is Nob*Nre+1. Repeat Nob</span>
+  <span class="n">Znobrat</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">Znobrat</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="nb">complex</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">))</span>     <span class="c1"># Use a zero for placement in the LOS row</span>
+  <span class="n">refindex</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">refindex</span><span class="p">,</span><span class="n">Nre</span><span class="p">)</span>
+  <span class="n">refindex</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">refindex</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">+</span><span class="mi">0</span><span class="n">j</span><span class="p">)</span>
+  <span class="n">Gt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">Gt</span><span class="p">,(</span><span class="n">Nre</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+
+  <span class="c1"># --------------------------------------------------------------------</span>
+  <span class="c1"># SAVE THE PARAMETERS</span>
+  <span class="c1"># --------------------------------------------------------------------</span>
+
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/TxGains.npy&#39;</span><span class="p">,</span> <span class="n">Gt</span><span class="p">)</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/Freespace.npy&#39;</span><span class="p">,</span><span class="n">Freespace</span><span class="p">)</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/frequency.npy&#39;</span><span class="p">,</span><span class="n">frequency</span><span class="p">)</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/Znobrat.npy&#39;</span><span class="p">,</span><span class="n">Znobrat</span><span class="p">)</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/refindex.npy&#39;</span><span class="p">,</span><span class="n">refindex</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;------------------------------------------------&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Material parameters saved&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;------------------------------------------------&#39;</span><span class="p">)</span>
+  <span class="k">return</span> <span class="mi">0</span></div>
+
+<span class="k">if</span> <span class="n">__name__</span><span class="o">==</span><span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Running  on python version&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+  <span class="n">out</span><span class="o">=</span><span class="n">DeclareParameters</span><span class="p">()</span>
+  <span class="n">out</span><span class="o">=</span><span class="n">ObstacleCoefficients</span><span class="p">()</span>
+
+  <span class="n">exit</span><span class="p">()</span>
+
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Hayley.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
