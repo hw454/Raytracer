@@ -3,7 +3,7 @@
 *.npy
 *.png
 *.jpg
-*.html
+
 *.aux
 *.toc
 .gitignore*
