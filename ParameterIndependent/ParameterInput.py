@@ -227,8 +227,8 @@ def ObstacleCoefficients():
   # -------------------------------------------------------------------
   # RETRIEVE RAY LAUNCHER PARAMETERS FOR ARRAY LENGTHS-----------------
   # -------------------------------------------------------------------
-  if not os.path.exists('/Parameters/'):
-    os.makedirs('/Parameters/')
+  if not os.path.exists('./Parameters/'):
+    os.makedirs('./Parameters/')
   RTPar         =np.load('Parameters/Raytracing.npy')
   Oblist        =np.load('Parameters/Obstacles.npy')
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')

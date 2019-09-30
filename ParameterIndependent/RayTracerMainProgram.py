@@ -1,4 +1,4 @@
-#!/usr/bin/env python3 > output.txt
+#!/usr/bin/env python3
 # Updated Hayley Wragg 2019-03-15
 ''' Code to trace rays around a room. This code uses:
 
@@ -13,7 +13,7 @@
   :py:func:`ParameterInput.ObstacleCoefficients`. It uses these and \
   the functions :py:func:`RefCoefComputation` which output Rper \
   and Rpar the perpendicular and parallel to polarisation reflection \
-  coefficients, and the function :py:func:`RefCombine` to \
+  coefficients, and the function :py:func:`RefCombine` to \git st
   get the loss from reflection for each ray segment entering each grid \
   point. This is then combine with the distance of each raysegments \
   travel from the mesh and the antenna gains to get the Power in \
@@ -118,7 +118,8 @@ def RayTracer():
   print('Trajectory calculation completed')
   print('Time taken',Room.time)
   print('-------------------------------')
-  np.save('RayPoints'+str(int(Nra))+'Refs'+str(int(Nre))+'n.npy',Rays)
+  filename=str('RayPoints'+str(int(Nra))+'Refs'+str(int(Nre))+'n.npy')
+  np.save(filename,Rays)
   # The "Rays" file is Nra+1 x Nre+1 x 4 array containing the
   # co-ordinate and obstacle number for each reflection point corresponding
   # to each source ray.
@@ -230,8 +231,8 @@ def MeshProgram():
   Rays, Mesh=Room.ray_mesh_bounce(Tx,Nre,Nra,Direc,Mesh)
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
-  np.save('/Mesh/RayMeshPoints'+str(Nra)+'Refs'+str(Nre)+'m.npy',Rays)
-  meshname=str('/Mesh/DSM'+str(Nra)+'Refs'+str(Nre)+'m.npy')
+  np.save('./Mesh/RayMeshPoints'+str(Nra)+'Refs'+str(Nre)+'m.npy',Rays)
+  meshname=str('./Mesh/DSM'+str(Nra)+'Refs'+str(Nre)+'m.npy')
   Mesh.save_dict(meshname)
   print('-------------------------------')
   print('Ray-launching complete')
@@ -290,7 +291,7 @@ def power_grid():
   refindex     =np.load('Parameters/refindex.npy')
 
   ##----Retrieve the Mesh--------------------------------------
-  meshname=str('DSM'+str(Nra)+'Refs'+str(Nre)+'m.npy')
+  meshname=str('./Mesh/DSM'+str(Nra)+'Refs'+str(Nre)+'m.npy')
   Mesh= DSM.load_dict(meshname)
 
   ##----Initialise Grid------------------------------------------------------
