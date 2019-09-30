@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3 > output.txt
 # Updated Hayley Wragg 2019-03-15
 ''' Code to trace rays around a room. This code uses:
 
@@ -37,6 +37,7 @@ import ParameterInput as PI
 import DictionarySparseMatrix as DSM
 import time as t
 import matplotlib.pyplot as mp
+import os
 
 def RayTracer():
   ''' Refect rays and output the points of reflection.
@@ -227,8 +228,10 @@ def MeshProgram():
   print('Starting the ray bouncing and information storage')
   print('-------------------------------')
   Rays, Mesh=Room.ray_mesh_bounce(Tx,Nre,Nra,Direc,Mesh)
-  np.save('RayMeshPoints'+str(Nra)+'Refs'+str(Nre)+'m.npy',Rays)
-  meshname=str('DSM'+str(Nra)+'Refs'+str(Nre)+'m.npy')
+  if not os.path.exists('./Mesh'):
+    os.makedirs('./Mesh')
+  np.save('/Mesh/RayMeshPoints'+str(Nra)+'Refs'+str(Nre)+'m.npy',Rays)
+  meshname=str('/Mesh/DSM'+str(Nra)+'Refs'+str(Nre)+'m.npy')
   Mesh.save_dict(meshname)
   print('-------------------------------')
   print('Ray-launching complete')
@@ -297,8 +300,9 @@ def power_grid():
   Grid=np.zeros((Nx,Ny,Nz),dtype=float)
 
   Grid=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt)
-
-  np.save('Power_grid.npy',Grid)
+  if not os.path.exists('/Mesh'):
+    os.makedirs('/Mesh')
+  np.save('/Mesh/Power_grid'+str(Nra)+'Refs'+str(Nre)+'m.npy',Grid)
 
   return Grid
 
@@ -407,11 +411,13 @@ def plot_grid():
   Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
   P=np.load('Power_grid.npy')
   n=P.shape[2]
+  if not os.path.exists('./GeneralMethodPowerFigures'):
+    os.makedirs('./GeneralMethodPowerFigures')
   for i in range(n):
     mp.figure(i)
     #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
     mp.imshow(P[:,:,i], cmap='viridis', interpolation='nearest')#,extent=extent)
-    filename=str('HayleyMethodPowerFigures/PowerSlice'+str(int(i))+'Nra'+str(int(Nra))+'n'+str(int(n))+'Nref'+str(int(Nre))+'.eps')
+    filename=str('GeneralMethodPowerFigures/PowerSlice'+str(int(i))+'Nra'+str(int(Nra))+'n'+str(int(n))+'Nref'+str(int(Nre))+'.eps')
     mp.savefig(filename)
     #mp.colourbar()
   #mp.show()

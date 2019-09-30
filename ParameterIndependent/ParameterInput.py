@@ -3,6 +3,7 @@
 ''' The code saves the values for the parameters in a ray tracer '''
 import numpy as np
 import sys
+import os
 
 def DeclareParameters():
   '''All input parameters for the ray-launching method are entered in
@@ -36,8 +37,8 @@ def DeclareParameters():
   # -------------------------------------------------------------------
 
   print('Saving ray-launcher parameters')
-  Nra=300 # Number of rays
-  Nre=15  # Number of reflections
+  Nra=100 # Number of rays
+  Nre=10  # Number of reflections
   Ns=30   # Number of steps on longest axis.
   l1=2   # Interior obstacle scale
   l2=9   # Outer Boundary length scale
@@ -133,6 +134,8 @@ def DeclareParameters():
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS IN A FOLDER TITLED `Parameters`
   # --------------------------------------------------------------------
+  if not os.path.exists('./Parameters'):
+    os.makedirs('./Parameters')
   np.save('Parameters/Raytracing.npy',RTPar)
   np.save('Parameters/Directions.npy',directions)
   np.save('Parameters/Obstacles.npy',Oblist)
@@ -224,6 +227,8 @@ def ObstacleCoefficients():
   # -------------------------------------------------------------------
   # RETRIEVE RAY LAUNCHER PARAMETERS FOR ARRAY LENGTHS-----------------
   # -------------------------------------------------------------------
+  if not os.path.exists('/Parameters/'):
+    os.makedirs('/Parameters/')
   RTPar         =np.load('Parameters/Raytracing.npy')
   Oblist        =np.load('Parameters/Obstacles.npy')
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')
