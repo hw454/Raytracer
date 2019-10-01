@@ -301,9 +301,9 @@ def power_grid():
   Grid=np.zeros((Nx,Ny,Nz),dtype=float)
 
   Grid=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt)
-  if not os.path.exists('/Mesh'):
-    os.makedirs('/Mesh')
-  np.save('/Mesh/Power_grid'+str(Nra)+'Refs'+str(Nre)+'m.npy',Grid)
+  if not os.path.exists('./Mesh'):
+    os.makedirs('./Mesh')
+  np.save('./Mesh/Power_grid'+str(Nra)+'Refs'+str(Nre)+'m.npy',Grid)
 
   return Grid
 

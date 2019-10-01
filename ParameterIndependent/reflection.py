@@ -92,8 +92,7 @@ def test3():
   line=np.array([(0.0,5.0,0.0),(0.0,0.0,3.0)]) #FIXME
   surface=np.array([(-1.0,0.0,0.0),(1.0,0.0,0.0),(0.0,1.0,0.0)])
   angle=refangle(line,surface)
-  print(angle)
-  return 0
+  return angle
 
 def test2():
   triangle =np.array([(0.0,0.0,0.0),(3.0, 0.0,0.0),(1.5,1.5,0.0)])

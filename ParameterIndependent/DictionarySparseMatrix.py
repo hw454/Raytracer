@@ -1374,8 +1374,6 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt):
   print('----------------------------------------------------------')
   # Retrieve the parameters
   khat,lam,L = Antpar
-
-  print(Mesh)
   # Compute the reflection coefficients
   Rper, Rpar, ind=ref_coef(Mesh,Znobrat,refindex)
 
@@ -1419,7 +1417,7 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt):
   apar=np.array([0,0,0])
   # Power
   P=np.power(np.absolute(Gridpe),2)
-  P=10*np.log10(P)
+  P=10*np.ma.log10(P)
   return P
 
 def nonzero_bycol(SM):
@@ -1618,7 +1616,7 @@ def parnonzero(nj,DS):
   #p.start()
   #p.join
   #FIXME
-  print(ind)
+  # print(ind)
   return 0
 
 #=======================================================================
