@@ -1418,6 +1418,7 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt):
   # Power
   P=np.power(np.absolute(Gridpe),2)
   P=10*np.ma.log10(P)
+  P.filled(0)
   return P
 
 def nonzero_bycol(SM):
