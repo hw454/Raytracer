@@ -412,15 +412,17 @@ def plot_grid():
   Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
   P=np.load('Power_grid.npy')
   n=P.shape[2]
+  lb=min(P)
+  ub=max(P)
   if not os.path.exists('./GeneralMethodPowerFigures'):
     os.makedirs('./GeneralMethodPowerFigures')
   for i in range(n):
     mp.figure(i)
     #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
     mp.imshow(P[:,:,i], cmap='viridis', interpolation='nearest')#,extent=extent)
+    mp.colorbar(extend=[lb,ub])
     filename=str('GeneralMethodPowerFigures/PowerSlice'+str(int(i))+'Nra'+str(int(Nra))+'n'+str(int(n))+'Nref'+str(int(Nre))+'.eps')
     mp.savefig(filename)
-    #mp.colourbar()
   #mp.show()
   return
 
