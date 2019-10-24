@@ -16,11 +16,13 @@ def PlotRays():
 
     ##----Retrieve the Raytracing Parameters-----------------------------
     Nrao,Nre,h ,L    =np.load('Parameters/Raytracing.npy')
+    #Nra=18
+    #L=1
     Nra=int(np.sqrt(Nrao/2.0)-1)*int(np.sqrt(2.0*Nrao))+1
 
     ##---Retrieve the Ray points ---------------------------------------
-    data_matrix=np.load('RayPoints'+str(int(Nrao))+'Refs'+str(int(Nre))+'n.npy')
-    data_matrix=data_matrix*L
+    data_matrix=np.load('./Mesh/RayMeshPoints'+str(int(Nrao))+'Refs'+str(int(Nre))+'m.npy')
+    data_matrix=data_matrix
 
     ##----Retrieve the environment--------------------------------------
     Oblist        =np.load('Parameters/Obstacles.npy')
@@ -29,7 +31,7 @@ def PlotRays():
     OuterBoundary =np.load('Parameters/OuterBoundary.npy')
     Nob2          =len(OuterBoundary)
     Room          =np.concatenate((Oblist,OuterBoundary),axis=0)
-    Oblist        =Room*L
+    Oblist        =Room
     RoomP=Oblist[0]
     for j in range(1,Nob):
       RoomP=np.concatenate((RoomP,Oblist[j]),axis=0)
@@ -37,12 +39,7 @@ def PlotRays():
       RoomP=np.concatenate((RoomP,OuterBoundary[j]),axis=0)
     mlab.clf()
     #mlab.figure(1)
-    for k in range(0,int(len(RoomP)/3)):
-      j=k*3
-      x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
-      y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
-      z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
-      mlab.plot3d(x,y,z)
+    mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.25)
     for j in range(0,int(Nra)):
       #j=int(Nre)*k
       x=np.array([data_matrix[j][0][0]])
@@ -59,7 +56,15 @@ def PlotRays():
             z=np.append(z,[data_matrix[j][l][2]])
             s=np.append(s,[data_matrix[j][l][3]])
       mlab.plot3d(x,y,z,color= (0, 1, 1))
-    mlab.savefig('ConeFigures/Rayreflections.jpg',size=(1000,1000))
+    for k in range(0,int(len(RoomP)/3)):
+      j=k*3
+      x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
+      y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
+      z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
+      mlab.plot3d(x,y,z)
+    if not os.path.exists('./ConeFigures'):
+      os.makedirs('./ConeFigures')
+    mlab.savefig('ConeFigures/Room.jpg',size=(1000,1000))
     gui = GUI()
     gui.start_event_loop()
     return

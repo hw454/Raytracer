@@ -340,6 +340,7 @@ class room:
     directions    =r*directions
     # Iterate through the rays find the ray reflections
     # FIXME rays are independent of each other so this is parallelisable
+    #FIXME Find out whether the ray points are correct.
     for it in range(0,Nra):
       Dir       =directions[it]
       start     =np.append(Tx,[0])

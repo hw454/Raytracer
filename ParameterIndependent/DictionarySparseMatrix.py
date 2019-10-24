@@ -590,6 +590,50 @@ class DS:
             chk=j
           count+=1
     return out
+  def __get_rad__withind__(s,ind):
+    ''' Return a DS corresponding to the distances stored in the mesh.
+
+      * Initialise out=DS(Nx,Ny,Nz,1,s.shape[1])
+
+      * Go through all the nonzero x,y,z grid points.
+
+      * Go through the nonzero columns and put the absolute value of the \
+      first term in the corresponding column in out[x,y,z]
+
+      * Pass until the next nonzero index is for a new column and repeat.
+
+    :rtype: DS(Nx,Ny,Nz,1,s.shape[1]) of real values.
+
+    :return: out
+
+    '''
+    out=DS(s.Nx,s.Ny,s.Nz,1,s.shape[1],float)
+    # Find the nonzero indices. There's no need to retrieve distances on 0 terms.
+    #ind=s.nonzero()
+    ind=ind.T
+    n=len(ind[0])
+    p=-1
+    l=-1
+    m=-1
+    for i in range(0,n):
+      # No need to go through the same grid element again.
+      if ind[0][i]==p and ind[1][i]==l and ind[2][i]==m:
+        pass
+      else:
+        ind2=nonzero_bycol(s[ind[0][i],ind[1][i],ind[2][i]])
+        p=ind[0][i]
+        l=ind[1][i]
+        m=ind[2][i]
+        count=0
+        chk=-1
+        for j in ind2[1]:
+          if chk==j:
+            pass
+          else:
+            out[p,l,m,0,j]=abs(s[p,l,m,ind2[0][count],j])
+            chk=j
+          count+=1
+    return out
   ## Finds arcsin(theta) for all terms theta \!= 0 in DSM.
   # @return a DSM with the same dimensions with arcsin(theta) in the
   # same position as the corresponding theta terms.
@@ -850,6 +894,36 @@ class DS:
       out=np.multiply(vec[ind[l][4]],s[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]])
       outDSM[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]]=out
     return outDSM
+  def dict_row_vec_multiply_withind(s,vec,ind):
+    """ Multiply every row of the DSM s elementwise with the
+    vector vec.
+
+    :param vec: a row vector with length na.
+
+    For integers :math:`x,y,z,k` and :math:`j` such that,
+    :math:`x \in [0,Nx), y \in [0,Ny), z \in [0,Nz), k \in [0,na),j \in [0,nb)`,
+
+    .. code::
+
+       out[x,y,z,k,j]=vec[j]*DSM[x,y,z,k,j]
+
+    Multiplication is done using \
+    :py:class:`DS`. :py:func:`dict_vec_multiply(vec)`
+
+    :rtype: A DSM 'out' with the same dimensions as s.
+
+    :returns: out
+
+     """
+    na,nb=s.shape
+    outDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
+    #ind=s.nonzero()
+    Ni=len(np.transpose(ind)[4]) #FIXME find the nonzero columns without repeat column index for each term
+    for l in range(0,Ni):
+      #out=np.multiply(vec,s[ind[l][3]],s[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]])
+      out=np.multiply(vec[ind[l][4]],s[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]])
+      outDSM[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]]=out
+    return outDSM
   ## Divide every column of the DSM s elementwise with the vector vec.
   # @param vec a row vector with length na.
   # @return a DSM 'out' with the same dimensions as s.
@@ -964,7 +1038,7 @@ class DS:
         thetat=np.arcsin(np.sin(s.d[x,y,z][ai,bi])/refindex[ai])
         ctht[x,y,z,ai,bi]=np.cos(thetat)
     return ctht
-  def dict_col_mult(s):
+  def dict_col_mult_withind(s,ind):
     ''' Multiply all nonzero terms in a column.
 
     In every grid point x,y,z of s there is a sparse matrix SM. \
@@ -1010,7 +1084,7 @@ class DS:
 
     '''
     out=DS(s.Nx,s.Ny,s.Nz,1,s.shape[1])
-    ind=s.nonzero()
+    #ind=s.nonzero()
     ind=ind.transpose()
     n=len(ind[0])
     p=-1
@@ -1157,6 +1231,49 @@ class DS:
     '''
     out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],1)
     ind=s.nonzero()
+    ind=ind.transpose()
+    n=len(ind[0])
+    for i in range(0,n):
+      out[ind[0][i],ind[1][i],ind[2][i],ind[3][i],0]+=s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
+    return out
+  def row_sum_withind(s,ind):
+    ''' Sum all nonzero terms in a row.
+
+    In every grid point x,y,z of s there is a sparse matrix SM.
+    Construct a new DS of size Nx x Ny x Nz x na=s.shape[0] x 1.
+    Call this out.
+    out[x,y,z] should be the corresponding na x1 SM to the SM in s at x,y,z.
+
+    Method:
+      * Find the :py:class:`DS`. :py:func:`nonzero()` indices of s`
+      * Go through each of these indice. Check if the \
+      row index is new. If so assign the row in out to the matching \
+      value in the SM. If the row number is not new then sum the \
+      value in the column in out by the corresponding value in the SM.
+
+    .. code::
+
+       out=[
+       [sum(nonzero terms in row 0 in s[0,0,0]),
+       sum(nonzero terms in row 1 in s[0,0,0]),
+       ...,
+       sum(nonzero terms in row na in s[0,0,0]
+       ],
+       ...,
+       [sum(nonzero terms in row 0 in s[Nx-1,Ny-1,Nz-1]),
+       sum(nonzero terms in row 1 in s[Nx-1,Ny-1,Nz-1]),
+       ...,
+       sum(nonzero terms in row na in s[Nx-1,Ny-1,Nz-1]
+       ]
+       ]
+
+    :rtype: DS of size Nx x Ny x Nz x na x  1
+
+    :return: out
+
+    '''
+    out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],1)
+    #ind=s.nonzero()
     ind=ind.transpose()
     n=len(ind[0])
     for i in range(0,n):
@@ -1382,30 +1499,29 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt):
   print('----------------------------------------------------------')
   print('Multiplying reflection coefficients ')
   print('----------------------------------------------------------')
-  Comper=Rper.dict_col_mult() # with ind
+  Comper=Rper.dict_col_mult_withind(ind) # with ind
   #print('Ref after mult equal check',Comper.__self_eq__()) #DEBUG
-  Compar=Rpar.dict_col_mult() # with ind
+  Compar=Rpar.dict_col_mult_withind(ind) # with ind
   t2=t.time()
   print('----------------------------------------------------------')
   print('Reflection coefficients multiplied, time taken ', t2-t1)
   print('----------------------------------------------------------')
   # Get the distances for each ray segment from the Mesh
-  RadMesh=Mesh.__get_rad__() # with ind
+  RadMesh=Mesh.__get_rad__withind__(ind)
   #FIXME get ind from Mesh nonzeros to the rad versions. So SMs no longer have rows.
   # Compute the mesh of phases
   ind=RadMesh.nonzero()
-  pha=phase_calc(RadMesh,khat,L) # with ind
+  pha=phase_calc(RadMesh,khat,L)
   # Divide by the rads
   pharad=pha.truediv_withind(RadMesh,ind)
   # Multiply by the gains.
-  Gtpha=pharad.dict_row_vec_multiply(np.sqrt(Gt)) #with ind
+  Gtpha=pharad.dict_row_vec_multiply_withind(np.sqrt(Gt),ind)
   # Combine Gains, phase and reflection
-  GtphaRpe=Gtpha.mul_withind(Comper,ind) # with ind
-  GtphaRpa=Gtpha.mul_withind(Compar,ind) # with ind
-  # At this stage the terms are still different.
+  GtphaRpe=Gtpha.mul_withind(Comper,ind)
+  GtphaRpa=Gtpha.mul_withind(Compar,ind)
   # Sum cols
-  Grid0pe=GtphaRpe.row_sum() # with ind
-  Grid0pa=GtphaRpa.row_sum() # with ind
+  Grid0pe=GtphaRpe.row_sum_withind(ind)
+  Grid0pa=GtphaRpa.row_sum_withind(ind)
   # Turn into numpy array
   Gridpe=Grid0pe.togrid() # with ind
   Gridpa=Grid0pa.togrid() # with ind
@@ -1417,8 +1533,8 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt):
   apar=np.array([0,0,0])
   # Power
   P=np.power(np.absolute(Gridpe),2)
-  P=10*np.ma.log10(P)
-  P.filled(0)
+  P=10*np.log10(P)
+  #P.filled(None)
   return P
 
 def nonzero_bycol(SM):

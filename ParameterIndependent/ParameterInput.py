@@ -39,64 +39,45 @@ def DeclareParameters():
   print('Saving ray-launcher parameters')
   Nra=100 # Number of rays
   Nre=5  # Number of reflections
-  Ns=30   # Number of steps on longest axis.
-  l1=2   # Interior obstacle scale
-  l2=9   # Outer Boundary length scale
+  Ns=25   # Number of steps on longest axis.
+  l1=1.5   # Interior obstacle scale
+  l2=2   # Outer Boundary length scale
 
   # Obstacles are all triangles in 3D.
-  triangle1 =np.array([(0.0,0.0,0.0),(1.0, 0.0,0.0),(0.0,0.0,1.0)])
-  triangle2 =np.array([(0.0,0.0,1.0),(1.0, 0.0,1.0),(0.0,0.0,0.0)])
-  triangle3 =np.array([(0.0,0.0,0.0),(0.0, 1.0,0.0),(0.0,0.0,1.0)])
-  triangle4 =np.array([(0.0,0.0,1.0),(0.0, 1.0,0.0),(0.0,1.0,1.0)])
-  triangle5 =np.array([(0.0,0.0,0.0),(1.0, 1.0,0.0),(0.0,1.0,0.0)])
-  triangle6 =np.array([(0.0,0.0,0.0),(1.0, 1.0,0.0),(1.0,0.0,0.0)])
-  triangle7 =np.array([(0.0,0.0,1.0),(1.0, 1.0,1.0),(1.0,0.0,1.0)])
-  triangle8 =np.array([(0.0,0.0,1.0),(1.0, 1.0,1.0),(0.0,1.0,1.0)])
-  triangle9 =np.array([(1.0,0.0,1.0),(1.0, 1.0,1.0),(1.0,1.0,0.0)])
-  triangle10=np.array([(1.0,0.0,1.0),(1.0, 0.0,0.0),(1.0,1.0,0.0)])
-  triangle11=np.array([(1.0,1.0,0.0),(1.0, 1.0,1.0),(0.0,1.0,1.0)])
-  triangle12=np.array([(1.0,1.0,0.0),(0.0, 1.0,1.0),(0.0,1.0,0.0)])
+  xmi=0.0
+  xma=1.0
+  ymi=0.0
+  yma=1.0
+  zmi=0.0
+  zma=1.0
+  Oblist=BoxBuild(xmi,xma,ymi,yma,zmi,zma)
 
   #- Outer Boundary -
   # 3D co-ordinates forming a closed boundary.
-  # Wall 1
-  OuterBoundary1 =np.array([(0.0,0.0,0.3),(1.0,0.0,0.3),(1.0,0.0,0.0)])
-  OuterBoundary2 =np.array([(1.0,0.0,0.0),(0.0,0.0,0.0),(0.0,0.0,0.3)])
-  # Wall 2
-  OuterBoundary3 =np.array([(1.0,0.0,0.0),(1.0,1.0,0.0),(1.0,1.0,0.3)])
-  OuterBoundary4 =np.array([(1.0,0.0,0.3),(1.0,1.0,0.3),(1.0,0.0,0.0)])
-  # Wall 3
-  OuterBoundary5 =np.array([(1.0,1.0,0.3),(0.0,1.0,0.0),(1.0,1.0,0.0)])
-  OuterBoundary6 =np.array([(1.0,1.0,0.3),(1.0,0.0,0.0),(1.0,0.0,0.3)])
-  # Wall 4
-  OuterBoundary7 =np.array([(0.0,1.0,0.3),(0.0,1.0,0.0),(0.0,0.0,0.0)])
-  OuterBoundary8 =np.array([(0.0,1.0,0.3),(0.0,0.0,0.0),(0.0,0.0,0.3)])
-  # Ceiling
-  OuterBoundary9 =np.array([(0.0,0.0,0.3),(1.0,1.0,0.3),(1.0,0.0,0.3)])
-  OuterBoundary10=np.array([(0.0,0.0,0.3),(0.0,1.0,0.3),(1.0,1.0,0.3)])
-  # Floor
-  OuterBoundary11=np.array([(0.0,0.0,0.0),(1.0,1.0,0.0),(1.0,0.0,0.0)])
-  OuterBoundary12=np.array([(0.0,0.0,0.0),(0.0,1.0,0.0),(1.0,1.0,0.0)])
+  xmi=0.0
+  xma=1.0
+  ymi=0.0
+  yma=1.0
+  zmi=0.0
+  zma=0.25
+  OuterBoundary=BoxBuild(xmi,xma,ymi,yma,zmi,zma)
 
   # -Router location -co-ordinate of three real numbers
-  Tx=np.array([0.45,0.417,0.1])
+  Tx=np.array([0.5,0.5,0.125])*l2
 
   # CONSTRUCT THE ARRAYS FOR STORING OBSTACLES
-  Oblist=(1.0/l1)*np.array([triangle1,triangle2,triangle3,triangle4,triangle5,
-  triangle6,triangle7,triangle8,triangle9,triangle10,triangle11,
-  triangle12])
+  Oblist=(1.0/l1)*Oblist
 
-  OuterBoundary=np.array([OuterBoundary1,OuterBoundary2,
-  OuterBoundary3, OuterBoundary4,OuterBoundary5,OuterBoundary6,
-  OuterBoundary7, OuterBoundary8, OuterBoundary9, OuterBoundary10,
-  OuterBoundary11,OuterBoundary12])
+  OuterBoundary=l2*OuterBoundary
 
   # -------------------------------------------------------------------
   # CALCULATED PARAMETERS TO SAVE
   # -------------------------------------------------------------------
 
   # CALCULATE RELATIVE MESHWIDTH
-  roomlengthscale=l2*abs(np.amax(OuterBoundary)-np.amin(OuterBoundary)) # SCALE WITHIN THE UNIT CO-ORDINATES.
+  roomlengthscale=abs(np.amax(OuterBoundary)-np.amin(OuterBoundary)) # SCALE WITHIN THE UNIT CO-ORDINATES.
+  #OuterBoundary=OuterBoundary/roomlengthscale
+  #Oblist=Oblist/roomlengthscale
   h=1.0/Ns
 
   # CALCULATE ANGLE SPACING
@@ -235,7 +216,7 @@ def ObstacleCoefficients():
   Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)
   Nra=int(RTPar[0])                           # Number of rays
   Nre=int(RTPar[1])                           # Number of reflections
-  Nob=len(Oblist)                             # The Number of obstacle.
+  Nob=np.load('Parameters/Nob.npy')          # The Number of obstacle.
 
   # -------------------------------------------------------------------
   # INPUT PARAMETERS FOR POWER CALCULATIONS----------------------------
@@ -253,7 +234,7 @@ def ObstacleCoefficients():
   mur=np.full((Nob,1), complex(3.0,0))         # For this test mur is
                                                # the same for every obstacle.
                                                # Array created to get functions correct.
-  epsr=np.full((Nob,1),complex(2949.3, 0.1065))# For this test epsr is the
+  epsr=np.full((Nob,1),complex(3.824,0.013))   # For this test epsr is the - For total absorption complex(2949.3, 0.1065))
                                                # same for every obstacle
 
   sigma=np.full((Nob,1),1.0E-4)                # For this test sigma is the
@@ -305,6 +286,49 @@ def ObstacleCoefficients():
   print('Material parameters saved')
   print('------------------------------------------------')
   return 0
+
+def BoxBuild(xmi,xma,ymi,yma,zmi,zma):
+  ''' Input the inimum and maximum x,y, and z co-ordinates which will form a Box.
+  :param xmi: The minimum x co-ordinate.
+  :param xma: The maximum x co-ordinate.
+  :param ymi:The minimum y co-ordinate.
+  :param yma: The maximum y co-ordinate.
+  :param zmi: The minimum z co-ordinate.
+  :param zma: The maximum z co-ordinate.
+
+  .. code::
+       Box=[T0,T1,...T12]
+       TJ=[p0J,p1J,p2J]
+       p0J=[x0J,y0J,z0J]
+       p1J=[x1J,y1J,z1J]
+       p2J=[x2J,y2J,x2J]
+
+  :rtype: 12 x 3 x 3 numpy array.
+  :returns: Box
+  '''
+  # The faces in the y=ymi plane
+  triangle1 =np.array([(xmi,ymi,zmi),(xma,ymi,zmi),(xmi,ymi,zma)])
+  triangle2 =np.array([(xmi,ymi,zma),(xma,ymi,zma),(xma,ymi,zmi)])
+  # The faces in the x=xmi plane
+  triangle3 =np.array([(xmi,ymi,zmi),(xmi,yma,zmi),(xmi,ymi,zma)])
+  triangle4 =np.array([(xmi,ymi,zma),(xmi,yma,zmi),(xmi,yma,zma)])
+  # The faces in the z=zmi plane
+  triangle5 =np.array([(xmi,ymi,zmi),(xma,yma,zmi),(xmi,yma,zmi)])
+  triangle6 =np.array([(xmi,ymi,zmi),(xma,yma,zmi),(xma,ymi,zmi)])
+  # The faces in the z=zma plane
+  triangle7 =np.array([(xmi,ymi,zma),(xma,yma,zma),(xma,ymi,zma)])
+  triangle8 =np.array([(xmi,ymi,zma),(xma,yma,zma),(xmi,yma,zma)])
+  # The faces in the x=xma plane
+  triangle9 =np.array([(xma,ymi,zma),(xma,yma,zma),(xma,yma,zmi)])
+  triangle10=np.array([(xma,ymi,zma),(xma,ymi,zmi),(xma,yma,zmi)])
+  # The faces in the y=yma plane
+  triangle11=np.array([(xma,yma,zmi),(xma,yma,zma),(xmi,yma,zma)])
+  triangle12=np.array([(xma,yma,zmi),(xmi,yma,zmi),(xmi,yma,zma)])
+  # Put the triangular faces into an array called Box.
+  Box=np.array([triangle1,triangle2,triangle3,triangle4,triangle5,
+  triangle6,triangle7,triangle8,triangle9,triangle10,triangle11,
+  triangle12])
+  return Box
 
 if __name__=='__main__':
   np.set_printoptions(precision=3)

@@ -8,6 +8,7 @@
   the ray trajectories and iterate along the rays storing the \
   information in a :py:class:`DictionarySparseMatrix.DS` and outputing \
   the points and mesh.
+  the points and mesh.
   * the function :py:func:`power_grid` which loads the last saved \
   and loads the antenna and obstacle physical parameters from \
   :py:func:`ParameterInput.ObstacleCoefficients`. It uses these and \
@@ -104,7 +105,7 @@ def RayTracer():
   Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
   Direc         =np.load('Parameters/Directions.npy')         # Matrix of intial ray directions for Nra rays.
-  Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+  Oblist        =np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
   #Nob           =len(Oblist)                                 # The number of obstacles in the room
 
   # Room contains all the obstacles and walls.
@@ -118,13 +119,15 @@ def RayTracer():
   print('Trajectory calculation completed')
   print('Time taken',Room.time)
   print('-------------------------------')
-  filename=str('RayPoints'+str(int(Nra))+'Refs'+str(int(Nre))+'n.npy')
+  filename=str('RayPoints'+str(int(Nra))+'Refs'+str(int(Nre))+'m.npy')
   np.save(filename,Rays)
   # The "Rays" file is Nra+1 x Nre+1 x 4 array containing the
   # co-ordinate and obstacle number for each reflection point corresponding
   # to each source ray.
 
   return 0
+
+
 
 def MeshProgram():
   ''' Refect rays and output the Mesh containing ray information.
@@ -212,7 +215,7 @@ def MeshProgram():
   Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
   Direc         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
-  Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+  Oblist        =np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
 
   # Room contains all the obstacles and walls.
   Room=rom.room(Oblist)
@@ -303,8 +306,7 @@ def power_grid():
   Grid=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt)
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
-  np.save('./Mesh/Power_grid'+str(Nra)+'Refs'+str(Nre)+'m.npy',Grid.compressed())
-
+  np.save('./Mesh/Power_grid'+str(Nra)+'Refs'+str(Nre)+'m.npy',Grid) #.compressed())
   return Grid
 
 
@@ -410,7 +412,9 @@ def plot_grid():
   values at the (x,y) position.
   '''
   Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
-  P=np.load('Power_grid.npy')
+  pstr=str('./Mesh/Power_grid'+str(int(Nra))+'Refs'+str(int(Nre))+'m.npy')
+  P=np.load(pstr)
+  print(P.shape)
   n=P.shape[2]
   lb=np.amin(P)
   ub=np.amax(P)
@@ -421,7 +425,7 @@ def plot_grid():
     #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
     mp.imshow(P[:,:,i], cmap='viridis', interpolation='nearest')
     mp.colorbar()
-    filename=str('GeneralMethodPowerFigures/PowerSlice'+str(int(i))+'Nra'+str(int(Nra))+'n'+str(int(n))+'Nref'+str(int(Nre))+'.eps')
+    filename=str('GeneralMethodPowerFigures/WithBoxPowerSlice'+str(int(i))+'Nra'+str(int(Nra))+'n'+str(int(n))+'Nref'+str(int(Nre))+'.eps')
     mp.savefig(filename)
   #mp.show()
   return

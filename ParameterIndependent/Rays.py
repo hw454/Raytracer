@@ -365,12 +365,12 @@ class Ray:
     # hit the object not the outgoing ray.
     direc=lf.Direction(np.array([s.points[-3][0:3],s.points[-2][0:3]]))
     col=int(Nra*nre+nra)
-    #del nra
     if abs(direc.any()-0.0)>epsilon:                       # Before computing the dist travelled through a mesh cube
                                                            # check the direction isn't 0.
       alpha=h/max(abs(direc))                              # Find which boundary of a unit cube gets hit first when
                                                            # direc goes through it.
     else: return _Mesh, _dist, _calcvec                    # If the direction vector is 0 nothing is happening.
+
     deldist=lf.length(np.array([(0,0,0),alpha*direc]))     # Calculate the distance travelled through a mesh cube
     p0=s.points[-3][0:3]                                   # Set the initial point to the start of the segment.
     p1=p0                                                  # p0 should remain constant and p1 is stepped.
@@ -395,8 +395,8 @@ class Ray:
                                                            # store both pieces of information in the same place.
     else:
       _calcvec[int((nre-1)*room.Nob+nob)]=np.exp(1j*theta) # After the first reflection all reflection angles
-    del nre, nob, theta                                    # continue to be stored in calcvec.
-    for m1 in range(0,Ns):                                 # Step through the ray
+                                 # continue to be stored in calcvec.
+    for m1 in range(0,Ns):                             # Step through the ray
       stpch=_Mesh.stopcheck(i1,j1,k1,endposition,h)         # Check if the ray point is outside the domain.
       if m1>0:                                             # After the first step check that each iteration is moving into
                                                            # a new element.
@@ -443,10 +443,10 @@ class Ray:
         # Compute the next point along the ray
       else: break                                         # In this instance stpch==0 and end of ray
       #del Nc
-      p1+=alpha*direc
+      p1=p0+m1*alpha*direc
       _dist+=deldist
       i2,j2,k2=room.position(p1,h)
-      #FIXME don't stop at the end as the cone needs to be filled.
+      #FIXME don't stop at the end as the cone needs to be filled
       if lf.length(np.array([p1,s.points[-2][0:3]]))<h:
         break
     return _Mesh,_dist,_calcvec

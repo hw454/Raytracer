@@ -1,1 +1,1 @@
-python3 ./RayTracerMainProgram.py >> output.txt
+python3 ./RayTracerMainProgram.py > output.out
