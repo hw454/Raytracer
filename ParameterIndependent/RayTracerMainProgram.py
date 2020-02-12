@@ -215,7 +215,7 @@ def MeshProgram():
   Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
   Direc         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
-  Oblist        =np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+  Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
 
   # Room contains all the obstacles and walls.
   Room=rom.room(Oblist)
@@ -277,36 +277,38 @@ def power_grid():
   Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
   Nra=int(Nra)
   Nre=int(Nre)
+  Roomnum        =int(input('How many combinations of room values do you want to test?'))
   Nob            =np.load('Parameters/Nob.npy')
-
-  PI.ObstacleCoefficients()
-  ##----Retrieve the antenna parameters--------------------------------------
-  Gt            = np.load('Parameters/TxGains.npy')
-  freq          = np.load('Parameters/frequency.npy')
-  Freespace     = np.load('Parameters/Freespace.npy')
-  c             =Freespace[3]
-  khat          =freq*L/c
-  lam           =(2*np.pi*c)/freq
-  Antpar        =np.array([khat,lam,L])
-
-  ##----Retrieve the Obstacle Parameters--------------------------------------
-  Znobrat      =np.load('Parameters/Znobrat.npy')
-  refindex     =np.load('Parameters/refindex.npy')
 
   ##----Retrieve the Mesh--------------------------------------
   meshname=str('./Mesh/DSM'+str(Nra)+'Refs'+str(Nre)+'m.npy')
   Mesh= DSM.load_dict(meshname)
 
-  ##----Initialise Grid------------------------------------------------------
+  ##----Initialise Grid For Power------------------------------------------------------
   Nx=Mesh.Nx
   Ny=Mesh.Ny
   Nz=Mesh.Nz
   Grid=np.zeros((Nx,Ny,Nz),dtype=float)
 
-  Grid=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt)
-  if not os.path.exists('./Mesh'):
-    os.makedirs('./Mesh')
-  np.save('./Mesh/Power_grid'+str(Nra)+'Refs'+str(Nre)+'m.npy',Grid) #.compressed())
+  for index in range(0,Roomnum+1):
+    PI.ObstacleCoefficients(index)
+    ##----Retrieve the antenna parameters--------------------------------------
+    Gt            = np.load('Parameters/TxGains'+str(index)+'.npy')
+    freq          = np.load('Parameters/frequency'+str(index)+'.npy')
+    Freespace     = np.load('Parameters/Freespace'+str(index)+'.npy')
+    c             =Freespace[3]
+    khat          =freq*L/c
+    lam           =(2*np.pi*c)/freq
+    Antpar        =np.array([khat,lam,L])
+
+    ##----Retrieve the Obstacle Parameters--------------------------------------
+    Znobrat      =np.load('Parameters/Znobrat.npy')
+    refindex     =np.load('Parameters/refindex.npy')
+
+    Grid=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt)
+    if not os.path.exists('./Mesh'):
+      os.makedirs('./Mesh')
+    np.save('./Mesh/Power_grid'+str(Nra)+'Refs'+str(Nre)+'m'+str(index)+'.npy',Grid) #.compressed())
   return Grid
 
 
@@ -405,14 +407,14 @@ def RefCombine(Rper,Rpar):
   Combpar=Rpar.dict_col_mult()
   return Combper, Combpar
 
-def plot_grid():
+def plot_grid(index=0):
   ''' Plots slices of a 3D power grid.
 
   Loads `Power_grid.npy` and for each z step plots a heatmap of the \
   values at the (x,y) position.
   '''
   Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
-  pstr=str('./Mesh/Power_grid'+str(int(Nra))+'Refs'+str(int(Nre))+'m.npy')
+  pstr=str('./Mesh/Power_grid'+str(int(Nra))+'Refs'+str(int(Nre))+'m'+str(index)+'.npy')
   P=np.load(pstr)
   print(P.shape)
   n=P.shape[2]
@@ -434,13 +436,11 @@ if __name__=='__main__':
   np.set_printoptions(precision=3)
   print('Running  on python version')
   print(sys.version)
-  #out=RayTracer()
+  #out=RayTracer() # To compute just the rays with no storage uncomment this line.
   start=t.time()
-  Mesh=MeshProgram()
-  #RefCoefperp, RefCoefpar=RefCoefComputation(Mesh)
-  #Combper,Combpar=RefCombine(RefCoefperp,RefCoefpar)
-  Grid=power_grid()
-  plot_grid()
+  Mesh=MeshProgram() # Shoot the rays and store the information
+  Grid=power_grid()  # Use the ray information to compute the power
+  # plot_grid()        # Plot the power in slices.
   end=t.time()
   print('-------------------------------')
   print('Time to complete program')
