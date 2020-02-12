@@ -57,7 +57,7 @@ if __name__=='__main__':
       n=j*100
       print(n)
       i=Room.uniform_ray_tracer(origin,n,i,spacing,frequency,streg,m,refloss)
-      i=Room.uniform_ray_tracer_bounded(origin,n,i+1,spacing,frequency,streg,m,bounds,refloss)
+      #i=Room.uniform_ray_tracer_bounded(origin,n,i+1,spacing,frequency,streg,m,bounds,refloss)
       filename=("RuntimesN"+str(n)+"Delta"+str(int(spacing*100))+ ".txt")
       f=open(filename,"w+")
       (x,y)=Room.time
@@ -66,13 +66,13 @@ if __name__=='__main__':
       f.close()
       origin=(0,2)              # source of the signal
       i=Room.uniform_ray_tracer(origin,n,i+1,spacing,frequency,streg,m,refloss)
-      i=Room.uniform_ray_tracer_bounded(origin,n,i+1,spacing,frequency,streg,m,bounds,refloss)
+      #i=Room.uniform_ray_tracer_bounded(origin,n,i+1,spacing,frequency,streg,m,bounds,refloss)
       f=open(filename,"a+")
       for x in Room.time:
         f.write("Run times for second source location %.8f" % x)
       f.close()
       #f.write("Estimated P value" % y)
-  #mp.show()
+  mp.show()
   # TEST err=rtest.ray_tracer_test(Room, origin)
   # TEST PRINT print('error after rtest on room', err)
   exit()
