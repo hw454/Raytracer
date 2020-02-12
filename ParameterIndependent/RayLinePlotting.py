@@ -16,11 +16,11 @@ def PlotRays():
     ##Plot the obstacles and the room first
 
     ##----Retrieve the Raytracing Parameters-----------------------------
-    Nrao,Nre,h     =np.load('Parameters/Raytracing.npy')
+    Nrao,Nre,h, L    =np.load('Parameters/Raytracing.npy')
     Nra=int(np.sqrt(Nrao/2.0)-1)*int(np.sqrt(2.0*Nrao))+1
 
     ##---Retrieve the Ray points ---------------------------------------
-    data_matrix=np.load('RayPoints'+str(int(Nrao))+'Refs'+str(int(Nre))+'n.npy')
+    data_matrix=np.load('RayPoints'+str(int(Nrao))+'Refs'+str(int(Nre))+'m.npy')
 
     ##----Retrieve the environment--------------------------------------
     Oblist        =np.load('Parameters/Obstacles.npy')
@@ -30,8 +30,8 @@ def PlotRays():
     Nob2          =len(OuterBoundary)
     Room          =np.concatenate((Oblist,OuterBoundary),axis=0)
     RoomP=Oblist[0]
-    for j in range(1,Nob):
-      RoomP=np.concatenate((RoomP,Oblist[j]),axis=0)
+    # for j in range(1,Nob):
+    #  RoomP=np.concatenate((RoomP,Oblist[j]),axis=0)
     for j in range(0,Nob2):
       RoomP=np.concatenate((RoomP,OuterBoundary[j]),axis=0)
     mlab.clf()
