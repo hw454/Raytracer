@@ -5,10 +5,10 @@ Running  on python version
 Building Mesh
 -------------------------------
 Saving ray-launcher parameters
-Number of requested rays  242
+Number of requested rays  200
 Number of reflections  7
-Mesh spacing  0.02
-Origin of raytracer  [0.45  0.417 0.1  ]
+Mesh spacing  0.05
+Origin of raytracer  [0.75  0.75  0.125]
 ------------------------------------------------
 Geometrical parameters saved
 ------------------------------------------------
@@ -19,7 +19,7 @@ Starting the ray bouncing and information storage
 -------------------------------
 -------------------------------
 Ray-launching complete
-Time taken 381.9627022743225
+Time taken 103.55412697792053
 -------------------------------
 Saving the physical parameters for obstacles and antenna
 Permittivity of free space  1.2566370614359172e-05
@@ -48,32 +48,33 @@ Retrieving the angles of reflection
 ----------------------------------------------------------
 Getting nonzero indices
 Make DS for angles
-time finding angles 51.99808144569397
+time finding angles 40.39435124397278
 Initialising cthi, ctht, SIN
-New function finished 9.446591138839722
+New function finished 9.110589981079102
 ----------------------------------------------------------
 ----------------------------------------------------------
 Multiplying by the impedances
 ----------------------------------------------------------
 ----------------------------------------------------------
-Multiplication done time taken  77.70117974281311
+Multiplication done time taken  49.93297505378723
 ----------------------------------------------------------
 ----------------------------------------------------------
 Computing the reflection coefficients.
 ----------------------------------------------------------
 ----------------------------------------------------------
-Reflection coefficients found, time taken  168.61257553100586
+Reflection coefficients found, time taken  117.67613220214844
 ----------------------------------------------------------
 ----------------------------------------------------------
-Total time to compute reflection coefficients from Mesh  363.91275548934937
+Total time to compute reflection coefficients from Mesh  258.4279510974884
 ----------------------------------------------------------
 ----------------------------------------------------------
 Multiplying reflection coefficients 
 ----------------------------------------------------------
 ----------------------------------------------------------
-Reflection coefficients multiplied, time taken  84.89511466026306
+Reflection coefficients multiplied, time taken  35.91972231864929
 ----------------------------------------------------------
+(21, 21, 21)
 -------------------------------
 Time to complete program
-1188.8727540969849
+513.3267896175385
 -------------------------------
