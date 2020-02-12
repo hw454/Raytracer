@@ -634,6 +634,50 @@
             <span class="n">chk</span><span class="o">=</span><span class="n">j</span>
           <span class="n">count</span><span class="o">+=</span><span class="mi">1</span>
     <span class="k">return</span> <span class="n">out</span>
+  <span class="k">def</span> <span class="nf">__get_rad__withind__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">ind</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Return a DS corresponding to the distances stored in the mesh.</span>
+
+<span class="sd">      * Initialise out=DS(Nx,Ny,Nz,1,s.shape[1])</span>
+
+<span class="sd">      * Go through all the nonzero x,y,z grid points.</span>
+
+<span class="sd">      * Go through the nonzero columns and put the absolute value of the \</span>
+<span class="sd">      first term in the corresponding column in out[x,y,z]</span>
+
+<span class="sd">      * Pass until the next nonzero index is for a new column and repeat.</span>
+
+<span class="sd">    :rtype: DS(Nx,Ny,Nz,1,s.shape[1]) of real values.</span>
+
+<span class="sd">    :return: out</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">out</span><span class="o">=</span><span class="n">DS</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">Nx</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">Ny</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">Nz</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="nb">float</span><span class="p">)</span>
+    <span class="c1"># Find the nonzero indices. There&#39;s no need to retrieve distances on 0 terms.</span>
+    <span class="c1">#ind=s.nonzero()</span>
+    <span class="n">ind</span><span class="o">=</span><span class="n">ind</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">n</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">p</span><span class="o">=-</span><span class="mi">1</span>
+    <span class="n">l</span><span class="o">=-</span><span class="mi">1</span>
+    <span class="n">m</span><span class="o">=-</span><span class="mi">1</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+      <span class="c1"># No need to go through the same grid element again.</span>
+      <span class="k">if</span> <span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">==</span><span class="n">p</span> <span class="ow">and</span> <span class="n">ind</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">==</span><span class="n">l</span> <span class="ow">and</span> <span class="n">ind</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">==</span><span class="n">m</span><span class="p">:</span>
+        <span class="k">pass</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">ind2</span><span class="o">=</span><span class="n">nonzero_bycol</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">i</span><span class="p">]])</span>
+        <span class="n">p</span><span class="o">=</span><span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">l</span><span class="o">=</span><span class="n">ind</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">m</span><span class="o">=</span><span class="n">ind</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">0</span>
+        <span class="n">chk</span><span class="o">=-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">ind2</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+          <span class="k">if</span> <span class="n">chk</span><span class="o">==</span><span class="n">j</span><span class="p">:</span>
+            <span class="k">pass</span>
+          <span class="k">else</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">p</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">p</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">ind2</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">count</span><span class="p">],</span><span class="n">j</span><span class="p">])</span>
+            <span class="n">chk</span><span class="o">=</span><span class="n">j</span>
+          <span class="n">count</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="k">return</span> <span class="n">out</span>
   <span class="c1">## Finds arcsin(theta) for all terms theta \!= 0 in DSM.</span>
   <span class="c1"># @return a DSM with the same dimensions with arcsin(theta) in the</span>
   <span class="c1"># same position as the corresponding theta terms.</span>
@@ -894,6 +938,36 @@
       <span class="n">out</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">4</span><span class="p">]],</span><span class="n">s</span><span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">4</span><span class="p">]])</span>
       <span class="n">outDSM</span><span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">4</span><span class="p">]]</span><span class="o">=</span><span class="n">out</span>
     <span class="k">return</span> <span class="n">outDSM</span></div>
+<div class="viewcode-block" id="DS.dict_row_vec_multiply_withind"><a class="viewcode-back" href="../index.html#DictionarySparseMatrix.DS.dict_row_vec_multiply_withind">[docs]</a>  <span class="k">def</span> <span class="nf">dict_row_vec_multiply_withind</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">vec</span><span class="p">,</span><span class="n">ind</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Multiply every row of the DSM s elementwise with the</span>
+<span class="sd">    vector vec.</span>
+
+<span class="sd">    :param vec: a row vector with length na.</span>
+
+<span class="sd">    For integers :math:`x,y,z,k` and :math:`j` such that,</span>
+<span class="sd">    :math:`x \in [0,Nx), y \in [0,Ny), z \in [0,Nz), k \in [0,na),j \in [0,nb)`,</span>
+
+<span class="sd">    .. code::</span>
+
+<span class="sd">       out[x,y,z,k,j]=vec[j]*DSM[x,y,z,k,j]</span>
+
+<span class="sd">    Multiplication is done using \</span>
+<span class="sd">    :py:class:`DS`. :py:func:`dict_vec_multiply(vec)`</span>
+
+<span class="sd">    :rtype: A DSM &#39;out&#39; with the same dimensions as s.</span>
+
+<span class="sd">    :returns: out</span>
+
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="n">na</span><span class="p">,</span><span class="n">nb</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">outDSM</span><span class="o">=</span><span class="n">DS</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">Nx</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">Ny</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">Nz</span><span class="p">,</span><span class="n">na</span><span class="p">,</span><span class="n">nb</span><span class="p">)</span>
+    <span class="c1">#ind=s.nonzero()</span>
+    <span class="n">Ni</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">ind</span><span class="p">)[</span><span class="mi">4</span><span class="p">])</span> <span class="c1">#FIXME find the nonzero columns without repeat column index for each term</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">Ni</span><span class="p">):</span>
+      <span class="c1">#out=np.multiply(vec,s[ind[l][3]],s[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]])</span>
+      <span class="n">out</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">4</span><span class="p">]],</span><span class="n">s</span><span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">4</span><span class="p">]])</span>
+      <span class="n">outDSM</span><span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="mi">4</span><span class="p">]]</span><span class="o">=</span><span class="n">out</span>
+    <span class="k">return</span> <span class="n">outDSM</span></div>
   <span class="c1">## Divide every column of the DSM s elementwise with the vector vec.</span>
   <span class="c1"># @param vec a row vector with length na.</span>
   <span class="c1"># @return a DSM &#39;out&#39; with the same dimensions as s.</span>
@@ -1008,7 +1082,7 @@
         <span class="n">thetat</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">d</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">][</span><span class="n">ai</span><span class="p">,</span><span class="n">bi</span><span class="p">])</span><span class="o">/</span><span class="n">refindex</span><span class="p">[</span><span class="n">ai</span><span class="p">])</span>
         <span class="n">ctht</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="n">ai</span><span class="p">,</span><span class="n">bi</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">thetat</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ctht</span></div>
-<div class="viewcode-block" id="DS.dict_col_mult"><a class="viewcode-back" href="../index.html#DictionarySparseMatrix.DS.dict_col_mult">[docs]</a>  <span class="k">def</span> <span class="nf">dict_col_mult</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+<div class="viewcode-block" id="DS.dict_col_mult_withind"><a class="viewcode-back" href="../index.html#DictionarySparseMatrix.DS.dict_col_mult_withind">[docs]</a>  <span class="k">def</span> <span class="nf">dict_col_mult_withind</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">ind</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Multiply all nonzero terms in a column.</span>
 
 <span class="sd">    In every grid point x,y,z of s there is a sparse matrix SM. \</span>
@@ -1054,7 +1128,7 @@
 
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">out</span><span class="o">=</span><span class="n">DS</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">Nx</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">Ny</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">Nz</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-    <span class="n">ind</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()</span>
+    <span class="c1">#ind=s.nonzero()</span>
     <span class="n">ind</span><span class="o">=</span><span class="n">ind</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
     <span class="n">n</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="n">p</span><span class="o">=-</span><span class="mi">1</span>
@@ -1201,6 +1275,49 @@
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">out</span><span class="o">=</span><span class="n">DS</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">Nx</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">Ny</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">Nz</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">ind</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()</span>
+    <span class="n">ind</span><span class="o">=</span><span class="n">ind</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">n</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+      <span class="n">out</span><span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">i</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="n">i</span><span class="p">],</span><span class="mi">0</span><span class="p">]</span><span class="o">+=</span><span class="n">s</span><span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">i</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="n">i</span><span class="p">],</span><span class="n">ind</span><span class="p">[</span><span class="mi">4</span><span class="p">][</span><span class="n">i</span><span class="p">]]</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+<div class="viewcode-block" id="DS.row_sum_withind"><a class="viewcode-back" href="../index.html#DictionarySparseMatrix.DS.row_sum_withind">[docs]</a>  <span class="k">def</span> <span class="nf">row_sum_withind</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">ind</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Sum all nonzero terms in a row.</span>
+
+<span class="sd">    In every grid point x,y,z of s there is a sparse matrix SM.</span>
+<span class="sd">    Construct a new DS of size Nx x Ny x Nz x na=s.shape[0] x 1.</span>
+<span class="sd">    Call this out.</span>
+<span class="sd">    out[x,y,z] should be the corresponding na x1 SM to the SM in s at x,y,z.</span>
+
+<span class="sd">    Method:</span>
+<span class="sd">      * Find the :py:class:`DS`. :py:func:`nonzero()` indices of s`</span>
+<span class="sd">      * Go through each of these indice. Check if the \</span>
+<span class="sd">      row index is new. If so assign the row in out to the matching \</span>
+<span class="sd">      value in the SM. If the row number is not new then sum the \</span>
+<span class="sd">      value in the column in out by the corresponding value in the SM.</span>
+
+<span class="sd">    .. code::</span>
+
+<span class="sd">       out=[</span>
+<span class="sd">       [sum(nonzero terms in row 0 in s[0,0,0]),</span>
+<span class="sd">       sum(nonzero terms in row 1 in s[0,0,0]),</span>
+<span class="sd">       ...,</span>
+<span class="sd">       sum(nonzero terms in row na in s[0,0,0]</span>
+<span class="sd">       ],</span>
+<span class="sd">       ...,</span>
+<span class="sd">       [sum(nonzero terms in row 0 in s[Nx-1,Ny-1,Nz-1]),</span>
+<span class="sd">       sum(nonzero terms in row 1 in s[Nx-1,Ny-1,Nz-1]),</span>
+<span class="sd">       ...,</span>
+<span class="sd">       sum(nonzero terms in row na in s[Nx-1,Ny-1,Nz-1]</span>
+<span class="sd">       ]</span>
+<span class="sd">       ]</span>
+
+<span class="sd">    :rtype: DS of size Nx x Ny x Nz x na x  1</span>
+
+<span class="sd">    :return: out</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">out</span><span class="o">=</span><span class="n">DS</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">Nx</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">Ny</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">Nz</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1">#ind=s.nonzero()</span>
     <span class="n">ind</span><span class="o">=</span><span class="n">ind</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
     <span class="n">n</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
@@ -1418,8 +1535,6 @@
   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;----------------------------------------------------------&#39;</span><span class="p">)</span>
   <span class="c1"># Retrieve the parameters</span>
   <span class="n">khat</span><span class="p">,</span><span class="n">lam</span><span class="p">,</span><span class="n">L</span> <span class="o">=</span> <span class="n">Antpar</span>
-
-  <span class="nb">print</span><span class="p">(</span><span class="n">Mesh</span><span class="p">)</span>
   <span class="c1"># Compute the reflection coefficients</span>
   <span class="n">Rper</span><span class="p">,</span> <span class="n">Rpar</span><span class="p">,</span> <span class="n">ind</span><span class="o">=</span><span class="n">ref_coef</span><span class="p">(</span><span class="n">Mesh</span><span class="p">,</span><span class="n">Znobrat</span><span class="p">,</span><span class="n">refindex</span><span class="p">)</span>
 
@@ -1428,30 +1543,29 @@
   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;----------------------------------------------------------&#39;</span><span class="p">)</span>
   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Multiplying reflection coefficients &#39;</span><span class="p">)</span>
   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;----------------------------------------------------------&#39;</span><span class="p">)</span>
-  <span class="n">Comper</span><span class="o">=</span><span class="n">Rper</span><span class="o">.</span><span class="n">dict_col_mult</span><span class="p">()</span> <span class="c1"># with ind</span>
+  <span class="n">Comper</span><span class="o">=</span><span class="n">Rper</span><span class="o">.</span><span class="n">dict_col_mult_withind</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="c1"># with ind</span>
   <span class="c1">#print(&#39;Ref after mult equal check&#39;,Comper.__self_eq__()) #DEBUG</span>
-  <span class="n">Compar</span><span class="o">=</span><span class="n">Rpar</span><span class="o">.</span><span class="n">dict_col_mult</span><span class="p">()</span> <span class="c1"># with ind</span>
+  <span class="n">Compar</span><span class="o">=</span><span class="n">Rpar</span><span class="o">.</span><span class="n">dict_col_mult_withind</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="c1"># with ind</span>
   <span class="n">t2</span><span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;----------------------------------------------------------&#39;</span><span class="p">)</span>
   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Reflection coefficients multiplied, time taken &#39;</span><span class="p">,</span> <span class="n">t2</span><span class="o">-</span><span class="n">t1</span><span class="p">)</span>
   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;----------------------------------------------------------&#39;</span><span class="p">)</span>
   <span class="c1"># Get the distances for each ray segment from the Mesh</span>
-  <span class="n">RadMesh</span><span class="o">=</span><span class="n">Mesh</span><span class="o">.</span><span class="n">__get_rad__</span><span class="p">()</span> <span class="c1"># with ind</span>
+  <span class="n">RadMesh</span><span class="o">=</span><span class="n">Mesh</span><span class="o">.</span><span class="n">__get_rad__withind__</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
   <span class="c1">#FIXME get ind from Mesh nonzeros to the rad versions. So SMs no longer have rows.</span>
   <span class="c1"># Compute the mesh of phases</span>
   <span class="n">ind</span><span class="o">=</span><span class="n">RadMesh</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()</span>
-  <span class="n">pha</span><span class="o">=</span><span class="n">phase_calc</span><span class="p">(</span><span class="n">RadMesh</span><span class="p">,</span><span class="n">khat</span><span class="p">,</span><span class="n">L</span><span class="p">)</span> <span class="c1"># with ind</span>
+  <span class="n">pha</span><span class="o">=</span><span class="n">phase_calc</span><span class="p">(</span><span class="n">RadMesh</span><span class="p">,</span><span class="n">khat</span><span class="p">,</span><span class="n">L</span><span class="p">)</span>
   <span class="c1"># Divide by the rads</span>
   <span class="n">pharad</span><span class="o">=</span><span class="n">pha</span><span class="o">.</span><span class="n">truediv_withind</span><span class="p">(</span><span class="n">RadMesh</span><span class="p">,</span><span class="n">ind</span><span class="p">)</span>
   <span class="c1"># Multiply by the gains.</span>
-  <span class="n">Gtpha</span><span class="o">=</span><span class="n">pharad</span><span class="o">.</span><span class="n">dict_row_vec_multiply</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Gt</span><span class="p">))</span> <span class="c1">#with ind</span>
+  <span class="n">Gtpha</span><span class="o">=</span><span class="n">pharad</span><span class="o">.</span><span class="n">dict_row_vec_multiply_withind</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Gt</span><span class="p">),</span><span class="n">ind</span><span class="p">)</span>
   <span class="c1"># Combine Gains, phase and reflection</span>
-  <span class="n">GtphaRpe</span><span class="o">=</span><span class="n">Gtpha</span><span class="o">.</span><span class="n">mul_withind</span><span class="p">(</span><span class="n">Comper</span><span class="p">,</span><span class="n">ind</span><span class="p">)</span> <span class="c1"># with ind</span>
-  <span class="n">GtphaRpa</span><span class="o">=</span><span class="n">Gtpha</span><span class="o">.</span><span class="n">mul_withind</span><span class="p">(</span><span class="n">Compar</span><span class="p">,</span><span class="n">ind</span><span class="p">)</span> <span class="c1"># with ind</span>
-  <span class="c1"># At this stage the terms are still different.</span>
+  <span class="n">GtphaRpe</span><span class="o">=</span><span class="n">Gtpha</span><span class="o">.</span><span class="n">mul_withind</span><span class="p">(</span><span class="n">Comper</span><span class="p">,</span><span class="n">ind</span><span class="p">)</span>
+  <span class="n">GtphaRpa</span><span class="o">=</span><span class="n">Gtpha</span><span class="o">.</span><span class="n">mul_withind</span><span class="p">(</span><span class="n">Compar</span><span class="p">,</span><span class="n">ind</span><span class="p">)</span>
   <span class="c1"># Sum cols</span>
-  <span class="n">Grid0pe</span><span class="o">=</span><span class="n">GtphaRpe</span><span class="o">.</span><span class="n">row_sum</span><span class="p">()</span> <span class="c1"># with ind</span>
-  <span class="n">Grid0pa</span><span class="o">=</span><span class="n">GtphaRpa</span><span class="o">.</span><span class="n">row_sum</span><span class="p">()</span> <span class="c1"># with ind</span>
+  <span class="n">Grid0pe</span><span class="o">=</span><span class="n">GtphaRpe</span><span class="o">.</span><span class="n">row_sum_withind</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+  <span class="n">Grid0pa</span><span class="o">=</span><span class="n">GtphaRpa</span><span class="o">.</span><span class="n">row_sum_withind</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
   <span class="c1"># Turn into numpy array</span>
   <span class="n">Gridpe</span><span class="o">=</span><span class="n">Grid0pe</span><span class="o">.</span><span class="n">togrid</span><span class="p">()</span> <span class="c1"># with ind</span>
   <span class="n">Gridpa</span><span class="o">=</span><span class="n">Grid0pa</span><span class="o">.</span><span class="n">togrid</span><span class="p">()</span> <span class="c1"># with ind</span>
@@ -1464,6 +1578,7 @@
   <span class="c1"># Power</span>
   <span class="n">P</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">Gridpe</span><span class="p">),</span><span class="mi">2</span><span class="p">)</span>
   <span class="n">P</span><span class="o">=</span><span class="mi">10</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+  <span class="c1">#P.filled(None)</span>
   <span class="k">return</span> <span class="n">P</span></div>
 
 <div class="viewcode-block" id="nonzero_bycol"><a class="viewcode-back" href="../index.html#DictionarySparseMatrix.nonzero_bycol">[docs]</a><span class="k">def</span> <span class="nf">nonzero_bycol</span><span class="p">(</span><span class="n">SM</span><span class="p">):</span>
@@ -1662,7 +1777,7 @@
   <span class="c1">#p.start()</span>
   <span class="c1">#p.join</span>
   <span class="c1">#FIXME</span>
-  <span class="nb">print</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+  <span class="c1"># print(ind)</span>
   <span class="k">return</span> <span class="mi">0</span></div>
 
 <span class="c1">#=======================================================================</span>
