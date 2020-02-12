@@ -37,19 +37,19 @@ def DeclareParameters():
   # -------------------------------------------------------------------
 
   print('Saving ray-launcher parameters')
-  Nra=300 # Number of rays
-  Nre=5  # Number of reflections
-  Ns=50   # Number of steps on longest axis.
-  l1=1.5   # Interior obstacle scale
-  l2=2   # Outer Boundary length scale
+  Nra=10 # Number of rays
+  Nre=3 # Number of reflections
+  Ns=20   # Number of steps on longest axis.
+  l1=2.0   # Interior obstacle scale
+  l2=1.0   # Outer Boundary length scale
 
-  # Obstacles are all triangles in 3D.
-  xmi=0.0
+  ## Obstacles are all triangles in 3D.
+  xmi=0.5
   xma=1.0
-  ymi=0.0
+  ymi=0.5
   yma=1.0
   zmi=0.0
-  zma=1.0
+  zma=0.5
   Oblist=BoxBuild(xmi,xma,ymi,yma,zmi,zma)
 
   #- Outer Boundary -
@@ -59,11 +59,11 @@ def DeclareParameters():
   ymi=0.0
   yma=1.0
   zmi=0.0
-  zma=0.25
+  zma=1.0
   OuterBoundary=BoxBuild(xmi,xma,ymi,yma,zmi,zma)
 
   # -Router location -co-ordinate of three real numbers
-  Tx=np.array([0.5,0.5,0.125])*l2
+  Tx=np.array([0.75,0.75,0.125])*l2
 
   # CONSTRUCT THE ARRAYS FOR STORING OBSTACLES
   Oblist=(1.0/l1)*Oblist
@@ -83,7 +83,7 @@ def DeclareParameters():
   # CALCULATE ANGLE SPACING
   deltheta      =(np.sqrt(2.0))*(np.pi/(np.sqrt(Nra)+np.sqrt(2))) # Calculate angle spacing
   xysteps       =int(2.0*np.pi/deltheta)
-  zsteps        =int(np.pi/deltheta-2)
+  zsteps        =2*int(np.pi/deltheta-1)
   Nra           =xysteps*zsteps+2
   # ^^ Due to need of integer steps the input number of rays can not
   # always be used if everything is equally spaced ^^
@@ -127,7 +127,7 @@ def DeclareParameters():
   print('------------------------------------------------')
   return 0
 
-def ObstacleCoefficients():
+def ObstacleCoefficients(index=0):
   ''' Input the paramters for obstacles and the antenna. To ensure \
   arrays are of the right length for compatibility for the \
   ray-launcher retrieve the ray-launching parameters in \
@@ -256,6 +256,7 @@ def ObstacleCoefficients():
   # CLEAR THE TERMS JUST FOR CALCULATION
   del top, bottom,Znob
 
+
   # PRINT THE PARAMETERS
   print('Permittivity of free space ', mu0)
   print('Permeability of free space ', eps0)
@@ -276,12 +277,11 @@ def ObstacleCoefficients():
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS
   # --------------------------------------------------------------------
-
-  np.save('Parameters/TxGains.npy', Gt)
-  np.save('Parameters/Freespace.npy',Freespace)
-  np.save('Parameters/frequency.npy',frequency)
-  np.save('Parameters/Znobrat.npy',Znobrat)
-  np.save('Parameters/refindex.npy',refindex)
+  np.save('Parameters/TxGains'+str(index)+'.npy', Gt)
+  np.save('Parameters/Freespace'+str(index)+'.npy',Freespace)
+  np.save('Parameters/frequency'+str(index)+'.npy',frequency)
+  np.save('Parameters/Znobrat'+str(index)+'.npy',Znobrat)
+  np.save('Parameters/refindex'+str(index)+'.npy',refindex)
   print('------------------------------------------------')
   print('Material parameters saved')
   print('------------------------------------------------')
