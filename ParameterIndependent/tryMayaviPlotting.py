@@ -16,13 +16,16 @@ def PlotRays():
 
     ##----Retrieve the Raytracing Parameters-----------------------------
     Nrao,Nre,h ,L    =np.load('Parameters/Raytracing.npy')
-    #Nra=18
+    #Nra=98
+    #Nre=5
+
     #L=1
     Nra=int(np.sqrt(Nrao/2.0)-1)*int(np.sqrt(2.0*Nrao))+1
+    #Nra=Nrao
 
     ##---Retrieve the Ray points ---------------------------------------
     data_matrix=np.load('./Mesh/RayMeshPoints'+str(int(Nrao))+'Refs'+str(int(Nre))+'m.npy')
-    data_matrix=data_matrix
+    #data_matrix=data_matrix #print(data_matrix)
 
     ##----Retrieve the environment--------------------------------------
     Oblist        =np.load('Parameters/Obstacles.npy')
