@@ -8,13 +8,12 @@
   the ray trajectories and iterate along the rays storing the \
   information in a :py:class:`DictionarySparseMatrix.DS` and outputing \
   the points and mesh.
-  the points and mesh.
   * the function :py:func:`power_grid` which loads the last saved \
   and loads the antenna and obstacle physical parameters from \
   :py:func:`ParameterInput.ObstacleCoefficients`. It uses these and \
   the functions :py:func:`RefCoefComputation` which output Rper \
   and Rpar the perpendicular and parallel to polarisation reflection \
-  coefficients, and the function :py:func:`RefCombine` to \git st
+  coefficients, and the function :py:func:`RefCombine` to \
   get the loss from reflection for each ray segment entering each grid \
   point. This is then combine with the distance of each raysegments \
   travel from the mesh and the antenna gains to get the Power in \
@@ -243,7 +242,138 @@ def MeshProgram():
   print('-------------------------------')
   return Mesh
 
-def power_grid():
+def StdProgram(index=0):
+  ''' Refect rays and input object information output the power.
+
+  Parameters for the raytracer are input in :py:mod:`ParameterInput`
+  The raytracing parameters defined in this module are saved and then loaded.
+
+  * 'Raytracing.npy' - An array of 4 floats which is saved to \
+  [Nra (number of rays), Nre (number of reflections), \
+  h (relative meshwidth), \
+  L (room length scale, the longest axis has been rescaled to 1 and this \
+  is it's original length)]
+  * 'Obstacles.npy'  - An array for 3x3x1 arrays containing co-ordinates \
+  forming triangles which form the obstacles. This is saved to Oblist \
+  (The obstacles which are within the outerboundary )
+  * 'Origin.npy'     - A 3x1 array for the co-ordinate of the source. \
+  This is saved to Tx  (The location of the source antenna and origin \
+  of every ray)
+  * 'OuterBoundary.npy' - An array for 3x3x1 arrays containing \
+  co-ordinates forming triangles which form the obstacles. This is \
+  saved to OuterBoundary   (The Obstacles forming the outer boundary of \
+  the room )
+
+  Put the two arrays of obstacles into one array
+
+  .. code::
+
+     Oblist=[Oblist,OuterBoundary]
+
+  * 'Directions.npy' - An Nrax3x1 array containing the vectors which \
+  correspond to the initial direction of each ray. This is save to Direc.
+
+  A room is initialised with *Oblist* using the py:class:`Room.room` \
+  class in :py:mod:`Room`.
+
+  The number of obstacles and the number of x, y and z steps is found
+
+  .. code::
+
+      Nob=Room.Nob
+      Nx=int(Room.maxxleng()/h)
+      Ny=int(Room.maxyleng()/h)
+      Nz=int(Room.maxzleng()/h)
+
+  Initialise a `DSM`. \
+  :py:class:`DictionarySparseMatrix.DS` with the \
+  number of spaces in the x, y and z axis Nx, Ny, Nz, the number of \
+  obstacles Nob, the number of reflections Nre and the number of rays Nra.
+
+  .. code::
+
+    Mesh=DSM.DS(Nx,Ny,Nz,int(Nob*Nre+1),int((Nre)*(Nra)+1))
+
+  Find the reflection points of the rays and store the power Use the \
+  py:func:`Room.room.ray_mesh_bounce` function.
+
+  .. code::
+
+     Rays, Mesh=Room.ray_mesh_power_bounce(Tx,int(Nre),int(Nra),Direc,Mesh)
+
+  Save the reflection points in Rays to \
+  'RayMeshPoints\ **Nra**\ Refs\ **Nre**\ n.npy' making the \
+  substitution for **Nra** and **Nre** with their parameter values.
+
+  :return: Mesh
+
+  '''
+  print('-------------------------------')
+  print('Building Mesh')
+  print('-------------------------------')
+  # Run the ParameterInput file
+  out1=PI.DeclareParameters()
+  out2=PI.ObstacleCoefficients()
+  if out1==0 & out2==0: pass
+  else:
+      raise('Error occured in parameter declaration')
+
+  ##---- Define the room co-ordinates----------------------------------
+  # Obstacles are triangles stored as three 3D co-ordinates
+
+  ##----Retrieve the Raytracing Parameters-----------------------------
+  Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
+  Nra=int(Nra)
+  Nre=int(Nre)
+
+  ##----Retrieve the environment--------------------------------------
+  Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
+  Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
+  OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
+  Direc         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
+  Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+
+  # Room contains all the obstacles and walls.
+  Room=rom.room(Oblist)
+  Nob=Room.Nob
+  np.save('Parameters/Nob.npy',Nob)
+
+  ##----Retrieve the antenna parameters--------------------------------------
+  Gt            = np.load('Parameters/TxGains'+str(index)+'.npy')
+  freq          = np.load('Parameters/frequency'+str(index)+'.npy')
+  Freespace     = np.load('Parameters/Freespace'+str(index)+'.npy')
+  Pol           = np.load('Parameters/Pol'+str(index)+'.npy')
+  c             =Freespace[3]
+  khat          =freq*L/c
+  lam           =(2*np.pi*c)/freq
+  Antpar        =np.array([khat,lam,L])
+
+  ##----Retrieve the Obstacle Parameters--------------------------------------
+  Znobrat      =np.load('Parameters/Znobrat.npy')
+  refindex     =np.load('Parameters/refindex.npy')
+
+  Nx=int(Room.maxxleng()/h+1)
+  Ny=int(Room.maxyleng()/h+1)
+  Nz=int(Room.maxzleng()/h+1)
+  Mesh=np.zeros((Nx,Ny,Nz,2),dtype=np.complex128)
+  print('-------------------------------')
+  print('Mesh for Std program built')
+  print('-------------------------------')
+  print('Starting the ray bouncing and field storage')
+  print('-------------------------------')
+  Rays, Grid=Room.ray_mesh_power_bounce(Tx,Nre,Nra,Direc,Mesh,Znobrat,refindex,Antpar,Gt,Pol)
+  # if not os.path.exists('./Mesh'):
+    # os.makedirs('./Mesh')
+  # np.save('./Mesh/RayPowerMeshPoints'+str(Nra)+'Refs'+str(Nre)+'m.npy',Rays)
+  # meshname=str('./Mesh/DSM'+str(Nra)+'Refs'+str(Nre)+'m.npy')
+  # Mesh.save_dict(meshname)
+  # print('-------------------------------')
+  # print('Ray-launching complete')
+  # print('Time taken',Room.time)
+  # print('-------------------------------')
+  return Mesh
+
+def power_grid(Roomnum=0):
   ''' Calculate the field on a grid using enviroment parameters and the \
   ray Mesh.
 
@@ -277,7 +407,7 @@ def power_grid():
   Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
   Nra=int(Nra)
   Nre=int(Nre)
-  Roomnum        =int(input('How many combinations of room values do you want to test?'))
+  #Roomnum        =int(input('How many combinations of room values do you want to test?'))
   Nob            =np.load('Parameters/Nob.npy')
 
   ##----Retrieve the Mesh--------------------------------------
@@ -296,16 +426,26 @@ def power_grid():
     Gt            = np.load('Parameters/TxGains'+str(index)+'.npy')
     freq          = np.load('Parameters/frequency'+str(index)+'.npy')
     Freespace     = np.load('Parameters/Freespace'+str(index)+'.npy')
+    Pol           = np.load('Parameters/Pol'+str(index)+'.npy')
+
+    ##----Retrieve the Obstacle Parameters--------------------------------------
+    Znobrat      =np.load('Parameters/Znobrat.npy')
+    refindex     =np.load('Parameters/refindex.npy')
+    # Make the refindex, impedance and gains vectors the right length to
+    # match the matrices.
+    Znobrat=np.tile(Znobrat,Nre)                    # The number of rows is Nob*Nre+1. Repeat Nob
+    Znobrat=np.insert(Znobrat,0,complex(0.0,0.0))     # Use a zero for placement in the LOS row
+    refindex=np.tile(refindex,Nre)
+    refindex=np.insert(refindex,0,1+0j)
+    Gt=np.tile(Gt,(Nre+1,1))
+
+    # Calculate the necessry parameters for the power calculation.
     c             =Freespace[3]
     khat          =freq*L/c
     lam           =(2*np.pi*c)/freq
     Antpar        =np.array([khat,lam,L])
 
-    ##----Retrieve the Obstacle Parameters--------------------------------------
-    Znobrat      =np.load('Parameters/Znobrat.npy')
-    refindex     =np.load('Parameters/refindex.npy')
-
-    Grid=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt)
+    Grid=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol)
     if not os.path.exists('./Mesh'):
       os.makedirs('./Mesh')
     np.save('./Mesh/Power_grid'+str(Nra)+'Refs'+str(Nre)+'m'+str(index)+'.npy',Grid) #.compressed())
@@ -318,17 +458,18 @@ def RefCoefComputation(Mesh):
   :param Mesh: The DS mesh which contains the angles and distances rays \
   have travelled.
 
-  Load the physical parameters using \
+  Load the physical parameters using
   :py:func:`ParameterInput.ObstacleCoefficients`
+
   * Znobrat - is the vector of characteristic impedances for obstacles \
   divided by the characteristic impedance of air.
   * refindex - if the vector of refractive indexes for the obstacles.
 
-  Compute the Reflection coefficients (RefCoefper,Refcoefpar) using:
+  Compute the Reflection coefficients (RefCoefper,Refcoefpar) using: \
   :py:func:`DictionarySparseMatrix.ref_coef`
 
-  :rtype: (:py:class:`DictionarySparseMatrix.DS'(Nx,Ny,Nz,na,nb)\
-  ,:py:class:`DictionarySparseMatrix.DS'(Nx,Ny,Nz,na,nb))
+  :rtype: (:py:class:`DictionarySparseMatrix.DS` (Nx,Ny,Nz,na,nb)\
+    , :py:class:`DictionarySparseMatrix.DS` (Nx,Ny,Nz,na,nb))
 
   :returns: (RefCoefper,Refcoefpar)
 
@@ -397,8 +538,8 @@ def RefCombine(Rper,Rpar):
   :param Rpar: The mesh corresponding to reflection coefficients \
   parallel to the polarisation.
 
-  :rtype: (:py:class:`DictionarySparseMatrix.DS'(Nx,Ny,Nz,1,nb), \
-  :py:class:`DictionarySparseMatrix.DS'(Nx,Ny,Nz,na,nb))
+  :rtype: (:py:class:`DictionarySparseMatrix.DS` (Nx,Ny,Nz,1,nb), \
+  :py:class:`DictionarySparseMatrix.DS` (Nx,Ny,Nz,na,nb))
 
   :return: Combper, Combpar
 
@@ -437,14 +578,27 @@ if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   #out=RayTracer() # To compute just the rays with no storage uncomment this line.
-  start=t.time()
-  Mesh=MeshProgram() # Shoot the rays and store the information
-  Grid=power_grid()  # Use the ray information to compute the power
-  # plot_grid()        # Plot the power in slices.
-  end=t.time()
+  Roomnum=0
+  testnum=10
+  Timemat=np.zeros((testnum,2))
+  for Roomnum in range(0,testnum):
+    start=t.time()
+    Mesh=MeshProgram() # Shoot the rays and store the information
+    Grid=power_grid(Roomnum)  # Use the ray information to compute the power
+    # plot_grid()        # Plot the power in slices.
+    end=t.time()
+    Timemat[Roomnum,0]=end-start
+    start=t.time()
+    for i in range(0,Roomnum+1):
+      Mesh=StdProgram(i) # Shoot the rays and store the information
+    Grid=power_grid(Roomnum)  # Use the ray information to compute the power
+    # plot_grid()        # Plot the power in slices.
+    end=t.time()
+    Timemat[Roomnum,1]=end-start
+    Roomnum+=1
   print('-------------------------------')
   print('Time to complete program')
-  print(end-start)
+  print(Timemat)
   print('-------------------------------')
   exit()
 
