@@ -100,7 +100,9 @@ class room:
   # @return s.points[i]
   def get_meshwidth(s,Mesh):
     if abs(s.meshwidth)<epsilon:
-      return s.maxlength[1]/Mesh.Nx
+      if type(Mesh) is np.ndarray:
+        return s.maxlength[1]/Mesh.shape[0]
+      else: return s.maxlength[1]/Mesh.Nx
     else:
       return s.meshwidth
   ## Add a new obst to the room.
@@ -190,8 +192,8 @@ class room:
     ''' Find the indexing position in a mesh with width h for point p \
     lying in the room s.
 
-    :param p: =[x,y,z] the co-ordinate of the point p or an array of
-    :math:`points p=[[x0,y0,z0],...,[xn,yn,zn]]`
+    :param p: =[x,y,z] the co-ordinate of the point p or an array \
+    of :math:`points p=[[x0,y0,z0],...,[xn,yn,zn]]`
     :param h: is the meshwidth, once assigned this matches s.meshwidth
 
     If p is one point,
@@ -349,6 +351,72 @@ class room:
       raylist[it]=raystart.points[0:-2]
     s.time=t.time()-start_time
     return raylist, Mesh
+ ## ray_bounceTraces ray's uniformly emitted from an origin around a room.
+ # @param Nra Number of rays
+ # @param Nre number of reflections Nre
+ # @param directions A Nra*3 array of the initial directions for each ray.
+ # .
+ # \par The multiref function is used to find the Nre reflections for
+ # the Nra rays with the obstacles s.obst.
+ # @return An array of the ray points.
+ # \f$
+ # raylist=[[p00,p01,...,p0Nre],[p10,...,p1Nre],...,[pNra0,...,pNraNre]]
+ #  \f$
+  def ray_mesh_power_bounce(s,Tx,Nre,Nra,directions,Grid,Znobrat,refindex,Antpar,Gt,Pol):
+    ''' Traces ray's uniformly emitted from an origin around a room.
+
+    :param Tx: the co-ordinate of the transmitter location
+    :param Nra: Number of rays
+    :param Nre: number of reflections
+    :param directions: Nra*3 array of the initial direction for \
+    each ray.
+    :param Grid: a Nx*Ny*Nz array which will contain power values
+    :param Znobrat: The array with the ratio of the impedance of an \
+    obstacle over the impedance of air.
+    :param refindex: Array with the refractive indices of an obstacle.
+    :param Antpar: array with antenna parameters - scaled wavenumber, wavelength, lengthscale.
+    :param Gt: transmitter gains.
+
+
+    The rays are reflected Nre times with the obstacles s.obst. \
+    The points of intersection with the obstacles are stored in z
+    raylist. This is done using the mesh_multiref function.
+    As each intersection is found the mesh_multiref function \
+    forms the line segment between intersection points and the \
+    corresponding ray cone. All mesh elements in the ray cone store \
+    the power. This is stored in Grid.
+    See :py:func:`Rays.mesh_multiref` for more details on the \
+    reflections and storage.
+
+    When complete the time in s.time() is assigned to the time taken \
+    to complete the function.
+
+    :return: raylist, Grid
+
+    '''
+    start_time    =t.time()         # Start the time counter
+    r             =s.maxleng()
+    raylist       =np.empty([Nra+1, Nre+1,4])
+    directions    =r*directions
+    lam           =Antpar[1]
+    # Iterate through the rays find the ray reflections
+    # FIXME rays are independent of each other so this is parallelisable
+    #FIXME Find out whether the ray points are correct.
+    for it in range(0,Nra):
+      Dir       =directions[it]
+      start     =np.append(Tx,[0])
+      raystart  =ry.Ray(start, Dir)
+      phi0=np.sqrt(Gt[it])*lam/(4*ma.pi)
+      Grid=raystart.mesh_power_multiref(s,Nre,Grid,Nra,it,Znobrat,refindex,Antpar,Pol,phi0)
+      raylist[it]=raystart.points[0:-2]
+    Nx=Grid.shape[0]
+    Ny=Grid.shape[1]
+    Nz=Grid.shape[2]
+    P=np.zeros((Nx,Ny,Nz),dtype=float)
+    P=np.power(np.absolute(Grid[:,:,:,0])+np.absolute(Grid[:,:,:,1]),2)
+    P=10*np.log10(P)
+    s.time=t.time()-start_time
+    return raylist, P
  ## ray_bounceTraces ray's uniformly emitted from an origin around a room.
  # @param Nra Number of rays
  # @param Nre number of reflections Nre
