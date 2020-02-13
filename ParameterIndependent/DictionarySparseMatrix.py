@@ -39,7 +39,9 @@ class DS:
   :math:`na=(Nob*Nre+1)`
   :math:`nb=((Nre)*(Nra)+1)`
   The DS is initialised with keys Nx, Ny, and Nz to a dictionary with \
-  keys, :math:`(x,y,z) \forall x \in [0,Nx), y \in [0,Ny), z \in [0,Nz)'.
+  keys,
+  :math:`\{ (x,y,z) \\forall x \in [0,Nx), y \in [0,Ny), z \in [0,Nz)\}.`
+
   With the value at each key being an na*nb SM.
   '''
   def __init__(s,Nx=1,Ny=1,Nz=1,na=1,nb=1,dt=np.complex128):
@@ -1009,6 +1011,7 @@ class DS:
     :param refindex: The refractive index's of the obstacles in a vector.
 
     .. code::
+
        SIN=sin(s)
        thetat=asin(SIN/refindex)
        ctht=cos(thetat)
@@ -1415,6 +1418,87 @@ class DS:
       j+=1
     return start, newps, newp3, newn
 
+def stopcheck(i,j,k,p1,h,Nx,Ny,Nz):
+    """ Check if the index [i,j,k] is valid.
+
+    :param i: is the index for the x axis.
+
+    :param j: is the index for the y axis.
+
+    :param k: is the index for the z axis.
+
+    :param p1: is the point at the end of the ray.
+
+    :param h: is the mesh width
+
+    :return: 1 if valid, 0 if not.
+
+    .. todo:: add the inside check to this function
+
+    .. todo:: add the check for the end of the ray.
+
+    """
+    #FIXME add the inside check to this function
+    #FIXME add the check for the end of the ray.
+    #if i>=p1[0] and j>=p1[1] and k>=p1[2]:
+    #  return 0
+    if i>Nx-1 or j>Ny-1 or k>Nz-1 or i<0 or j<0 or k<0:
+      return 0
+    else: return 1
+  ## Check if the list of points is valid.
+  # @param ps the indices for the points in the list
+  # @param p1 the end of the ray
+  # @param h the meshwidth
+  # @param p3 the points on the cone vectors
+  # @param the normal vectors forming the cone.
+  # @return start=0 if no points were valid if at least 1 point was
+  # valid, ps=[[i1,j1,k1],...,[in,jn,kn]] the indices of the
+  # valid points, p3=[[x1,y1,z1],...,[xn,yn,zn]] co-ordinates of
+  # the valid points., N=[n0,...,Nn] the normal vectors corresponding to
+  # the valid points.
+def stopchecklist(ps,p1,h,p3,n,Nx,Ny,Nz):
+    """ Check if the list of points is valid.
+
+    :param ps: the indices for the points in the list
+
+    :param p1: the end of the ray
+
+    :param h: the meshwidth
+
+    :param p3: the points on the cone vectors
+
+    :param n: the normal vectors forming the cone.
+
+    start=0 if no points were valid if at least 1 point was valid,
+    ps=[[i1,j1,k1],...,[in,jn,kn]] the indices of the valid points,
+    p3=[[x1,y1,z1],...,[xn,yn,zn]] co-ordinates of the valid points,
+    N=[n0,...,nN] the normal vectors corresponding to the valid points.
+
+    :return: start, ps, p3, N
+
+    """
+    start=0
+    newps=np.array([])
+    newp3=np.array([])
+    newn =np.array([])
+    j=0
+    for k in ps:
+      check=stopcheck(k[0],k[1],k[2],p1,h,Nx,Ny,Nz)
+      if check==1:
+        if start==0:
+          newps=np.array([[k[0]],[k[1]],[k[2]]])
+          newp3=np.array([[p3[j][0]],[p3[j][1]],[p3[j][2]]])
+          newn =np.array([[n[j][0]], [n[j][1]], [n[j][2]]])
+          start=1
+        else:
+          newps=np.hstack((newps,np.array([[k[0]],[k[1]],[k[2]]])))
+          newp3=np.hstack((newp3,np.array([[p3[j][0]],[p3[j][1]],[p3[j][2]]])))
+          newn =np.hstack((newn, np.array([[n[j][0]], [n[j][1]], [ n[j][2]]])))
+      else:
+        pass
+      j+=1
+    return start, newps, newp3, newn
+
 def phase_calc(RadMesh,khat,L):
   ''' Compute :math:`\\exp(i\frac{\hat{k}\hat{r}}{L^2})` \
   for a Mesh of :math:`r`
@@ -1443,7 +1527,7 @@ def phase_calc(RadMesh,khat,L):
   out=S1.cos()+S1.sin().dict_scal_mult(1j)
   return out
 
-def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt):
+def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol):
   ''' Compute the field from a Mesh of ray information and the physical \
   parameters.
 
@@ -1452,6 +1536,9 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt):
     of obstacles divided by the impedance of air.
   :param refindex: An Nob x Nre+1 array containing tiles of the refractive\
     index of obstacles.
+  :param Antpar: Numpy array containing the wavenumber, wavelength and lengthscale.
+  :param Gt: Array of the transmitting antenna gains.
+  :param Pol: 2x1 numpy array containing the polarisation terms.
 
   Method:
 
@@ -1523,16 +1610,16 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt):
   Grid0pe=GtphaRpe.row_sum_withind(ind)
   Grid0pa=GtphaRpa.row_sum_withind(ind)
   # Turn into numpy array
-  Gridpe=Grid0pe.togrid() # with ind
-  Gridpa=Grid0pa.togrid() # with ind
+  Gridpe=Grid0pe.togrid() #FIXME with ind
+  Gridpa=Grid0pa.togrid() #FIXME with ind
   # Multiply by the lambda\L
   Gridpe=Gridpe*(lam*L/(4*np.pi))
   Gridpa=Gridpa*(lam*L/(4*np.pi))
   # FIXME polarisation dummy
-  aper=np.array([1,1,1])
-  apar=np.array([0,0,0])
+  aper=Pol[0]
+  apar=Pol[1]
   # Power
-  P=np.power(np.absolute(Gridpe),2)
+  P=np.power(np.absolute(Gridpe*aper)+np.absolute(Gridpa*apar),2)
   P=10*np.log10(P)
   #P.filled(None)
   return P
