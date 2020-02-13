@@ -51,11 +51,7 @@
 <ul class="simple">
 <li>the function <a class="reference internal" href="#RayTracerMainProgram.RayTracer" title="RayTracerMainProgram.RayTracer"><code class="xref py py-func docutils literal"><span class="pre">RayTracer()</span></code></a> to compute the points for   the ray trajectories.</li>
 <li>the function <a class="reference internal" href="#RayTracerMainProgram.MeshProgram" title="RayTracerMainProgram.MeshProgram"><code class="xref py py-func docutils literal"><span class="pre">MeshProgram()</span></code></a> to compute the points for   the ray trajectories and iterate along the rays storing the   information in a <a class="reference internal" href="#DictionarySparseMatrix.DS" title="DictionarySparseMatrix.DS"><code class="xref py py-class docutils literal"><span class="pre">DictionarySparseMatrix.DS</span></code></a> and outputing   the points and mesh.</li>
-</ul>
-<p>the points and mesh.
-* the function <a class="reference internal" href="#RayTracerMainProgram.power_grid" title="RayTracerMainProgram.power_grid"><code class="xref py py-func docutils literal"><span class="pre">power_grid()</span></code></a> which loads the last saved   and loads the antenna and obstacle physical parameters from   <a class="reference internal" href="#ParameterInput.ObstacleCoefficients" title="ParameterInput.ObstacleCoefficients"><code class="xref py py-func docutils literal"><span class="pre">ParameterInput.ObstacleCoefficients()</span></code></a>. It uses these and   the functions <a class="reference internal" href="#RayTracerMainProgram.RefCoefComputation" title="RayTracerMainProgram.RefCoefComputation"><code class="xref py py-func docutils literal"><span class="pre">RefCoefComputation()</span></code></a> which output Rper   and Rpar the perpendicular and parallel to polarisation reflection   coefficients, and the function <a class="reference internal" href="#RayTracerMainProgram.RefCombine" title="RayTracerMainProgram.RefCombine"><code class="xref py py-func docutils literal"><span class="pre">RefCombine()</span></code></a> to git st
-get the loss from reflection for each ray segment entering each grid   point. This is then combine with the distance of each raysegments   travel from the mesh and the antenna gains to get the Power in   decibels.</p>
-<ul class="simple">
+<li>the function <a class="reference internal" href="#RayTracerMainProgram.power_grid" title="RayTracerMainProgram.power_grid"><code class="xref py py-func docutils literal"><span class="pre">power_grid()</span></code></a> which loads the last saved   and loads the antenna and obstacle physical parameters from   <a class="reference internal" href="#ParameterInput.ObstacleCoefficients" title="ParameterInput.ObstacleCoefficients"><code class="xref py py-func docutils literal"><span class="pre">ParameterInput.ObstacleCoefficients()</span></code></a>. It uses these and   the functions <a class="reference internal" href="#RayTracerMainProgram.RefCoefComputation" title="RayTracerMainProgram.RefCoefComputation"><code class="xref py py-func docutils literal"><span class="pre">RefCoefComputation()</span></code></a> which output Rper   and Rpar the perpendicular and parallel to polarisation reflection   coefficients, and the function <a class="reference internal" href="#RayTracerMainProgram.RefCombine" title="RayTracerMainProgram.RefCombine"><code class="xref py py-func docutils literal"><span class="pre">RefCombine()</span></code></a> to   get the loss from reflection for each ray segment entering each grid   point. This is then combine with the distance of each raysegments   travel from the mesh and the antenna gains to get the Power in   decibels.</li>
 <li>The ray points from <a class="reference internal" href="#RayTracerMainProgram.RayTracer" title="RayTracerMainProgram.RayTracer"><code class="xref py py-func docutils literal"><span class="pre">RayTracer()</span></code></a> are saved as:
 &#8216;RayPoints<strong>Nra</strong>Refs<strong>Nre</strong>n.npy&#8217; with <strong>Nra</strong> replaced by the     number of rays and <strong>Nre</strong> replaced by the number of reflections.</li>
 <li>The ray points from <a class="reference internal" href="#RayTracerMainProgram.MeshProgram" title="RayTracerMainProgram.MeshProgram"><code class="xref py py-func docutils literal"><span class="pre">MeshProgram()</span></code></a> are saved as:
@@ -153,16 +149,18 @@ The raytracing parameters defined in this module are saved and then loaded.</p>
 </tr>
 </tbody>
 </table>
-<p>Load the physical parameters using   <a class="reference internal" href="#ParameterInput.ObstacleCoefficients" title="ParameterInput.ObstacleCoefficients"><code class="xref py py-func docutils literal"><span class="pre">ParameterInput.ObstacleCoefficients()</span></code></a>
-* Znobrat - is the vector of characteristic impedances for obstacles   divided by the characteristic impedance of air.
-* refindex - if the vector of refractive indexes for the obstacles.</p>
-<p>Compute the Reflection coefficients (RefCoefper,Refcoefpar) using:
-<a class="reference internal" href="#DictionarySparseMatrix.ref_coef" title="DictionarySparseMatrix.ref_coef"><code class="xref py py-func docutils literal"><span class="pre">DictionarySparseMatrix.ref_coef()</span></code></a></p>
+<p>Load the physical parameters using
+<a class="reference internal" href="#ParameterInput.ObstacleCoefficients" title="ParameterInput.ObstacleCoefficients"><code class="xref py py-func docutils literal"><span class="pre">ParameterInput.ObstacleCoefficients()</span></code></a></p>
+<ul class="simple">
+<li>Znobrat - is the vector of characteristic impedances for obstacles   divided by the characteristic impedance of air.</li>
+<li>refindex - if the vector of refractive indexes for the obstacles.</li>
+</ul>
+<p>Compute the Reflection coefficients (RefCoefper,Refcoefpar) using:   <a class="reference internal" href="#DictionarySparseMatrix.ref_coef" title="DictionarySparseMatrix.ref_coef"><code class="xref py py-func docutils literal"><span class="pre">DictionarySparseMatrix.ref_coef()</span></code></a></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">(:py:class:<a href="#id1"><span class="problematic" id="id2">`</span></a>DictionarySparseMatrix.DS&#8217;(Nx,Ny,Nz,na,nb)  ,:py:class:<a href="#id3"><span class="problematic" id="id4">`</span></a>DictionarySparseMatrix.DS&#8217;(Nx,Ny,Nz,na,nb))</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">(<a class="reference internal" href="#DictionarySparseMatrix.DS" title="DictionarySparseMatrix.DS"><code class="xref py py-class docutils literal"><span class="pre">DictionarySparseMatrix.DS</span></code></a> (Nx,Ny,Nz,na,nb)    , <a class="reference internal" href="#DictionarySparseMatrix.DS" title="DictionarySparseMatrix.DS"><code class="xref py py-class docutils literal"><span class="pre">DictionarySparseMatrix.DS</span></code></a> (Nx,Ny,Nz,na,nb))</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(RefCoefper,Refcoefpar)</td>
 </tr>
@@ -216,7 +214,7 @@ The raytracing parameters defined in this module are saved and then loaded.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">(:py:class:<a href="#id5"><span class="problematic" id="id6">`</span></a>DictionarySparseMatrix.DS&#8217;(Nx,Ny,Nz,1,nb),   :py:class:<a href="#id7"><span class="problematic" id="id8">`</span></a>DictionarySparseMatrix.DS&#8217;(Nx,Ny,Nz,na,nb))</p>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">(<a class="reference internal" href="#DictionarySparseMatrix.DS" title="DictionarySparseMatrix.DS"><code class="xref py py-class docutils literal"><span class="pre">DictionarySparseMatrix.DS</span></code></a> (Nx,Ny,Nz,1,nb),   <a class="reference internal" href="#DictionarySparseMatrix.DS" title="DictionarySparseMatrix.DS"><code class="xref py py-class docutils literal"><span class="pre">DictionarySparseMatrix.DS</span></code></a> (Nx,Ny,Nz,na,nb))</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Combper, Combpar</p>
@@ -227,15 +225,61 @@ The raytracing parameters defined in this module are saved and then loaded.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="RayTracerMainProgram.StdProgram">
+<code class="descclassname">RayTracerMainProgram.</code><code class="descname">StdProgram</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/RayTracerMainProgram.html#StdProgram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RayTracerMainProgram.StdProgram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refect rays and input object information output the power.</p>
+<p>Parameters for the raytracer are input in <a class="reference internal" href="#module-ParameterInput" title="ParameterInput"><code class="xref py py-mod docutils literal"><span class="pre">ParameterInput</span></code></a>
+The raytracing parameters defined in this module are saved and then loaded.</p>
+<ul class="simple">
+<li>&#8216;Raytracing.npy&#8217; - An array of 4 floats which is saved to   [Nra (number of rays), Nre (number of reflections),   h (relative meshwidth),   L (room length scale, the longest axis has been rescaled to 1 and this   is it&#8217;s original length)]</li>
+<li>&#8216;Obstacles.npy&#8217;  - An array for 3x3x1 arrays containing co-ordinates   forming triangles which form the obstacles. This is saved to Oblist   (The obstacles which are within the outerboundary )</li>
+<li>&#8216;Origin.npy&#8217;     - A 3x1 array for the co-ordinate of the source.   This is saved to Tx  (The location of the source antenna and origin   of every ray)</li>
+<li>&#8216;OuterBoundary.npy&#8217; - An array for 3x3x1 arrays containing   co-ordinates forming triangles which form the obstacles. This is   saved to OuterBoundary   (The Obstacles forming the outer boundary of   the room )</li>
+</ul>
+<p>Put the two arrays of obstacles into one array</p>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">Oblist</span><span class="o">=</span><span class="p">[</span><span class="n">Oblist</span><span class="p">,</span><span class="n">OuterBoundary</span><span class="p">]</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>&#8216;Directions.npy&#8217; - An Nrax3x1 array containing the vectors which   correspond to the initial direction of each ray. This is save to Direc.</li>
+</ul>
+<p>A room is initialised with <em>Oblist</em> using the py:class:<cite>Room.room</cite>   class in <a class="reference internal" href="#module-Room" title="Room"><code class="xref py py-mod docutils literal"><span class="pre">Room</span></code></a>.</p>
+<p>The number of obstacles and the number of x, y and z steps is found</p>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">Nob</span><span class="o">=</span><span class="n">Room</span><span class="o">.</span><span class="n">Nob</span>
+<span class="n">Nx</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Room</span><span class="o">.</span><span class="n">maxxleng</span><span class="p">()</span><span class="o">/</span><span class="n">h</span><span class="p">)</span>
+<span class="n">Ny</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Room</span><span class="o">.</span><span class="n">maxyleng</span><span class="p">()</span><span class="o">/</span><span class="n">h</span><span class="p">)</span>
+<span class="n">Nz</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Room</span><span class="o">.</span><span class="n">maxzleng</span><span class="p">()</span><span class="o">/</span><span class="n">h</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Initialise a <cite>DSM</cite>.   <a class="reference internal" href="#DictionarySparseMatrix.DS" title="DictionarySparseMatrix.DS"><code class="xref py py-class docutils literal"><span class="pre">DictionarySparseMatrix.DS</span></code></a> with the   number of spaces in the x, y and z axis Nx, Ny, Nz, the number of   obstacles Nob, the number of reflections Nre and the number of rays Nra.</p>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">Mesh</span><span class="o">=</span><span class="n">DSM</span><span class="o">.</span><span class="n">DS</span><span class="p">(</span><span class="n">Nx</span><span class="p">,</span><span class="n">Ny</span><span class="p">,</span><span class="n">Nz</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">Nob</span><span class="o">*</span><span class="n">Nre</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span><span class="nb">int</span><span class="p">((</span><span class="n">Nre</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">Nra</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Find the reflection points of the rays and store the power Use the   py:func:<cite>Room.room.ray_mesh_bounce</cite> function.</p>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">Rays</span><span class="p">,</span> <span class="n">Mesh</span><span class="o">=</span><span class="n">Room</span><span class="o">.</span><span class="n">ray_mesh_power_bounce</span><span class="p">(</span><span class="n">Tx</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">Nre</span><span class="p">),</span><span class="nb">int</span><span class="p">(</span><span class="n">Nra</span><span class="p">),</span><span class="n">Direc</span><span class="p">,</span><span class="n">Mesh</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Save the reflection points in Rays to   &#8216;RayMeshPoints<strong>Nra</strong>Refs<strong>Nre</strong>n.npy&#8217; making the   substitution for <strong>Nra</strong> and <strong>Nre</strong> with their parameter values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Mesh</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="RayTracerMainProgram.plot_grid">
-<code class="descclassname">RayTracerMainProgram.</code><code class="descname">plot_grid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/RayTracerMainProgram.html#plot_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RayTracerMainProgram.plot_grid" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">RayTracerMainProgram.</code><code class="descname">plot_grid</code><span class="sig-paren">(</span><em>index=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/RayTracerMainProgram.html#plot_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RayTracerMainProgram.plot_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots slices of a 3D power grid.</p>
 <p>Loads <cite>Power_grid.npy</cite> and for each z step plots a heatmap of the   values at the (x,y) position.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="RayTracerMainProgram.power_grid">
-<code class="descclassname">RayTracerMainProgram.</code><code class="descname">power_grid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/RayTracerMainProgram.html#power_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RayTracerMainProgram.power_grid" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">RayTracerMainProgram.</code><code class="descname">power_grid</code><span class="sig-paren">(</span><em>Roomnum=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/RayTracerMainProgram.html#power_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#RayTracerMainProgram.power_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the field on a grid using enviroment parameters and the   ray Mesh.</p>
 <p>Loads:</p>
 <ul class="simple">
@@ -266,7 +310,7 @@ to compute the power.</p>
 
 </div>
 <div class="section" id="module-ParameterInput">
-<span id="input-the-parameters"></span><h1>Input the parameters<a class="headerlink" href="#module-ParameterInput" title="Permalink to this headline">¶</a></h1>
+<span id="input-of-the-parameters"></span><h1>Input of the parameters<a class="headerlink" href="#module-ParameterInput" title="Permalink to this headline">¶</a></h1>
 <p>The code saves the values for the parameters in a ray tracer</p>
 <dl class="function">
 <dt id="ParameterInput.BoxBuild">
@@ -278,6 +322,13 @@ to compute the power.</p>
 :param yma: The maximum y co-ordinate.
 :param zmi: The minimum z co-ordinate.
 :param zma: The maximum z co-ordinate.</p>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">Box</span><span class="o">=</span><span class="p">[</span><span class="n">T0</span><span class="p">,</span><span class="n">T1</span><span class="p">,</span><span class="o">...</span><span class="n">T12</span><span class="p">]</span>
+<span class="n">TJ</span><span class="o">=</span><span class="p">[</span><span class="n">p0J</span><span class="p">,</span><span class="n">p1J</span><span class="p">,</span><span class="n">p2J</span><span class="p">]</span>
+<span class="n">p0J</span><span class="o">=</span><span class="p">[</span><span class="n">x0J</span><span class="p">,</span><span class="n">y0J</span><span class="p">,</span><span class="n">z0J</span><span class="p">]</span>
+<span class="n">p1J</span><span class="o">=</span><span class="p">[</span><span class="n">x1J</span><span class="p">,</span><span class="n">y1J</span><span class="p">,</span><span class="n">z1J</span><span class="p">]</span>
+<span class="n">p2J</span><span class="o">=</span><span class="p">[</span><span class="n">x2J</span><span class="p">,</span><span class="n">y2J</span><span class="p">,</span><span class="n">x2J</span><span class="p">]</span>
+</pre></div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -336,7 +387,7 @@ always be used if everything is equally spaced.</p>
 
 <dl class="function">
 <dt id="ParameterInput.ObstacleCoefficients">
-<code class="descclassname">ParameterInput.</code><code class="descname">ObstacleCoefficients</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ParameterInput.html#ObstacleCoefficients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ParameterInput.ObstacleCoefficients" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ParameterInput.</code><code class="descname">ObstacleCoefficients</code><span class="sig-paren">(</span><em>index=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ParameterInput.html#ObstacleCoefficients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ParameterInput.ObstacleCoefficients" title="Permalink to this definition">¶</a></dt>
 <dd><p>Input the paramters for obstacles and the antenna. To ensure   arrays are of the right length for compatibility for the   ray-launcher retrieve the ray-launching parameters in   <a class="reference internal" href="#ParameterInput.DeclareParameters" title="ParameterInput.DeclareParameters"><code class="xref py py-func docutils literal"><span class="pre">DeclareParameters()</span></code></a></p>
 <p>Load:</p>
 <ul class="simple">
@@ -424,6 +475,105 @@ information added to the Mesh.
 </dd></dl>
 
 <dl class="method">
+<dt id="Rays.Ray.mesh_power_multiref">
+<code class="descname">mesh_power_multiref</code><span class="sig-paren">(</span><em>s</em>, <em>room</em>, <em>Nre</em>, <em>Mesh</em>, <em>Nra</em>, <em>it</em>, <em>Znobrat</em>, <em>refindex</em>, <em>Antpar</em>, <em>Gt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Rays.html#Ray.mesh_power_multiref"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Rays.Ray.mesh_power_multiref" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a ray and finds the first Nre reflections within a room.
+As each reflection is found the ray is stepped through and
+information added to the Mesh.
+:param room: Obstacle co-ordinates, <a class="reference internal" href="#module-Room" title="Room"><code class="xref py py-mod docutils literal"><span class="pre">Room</span></code></a>. <code class="xref py py-class docutils literal"><span class="pre">room</span></code>.
+:param Nre: Number of reflections, integer.
+:param Grid: a Nx*Ny*Nz array which will contain power values
+:param Nra: total number of rays.
+:param it: current ray number.
+:param Znobrat: The array with the ratio of the impedance of an     obstacle over the impedance of air.
+:param refindex: Array with the refractive indices of an obstacle.
+:param Antpar: array with antenna parameters - scaled wavenumber, wavelength, lengthscale.
+:param Gt: transmitter gains.</p>
+<p>Method:</p>
+<ul class="simple">
+<li>Start with the initial power.</li>
+<li>For each ray segment use     <code class="xref py py-func docutils literal"><span class="pre">mesh_power_singleray(room,Mesh,dist,vec,Nra,Nre,nra)()</span></code> to      store the power along the ray.</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">grid</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Rays.Ray.mesh_power_singleray">
+<code class="descname">mesh_power_singleray</code><span class="sig-paren">(</span><em>s</em>, <em>room</em>, <em>_Grid</em>, <em>_dist</em>, <em>_RefCoef</em>, <em>Nra</em>, <em>Nre</em>, <em>nra</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Rays.html#Ray.mesh_power_singleray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Rays.Ray.mesh_power_singleray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate between two intersection points and store the ray     information in the Mesh</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>room</strong> &#8211; <a class="reference internal" href="#module-Room" title="Room"><code class="xref py py-mod docutils literal"><span class="pre">Room</span></code></a>. <code class="xref py py-class docutils literal"><span class="pre">room</span></code> object which     contains the co-ordinates of the obstacles.</li>
+<li><strong>Grid</strong> &#8211; <a class="reference internal" href="#module-DictionarySparseMatrix" title="DictionarySparseMatrix"><code class="xref py py-mod docutils literal"><span class="pre">DictionarySparseMatrix</span></code></a>. <code class="xref py py-class docutils literal"><span class="pre">DS</span></code>     which will store the field in the parallel and perdenicular to     polarisation components at each <span class="math">\((x,y,z)\)</span> position.</li>
+<li><strong>dist</strong> &#8211; A scalar variable which is the distance the ray     travelled at the start of the ray segment.</li>
+<li><strong>RefCoef</strong> &#8211; A vector containing the product of the reflection     coefficients in the perpendicular and parallel directions to the     polarisation.</li>
+<li><strong>Nra</strong> &#8211; Total number of rays.</li>
+<li><strong>Nre</strong> &#8211; Maximum number of reflections.</li>
+<li><strong>nra</strong> &#8211; Current ray number.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Method:</p>
+<ul>
+<li><p class="first">Calculate <span class="math">\(\theta\)</span> the reflection angle using     <code class="xref py py-func docutils literal"><span class="pre">reflect_angle(room)()</span></code>.</p>
+</li>
+<li><p class="first">Find the number of steps <span class="math">\(Ns\)</span> to the end of the ray segment     using <code class="xref py py-func docutils literal"><span class="pre">number_steps(meshwidth)()</span></code>.</p>
+</li>
+<li><p class="first">Compute an array of normal vectors representing the ray cone.</p>
+</li>
+<li><p class="first">Check the reflection number:</p>
+<ul class="simple">
+<li>If 0 then the <span class="math">\(RefCoef\)</span> term is 1.</li>
+<li>Else set <span class="math">\(RefCoef\)</span></li>
+</ul>
+</li>
+<li><p class="first">Step along the ray, For <span class="math">\(m1\in[0,Ns):\)</span></p>
+<ul>
+<li><p class="first">Check if the ray point is outside the domain.</p>
+</li>
+<li><p class="first">Calculate the co-ordinate of the centre.</p>
+</li>
+<li><p class="first">Recalculate distance to be for the centre point       <span class="math">\(Mesh[i1,j1,k1,:,col]=np.sqrt(np.dot((p0-p2),(p0-p2)))*calcvec\)</span>.</p>
+</li>
+<li><p class="first">For each normal:</p>
+<ul class="simple">
+<li>Find the next cone point <span class="math">\(p3\)</span> from the previous point         <span class="math">\(p1\)</span>, using the distance through a grid cube         <span class="math">\(\alpha\)</span>. This is given by:math:<cite>p3=p1+m2*alpha*norm</cite>.</li>
+<li>Find the co-ordinate for the centre of the grid point z         corresponding to the <span class="math">\(p3\)</span>&#8216;s.</li>
+<li>Find the distance to this centre point.</li>
+<li>Set the column <span class="math">\(nra*Nre+nre\)</span> of the mesh term at         these grid points to the distance times the vector of         reflection angles.</li>
+</ul>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">Grid</span><span class="p">[</span><span class="n">cpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">],</span><span class="n">cpos</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="p">],</span><span class="n">cpos</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">j</span><span class="p">]]</span><span class="o">+=</span><span class="n">e</span><span class="o">^</span><span class="p">{</span><span class="n">ikr</span><span class="p">}(</span><span class="mi">1</span><span class="o">/</span><span class="n">r2</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">*</span><span class="n">RefCoef</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Find the co-ordinate for the next ray point.       <span class="math">\(p1=p1+alpha*direc\)</span>.</p>
+</li>
+</ul>
+</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Mesh, dist, calcvec</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="Rays.Ray.mesh_singleray">
 <code class="descname">mesh_singleray</code><span class="sig-paren">(</span><em>s</em>, <em>room</em>, <em>_Mesh</em>, <em>_dist</em>, <em>_calcvec</em>, <em>Nra</em>, <em>Nre</em>, <em>nra</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Rays.html#Ray.mesh_singleray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Rays.Ray.mesh_singleray" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iterate between two intersection points and store the ray     information in the Mesh</p>
@@ -452,30 +602,34 @@ information added to the Mesh.
 </li>
 <li><p class="first">Compute an array of normal vectors representing the ray cone.</p>
 </li>
-<li><p class="first">Check the reflection number:
-* If 0 then the <span class="math">\(calcvec[0]\)</span> term is 1.
-* ElseIf 1 then set <span class="math">\(calcvec[0]=0\)</span> and       <span class="math">\(calcvec[nre*Nob+nob]=e^{i \theta}\)</span>.
-* Else set <span class="math">\(calcvec[nre*Nob+nob]=e^{i \theta}\)</span>.</p>
-</li>
-<li><p class="first">Step along the ray, For <span class="math">\(m1\in[0,Ns):\)</span>
-* Check if the ray point is outside the domain.
-* Calculate the co-ordinate of the centre.
-* Recalculate distance to be for the centre point       <span class="math">\(Mesh[i1,j1,k1,:,col]=np.sqrt(np.dot((p0-p2),(p0-p2)))*calcvec\)</span>.
-* For each normal:</p>
-<blockquote>
-<div><ul class="simple">
-<li>Find the next cone point <span class="math">\(p3\)</span> from the previous point         <span class="math">\(p1\)</span>, using the distance through a grid cube         <span class="math">\(\alpha\)</span>. This is given by:math:<cite>p3=p1+m2*alpha*norm</cite>.</li>
-<li>Find the co-ordinate for the centre of the grid point z</li>
+<li><p class="first">Check the reflection number:</p>
+<ul class="simple">
+<li>If 0 then the <span class="math">\(calcvec[0]\)</span> term is 1.</li>
+<li>ElseIf 1 then set <span class="math">\(calcvec[0]=0\)</span> and       <span class="math">\(calcvec[nre*Nob+nob]=e^{i \theta}\)</span>.</li>
+<li>Else set <span class="math">\(calcvec[nre*Nob+nob]=e^{i \theta}\)</span>.</li>
 </ul>
-<p>corresponding to the <span class="math">\(p3\)</span>&#8216;s.
-* Find the distance to this centre point.
-* Set the column <span class="math">\(nra*Nre+nre\)</span> of the mesh term at         these grid points to the distance times the vector of         reflection angles.</p>
+</li>
+<li><p class="first">Step along the ray, For <span class="math">\(m1\in[0,Ns):\)</span></p>
+<ul>
+<li><p class="first">Check if the ray point is outside the domain.</p>
+</li>
+<li><p class="first">Calculate the co-ordinate of the centre.</p>
+</li>
+<li><p class="first">Recalculate distance to be for the centre point       <span class="math">\(Mesh[i1,j1,k1,:,col]=np.sqrt(np.dot((p0-p2),(p0-p2)))*calcvec\)</span>.</p>
+</li>
+<li><p class="first">For each normal:</p>
+<ul class="simple">
+<li>Find the next cone point <span class="math">\(p3\)</span> from the previous point         <span class="math">\(p1\)</span>, using the distance through a grid cube         <span class="math">\(\alpha\)</span>. This is given by:math:<cite>p3=p1+m2*alpha*norm</cite>.</li>
+<li>Find the co-ordinate for the centre of the grid point z         corresponding to the <span class="math">\(p3\)</span>&#8216;s.</li>
+<li>Find the distance to this centre point.</li>
+<li>Set the column <span class="math">\(nra*Nre+nre\)</span> of the mesh term at         these grid points to the distance times the vector of         reflection angles.</li>
+</ul>
 <div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">Mesh</span><span class="p">[</span><span class="n">cpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">],</span><span class="n">cpos</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="p">],</span><span class="n">cpos</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">j</span><span class="p">],:,</span><span class="n">col</span><span class="p">]</span><span class="o">=</span><span class="n">r2</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="n">calcvec</span>
 </pre></div>
 </div>
-</div></blockquote>
-<ul class="simple">
-<li>Find the co-ordinate for the next ray point.       <span class="math">\(p1=p1+alpha*direc\)</span>.</li>
+</li>
+<li><p class="first">Find the co-ordinate for the next ray point.       <span class="math">\(p1=p1+alpha*direc\)</span>.</p>
+</li>
 </ul>
 </li>
 </ul>
@@ -522,20 +676,10 @@ information added to the Mesh.
 <dt id="Rays.Ray.normal_mat">
 <code class="descname">normal_mat</code><span class="sig-paren">(</span><em>s</em>, <em>Ncones</em>, <em>Nra</em>, <em>d</em>, <em>dist</em>, <em>h</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Rays.html#Ray.normal_mat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Rays.Ray.normal_mat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Form a matrix of vectors representing the plane which is      normal to d</p>
-<blockquote>
-<div><ul class="simple">
+<ul class="simple">
 <li>Normalise the direction of the ray <span class="math">\(d=d/||d||\)</span></li>
-<li>Calculate angle spacing between rays      :math:<a href="#id9"><span class="problematic" id="id10">`</span></a>deltheta=2arcsin(</li>
-</ul>
-</div></blockquote>
-<dl class="docutils">
-<dt>rac{1}{Ncones})`</dt>
-<dd><ul class="first last simple">
-<li>Calculate the number of normals.      :math:<a href="#id11"><span class="problematic" id="id12">`</span></a>Nnor=1+</li>
-</ul>
-</dd>
-<dt>rac{(2pi)}{deltheta}`</dt>
-<dd><ul class="first simple">
+<li>Calculate angle spacing between rays <span class="math">\(deltheta=2\arcsin(1/Ncones)\)</span></li>
+<li>Calculate the number of normals. <span class="math">\(Nnor=1+(2\pi)/deltheta\)</span></li>
 <li>Create an array of all the angles.</li>
 </ul>
 <div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">anglevec</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">ma</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="n">num</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Nnor</span><span class="p">),</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -544,9 +688,8 @@ information added to the Mesh.
 <ul class="simple">
 <li>The dot product of the direction and the normal needs to be 0.     Choose <span class="math">\((1,1,-(dx+dy)/dz)\)</span> as the first vector      (unless dz==0). Use this to compute another vector in the plane.      This forms a co-ordinate axis for the normal vectors.</li>
 </ul>
-<p>If dz==0 then instead choose the vector <span class="math">\((0,0,1)\)</span> and      repeat the process for the additional axis vector.
-.. code:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">N</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<p>If dz==0 then instead choose the vector <span class="math">\((0,0,1)\)</span> and      repeat the process for the additional axis vector.</p>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">N</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">y</span><span class="o">=</span><span class="n">N</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="n">x</span> <span class="n">d</span>
 <span class="n">y</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">/||</span><span class="n">y</span><span class="o">||</span><span class="p">)</span><span class="o">*</span><span class="n">y</span>
 </pre></div>
@@ -557,16 +700,14 @@ information added to the Mesh.
 <div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">N</span><span class="o">=</span><span class="n">cos</span><span class="p">(</span><span class="n">anglevec</span><span class="p">)</span><span class="o">*</span> <span class="n">N</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">sin</span><span class="p">(</span><span class="n">anglevec</span><span class="p">)</span><span class="o">*</span><span class="n">y</span>
 </pre></div>
 </div>
-<table class="last docutils field-list" frame="void" rules="none">
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">returns:</th><td class="field-body">N</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">N</td>
 </tr>
 </tbody>
 </table>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="method">
@@ -765,12 +906,14 @@ wall intersected with</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>p</strong> &#8211; =[x,y,z] the co-ordinate of the point p or an array of</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>p</strong> &#8211; =[x,y,z] the co-ordinate of the point p or an array     of <span class="math">\(points p=[[x0,y0,z0],...,[xn,yn,zn]]\)</span></li>
+<li><strong>h</strong> &#8211; is the meshwidth, once assigned this matches s.meshwidth</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
-<p><span class="math">\(points p=[[x0,y0,z0],...,[xn,yn,zn]]\)</span>
-:param h: is the meshwidth, once assigned this matches s.meshwidth</p>
 <p>If p is one point,</p>
 <div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">out</span><span class="o">=</span><span class="p">(</span><span class="n">p</span><span class="o">-</span><span class="p">[</span><span class="n">minx</span><span class="p">,</span><span class="n">miny</span><span class="p">,</span><span class="n">minz</span><span class="p">])</span><span class="o">//</span><span class="n">h</span><span class="p">,</span>
 </pre></div>
@@ -857,6 +1000,44 @@ See <code class="xref py py-func docutils literal"><span class="pre">Rays.mesh_m
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="Room.room.ray_mesh_power_bounce">
+<code class="descname">ray_mesh_power_bounce</code><span class="sig-paren">(</span><em>s</em>, <em>Tx</em>, <em>Nre</em>, <em>Nra</em>, <em>Direc</em>, <em>Grid</em>, <em>Znobrat</em>, <em>refindex</em>, <em>Antpar</em>, <em>Gt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Room.html#room.ray_mesh_power_bounce"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Room.room.ray_mesh_power_bounce" title="Permalink to this definition">¶</a></dt>
+<dd><p>Traces ray&#8217;s uniformly emitted from an origin around a room.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Tx</strong> &#8211; the co-ordinate of the transmitter location</li>
+<li><strong>Nra</strong> &#8211; Number of rays</li>
+<li><strong>Nre</strong> &#8211; number of reflections</li>
+<li><strong>directions</strong> &#8211; Nra*3 array of the initial direction for     each ray.</li>
+<li><strong>Grid</strong> &#8211; a Nx*Ny*Nz array which will contain power values</li>
+<li><strong>Znobrat</strong> &#8211; The array with the ratio of the impedance of an     obstacle over the impedance of air.</li>
+<li><strong>refindex</strong> &#8211; Array with the refractive indices of an obstacle.</li>
+<li><strong>Antpar</strong> &#8211; array with antenna parameters - scaled wavenumber, wavelength, lengthscale.</li>
+<li><strong>Gt</strong> &#8211; transmitter gains.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The rays are reflected Nre times with the obstacles s.obst.     The points of intersection with the obstacles are stored in z
+raylist. This is done using the mesh_multiref function.
+As each intersection is found the mesh_multiref function     forms the line segment between intersection points and the     corresponding ray cone. All mesh elements in the ray cone store     the power. This is stored in Grid.
+See <code class="xref py py-func docutils literal"><span class="pre">Rays.mesh_multiref()</span></code> for more details on the     reflections and storage.</p>
+<p>When complete the time in s.time() is assigned to the time taken     to complete the function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">raylist, Grid</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -867,17 +1048,15 @@ See <code class="xref py py-func docutils literal"><span class="pre">Rays.mesh_m
 <dl class="class">
 <dt id="DictionarySparseMatrix.DS">
 <em class="property">class </em><code class="descclassname">DictionarySparseMatrix.</code><code class="descname">DS</code><span class="sig-paren">(</span><em>s</em>, <em>Nx=1</em>, <em>Ny=1</em>, <em>Nz=1</em>, <em>na=1</em>, <em>nb=1</em>, <em>dt=&lt;class 'numpy.complex128'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/DictionarySparseMatrix.html#DS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DictionarySparseMatrix.DS" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>The DS class is a dictionary of sparse matrices.</dt>
-<dd>The keys for the dictionary are (i,j,k) such that i is in [0,Nx],
+<dd><p>The DS class is a dictionary of sparse matrices.
+The keys for the dictionary are (i,j,k) such that i is in [0,Nx],
 j is in [0, Ny], and k is in [0,Nz].
 SM=DS[x,y,z] is a na*nb sparse matrix, initialised with complex128 data type.
 <span class="math">\(na=(Nob*Nre+1)\)</span>
 <span class="math">\(nb=((Nre)*(Nra)+1)\)</span>
-The DS is initialised with keys Nx, Ny, and Nz to a dictionary with   keys, :math:<a href="#id13"><span class="problematic" id="id14">`</span></a>(x,y,z)</dd>
-<dt>orall x in [0,Nx), y in [0,Ny), z in [0,Nz)&#8217;.</dt>
-<dd>With the value at each key being an na*nb SM.</dd>
-</dl>
+The DS is initialised with keys Nx, Ny, and Nz to a dictionary with   keys,
+<span class="math">\(\{ (x,y,z) \forall x \in [0,Nx), y \in [0,Ny), z \in [0,Nz)\}.\)</span></p>
+<p>With the value at each key being an na*nb SM.</p>
 <dl class="method">
 <dt id="DictionarySparseMatrix.DS.asin">
 <code class="descname">asin</code><span class="sig-paren">(</span><em>s</em>, <em>ind=-1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/DictionarySparseMatrix.html#DS.asin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DictionarySparseMatrix.DS.asin" title="Permalink to this definition">¶</a></dt>
@@ -928,6 +1107,11 @@ The DS is initialised with keys Nx, Ny, and Nz to a dictionary with   keys, :mat
 cos of thetat at those angles using the refractive index&#8217;s.
 :param ind: The indices of the nonzero terms.
 :param refindex: The refractive index&#8217;s of the obstacles in a vector.</p>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">SIN</span><span class="o">=</span><span class="n">sin</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="n">thetat</span><span class="o">=</span><span class="n">asin</span><span class="p">(</span><span class="n">SIN</span><span class="o">/</span><span class="n">refindex</span><span class="p">)</span>
+<span class="n">ctht</span><span class="o">=</span><span class="n">cos</span><span class="p">(</span><span class="n">thetat</span><span class="p">)</span>
+</pre></div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1771,7 +1955,7 @@ check that both vectors have the same angle to the normal</p>
   <ul>
 <li><a class="reference internal" href="#">Welcome to DSMRayTracerDoc&#8217;s documentation!</a></li>
 <li><a class="reference internal" href="#module-RayTracerMainProgram">Main Program</a></li>
-<li><a class="reference internal" href="#module-ParameterInput">Input the parameters</a></li>
+<li><a class="reference internal" href="#module-ParameterInput">Input of the parameters</a></li>
 <li><a class="reference internal" href="#module-Rays">Rays</a></li>
 <li><a class="reference internal" href="#module-Room">Room</a></li>
 <li><a class="reference internal" href="#module-DictionarySparseMatrix">Mesh</a></li>

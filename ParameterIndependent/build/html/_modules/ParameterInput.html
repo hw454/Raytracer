@@ -171,7 +171,7 @@
   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;------------------------------------------------&#39;</span><span class="p">)</span>
   <span class="k">return</span> <span class="mi">0</span></div>
 
-<div class="viewcode-block" id="ObstacleCoefficients"><a class="viewcode-back" href="../index.html#ParameterInput.ObstacleCoefficients">[docs]</a><span class="k">def</span> <span class="nf">ObstacleCoefficients</span><span class="p">():</span>
+<div class="viewcode-block" id="ObstacleCoefficients"><a class="viewcode-back" href="../index.html#ParameterInput.ObstacleCoefficients">[docs]</a><span class="k">def</span> <span class="nf">ObstacleCoefficients</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
   <span class="sd">&#39;&#39;&#39; Input the paramters for obstacles and the antenna. To ensure \</span>
 <span class="sd">  arrays are of the right length for compatibility for the \</span>
 <span class="sd">  ray-launcher retrieve the ray-launching parameters in \</span>
@@ -281,12 +281,6 @@
   <span class="n">epsr</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">Nob</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="nb">complex</span><span class="p">(</span><span class="mf">3.824</span><span class="p">,</span><span class="mf">0.013</span><span class="p">))</span>   <span class="c1"># For this test epsr is the - For total absorption complex(2949.3, 0.1065))</span>
                                                <span class="c1"># same for every obstacle</span>
 
-  <span class="n">murRoom2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">Nob</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="nb">complex</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>         <span class="c1"># For this test mur is</span>
-                                               <span class="c1"># the same for every obstacle.</span>
-                                               <span class="c1"># Array created to get functions correct.</span>
-  <span class="n">epsrRoom2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">Nob</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="nb">complex</span><span class="p">(</span><span class="mf">1.824</span><span class="p">,</span><span class="mf">0.013</span><span class="p">))</span>   <span class="c1"># For this test epsr is the - For total absorption complex(2949.3, 0.1065))</span>
-                                               <span class="c1"># same for every obstacle</span>
-
   <span class="n">sigma</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">Nob</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="mf">1.0E-4</span><span class="p">)</span>                <span class="c1"># For this test sigma is the</span>
                                                <span class="c1"># same for every obstacle</span>
   <span class="c1"># CALCULATE FREESPACE PARAMETERS</span>
@@ -306,14 +300,6 @@
   <span class="c1"># CLEAR THE TERMS JUST FOR CALCULATION</span>
   <span class="k">del</span> <span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span><span class="n">Znob</span>
 
-   <span class="c1"># CALCULATE OBSTACLE PARAMETERS</span>
-  <span class="n">topRoom2</span><span class="o">=</span><span class="nb">complex</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">frequency</span><span class="o">*</span><span class="n">mu0</span><span class="p">)</span><span class="o">*</span><span class="n">murRoom2</span>
-  <span class="n">bottomRoom2</span><span class="o">=</span><span class="n">sigma</span><span class="o">+</span><span class="nb">complex</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">eps0</span><span class="o">*</span><span class="n">frequency</span><span class="p">)</span><span class="o">*</span><span class="n">epsrRoom2</span>
-  <span class="n">ZnobRoom2</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">top2</span><span class="o">/</span><span class="n">bottom2</span><span class="p">)</span>                    <span class="c1"># Wave impedance of the obstacles</span>
-  <span class="n">ZnobratRoom2</span><span class="o">=</span><span class="n">ZnobRoom2</span><span class="o">/</span><span class="n">Z0</span>
-  <span class="n">refindexRoom2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">murRoom2</span><span class="p">,</span><span class="n">epsrRoom2</span><span class="p">))</span>     <span class="c1"># Refractive index of the obstacles</span>
-  <span class="c1"># CLEAR THE TERMS JUST FOR CALCULATION</span>
-  <span class="k">del</span> <span class="n">topRoom2</span><span class="p">,</span> <span class="n">bottomRoom2</span><span class="p">,</span><span class="n">ZnobRoom2</span>
 
   <span class="c1"># PRINT THE PARAMETERS</span>
   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Permittivity of free space &#39;</span><span class="p">,</span> <span class="n">mu0</span><span class="p">)</span>
@@ -324,29 +310,14 @@
   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Relative Impedance of the obstacles &#39;</span><span class="p">,</span> <span class="n">Znobrat</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Refractive index of the obstacles &#39;</span><span class="p">,</span> <span class="n">refindex</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
 
-  <span class="c1"># Make the refindex, impedance and gains vectors the right length to</span>
-  <span class="c1"># match the matrices.</span>
-  <span class="n">Znobrat</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">Znobrat</span><span class="p">,</span><span class="n">Nre</span><span class="p">)</span>                    <span class="c1"># The number of rows is Nob*Nre+1. Repeat Nob</span>
-  <span class="n">Znobrat</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">Znobrat</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="nb">complex</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">))</span>     <span class="c1"># Use a zero for placement in the LOS row</span>
-  <span class="n">refindex</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">refindex</span><span class="p">,</span><span class="n">Nre</span><span class="p">)</span>
-  <span class="n">refindex</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">refindex</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">+</span><span class="mi">0</span><span class="n">j</span><span class="p">)</span>
-  <span class="n">ZnobratRoom2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">ZnobratRoom2</span><span class="p">,</span><span class="n">Nre</span><span class="p">)</span>                    <span class="c1"># The number of rows is Nob*Nre+1. Repeat Nob</span>
-  <span class="n">ZnobratRoom2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">ZnobratRoom2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="nb">complex</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">))</span>     <span class="c1"># Use a zero for placement in the LOS row</span>
-  <span class="n">refindexRoom2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">refindexRoom2</span><span class="p">,</span><span class="n">Nre</span><span class="p">)</span>
-  <span class="n">refindexRoom2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">refindexRoom2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">+</span><span class="mi">0</span><span class="n">j</span><span class="p">)</span>
-  <span class="n">Gt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">Gt</span><span class="p">,(</span><span class="n">Nre</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
-
   <span class="c1"># --------------------------------------------------------------------</span>
   <span class="c1"># SAVE THE PARAMETERS</span>
   <span class="c1"># --------------------------------------------------------------------</span>
-
-  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/TxGains.npy&#39;</span><span class="p">,</span> <span class="n">Gt</span><span class="p">)</span>
-  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/Freespace.npy&#39;</span><span class="p">,</span><span class="n">Freespace</span><span class="p">)</span>
-  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/frequency.npy&#39;</span><span class="p">,</span><span class="n">frequency</span><span class="p">)</span>
-  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/Znobrat.npy&#39;</span><span class="p">,</span><span class="n">Znobrat</span><span class="p">)</span>
-  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/refindex.npy&#39;</span><span class="p">,</span><span class="n">refindex</span><span class="p">)</span>
-  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/ZnobratRoom2.npy&#39;</span><span class="p">,</span><span class="n">ZnobratRoom2</span><span class="p">)</span>
-  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/refindexRoom2.npy&#39;</span><span class="p">,</span><span class="n">refindexRoom2</span><span class="p">)</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/TxGains&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.npy&#39;</span><span class="p">,</span> <span class="n">Gt</span><span class="p">)</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/Freespace&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.npy&#39;</span><span class="p">,</span><span class="n">Freespace</span><span class="p">)</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/frequency&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.npy&#39;</span><span class="p">,</span><span class="n">frequency</span><span class="p">)</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/Znobrat&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.npy&#39;</span><span class="p">,</span><span class="n">Znobrat</span><span class="p">)</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/refindex&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.npy&#39;</span><span class="p">,</span><span class="n">refindex</span><span class="p">)</span>
   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;------------------------------------------------&#39;</span><span class="p">)</span>
   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Material parameters saved&#39;</span><span class="p">)</span>
   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;------------------------------------------------&#39;</span><span class="p">)</span>
@@ -362,6 +333,7 @@
 <span class="sd">  :param zma: The maximum z co-ordinate.</span>
 
 <span class="sd">  .. code::</span>
+
 <span class="sd">       Box=[T0,T1,...T12]</span>
 <span class="sd">       TJ=[p0J,p1J,p2J]</span>
 <span class="sd">       p0J=[x0J,y0J,z0J]</span>

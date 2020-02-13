@@ -144,7 +144,9 @@
   <span class="c1"># @return s.points[i]</span>
   <span class="k">def</span> <span class="nf">get_meshwidth</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">Mesh</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">meshwidth</span><span class="p">)</span><span class="o">&lt;</span><span class="n">epsilon</span><span class="p">:</span>
-      <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">maxlength</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">Mesh</span><span class="o">.</span><span class="n">Nx</span>
+      <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">Mesh</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">maxlength</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">Mesh</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">maxlength</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">Mesh</span><span class="o">.</span><span class="n">Nx</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">meshwidth</span>
   <span class="c1">## Add a new obst to the room.</span>
@@ -234,8 +236,8 @@
     <span class="sd">&#39;&#39;&#39; Find the indexing position in a mesh with width h for point p \</span>
 <span class="sd">    lying in the room s.</span>
 
-<span class="sd">    :param p: =[x,y,z] the co-ordinate of the point p or an array of</span>
-<span class="sd">    :math:`points p=[[x0,y0,z0],...,[xn,yn,zn]]`</span>
+<span class="sd">    :param p: =[x,y,z] the co-ordinate of the point p or an array \</span>
+<span class="sd">    of :math:`points p=[[x0,y0,z0],...,[xn,yn,zn]]`</span>
 <span class="sd">    :param h: is the meshwidth, once assigned this matches s.meshwidth</span>
 
 <span class="sd">    If p is one point,</span>
@@ -393,6 +395,66 @@
       <span class="n">raylist</span><span class="p">[</span><span class="n">it</span><span class="p">]</span><span class="o">=</span><span class="n">raystart</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
     <span class="n">s</span><span class="o">.</span><span class="n">time</span><span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start_time</span>
     <span class="k">return</span> <span class="n">raylist</span><span class="p">,</span> <span class="n">Mesh</span></div>
+ <span class="c1">## ray_bounceTraces ray&#39;s uniformly emitted from an origin around a room.</span>
+ <span class="c1"># @param Nra Number of rays</span>
+ <span class="c1"># @param Nre number of reflections Nre</span>
+ <span class="c1"># @param directions A Nra*3 array of the initial directions for each ray.</span>
+ <span class="c1"># .</span>
+ <span class="c1"># \par The multiref function is used to find the Nre reflections for</span>
+ <span class="c1"># the Nra rays with the obstacles s.obst.</span>
+ <span class="c1"># @return An array of the ray points.</span>
+ <span class="c1"># \f$</span>
+ <span class="c1"># raylist=[[p00,p01,...,p0Nre],[p10,...,p1Nre],...,[pNra0,...,pNraNre]]</span>
+ <span class="c1">#  \f$</span>
+<div class="viewcode-block" id="room.ray_mesh_power_bounce"><a class="viewcode-back" href="../index.html#Room.room.ray_mesh_power_bounce">[docs]</a>  <span class="k">def</span> <span class="nf">ray_mesh_power_bounce</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">Tx</span><span class="p">,</span><span class="n">Nre</span><span class="p">,</span><span class="n">Nra</span><span class="p">,</span><span class="n">Direc</span><span class="p">,</span><span class="n">Grid</span><span class="p">,</span><span class="n">Znobrat</span><span class="p">,</span><span class="n">refindex</span><span class="p">,</span><span class="n">Antpar</span><span class="p">,</span><span class="n">Gt</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Traces ray&#39;s uniformly emitted from an origin around a room.</span>
+
+<span class="sd">    :param Tx: the co-ordinate of the transmitter location</span>
+<span class="sd">    :param Nra: Number of rays</span>
+<span class="sd">    :param Nre: number of reflections</span>
+<span class="sd">    :param directions: Nra*3 array of the initial direction for \</span>
+<span class="sd">    each ray.</span>
+<span class="sd">    :param Grid: a Nx*Ny*Nz array which will contain power values</span>
+<span class="sd">    :param Znobrat: The array with the ratio of the impedance of an \</span>
+<span class="sd">    obstacle over the impedance of air.</span>
+<span class="sd">    :param refindex: Array with the refractive indices of an obstacle.</span>
+<span class="sd">    :param Antpar: array with antenna parameters - scaled wavenumber, wavelength, lengthscale.</span>
+<span class="sd">    :param Gt: transmitter gains.</span>
+
+
+<span class="sd">    The rays are reflected Nre times with the obstacles s.obst. \</span>
+<span class="sd">    The points of intersection with the obstacles are stored in z</span>
+<span class="sd">    raylist. This is done using the mesh_multiref function.</span>
+<span class="sd">    As each intersection is found the mesh_multiref function \</span>
+<span class="sd">    forms the line segment between intersection points and the \</span>
+<span class="sd">    corresponding ray cone. All mesh elements in the ray cone store \</span>
+<span class="sd">    the power. This is stored in Grid.</span>
+<span class="sd">    See :py:func:`Rays.mesh_multiref` for more details on the \</span>
+<span class="sd">    reflections and storage.</span>
+
+<span class="sd">    When complete the time in s.time() is assigned to the time taken \</span>
+<span class="sd">    to complete the function.</span>
+
+<span class="sd">    :return: raylist, Grid</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">start_time</span>    <span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>         <span class="c1"># Start the time counter</span>
+    <span class="n">r</span>             <span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">maxleng</span><span class="p">()</span>
+    <span class="n">raylist</span>       <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">([</span><span class="n">Nra</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">Nre</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">])</span>
+    <span class="n">directions</span>    <span class="o">=</span><span class="n">r</span><span class="o">*</span><span class="n">directions</span>
+    <span class="c1"># Iterate through the rays find the ray reflections</span>
+    <span class="c1"># FIXME rays are independent of each other so this is parallelisable</span>
+    <span class="c1">#FIXME Find out whether the ray points are correct.</span>
+    <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">Nra</span><span class="p">):</span>
+      <span class="n">Dir</span>       <span class="o">=</span><span class="n">directions</span><span class="p">[</span><span class="n">it</span><span class="p">]</span>
+      <span class="n">start</span>     <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Tx</span><span class="p">,[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="n">raystart</span>  <span class="o">=</span><span class="n">ry</span><span class="o">.</span><span class="n">Ray</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">Dir</span><span class="p">)</span>
+      <span class="k">try</span><span class="p">:</span>
+          <span class="n">Grid</span><span class="o">=</span><span class="n">raystart</span><span class="o">.</span><span class="n">mesh_power_multiref</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">Nre</span><span class="p">,</span><span class="n">Grid</span><span class="p">,</span><span class="n">Nra</span><span class="p">,</span><span class="n">it</span><span class="p">,</span><span class="n">Znobrat</span><span class="p">,</span><span class="n">refindex</span><span class="p">,</span><span class="n">Antpar</span><span class="p">,</span><span class="n">Gt</span><span class="p">)</span>
+      <span class="k">except</span><span class="p">:</span> <span class="k">raise</span><span class="p">(</span><span class="s1">&#39;Error in power mesh multiref&#39;</span><span class="p">)</span>
+      <span class="n">raylist</span><span class="p">[</span><span class="n">it</span><span class="p">]</span><span class="o">=</span><span class="n">raystart</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">time</span><span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start_time</span>
+    <span class="k">return</span> <span class="n">raylist</span><span class="p">,</span> <span class="n">Grid</span></div>
  <span class="c1">## ray_bounceTraces ray&#39;s uniformly emitted from an origin around a room.</span>
  <span class="c1"># @param Nra Number of rays</span>
  <span class="c1"># @param Nre number of reflections Nre</span>

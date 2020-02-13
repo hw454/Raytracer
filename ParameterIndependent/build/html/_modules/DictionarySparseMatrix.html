@@ -83,7 +83,9 @@
 <span class="sd">  :math:`na=(Nob*Nre+1)`</span>
 <span class="sd">  :math:`nb=((Nre)*(Nra)+1)`</span>
 <span class="sd">  The DS is initialised with keys Nx, Ny, and Nz to a dictionary with \</span>
-<span class="sd">  keys, :math:`(x,y,z) \forall x \in [0,Nx), y \in [0,Ny), z \in [0,Nz)&#39;.</span>
+<span class="sd">  keys,</span>
+<span class="sd">  :math:`\{ (x,y,z) \\forall x \in [0,Nx), y \in [0,Ny), z \in [0,Nz)\}.`</span>
+
 <span class="sd">  With the value at each key being an na*nb SM.</span>
 <span class="sd">  &#39;&#39;&#39;</span>
   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">Nx</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">Ny</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">Nz</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">na</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">nb</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">dt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">):</span>
@@ -1053,6 +1055,7 @@
 <span class="sd">    :param refindex: The refractive index&#39;s of the obstacles in a vector.</span>
 
 <span class="sd">    .. code::</span>
+
 <span class="sd">       SIN=sin(s)</span>
 <span class="sd">       thetat=asin(SIN/refindex)</span>
 <span class="sd">       ctht=cos(thetat)</span>
