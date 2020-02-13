@@ -9,20 +9,20 @@ Welcome to DSMRayTracerDoc's documentation!
 .. toctree::
    :maxdepth: 2
 
-   Main Program
-   Input of the parameters
-   Ray class
-   Room class
-   Mesh class
-   Reflection function
+   RayTracerMainProgram
+   ParameterInput
+   Rays
+   Room
+   DictionarySparseMatrix
+   reflection
 
 Main Program
 ============
 .. automodule:: RayTracerMainProgram
    :members:
 
-Input the parameters
-====================
+Input of the parameters
+========================
 .. automodule:: ParameterInput
    :members:
 
