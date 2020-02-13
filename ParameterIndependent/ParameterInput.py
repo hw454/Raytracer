@@ -222,14 +222,19 @@ def ObstacleCoefficients(index=0):
   # INPUT PARAMETERS FOR POWER CALCULATIONS----------------------------
   # -------------------------------------------------------------------
 
-  # Gains of the rays
-  Gt=np.ones((Nra,1),dtype=np.complex128)
-
   # PHYSICAL CONSTANTS Do not change for obstacles for frequency
   mu0=4*np.pi*1E-6
   c=2.99792458E+8
-  frequency=2*np.pi*2.79E+08                   # 2.79 GHz #FIXME make this a table and choose a frequency option
 
+  # ANTENNA PARAMETERS
+  #-----------------------------------------------------------------------
+  # Gains of the rays
+  Gt=np.ones((Nra,1),dtype=np.complex128)
+  frequency=2*np.pi*2.79E+08                   # 2.79 GHz #FIXME make this a table and choose a frequency option
+  Pol      =np.array([1.0,0.0])
+
+  # OBSTACLE CONTSTANTS
+  #----------------------------------------------------------------------
   # Relative Constants for the obstacles
   mur=np.full((Nob,1), complex(3.0,0))         # For this test mur is
                                                # the same for every obstacle.
@@ -265,14 +270,7 @@ def ObstacleCoefficients(index=0):
   print('Number of obstacles',Nob)
   print('Relative Impedance of the obstacles ', Znobrat.T)
   print('Refractive index of the obstacles ', refindex.T)
-
-  # Make the refindex, impedance and gains vectors the right length to
-  # match the matrices.
-  Znobrat=np.tile(Znobrat,Nre)                    # The number of rows is Nob*Nre+1. Repeat Nob
-  Znobrat=np.insert(Znobrat,0,complex(0.0,0.0))     # Use a zero for placement in the LOS row
-  refindex=np.tile(refindex,Nre)
-  refindex=np.insert(refindex,0,1+0j)
-  Gt=np.tile(Gt,(Nre+1,1))
+  print('Polarisation of antenna', Pol)
 
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS
@@ -282,6 +280,7 @@ def ObstacleCoefficients(index=0):
   np.save('Parameters/frequency'+str(index)+'.npy',frequency)
   np.save('Parameters/Znobrat'+str(index)+'.npy',Znobrat)
   np.save('Parameters/refindex'+str(index)+'.npy',refindex)
+  np.save('Parameters/Pol'+str(index)+'.npy',Pol)
   print('------------------------------------------------')
   print('Material parameters saved')
   print('------------------------------------------------')
@@ -297,6 +296,7 @@ def BoxBuild(xmi,xma,ymi,yma,zmi,zma):
   :param zma: The maximum z co-ordinate.
 
   .. code::
+
        Box=[T0,T1,...T12]
        TJ=[p0J,p1J,p2J]
        p0J=[x0J,y0J,z0J]
