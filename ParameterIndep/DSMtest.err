@@ -1,0 +1,9 @@
+/cm/local/apps/slurm/var/spool/job2190160/slurm_script: line 31: activate: No such file or directory
+Traceback (most recent call last):
+  File "ParameterIndependent/RayTracerMainProgram.py", line 33, in <module>
+    import Room  as rom
+  File "/home/m/hw454/Raytracer/ParameterIndep/ParameterIndependent/Room.py", line 16, in <module>
+    import Rays                 as ry
+  File "/home/m/hw454/Raytracer/ParameterIndep/ParameterIndependent/Rays.py", line 4, in <module>
+    from scipy.sparse import lil_matrix as SM
+ImportError: No module named scipy.sparse

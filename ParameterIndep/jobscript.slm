@@ -1,0 +1,51 @@
+#!/bin/bash
+#
+# Specify the queue
+#SBATCH --account=free
+#
+##############################################################
+## IMPORTANT:  You need to change the following options     ##
+##############################################################
+#
+# Choose name of job (name of executable)
+#SBATCH --job-name=sparsedictionarytesting
+#SBATCH --output=DSMtest.out
+#SBATCH --error=DSMtest.err
+#SBATCH --partition=batch
+#
+# Choose the number of nodes & processors per node:
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#
+# Choose the time your code will need at most:
+#SBATCH --time=3:00:00
+#
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=END
+#
+# send mail to this address
+#SBATCH --mail-user=hw454@bath.ac.uk
+#
+# Set up environment
+# module load python/3.4.2
+source activate DSMtest
+
+#############################################################
+##     Below this nothing should have to be changed !!!     ##
+##############################################################
+
+# Application name:
+# export RUNFILE=$SLURM_JOB_NAME
+
+echo Running on host `hostname`
+
+# Run the python program
+ python ParameterIndependent/RayTracerMainProgram.py
+
+echo "Will run command: python3 ParameterIndependent/RayTracerMainProgram.py"
+echo "Starting job..."
+
+
+
+
+
