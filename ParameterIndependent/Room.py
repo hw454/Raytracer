@@ -338,12 +338,13 @@ class room:
     '''
     start_time    =t.time()         # Start the time counter
     r             =s.maxleng()
-    raylist       =np.empty([Nra+1, Nre+1,4])
+    raylist       =np.zeros([Nra+1, Nre+1,4])
     directions    =r*directions
     # Iterate through the rays find the ray reflections
     # FIXME rays are independent of each other so this is parallelisable
     #FIXME Find out whether the ray points are correct.
-    for it in range(0,Nra):
+    #j=int(3*Nra/4)
+    for it in range(0,Nra):#j,j+1):
       Dir       =directions[it]
       start     =np.append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
@@ -396,25 +397,28 @@ class room:
     '''
     start_time    =t.time()         # Start the time counter
     r             =s.maxleng()
-    raylist       =np.empty([Nra+1, Nre+1,4])
+    raylist       =np.zeros([Nra+1, Nre+1,4]) # Careful empty will assign random numbers and must therefore get filled.
     directions    =r*directions
     lam           =Antpar[1]
+    L             =Antpar[2]
     # Iterate through the rays find the ray reflections
     # FIXME rays are independent of each other so this is parallelisable
     #FIXME Find out whether the ray points are correct.
-    for it in range(0,Nra):
+    #j=int(3*Nra/4)
+    for it in range(0,Nra):#j,j+1):
       Dir       =directions[it]
       start     =np.append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
-      phi0=np.sqrt(Gt[it])*lam/(4*ma.pi)
-      Grid=raystart.mesh_power_multiref(s,Nre,Grid,Nra,it,Znobrat,refindex,Antpar,Pol,phi0)
+      Polin=(np.sqrt(Gt[it])*lam/(L*4*ma.pi))*Pol
+      Grid=raystart.mesh_power_multiref(s,Nre,Grid,Nra,it,Znobrat,refindex,Antpar,Polin)
       raylist[it]=raystart.points[0:-2]
     Nx=Grid.shape[0]
     Ny=Grid.shape[1]
     Nz=Grid.shape[2]
-    P=np.zeros((Nx,Ny,Nz),dtype=float)
+    #print(Grid)
+    P=np.zeros((Nx,Ny,Nz),dtype=np.longdouble)
     P=np.power(np.absolute(Grid[:,:,:,0])+np.absolute(Grid[:,:,:,1]),2)
-    P=10*np.log10(P)
+    P=10*np.log10(P,where=(P!=0))
     s.time=t.time()-start_time
     return raylist, P
  ## ray_bounceTraces ray's uniformly emitted from an origin around a room.

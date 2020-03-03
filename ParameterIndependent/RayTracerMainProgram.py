@@ -39,6 +39,8 @@ import time as t
 import matplotlib.pyplot as mp
 import os
 
+epsilon=sys.float_info.epsilon
+
 def RayTracer():
   ''' Refect rays and output the points of reflection.
 
@@ -221,9 +223,9 @@ def MeshProgram():
   Nob=Room.Nob
   np.save('Parameters/Nob.npy',Nob)
 
-  Nx=int(Room.maxxleng()/h+1)
-  Ny=int(Room.maxyleng()/h+1)
-  Nz=int(Room.maxzleng()/h+1)
+  Nx=int(Room.maxxleng()/(L*h)+1)
+  Ny=int(Room.maxyleng()/(L*h)+1)
+  Nz=int(Room.maxzleng()/(L*h)+1)
   Mesh=DSM.DS(Nx,Ny,Nz,Nob*Nre+1,Nra*(Nre+1))
   print('-------------------------------')
   print('Mesh built')
@@ -352,9 +354,9 @@ def StdProgram(index=0):
   Znobrat      =np.load('Parameters/Znobrat.npy')
   refindex     =np.load('Parameters/refindex.npy')
 
-  Nx=int(Room.maxxleng()/h+1)
-  Ny=int(Room.maxyleng()/h+1)
-  Nz=int(Room.maxzleng()/h+1)
+  Nx=int(Room.maxxleng()/(L*h)+1)
+  Ny=int(Room.maxyleng()/(L*h)+1)
+  Nz=int(Room.maxzleng()/(L*h)+1)
   Mesh=np.zeros((Nx,Ny,Nz,2),dtype=np.complex128)
   print('-------------------------------')
   print('Mesh for Std program built')
@@ -362,16 +364,15 @@ def StdProgram(index=0):
   print('Starting the ray bouncing and field storage')
   print('-------------------------------')
   Rays, Grid=Room.ray_mesh_power_bounce(Tx,Nre,Nra,Direc,Mesh,Znobrat,refindex,Antpar,Gt,Pol)
-  # if not os.path.exists('./Mesh'):
-    # os.makedirs('./Mesh')
-  # np.save('./Mesh/RayPowerMeshPoints'+str(Nra)+'Refs'+str(Nre)+'m.npy',Rays)
-  # meshname=str('./Mesh/DSM'+str(Nra)+'Refs'+str(Nre)+'m.npy')
-  # Mesh.save_dict(meshname)
+  if not os.path.exists('./Mesh'):
+    os.makedirs('./Mesh')
+  np.save('./Mesh/RayMeshPointsstd'+str(int(Nra))+'Refs'+str(int(Nre))+'m.npy',Rays)
+  np.save('./Mesh/Power_gridstd'+str(Nra)+'Refs'+str(int(Nre))+'m'+str(int(index))+'.npy',Grid)
   # print('-------------------------------')
   # print('Ray-launching complete')
   # print('Time taken',Room.time)
   # print('-------------------------------')
-  return Mesh
+  return Grid
 
 def power_grid(Roomnum=0):
   ''' Calculate the field on a grid using enviroment parameters and the \
@@ -418,6 +419,7 @@ def power_grid(Roomnum=0):
   Nx=Mesh.Nx
   Ny=Mesh.Ny
   Nz=Mesh.Nz
+  Ns=max(Nx,Ny,Nz)
   Grid=np.zeros((Nx,Ny,Nz),dtype=float)
 
   for index in range(0,Roomnum+1):
@@ -434,9 +436,9 @@ def power_grid(Roomnum=0):
     # Make the refindex, impedance and gains vectors the right length to
     # match the matrices.
     Znobrat=np.tile(Znobrat,Nre)                    # The number of rows is Nob*Nre+1. Repeat Nob
-    Znobrat=np.insert(Znobrat,0,complex(0.0,0.0))     # Use a zero for placement in the LOS row
+    Znobrat=np.insert(Znobrat,0,complex(1.0,0.0))     # Use a zero for placement in the LOS row
     refindex=np.tile(refindex,Nre)
-    refindex=np.insert(refindex,0,1+0j)
+    refindex=np.insert(refindex,0,1.0+0.0j)
     Gt=np.tile(Gt,(Nre+1,1))
 
     # Calculate the necessry parameters for the power calculation.
@@ -444,8 +446,10 @@ def power_grid(Roomnum=0):
     khat          =freq*L/c
     lam           =(2*np.pi*c)/freq
     Antpar        =np.array([khat,lam,L])
-
-    Grid=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol)
+    if index==0:
+      Grid,ind=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra,Nre,Ns)
+    else:
+      Grid,ind=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra,Nre,Ns,ind)
     if not os.path.exists('./Mesh'):
       os.makedirs('./Mesh')
     np.save('./Mesh/Power_grid'+str(Nra)+'Refs'+str(Nre)+'m'+str(index)+'.npy',Grid) #.compressed())
@@ -556,20 +560,46 @@ def plot_grid(index=0):
   '''
   Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
   pstr=str('./Mesh/Power_grid'+str(int(Nra))+'Refs'+str(int(Nre))+'m'+str(index)+'.npy')
+  pstrstd=str('./Mesh/Power_gridstd'+str(int(Nra))+'Refs'+str(int(Nre))+'m'+str(index)+'.npy')
   P=np.load(pstr)
-  print(P.shape)
+  P2=np.load(pstrstd)
+  Pdiff=np.zeros((P.shape),dtype=np.single)
+  Pdiff=abs(np.divide(P-P2,P, where=(abs(P)>epsilon)))
+  #print(Pdiff)
   n=P.shape[2]
+  n2=P2.shape[2]
+  n3=Pdiff.shape[2]
   lb=np.amin(P)
+  lb2=np.amin(P2)
   ub=np.amax(P)
+  ub2=np.amax(P2)
   if not os.path.exists('./GeneralMethodPowerFigures'):
     os.makedirs('./GeneralMethodPowerFigures')
   for i in range(n):
     mp.figure(i)
+    #
     #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-    mp.imshow(P[:,:,i], cmap='viridis', interpolation='nearest')
+    mp.imshow(P[:,:,i], cmap='viridis', vmax=max(ub2,ub),vmin=min(lb,lb2))
     mp.colorbar()
-    filename=str('GeneralMethodPowerFigures/WithBoxPowerSlice'+str(int(i))+'Nra'+str(int(Nra))+'n'+str(int(n))+'Nref'+str(int(Nre))+'.eps')
+    filename=str('GeneralMethodPowerFigures/NoBoxPowerSliceNra'+str(int(Nra))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
     mp.savefig(filename)
+    mp.clf()
+  for i in range(n2):
+    mp.figure(n+i)
+    #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
+    mp.imshow(P2[:,:,i], cmap='viridis', vmax=max(ub2,ub),vmin=min(lb,lb2))
+    mp.colorbar()
+    filename=str('GeneralMethodPowerFigures/NoBoxPowerSliceNrastd'+str(int(Nra))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
+    mp.savefig(filename)
+    mp.clf()
+  for i in range(n3):
+    mp.figure(n2+n+i)
+    #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
+    mp.imshow(Pdiff[:,:,i], cmap='viridis', vmax=max(ub2,ub),vmin=min(lb,lb2))
+    mp.colorbar()
+    filename=str('GeneralMethodPowerFigures/NoBoxPowerDiffSliceNra'+str(int(Nra))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
+    mp.savefig(filename)
+    mp.clf()
   #mp.show()
   return
 
@@ -578,24 +608,36 @@ if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   #out=RayTracer() # To compute just the rays with no storage uncomment this line.
-  Roomnum=0
+  Roomnum=2
   testnum=10
-  Timemat=np.zeros((testnum,2))
-  for Roomnum in range(0,testnum):
+  Timemat=np.zeros((testnum,6))
+  for count in range(0,testnum):
     start=t.time()
-    Mesh=MeshProgram() # Shoot the rays and store the information
+    Mesh1=MeshProgram() # Shoot the rays and store the information
+    mid=t.time()
+    #print(Mesh1.xyznonzero())
     Grid=power_grid(Roomnum)  # Use the ray information to compute the power
     # plot_grid()        # Plot the power in slices.
     end=t.time()
-    Timemat[Roomnum,0]=end-start
+    #print(Grid.nonzero())
+    Timemat[count,0]=Roomnum+1
+    Timemat[count,1]=mid-start
+    Timemat[count,2]=(end-mid)/(Roomnum+1)
+    Timemat[count,3]=end-start
     start=t.time()
     for i in range(0,Roomnum+1):
-      Mesh=StdProgram(i) # Shoot the rays and store the information
-    Grid=power_grid(Roomnum)  # Use the ray information to compute the power
-    # plot_grid()        # Plot the power in slices.
+      Mesh2=StdProgram(i) # Shoot the rays and store the information
+      #del Mesh2
+    # Grid=power_grid(Roomnum)  # Use the ray information to compute the power
+    #print(Mesh2.nonzero())
     end=t.time()
-    Timemat[Roomnum,1]=end-start
-    Roomnum+=1
+    #print(Mesh2.nonzero())
+    Timemat[count,4]=end-start
+    Timemat[count,5]=(end-start)/(Roomnum+1)
+    Roomnum*=2
+    del Mesh1, Grid
+  plot_grid()        # Plot the power in slices.
+  mp.clf()
   print('-------------------------------')
   print('Time to complete program')
   print(Timemat)
