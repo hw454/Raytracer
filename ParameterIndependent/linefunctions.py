@@ -37,10 +37,10 @@ def length(line):
   elif isinstance(line[0],int): n=1
   else:
     n=len(line[0])
-  if n==3:
+  if n==2:
     length=np.linalg.norm(np.array([line[1][0]-line[0][0], line[1][1]-line[0][1]]))
     return length
-  elif n==2:
+  elif n==3:
     length=np.linalg.norm(np.array([line[1][0]-line[0][0], line[1][1]-line[0][1]  ,line[1][2]- line[0][2]]))
     return length
   elif n==1:

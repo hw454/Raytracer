@@ -37,11 +37,11 @@ def DeclareParameters():
   # -------------------------------------------------------------------
 
   print('Saving ray-launcher parameters')
-  Nra=10 # Number of rays
-  Nre=3 # Number of reflections
-  Ns=20   # Number of steps on longest axis.
+  Nra=200.0 # Number of rays
+  Nre=5 # Number of reflections
+  Ns=8   # Number of steps on longest axis.
   l1=2.0   # Interior obstacle scale
-  l2=1.0   # Outer Boundary length scale
+  l2=3.0   # Outer Boundary length scale
 
   ## Obstacles are all triangles in 3D.
   xmi=0.5
@@ -81,31 +81,28 @@ def DeclareParameters():
   h=1.0/Ns
 
   # CALCULATE ANGLE SPACING
-  deltheta      =(np.sqrt(2.0))*(np.pi/(np.sqrt(Nra)+np.sqrt(2))) # Calculate angle spacing
+  deltheta      =(np.sqrt(2.0*Nra-3)-1)*(np.pi/(Nra-2)) # Calculate angle spacing
   xysteps       =int(2.0*np.pi/deltheta)
-  zsteps        =2*int(np.pi/deltheta-1)
-  Nra           =xysteps*zsteps+2
+  zsteps        =int((np.pi/deltheta)-1)
+  Nra           =(xysteps)*zsteps+2
   # ^^ Due to need of integer steps the input number of rays can not
   # always be used if everything is equally spaced ^^
-  theta1        =deltheta*np.arange(xysteps)
+  theta1        =deltheta*np.arange(0,xysteps)
   theta2        =deltheta*np.arange(1,zsteps+1)
   xydirecs      =np.transpose(np.vstack((np.cos(theta1),np.sin(theta1))))
-  z             =np.tensordot(np.cos(theta2),np.ones(xysteps),axes=0)
+  z             =np.tensordot(np.cos(theta2),np.ones(xysteps),axes=0).ravel()
 
   # COMBINE THE RAY-LAUNCHER PARAMETERS INTO ONE ARRAY
   RTPar=np.array([Nra,Nre,h,roomlengthscale])
 
   # FORM THE ARRAY OF INITIAL RAY DIRECTIONS
   directions    =np.zeros((Nra,4))
-  directions[0] =np.array([0.0,0.0,1.0,0.0])
+
+  sinalpha=np.tile(np.sin(theta2),xysteps)
+  coords  =np.c_[np.tile(xydirecs,(zsteps,1))*sinalpha[:,np.newaxis],z.T]
+  directions[1:-1]=np.c_[coords,np.zeros((Nra-2,1))]
+  directions[0] =np.array([0.0,0.0, 1.0,0.0])
   directions[-1]=np.array([0.0,0.0,-1.0,0.0])
-  #FIXME try to form this without a loop
-  for j in range(1,zsteps+1):
-      st=(j-1)*xysteps+1
-      ed=(j)*xysteps+1
-      sinalpha=np.sin(theta2[j-1])
-      coords=np.c_[sinalpha*xydirecs,z[j-1]]
-      directions[st:ed]=np.c_[coords,np.zeros(xysteps)]
 
   print('Number of requested rays ', Nra)
   print('Number of reflections ', Nre)
