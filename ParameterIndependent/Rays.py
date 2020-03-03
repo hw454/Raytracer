@@ -75,13 +75,6 @@ class Ray:
           Nob+=1
           pass
         elif all(c is not None for c in cp):
-          #if np.allclose(cp, s.points[-2][0:3],atol=epsilon):
-          # #print("Collision point is the same as the previous")
-          #  #pass
-          #  ## Do not reassign collision point when it is the previous
-          #  ## point, this shouldn't happen because of direction check though
-          #else:
-          #  ##print('cp accepted',cp)
           leng2=s.ray_length(cp)
           if (leng2<leng and leng2>-epsilon) :
             leng=leng2
@@ -99,13 +92,20 @@ class Ray:
     o=s.points[-2][0:3]
     ray=np.array([o,inter])
     return lf.length(ray)
-  def number_steps(s,meshwidth):
+  def number_steps(s,alpha):
     '''The number of steps along the ray between intersection points'''
-    return int(lf.length(np.vstack((s.points[-3][0:3],s.points[-2][0:3])))/meshwidth)
+    return int(lf.length(np.vstack((s.points[-3][0:3],s.points[-2][0:3])))/alpha+1)
+  def number_cones(s,h,dist,Nra):
+     '''find the number of steps taken along one normal in the cone'''
+     ta=ma.tan((np.sqrt(2.0*Nra-3)-1)*(np.pi/(Nra-2)))   # Nra>2 and an integer. Therefore tan(theta) exists.
+     Ncon=int(1+2*np.arctan(h/(4*dist*ta))) # Compute the distance of the normal vector
+                            # for the cone and the number of mesh points
+                            # that would fit in that distance.
+     return Ncon
   def number_cone_steps(s,h,dist,Nra):
      '''find the number of steps taken along one normal in the cone'''
-     ta=ma.tan(ma.pi/Nra)   # Nra>2 and an integer. Therefore tan(pi/Nra) exists.
-     Nc=int(1+(dist*ta)/h) # Compute the distance of the normal vector
+     ta=ma.tan((np.sqrt(2.0*Nra-3)-1)*(np.pi/(Nra-2)))   # Nra>2 and an integer. Therefore tan(theta) exists.
+     Nc=int(1+(2*dist*ta)/h) # Compute the distance of the normal vector
                             # for the cone and the number of mesh points
                             # that would fit in that distance.
      return Nc
@@ -152,15 +152,15 @@ class Ray:
      :returns: N
 
      '''
-     d=d/np.linalg.norm(d)                  # Normalise the direction of the ray
+     d*=np.linalg.norm(d)                  # Normalise the direction of the ray
      deltheta=2*np.arcsin(1/Ncones)         # Calculate angle spacing so that
                                             # the ends of the cone are less than two meshwidth apart.
      Nnor=int(1+(2*np.pi)/deltheta)         # Calculate the number of normals.
      anglevec=np.linspace(0.0,2*ma.pi,num=int(Nnor), endpoint=False) # Create an array of all the angles
      Norm=np.zeros((Nnor,3),dtype=np.float) # Initialise the matrix of normals
      if abs(d[2]-0)>0:
-       ptil=np.array([1,1,-(d[0]+d[1])/d[2]])# This vector will lie in the plane unless d_z=0
-       Norm[0]=(1/np.linalg.norm(ptil))*ptil # Normalise the vector
+       Norm[0]=np.array([1,1,-(d[0]+d[1])/d[2]])# This vector will lie in the plane unless d_z=0
+       Norm[0]*=(1/np.linalg.norm(Norm[0])) # Normalise the vector
        y=np.cross(Norm[0],d)                 # Compute another vector in the plane for the axis.
        y=(1/np.linalg.norm(y))*y             # Normalise y. y and Norm[0] are now the co-ordinate axis in the plane.
      else:
@@ -291,7 +291,7 @@ class Ray:
 
     '''
     # The ray distance travelled starts at 0.
-    dist=0
+    dist=0.0
     # Vector of the reflection angle entries in relevant positions.
     vec=SM((Mesh.shape[0],1),dtype=np.complex128)
     for nre in range(0,Nre+1):
@@ -299,9 +299,10 @@ class Ray:
       if abs(end)<epsilon:
           Mesh,dist,vec=s.mesh_singleray(room,Mesh,dist,vec,Nra,Nre,nra)
       else: pass
+      #print("AFTER REF",Mesh.xyznonzero())
     del dist,vec
     return Mesh
-  def mesh_power_multiref(s,room,Nre,Mesh,Nra,it,Znobrat,refindex,Antpar,Pol,phi0):
+  def mesh_power_multiref(s,room,Nre,_Mesh,Nra,it,Znobrat,refindex,Antpar,refcoef):
     ''' Takes a ray and finds the first Nre reflections within a room.
     As each reflection is found the ray is stepped through and
     information added to the Mesh.
@@ -327,18 +328,17 @@ class Ray:
 
     '''
     # The ray distance travelled starts at 0.
-    dist=0
+    dist=0.0
     # Reflection Coefficient starts as the polarisation and the initial gain
-    refcoef=Pol*phi0
     khat   =Antpar[0]
     L      =Antpar[2]
     for nre in range(0,Nre+1):
       end=s.reflect_calc(room)
       if abs(end)<epsilon:
-          Mesh,dist,refcoef=s.mesh_power_singleray(room,Mesh,dist,refcoef,Nra,Nre,it,refindex,Znobrat,khat,L)
+          _Mesh,dist,refcoef=s.mesh_power_singleray(room,_Mesh,dist,refcoef,Nra,nre,Nre,it,refindex,Znobrat,khat,L)
       else: pass
     del dist,refcoef
-    return Mesh
+    return _Mesh
   def mesh_singleray(s,room,_Mesh,_dist,_calcvec,Nra,Nre,nra):
     ''' Iterate between two intersection points and store the ray \
     information in the Mesh
@@ -403,12 +403,13 @@ class Ray:
     # --- Set initial terms before beginning storage steps -------------
     nre=len(s.points)-3         # The reflection number of the current ray
     h=room.get_meshwidth(_Mesh)  # The Meshwidth for a room with Mesh spaces
-    nob=s.points[-2][-1]        # The obstacle number of the last reflection
+    nob=int(s.points[-2][-1])        # The obstacle number of the last reflection
 
     # Compute the direction - Since the Ray has reflected but we are
     # storing previous information we want the direction of the ray which
     # hit the object not the outgoing ray.
     direc=lf.Direction(np.array([s.points[-3][0:3],s.points[-2][0:3]]))
+    direc*=(1.0/(np.dot(direc,direc))) # Normalise direc
     col=int(Nra*nre+nra)
     if abs(direc.any()-0.0)>epsilon:                       # Before computing the dist travelled through a mesh cube
                                                            # check the direction isn't 0.
@@ -416,87 +417,92 @@ class Ray:
                                                            # direc goes through it.
     else: return _Mesh, _dist, _calcvec                    # If the direction vector is 0 nothing is happening.
 
-    deldist=lf.length(np.array([(0,0,0),alpha*direc]))     # Calculate the distance travelled through a mesh cube
+    deldist=lf.length(np.array([(0.0,0.0,0.0),alpha*direc]))     # Calculate the distance travelled through a mesh cube
     p0=s.points[-3][0:3]                                   # Set the initial point to the start of the segment.
     p1=p0                                                  # p0 should remain constant and p1 is stepped.
     i1,j1,k1=room.position(p0,h)                           # Find the indices for position p0
     endposition=room.position(s.points[-2][0:3],h)         # The indices of the end of the segment
     theta=s.ref_angle(room)                                # Compute the reflection angle
+    #print(theta)
     Ns=s.number_steps(deldist)                             # Compute the number of steps that'll be taken along the ray.
     segleng=lf.length(np.vstack((s.points[-3][0:3],s.points[-2][0:3]))) # Length of the ray segment
     # Compute a matrix with rows corresponding to normals for the cone.
-    Nc=s.number_cone_steps(deldist,_dist+segleng,Nra)
-    norm=s.normal_mat(Nc,Nra,direc,_dist,h)                 # Matrix of normals to the direc, all of distance 1 equally
+    #Nc=s.number_cone_steps(deldist,_dist+segleng,Nra)
+    Ncon=s.number_cones(deldist,_dist+segleng,Nra)
+    norm=s.normal_mat(Ncon,Nra,direc,_dist,h)              # Matrix of normals to the direc, all of distance 1 equally
                                                            # angle spaced
     Nnor=len(norm)                                         # The number of normal vectors
     # Add the reflection angle to the vector of  ray history. s.points[-2][-1] is the obstacle number of the last hit.
     if nre==0:                                             # Before reflection use a 1 so that the distance is still stored
-      _calcvec[0]=1                                        # The first row corresponds to line of sight terms
-    elif nre==1:                                           # The first reflection needs to reset and start storing
-                                                           # reflection coefficients.
-      _calcvec[0]=0                                        # Reset the first term which was only for line of sight
-      _calcvec[int((nre-1)*room.Nob+nob)]=np.exp(1j*theta) # Use a complex exponential to store the reflection
-                                                           # angle. This will allow us to multiply by the distance and
-                                                           # store both pieces of information in the same place.
+      _calcvec[0]=1.0+0j                                       # The first row corresponds to line of sight terms
     else:
       _calcvec[int((nre-1)*room.Nob+nob)]=np.exp(1j*theta) # After the first reflection all reflection angles
                                  # continue to be stored in calcvec.
-    for m1 in range(0,Ns):                             # Step through the ray
-      stpch=_Mesh.stopcheck(i1,j1,k1,endposition,h)         # Check if the ray point is outside the domain.
+    for m1 in range(0,Ns+1):                             # Step through the ray
+      stpch=_Mesh.stopcheck(i1,j1,k1,endposition,h)        # Check if the ray point is outside the domain.
+      #print(Ns,stpch,i1,j1,k1)
       if m1>0:                                             # After the first step check that each iteration is moving into
                                                            # a new element.
         if i2==i1 and j2==j1 and k2==k1:                   # If the indices are equal pass as no new element.
           pass
+
         else:
-          i1=i2                                            # Reset the check indices for the next check.
-          j1=j2
-          k1=k2
+          i2=i1                                           # Reset the check indices for the next check.
+          j2=j1
+          k2=k1
       if stpch:
         p2=room.coordinate(h,i1,j1,k1)                     # Calculate the co-ordinate of the center
                                                            # of the element the ray hit
         # Recalculate distance to be for the centre point
-        _Mesh[i1,j1,k1,:,col]=np.sqrt(np.dot((p0-p2),(p0-p2)))*_calcvec
-        #Nc=s.number_cone_steps(deldist,dist,Nra)           # No. of cone steps required for this ray step.
-        for m2 in range(Nnor):
+        alcor=np.dot((p2-p1),direc)
+        distcor=np.sqrt((_dist+alcor)**2+np.dot(p2-p1-alcor*direc,p2-p1-alcor*direc))
+        calind=_calcvec.nonzero()
+        for i3 in calind[0]:
+          _Mesh[i1,j1,k1,i3,col]=distcor*_calcvec[i3,0]
+        del alcor, distcor
+        Nc=s.number_cone_steps(deldist,_dist,Nra)           # No. of cone steps required for this ray step.
+        for m2 in range(Nc):
           p3=np.tile(p1,(Nnor,1))+m2*alpha*norm             # Step along all the normals from the ray point p1.
           copos=room.position(p3,h)                         # Find the indices corresponding to the cone points.
+          #print("before",copos,m2,alpha,nre)
           start,copos,p3,norm2=_Mesh.stopchecklist(copos,endposition,h,p3,norm) # Check if the point is valid.
+          #print("after",copos)
           if start==1:
+            Nnorcor=len(norm2[0])
             coords=room.coordinate(h,copos[0],copos[1],copos[2]) # Find the centre of
                                                            # element point for each cone normal.
-            p3=np.transpose(p3)                            # Change orientation for stacking co-ordinates.
-            norm2=np.transpose(norm2)
-            elementdiff=coords-p3                          # Find the distance from the original cone point to the cone
-                                                           # element centre.
-            dist2 =lf.coordlistdistance(elementdiff) # The distance between the centre of the element and the point the cone entered the element
-            normlengths=lf.coordlistdistance(norm2)   # Each norm should have length one but compute them just in case
-            normdot=lf.coordlistdot(elementdiff,norm2)# Compute the dot between the vector between the two element points and corresponding normal.
-            r1=_dist+np.sqrt((np.square(dist2)+np.divide(np.square(normdot),normlengths)))
+            p3=np.transpose(p3)
+            diffvec=np.subtract(coords,p3)
+            direcstack=np.tile(direc,(Nnorcor,1))
+            alcorrvec=lf.coordlistdot(diffvec,direcstack)# Compute the dot between the vector between the two element points and corresponding normal.
+            l1=np.power(_dist+alcorrvec,2)
+            l2=diffvec-direcstack*alcorrvec[:,np.newaxis]
+            l2=lf.coordlistdot(l2,l2)
+            r2=np.sqrt(l1+l2)
+            del l1, l2, diffvec, alcorrvec,direcstack, Nnorcor
             n=len(copos[0])
-            Mult=np.zeros((n,3),dtype=np.float)
-            Mult=np.outer(r1,direc)
-            #for j in range(0,n):
-            #  Mult[j]=r1[j]*direc
-            alpha2=lf.coordlistdot((Mult+np.tile(p0,(n,1))-p3),norm2)
-            r2=np.divide(r1,(np.cos(np.arctan(np.divide(alpha2,r1)))))
-            #FIXME try to set them all at once not one by one
+            #FIXME try to set them all at once not one by
             for j in range(0,n):
-              _Mesh[copos[0][j],copos[1][j],copos[2][j],:,col]=r2[j]*_calcvec
+              for ic in calind[0]:
+                _Mesh[copos[0][j],copos[1][j],copos[2][j],ic,col]=r2[j]*_calcvec[ic,0]
+            del r2
           else:
             # There are no cone positions
             pass
         # Compute the next point along the ray
-      else: break                                         # In this instance stpch==0 and end of ray
-      #del Nc
-      p1=p0+m1*alpha*direc
+      else:
+          break                                         # In this instance stpch==0 and end of ray
+      del Nc
+      p1=p0+(m1+1)*alpha*direc
       _dist+=deldist
       i2,j2,k2=room.position(p1,h)
       #FIXME don't stop at the end as the cone needs to be filled
       if lf.length(np.array([p1,s.points[-2][0:3]]))<h:
         break
+    del norm, i1,j1,k1,deldist,p1,p0,m1,alpha,direc,h
     return _Mesh,_dist,_calcvec
 
-  def mesh_power_singleray(s,room,_Grid,_dist,_RefCoef,Nra,Nre,nra,refindex,Znobrat,khat,L):
+  def mesh_power_singleray(s,room,_Grid,_dist,_RefCoef,Nra,nre,Nre,nra,refindex,Znobrat,khat,L):
     ''' Iterate between two intersection points and store the ray \
     information in the Mesh
 
@@ -555,7 +561,7 @@ class Ray:
 
     '''
     # --- Set initial terms before beginning field calculations-------------
-    nre=len(s.points)-3         # The reflection number of the current ray
+    #nre=len(s.points)-3         # The reflection number of the current ray
     h=room.get_meshwidth(_Grid)  # The Meshwidth for a room with Mesh spaces
     nob=int(s.points[-2][-1])       # The obstacle number of the last reflection
     Nx=_Grid.shape[0]
@@ -566,6 +572,7 @@ class Ray:
     # storing previous information we want the direction of the ray which
     # hit the object not the outgoing ray.
     direc=lf.Direction(np.array([s.points[-3][0:3],s.points[-2][0:3]]))
+    direc*=(1.0/np.dot(direc,direc))
     if abs(direc.any()-0.0)>epsilon:                       # Before computing the dist travelled through a mesh cube
                                                            # check the direction isn't 0.
       alpha=h/max(abs(direc))                              # Find which boundary of a unit cube gets hit first when
@@ -577,11 +584,12 @@ class Ray:
     i1,j1,k1=room.position(p0,h)                           # Find the indices for position p0
     endposition=room.position(s.points[-2][0:3],h)         # The indices of the end of the segment
     theta=s.ref_angle(room)                                # Compute the reflection angle
+    #print(theta)
     Ns=s.number_steps(deldist)                             # Compute the number of steps that'll be taken along the ray.
     segleng=lf.length(np.vstack((s.points[-3][0:3],s.points[-2][0:3]))) # Length of the ray segment
     # Compute a matrix with rows corresponding to normals for the cone.
-    Nc=s.number_cone_steps(deldist,_dist+segleng,Nra)
-    norm=s.normal_mat(Nc,Nra,direc,_dist,h)                 # Matrix of normals to the direc, all of distance 1 equally
+    Ncon=s.number_cones(deldist,_dist+segleng,Nra)
+    norm=s.normal_mat(Ncon,Nra,direc,_dist,h)                # Matrix of normals to the direc, all of distance 1 equally
                                                            # angle spaced
     Nnor=len(norm)                                         # The number of normal vectors
     # Add the reflection angle to the vector of  ray history. s.points[-2][-1] is the obstacle number of the last hit.
@@ -589,67 +597,80 @@ class Ray:
       pass
     else:
       cthi=np.cos(theta)
-      ctht=np.cos(np.arcsin(np.sin(theta/refindex[nob])))
-      refpar=(Znobrat[nob]*cthi-ctht)/(Znobrat[nob]*cthi+ctht)
-      refper=(Znobrat[nob]*ctht-cthi)/(Znobrat[nob]*ctht+cthi)
+      ctht=np.cos(np.arcsin(np.sin(theta)/refindex[nob]))
+      refper=(Znobrat[nob]*cthi-ctht)/(Znobrat[nob]*cthi+ctht)
+      refpar=-(Znobrat[nob]*ctht-cthi)/(Znobrat[nob]*ctht+cthi)
       _RefCoef=np.matmul(np.array([[refpar,0],[0,refper]]),_RefCoef)
-    for m1 in range(0,Ns):                             # Step through the ray
-      stpch=DSM.stopcheck(i1,j1,k1,endposition,h,Nx,Ny,Nz)        # Check if the ray point is outside the domain.
+      del cthi, ctht, refper, refpar
+    for m1 in range(0,Ns+1):                             # Step through the ray
+      stpch=DSM.stopcheck(i1,j1,k1,endposition,h,Nx,Ny,Nz) # Check if the ray point is outside the domain.
+      #print(Ns,stpch,i1,j1,k1)
       if m1>0:                                             # After the first step check that each iteration is moving into
                                                            # a new element.
         if i2==i1 and j2==j1 and k2==k1:                   # If the indices are equal pass as no new element.
-          pass
+          stpch=0
         else:
-          i1=i2                                            # Reset the check indices for the next check.
-          j1=j2
-          k1=k2
+          i2=i1                                           # Reset the check indices for the next check.
+          j2=j1
+          k2=k1
       if stpch:
         p2=room.coordinate(h,i1,j1,k1)                     # Calculate the co-ordinate of the center
                                                            # of the element the ray hit
         # Recalculate distance to be for the centre point
-        rtil=np.sqrt(np.dot((p0-p2),(p0-p2)))
-        _Grid[i1,j1,k1,0]+=(1/rtil)*np.exp(khat*rtil/(L**2)*1j)*_RefCoef[0]
-        _Grid[i1,j1,k1,1]+=(1/rtil)*np.exp(khat*rtil/(L**2)*1j)*_RefCoef[1]
-        #Nc=s.number_cone_steps(deldist,dist,Nra)           # No. of cone steps required for this ray step.
-        for m2 in range(Nnor):
+        alcor=np.dot((p2-p1),direc)
+        rtil=np.sqrt((_dist+alcor)**2+np.dot(p2-p1-alcor*direc,p2-p1-alcor*direc))
+        #print(rtil)
+        #print(np.exp(1j*khat*rtil*(L**2)),_RefCoef)
+        _Grid[i1,j1,k1,0]+=(1.0/(rtil))*np.exp(1j*khat*rtil*(L**2))*_RefCoef[0]
+        _Grid[i1,j1,k1,1]+=(1.0/(rtil))*np.exp(1j*khat*rtil*(L**2))*_RefCoef[1]
+        del alcor, rtil
+        Nc=s.number_cone_steps(deldist,_dist,Nra)           # No. of cone steps required for this ray step.
+        for m2 in range(Nc):
           p3=np.tile(p1,(Nnor,1))+m2*alpha*norm             # Step along all the normals from the ray point p1.
           copos=room.position(p3,h)                         # Find the indices corresponding to the cone points.
+          #print("before",copos,m2,alpha,nre,nra)
           start,copos,p3,norm2=DSM.stopchecklist(copos,endposition,h,p3,norm,Nx,Ny,Nz) # Check if the point is valid.
+          #print("after",copos)
           if start==1:
+            Nnorcor=len(norm2[0])
             coords=room.coordinate(h,copos[0],copos[1],copos[2]) # Find the centre of
                                                            # element point for each cone normal.
-            p3=np.transpose(p3)                            # Change orientation for stacking co-ordinates.
-            norm2=np.transpose(norm2)
-            elementdiff=coords-p3                          # Find the distance from the original cone point to the cone
-                                                           # element centre.
-            dist2 =lf.coordlistdistance(elementdiff) # The distance between the centre of the element and the point the cone entered the element
-            normlengths=lf.coordlistdistance(norm2)   # Each norm should have length one but compute them just in case
-            normdot=lf.coordlistdot(elementdiff,norm2)# Compute the dot between the vector between the two element points and corresponding normal.
-            r1=_dist+np.sqrt((np.square(dist2)+np.divide(np.square(normdot),normlengths)))
+            p3=np.transpose(p3)
+            diffvec=np.subtract(coords,p3)
+            direcstack=np.tile(direc,(Nnorcor,1))
+            alcorrvec=lf.coordlistdot(diffvec,direcstack)# Compute the dot between the vector between the two element points and corresponding normal.
+            l1=np.power(_dist+alcorrvec,2)
+            l2=diffvec-direcstack*alcorrvec[:,np.newaxis]
+            l2=lf.coordlistdot(l2,l2)
+            r2=np.sqrt(l1+l2)
+            del l1, l2, diffvec, alcorrvec,direcstack, Nnorcor
             n=len(copos[0])
-            Mult=np.zeros((n,3),dtype=np.float)
-            Mult=np.outer(r1,direc)
-            #for j in range(0,n):
-            #  Mult[j]=r1[j]*direc
-            alpha2=lf.coordlistdot((Mult+np.tile(p0,(n,1))-p3),norm2)
-            r2=np.divide(r1,(np.cos(np.arctan(np.divide(alpha2,r1)))))
             #FIXME try to set them all at once not one by one
-            #FIXME find the field and add that instead.
+            x,y,z=i1,j1,k1
             for j in range(0,n):
-              _Grid[copos[0][j],copos[1][j],copos[2][j],0]+=(1.0/r2[j])*np.exp(1j*khat*r2[j]/(L**2))*_RefCoef[0]
-              _Grid[copos[0][j],copos[1][j],copos[2][j],1]+=(1.0/r2[j])*np.exp(1j*khat*r2[j]/(L**2))*_RefCoef[1]
+              if x==copos[0][j] and y==copos[1][j] and z==copos[2][j]:
+                pass
+              else:
+                _Grid[copos[0][j],copos[1][j],copos[2][j],0]+=(1.0/(r2[j]))*np.exp(1j*khat*r2[j]*(L**2))*_RefCoef[0]
+                _Grid[copos[0][j],copos[1][j],copos[2][j],1]+=(1.0/(r2[j]))*np.exp(1j*khat*r2[j]*(L**2))*_RefCoef[1]
+                x=copos[0][j]
+                y=copos[1][j]
+                z=copos[2][j]
           else:
             # There are no cone positions
             pass
         # Compute the next point along the ray
-      else: break                                         # In this instance stpch==0 and end of ray
+      else:
+          #print(i1,j1,k1)
+          pass  # In this instance stpch==0 and end of ray
       #del Nc
-      p1=p0+m1*alpha*direc
+      p1=p0+(m1+1)*alpha*direc
       _dist+=deldist
       i2,j2,k2=room.position(p1,h)
       #FIXME don't stop at the end as the cone needs to be filled
-      if lf.length(np.array([p1,s.points[-2][0:3]]))<h:
+      if lf.length(np.array([p1,s.points[-2][0:3]]))<h/2:
         break
+      #print(_Grid)
     return _Grid,_dist,_RefCoef
   def raytest(s,room,err):
     ''' Checks the reflection function for errors using the test \
