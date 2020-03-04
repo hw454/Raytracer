@@ -342,9 +342,7 @@ class room:
     directions    =r*directions
     # Iterate through the rays find the ray reflections
     # FIXME rays are independent of each other so this is parallelisable
-    #FIXME Find out whether the ray points are correct.
-    #j=int(3*Nra/4)
-    for it in range(0,Nra):#j,j+1):
+    for it in range(0,Nra):
       Dir       =directions[it]
       start     =np.append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
@@ -352,17 +350,6 @@ class room:
       raylist[it]=raystart.points[0:-2]
     s.time=t.time()-start_time
     return raylist, Mesh
- ## ray_bounceTraces ray's uniformly emitted from an origin around a room.
- # @param Nra Number of rays
- # @param Nre number of reflections Nre
- # @param directions A Nra*3 array of the initial directions for each ray.
- # .
- # \par The multiref function is used to find the Nre reflections for
- # the Nra rays with the obstacles s.obst.
- # @return An array of the ray points.
- # \f$
- # raylist=[[p00,p01,...,p0Nre],[p10,...,p1Nre],...,[pNra0,...,pNraNre]]
- #  \f$
   def ray_mesh_power_bounce(s,Tx,Nre,Nra,directions,Grid,Znobrat,refindex,Antpar,Gt,Pol):
     ''' Traces ray's uniformly emitted from an origin around a room.
 
