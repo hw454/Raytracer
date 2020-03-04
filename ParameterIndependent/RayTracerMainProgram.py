@@ -351,8 +351,11 @@ def StdProgram(index=0):
   Antpar        =np.array([khat,lam,L])
 
   ##----Retrieve the Obstacle Parameters--------------------------------------
-  Znobrat      =np.load('Parameters/Znobrat.npy')
-  refindex     =np.load('Parameters/refindex.npy')
+  Znobrat      =np.load('Parameters/Znobrat'+str(index)+'.npy')
+  refindex     =np.load('Parameters/refindex'+str(index)+'.npy')
+
+  Znobrat=np.insert(Znobrat,0,1.0+0.0j)     # Use a zero for placement in the LOS row
+  refindex=np.insert(refindex,0,1.0+0.0j)
 
   Nx=int(Room.maxxleng()/(L*h)+1)
   Ny=int(Room.maxyleng()/(L*h)+1)
@@ -431,12 +434,12 @@ def power_grid(Roomnum=0):
     Pol           = np.load('Parameters/Pol'+str(index)+'.npy')
 
     ##----Retrieve the Obstacle Parameters--------------------------------------
-    Znobrat      =np.load('Parameters/Znobrat.npy')
-    refindex     =np.load('Parameters/refindex.npy')
+    Znobrat      =np.load('Parameters/Znobrat'+str(index)+'.npy')
+    refindex     =np.load('Parameters/refindex'+str(index)+'.npy')
     # Make the refindex, impedance and gains vectors the right length to
     # match the matrices.
     Znobrat=np.tile(Znobrat,Nre)                    # The number of rows is Nob*Nre+1. Repeat Nob
-    Znobrat=np.insert(Znobrat,0,complex(1.0,0.0))     # Use a zero for placement in the LOS row
+    Znobrat=np.insert(Znobrat,0,1.0+0.0j)     # Use a zero for placement in the LOS row
     refindex=np.tile(refindex,Nre)
     refindex=np.insert(refindex,0,1.0+0.0j)
     Gt=np.tile(Gt,(Nre+1,1))
