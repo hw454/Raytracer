@@ -613,12 +613,6 @@ def plot_grid(index=0):
   #mp.show()
   return
 
-def power_mesh_var(Roomnum):
-  for i in range(0,Roomnum+1):
-    Mesh2=StdProgram(i) # Shoot the rays and store the information
-    del Mesh2
-  return 0
-
 
 if __name__=='__main__':
   np.set_printoptions(precision=3)
