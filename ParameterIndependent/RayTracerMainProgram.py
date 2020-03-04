@@ -197,9 +197,9 @@ def MeshProgram():
   :return: Mesh
 
   '''
-  print('-------------------------------')
-  print('Building Mesh')
-  print('-------------------------------')
+  #print('-------------------------------')
+  #print('Building Mesh')
+  #print('-------------------------------')
   # Run the ParameterInput file
   out=PI.DeclareParameters()
 
@@ -227,12 +227,14 @@ def MeshProgram():
   Ny=int(Room.maxyleng()/(L*h)+1)
   Nz=int(Room.maxzleng()/(L*h)+1)
   Mesh=DSM.DS(Nx,Ny,Nz,Nob*Nre+1,Nra*(Nre+1))
-  print('-------------------------------')
-  print('Mesh built')
+  #print('-------------------------------')
+  #print('Mesh built')
   print('-------------------------------')
   print('Starting the ray bouncing and information storage')
   print('-------------------------------')
+  t0=t.time()
   Rays, Mesh=Room.ray_mesh_bounce(Tx,Nre,Nra,Direc,Mesh)
+  t1=t.time()
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
   np.save('./Mesh/RayMeshPoints'+str(Nra)+'Refs'+str(Nre)+'m.npy',Rays)
@@ -240,7 +242,7 @@ def MeshProgram():
   Mesh.save_dict(meshname)
   print('-------------------------------')
   print('Ray-launching complete')
-  print('Time taken',Room.time)
+  print('Time taken',t1-t0)
   print('-------------------------------')
   return Mesh
 
@@ -424,8 +426,8 @@ def power_grid(Roomnum=0):
   Nz=Mesh.Nz
   Ns=max(Nx,Ny,Nz)
   Grid=np.zeros((Nx,Ny,Nz),dtype=float)
-
-  for index in range(0,Roomnum+1):
+  t0=t.time()
+  for index in range(0,Roomnum):
     PI.ObstacleCoefficients(index)
     ##----Retrieve the antenna parameters--------------------------------------
     Gt            = np.load('Parameters/TxGains'+str(index)+'.npy')
@@ -438,9 +440,9 @@ def power_grid(Roomnum=0):
     refindex     =np.load('Parameters/refindex'+str(index)+'.npy')
     # Make the refindex, impedance and gains vectors the right length to
     # match the matrices.
-    Znobrat=np.tile(Znobrat,Nre)                    # The number of rows is Nob*Nre+1. Repeat Nob
+    Znobrat=np.tile(Znobrat,(Nre,1))                    # The number of rows is Nob*Nre+1. Repeat Nob
     Znobrat=np.insert(Znobrat,0,1.0+0.0j)     # Use a zero for placement in the LOS row
-    refindex=np.tile(refindex,Nre)
+    refindex=np.tile(refindex,(Nre,1))
     refindex=np.insert(refindex,0,1.0+0.0j)
     Gt=np.tile(Gt,(Nre+1,1))
 
@@ -456,6 +458,11 @@ def power_grid(Roomnum=0):
     if not os.path.exists('./Mesh'):
       os.makedirs('./Mesh')
     np.save('./Mesh/Power_grid'+str(Nra)+'Refs'+str(Nre)+'m'+str(index)+'.npy',Grid) #.compressed())
+  t1=t.time()
+  print('-------------------------------')
+  print('Power from DSM complete')
+  print('Time taken',t1-t0)
+  print('-------------------------------')
   return Grid
 
 
@@ -606,39 +613,42 @@ def plot_grid(index=0):
   #mp.show()
   return
 
+
 if __name__=='__main__':
   np.set_printoptions(precision=3)
   print('Running  on python version')
   print(sys.version)
   #out=RayTracer() # To compute just the rays with no storage uncomment this line.
-  Roomnum=2
-  testnum=10
+  timetest=10
+  testnum=4
   Timemat=np.zeros((testnum,6))
-  for count in range(0,testnum):
-    start=t.time()
-    Mesh1=MeshProgram() # Shoot the rays and store the information
-    mid=t.time()
-    #print(Mesh1.xyznonzero())
-    Grid=power_grid(Roomnum)  # Use the ray information to compute the power
-    # plot_grid()        # Plot the power in slices.
-    end=t.time()
-    #print(Grid.nonzero())
-    Timemat[count,0]=Roomnum+1
-    Timemat[count,1]=mid-start
-    Timemat[count,2]=(end-mid)/(Roomnum+1)
-    Timemat[count,3]=end-start
-    start=t.time()
-    for i in range(0,Roomnum+1):
-      Mesh2=StdProgram(i) # Shoot the rays and store the information
-      #del Mesh2
-    # Grid=power_grid(Roomnum)  # Use the ray information to compute the power
-    #print(Mesh2.nonzero())
-    end=t.time()
-    #print(Mesh2.nonzero())
-    Timemat[count,4]=end-start
-    Timemat[count,5]=(end-start)/(Roomnum+1)
-    Roomnum*=2
-    del Mesh1, Grid
+  for j in range(0,timetest):
+    Roomnum=2
+    #Timemat[0,0]=Roomnum
+    for count in range(0,testnum):
+      start=t.time()
+      Mesh1=MeshProgram() # Shoot the rays and store the information
+      mid=t.time()
+      Grid=power_grid(Roomnum)  # Use the ray information to compute the power
+      # plot_grid()        # Plot the power in slices.
+      end=t.time()
+      Timemat[count,0]+=Roomnum
+      Timemat[count,1]+=mid-start
+      Timemat[count,2]+=(end-mid)/(Roomnum)
+      Timemat[0,2]+=(end-mid)/(Roomnum)
+      Timemat[count,3]+=end-start
+      start=t.time()
+      for i in range(0,Roomnum):
+        Mesh2=StdProgram(i) # Shoot the rays and store the information
+      end=t.time()
+      Timemat[count,4]+=end-start
+      Timemat[count,5]+=(end-start)/(Roomnum)
+      Timemat[0,5]+=(end-start)/(Roomnum)
+      Roomnum*=2
+      del Mesh1, Grid
+  Timemat[0,2]/=(testnum)
+  Timemat[0,5]/=(testnum)
+  Timemat/=(timetest)
   plot_grid()        # Plot the power in slices.
   mp.clf()
   print('-------------------------------')
@@ -646,4 +656,3 @@ if __name__=='__main__':
   print(Timemat)
   print('-------------------------------')
   exit()
-
