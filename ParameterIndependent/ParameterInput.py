@@ -36,7 +36,7 @@ def DeclareParameters():
   # INPUT PARAMETERS FOR RAY LAUNCHER----------------------------------
   # -------------------------------------------------------------------
 
-  print('Saving ray-launcher parameters')
+  #print('Saving ray-launcher parameters')
   Nra=200.0 # Number of rays
   Nre=5 # Number of reflections
   Ns=8   # Number of steps on longest axis.
@@ -104,10 +104,8 @@ def DeclareParameters():
   directions[0] =np.array([0.0,0.0, 1.0,0.0])
   directions[-1]=np.array([0.0,0.0,-1.0,0.0])
 
-  print('Number of requested rays ', Nra)
-  print('Number of reflections ', Nre)
-  print('Mesh spacing ', h)
-  print('Origin of raytracer ', Tx)
+  print('Number of rays ', Nra,'Number of reflections ', Nre,'Mesh spacing ', h)
+  #print('Origin of raytracer ', Tx)
 
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS IN A FOLDER TITLED `Parameters`
@@ -119,9 +117,9 @@ def DeclareParameters():
   np.save('Parameters/Obstacles.npy',Oblist)
   np.save('Parameters/OuterBoundary.npy',OuterBoundary)
   np.save('Parameters/Origin.npy',Tx)
-  print('------------------------------------------------')
-  print('Geometrical parameters saved')
-  print('------------------------------------------------')
+  #print('------------------------------------------------')
+  #print('Geometrical parameters saved')
+  #print('------------------------------------------------')
   return 0
 
 def ObstacleCoefficients(index=0):
@@ -200,7 +198,7 @@ def ObstacleCoefficients(index=0):
   :return: 0 if successfully completed.
 
   '''
-  print('Saving the physical parameters for obstacles and antenna')
+  #print('Saving the physical parameters for obstacles and antenna')
 
   # -------------------------------------------------------------------
   # RETRIEVE RAY LAUNCHER PARAMETERS FOR ARRAY LENGTHS-----------------
@@ -260,14 +258,10 @@ def ObstacleCoefficients(index=0):
 
 
   # PRINT THE PARAMETERS
-  print('Permittivity of free space ', mu0)
-  print('Permeability of free space ', eps0)
-  print('Characteristic Impedence ', Z0)
-  print('Speed of light ', c)
-  print('Number of obstacles',Nob)
-  print('Relative Impedance of the obstacles ', Znobrat.T)
-  print('Refractive index of the obstacles ', refindex.T)
-  print('Polarisation of antenna', Pol)
+  print('Permittivity mu0 ', mu0,'Permeability eps0 ', eps0)
+  print('Characteristic Impedence ', Z0,'Number of obstacles',Nob)
+  #print('Speed of light ', c)
+  print('Relative Impedance ', Znobrat.T[0],'Refractive index ', refindex.T[0],'Polarisation ', Pol)
 
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS
@@ -278,9 +272,9 @@ def ObstacleCoefficients(index=0):
   np.save('Parameters/Znobrat'+str(index)+'.npy',Znobrat)
   np.save('Parameters/refindex'+str(index)+'.npy',refindex)
   np.save('Parameters/Pol'+str(index)+'.npy',Pol)
-  print('------------------------------------------------')
-  print('Material parameters saved')
-  print('------------------------------------------------')
+  #print('------------------------------------------------')
+  #print('Material parameters saved')
+  #print('------------------------------------------------')
   return 0
 
 def BoxBuild(xmi,xma,ymi,yma,zmi,zma):
