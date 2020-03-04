@@ -619,11 +619,12 @@ if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   #out=RayTracer() # To compute just the rays with no storage uncomment this line.
-  timetest=10
-  testnum=4
+  timetest=100
+  testnum=10
+  roomnumstat=2
   Timemat=np.zeros((testnum,6))
   for j in range(0,timetest):
-    Roomnum=2
+    Roomnum=roomnumstat
     #Timemat[0,0]=Roomnum
     for count in range(0,testnum):
       start=t.time()
@@ -655,4 +656,11 @@ if __name__=='__main__':
   print('Time to complete program')
   print(Timemat)
   print('-------------------------------')
+  Nra,Nre,h,L     =np.load('Parameters/Raytracing.npy')
+  if not os.path.exists('./Times'):
+    os.makedirs('./Times')
+  timename=('./Times/TimesNra'+str(Nra)+'Refs'+str(Nre)+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
+  np.save(timename,Timemat)
+  np.save('roomnumstat.npy',roomnumstat)
+  np.save('Roomnum.npy',Roomnum)
   exit()
