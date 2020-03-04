@@ -261,7 +261,7 @@ def ObstacleCoefficients(index=0):
   print('Permittivity mu0 ', mu0,'Permeability eps0 ', eps0)
   print('Characteristic Impedence ', Z0,'Number of obstacles',Nob)
   #print('Speed of light ', c)
-  print('Relative Impedance ', Znobrat.T[0],'Refractive index ', refindex.T[0],'Polarisation ', Pol)
+  print('Relative Impedance ', Znobrat[0],'Refractive index ', refindex[0],'Polarisation ', Pol)
 
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS
