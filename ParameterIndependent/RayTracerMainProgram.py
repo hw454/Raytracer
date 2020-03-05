@@ -619,8 +619,8 @@ if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   #out=RayTracer() # To compute just the rays with no storage uncomment this line.
-  timetest=100
-  testnum=10
+  timetest=1
+  testnum=12
   roomnumstat=2
   Timemat=np.zeros((testnum,6))
   for j in range(0,timetest):
