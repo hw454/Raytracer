@@ -39,7 +39,7 @@ def DeclareParameters():
   #print('Saving ray-launcher parameters')
   Nra=200.0 # Number of rays
   Nre=5 # Number of reflections
-  Ns=12   # Number of steps on longest axis.
+  Ns=9   # Number of steps on longest axis.
   l1=2.0   # Interior obstacle scale
   l2=3.0   # Outer Boundary length scale
 
@@ -113,6 +113,7 @@ def DeclareParameters():
   if not os.path.exists('./Parameters'):
     os.makedirs('./Parameters')
   np.save('Parameters/Raytracing.npy',RTPar)
+  np.save('Parameters/delangle.npy',deltheta)
   np.save('Parameters/Directions.npy',directions)
   np.save('Parameters/Obstacles.npy',Oblist)
   np.save('Parameters/OuterBoundary.npy',OuterBoundary)

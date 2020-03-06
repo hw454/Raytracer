@@ -799,7 +799,6 @@ class DS:
           ctht=np.sqrt(1-(np.sin(theta)/refindex[ind[3][i]])**2)
           S1=cthi*m[ind[3][i]]
           S2=ctht*m[ind[3][i]]
-          #print(out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]],out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]])
           out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=(S1-ctht)/(S1+ctht)
           out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=(cthi-S2)/(cthi+S2)
           del cthi,ctht,S1,S2
@@ -1271,7 +1270,8 @@ class DS:
       k=(np.sqrt(G[b])*(np.cos(m)+np.sin(m)*1j)/(s[x,y,z,a,b]))[0]
       out1[x,y,z]+=k*Com1[x,y,z,a,b]
       out2[x,y,z]+=k*Com2[x,y,z,a,b]
-    del x,y,z,a,b,Ni,m,k
+      del x,y,z,a,b,m,k
+    del Ni
     return out1,out2
 
   def dict_row_vec_multiply(s,vec,ind=-1):
@@ -1879,6 +1879,15 @@ class DS:
     j=0
     for k in ps:
       check=s.stopcheck(k[0],k[1],k[2],p1,h)
+      # if check==1 and start==1:
+        # if k[0] in newps[0]:
+          # kindex=np.where(newp3[0]==k[0])
+          # if k[1]==newps[1][kindex] and k[2]==newps[2][kindex]:
+            # check==0
+          # else:
+            # pass
+        # else:
+          # pass
       if check==1:
         if start==0:
           newps=np.array([[k[0]],[k[1]],[k[2]]])
