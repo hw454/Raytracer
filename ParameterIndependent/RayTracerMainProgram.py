@@ -216,6 +216,7 @@ def MeshProgram():
   Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
   Direc         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
+  deltheta      =np.load('Parameters/delangle.npy')
   Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
 
   # Room contains all the obstacles and walls.
@@ -233,7 +234,7 @@ def MeshProgram():
   print('Starting the ray bouncing and information storage')
   print('-------------------------------')
   t0=t.time()
-  Rays, Mesh=Room.ray_mesh_bounce(Tx,Nre,Nra,Direc,Mesh)
+  Rays, Mesh=Room.ray_mesh_bounce(Tx,Nre,Nra,Direc,Mesh,deltheta)
   t1=t.time()
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
@@ -335,6 +336,7 @@ def StdProgram(index=0):
   Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
   Direc         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
+  deltheta      =np.load('Parameters/delangle.npy')
   Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
 
   # Room contains all the obstacles and walls.
@@ -368,7 +370,7 @@ def StdProgram(index=0):
   print('-------------------------------')
   print('Starting the ray bouncing and field storage')
   print('-------------------------------')
-  Rays, Grid=Room.ray_mesh_power_bounce(Tx,Nre,Nra,Direc,Mesh,Znobrat,refindex,Antpar,Gt,Pol)
+  Rays, Grid=Room.ray_mesh_power_bounce(Tx,Nre,Nra,Direc,Mesh,Znobrat,refindex,Antpar,Gt,Pol,deltheta)
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
   np.save('./Mesh/RayMeshPointsstd'+str(int(Nra))+'Refs'+str(int(Nre))+'m.npy',Rays)
@@ -621,7 +623,7 @@ if __name__=='__main__':
   print(sys.version)
   #out=RayTracer() # To compute just the rays with no storage uncomment this line.
   timetest=1
-  testnum=5
+  testnum=3
   roomnumstat=1
   Timemat=np.zeros((testnum,6))
   for j in range(0,timetest):
