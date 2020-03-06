@@ -303,7 +303,7 @@ class room:
  # \par When complete the time in s.time() is assigned to the time taken
  # to complete the function.
  # @return raylist, Mesh
-  def ray_mesh_bounce(s,Tx,Nre,Nra,directions,Mesh):
+  def ray_mesh_bounce(s,Tx,Nre,Nra,directions,Mesh,deltheta):
     ''' Traces ray's uniformly emitted from an origin around a room.
 
     :param Tx: the co-ordinate of the transmitter location
@@ -347,11 +347,11 @@ class room:
       Dir       =directions[it]
       start     =np.append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
-      Mesh=raystart.mesh_multiref(s,Nre,Mesh,Nra,it)
+      Mesh=raystart.mesh_multiref(s,Nre,Mesh,Nra,it,deltheta)
       raylist[it]=raystart.points[0:-2]
     s.time=t.time()-start_time
     return raylist, Mesh
-  def ray_mesh_power_bounce(s,Tx,Nre,Nra,directions,Grid,Znobrat,refindex,Antpar,Gt,Pol):
+  def ray_mesh_power_bounce(s,Tx,Nre,Nra,directions,Grid,Znobrat,refindex,Antpar,Gt,Pol,deltheta):
     ''' Traces ray's uniformly emitted from an origin around a room.
 
     :param Tx: the co-ordinate of the transmitter location
@@ -398,7 +398,7 @@ class room:
       start     =np.append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
       Polin=(np.sqrt(Gt[it])*lam/(L*4*ma.pi))*Pol
-      Grid=raystart.mesh_power_multiref(s,Nre,Grid,Nra,it,Znobrat,refindex,Antpar,Polin)
+      Grid=raystart.mesh_power_multiref(s,Nre,Grid,Nra,it,Znobrat,refindex,Antpar,Polin,deltheta)
       raylist[it]=raystart.points[0:-2]
     Nx=Grid.shape[0]
     Ny=Grid.shape[1]

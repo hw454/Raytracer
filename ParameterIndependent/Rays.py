@@ -95,17 +95,17 @@ class Ray:
   def number_steps(s,alpha):
     '''The number of steps along the ray between intersection points'''
     return int(lf.length(np.vstack((s.points[-3][0:3],s.points[-2][0:3])))/alpha+1)
-  def number_cones(s,h,dist,Nra):
+  def number_cones(s,h,dist,Nra,delangle):
      '''find the number of steps taken along one normal in the cone'''
-     ta=ma.tan((np.sqrt(2.0*Nra-3)-1)*(np.pi/(Nra-2)))   # Nra>2 and an integer. Therefore tan(theta) exists.
-     Ncon=int(1+2*np.arctan(h/(4*dist*ta))) # Compute the distance of the normal vector
+     ta=ma.tan(delangle*0.5)   # Nra>2 and an integer. Therefore tan(theta) exists.
+     Ncon=int(1+np.pi/np.arctan(h/(dist*ta))) # Compute the distance of the normal vector
                             # for the cone and the number of mesh points
                             # that would fit in that distance.
      return Ncon
-  def number_cone_steps(s,h,dist,Nra):
+  def number_cone_steps(s,h,dist,Nra,delangle):
      '''find the number of steps taken along one normal in the cone'''
-     ta=ma.tan((np.sqrt(2.0*Nra-3)-1)*(np.pi/(Nra-2)))   # Nra>2 and an integer. Therefore tan(theta) exists.
-     Nc=int(1+(2*dist*ta)/h) # Compute the distance of the normal vector
+     ta=ma.tan(delangle/2)   # Nra>2 and an integer. Therefore tan(theta) exists.
+     Nc=int(1+(dist*ta)/h) # Compute the distance of the normal vector
                             # for the cone and the number of mesh points
                             # that would fit in that distance.
      return Nc
@@ -268,7 +268,7 @@ class Ray:
     for i in range(0,Nre+1):
       end=s.reflect_calc(room)
     return
-  def mesh_multiref(s,room,Nre,Mesh,Nra,nra):
+  def mesh_multiref(s,room,Nre,Mesh,Nra,nra,deltheta):
     ''' Takes a ray and finds the first Nre reflections within a room.
     As each reflection is found the ray is stepped through and
     information added to the Mesh.
@@ -297,12 +297,12 @@ class Ray:
     for nre in range(0,Nre+1):
       end=s.reflect_calc(room)
       if abs(end)<epsilon:
-          Mesh,dist,vec=s.mesh_singleray(room,Mesh,dist,vec,Nra,Nre,nra)
+          Mesh,dist,vec=s.mesh_singleray(room,Mesh,dist,vec,Nra,Nre,nra,deltheta)
       else: pass
       #print("AFTER REF",Mesh.xyznonzero())
     del dist,vec
     return Mesh
-  def mesh_power_multiref(s,room,Nre,_Mesh,Nra,it,Znobrat,refindex,Antpar,refcoef):
+  def mesh_power_multiref(s,room,Nre,_Mesh,Nra,it,Znobrat,refindex,Antpar,refcoef,deltheta):
     ''' Takes a ray and finds the first Nre reflections within a room.
     As each reflection is found the ray is stepped through and
     information added to the Mesh.
@@ -335,11 +335,11 @@ class Ray:
     for nre in range(0,Nre+1):
       end=s.reflect_calc(room)
       if abs(end)<epsilon:
-          _Mesh,dist,refcoef=s.mesh_power_singleray(room,_Mesh,dist,refcoef,Nra,nre,Nre,it,refindex,Znobrat,khat,L)
+          _Mesh,dist,refcoef=s.mesh_power_singleray(room,_Mesh,dist,refcoef,Nra,nre,Nre,it,refindex,Znobrat,khat,L,deltheta)
       else: pass
     del dist,refcoef
     return _Mesh
-  def mesh_singleray(s,room,_Mesh,_dist,_calcvec,Nra,Nre,nra):
+  def mesh_singleray(s,room,_Mesh,_dist,_calcvec,Nra,Nre,nra,deltheta):
     ''' Iterate between two intersection points and store the ray \
     information in the Mesh
 
@@ -428,7 +428,7 @@ class Ray:
     segleng=lf.length(np.vstack((s.points[-3][0:3],s.points[-2][0:3]))) # Length of the ray segment
     # Compute a matrix with rows corresponding to normals for the cone.
     #Nc=s.number_cone_steps(deldist,_dist+segleng,Nra)
-    Ncon=s.number_cones(deldist,_dist+segleng,Nra)
+    Ncon=s.number_cones(deldist,_dist+segleng,Nra,deltheta)
     norm=s.normal_mat(Ncon,Nra,direc,_dist,h)              # Matrix of normals to the direc, all of distance 1 equally
                                                            # angle spaced
     Nnor=len(norm)                                         # The number of normal vectors
@@ -461,7 +461,7 @@ class Ray:
         for i3 in calind[0]:
           _Mesh[i1,j1,k1,i3,col]=distcor*_calcvec[i3,0]
         del alcor, distcor
-        Nc=s.number_cone_steps(deldist,_dist,Nra)           # No. of cone steps required for this ray step.
+        Nc=s.number_cone_steps(deldist,_dist,Nra,deltheta)           # No. of cone steps required for this ray step.
         for m2 in range(1,Nc):
           p3=np.tile(p1,(Nnor,1))+m2*alpha*norm             # Step along all the normals from the ray point p1.
           copos=room.position(p3,h)                         # Find the indices corresponding to the cone points.
@@ -503,7 +503,7 @@ class Ray:
     del norm, i1,j1,k1,deldist,p1,p0,m1,alpha,direc,h
     return _Mesh,_dist,_calcvec
 
-  def mesh_power_singleray(s,room,_Grid,_dist,_RefCoef,Nra,nre,Nre,nra,refindex,Znobrat,khat,L):
+  def mesh_power_singleray(s,room,_Grid,_dist,_RefCoef,Nra,nre,Nre,nra,refindex,Znobrat,khat,L,deltheta):
     ''' Iterate between two intersection points and store the ray \
     information in the Mesh
 
@@ -589,7 +589,7 @@ class Ray:
     Ns=s.number_steps(deldist)                             # Compute the number of steps that'll be taken along the ray.
     segleng=lf.length(np.vstack((s.points[-3][0:3],s.points[-2][0:3]))) # Length of the ray segment
     # Compute a matrix with rows corresponding to normals for the cone.
-    Ncon=s.number_cones(deldist,_dist+segleng,Nra)
+    Ncon=s.number_cones(deldist,_dist+segleng,Nra,deltheta)
     norm=s.normal_mat(Ncon,Nra,direc,_dist,h)                # Matrix of normals to the direc, all of distance 1 equally
                                                            # angle spaced
     Nnor=len(norm)                                         # The number of normal vectors
@@ -627,7 +627,7 @@ class Ray:
         _Grid[i1,j1,k1,0]+=(1.0/(rtil))*np.exp(1j*khat*rtil*(L**2))*_RefCoef[0]
         _Grid[i1,j1,k1,1]+=(1.0/(rtil))*np.exp(1j*khat*rtil*(L**2))*_RefCoef[1]
         del alcor, rtil
-        Nc=s.number_cone_steps(deldist,_dist,Nra)           # No. of cone steps required for this ray step.
+        Nc=s.number_cone_steps(deldist,_dist,Nra,deltheta)           # No. of cone steps required for this ray step.
         for m2 in range(1,Nc):
           p3=np.tile(p1,(Nnor,1))+m2*alpha*norm             # Step along all the normals from the ray point p1.
           copos=room.position(p3,h)                         # Find the indices corresponding to the cone points.
