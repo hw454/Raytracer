@@ -799,9 +799,10 @@ class DS:
           ctht=np.sqrt(1-(np.sin(theta)/refindex[ind[3][i]])**2)
           S1=cthi*m[ind[3][i]]
           S2=ctht*m[ind[3][i]]
+          #print(out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]],out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]])
           out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=(S1-ctht)/(S1+ctht)
           out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=(cthi-S2)/(cthi+S2)
-    del cthi,ctht,S1,S2
+          del cthi,ctht,S1,S2
     return out1,out2
 
   def togrid(s,ind):
@@ -1267,7 +1268,7 @@ class DS:
     for l in range(0,Ni):
       x,y,z,a,b=ind[l]
       m=s[x,y,z,a,b]*khat*(L**2)
-      k=(G[b]*(np.cos(m)+np.sin(m)*1j)/(s[x,y,z,a,b]))[0]
+      k=(np.sqrt(G[b])*(np.cos(m)+np.sin(m)*1j)/(s[x,y,z,a,b]))[0]
       out1[x,y,z]+=k*Com1[x,y,z,a,b]
       out2[x,y,z]+=k*Com2[x,y,z,a,b]
     del x,y,z,a,b,Ni,m,k
@@ -1959,6 +1960,11 @@ def stopchecklist(ps,p1,h,p3,n,Nx,Ny,Nz):
     j=0
     for k in ps:
       check=stopcheck(k[0],k[1],k[2],p1,h,Nx,Ny,Nz)
+      if start==1:
+        if k[0] in newps[0]:
+          kindex=np.where(newp3[0]==k[0])
+          if k[1]==newps[1][kindex] and k[2]==newps[2][kindex]:
+            check==0
       if check==1:
         if start==0:
           newps=np.array([[k[0]],[k[1]],[k[2]]])
@@ -2004,6 +2010,7 @@ def phase_calc(RadMesh,khat,L,ind=-1):
   #S2=S1.dict_scal_mult(L**2,ind)
   out=S2.cos(ind)+S2.sin(ind).dict_scal_mult(1j,ind)
   return out
+
 
 def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
   ''' Compute the field from a Mesh of ray information and the physical \
@@ -2053,7 +2060,7 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
   #print('----------------------------------------------------------')
   #print('Start computing the power from the Mesh')
   #print('----------------------------------------------------------')
-  #t0=t.time()
+  t0=t.time()
   # Retrieve the parameters
   khat,lam,L = Antpar
   if isinstance(ind, type(-1)):
@@ -2136,8 +2143,6 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
   # Power
   P=np.zeros((Mesh.Nx,Mesh.Ny,Mesh.Nz),dtype=np.longdouble)
   P=np.power(np.absolute(Gridpe*Pol[0])+np.absolute(Gridpa*Pol[1]),2)
-  #print("power",P.nonzero())
-  #print(P)
   P=10*np.log10(P,where=(P!=0))
   #t10=t.time()
   # print('----------------------------------------------------------')

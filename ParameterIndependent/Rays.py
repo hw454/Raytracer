@@ -434,22 +434,23 @@ class Ray:
     Nnor=len(norm)                                         # The number of normal vectors
     # Add the reflection angle to the vector of  ray history. s.points[-2][-1] is the obstacle number of the last hit.
     if nre==0:                                             # Before reflection use a 1 so that the distance is still stored
-      _calcvec[0]=1.0+0j                                       # The first row corresponds to line of sight terms
+      _calcvec[0]=1.0+0.0j                                   # The first row corresponds to line of sight terms
     else:
       _calcvec[int((nre-1)*room.Nob+nob)]=np.exp(1j*theta) # After the first reflection all reflection angles
                                  # continue to be stored in calcvec.
     for m1 in range(0,Ns+1):                             # Step through the ray
-      stpch=_Mesh.stopcheck(i1,j1,k1,endposition,h)        # Check if the ray point is outside the domain.
+      if m1==0:
+          stpch=_Mesh.stopcheck(i1,j1,k1,endposition,h) # Check if the ray point is outside the domain.
       #print(Ns,stpch,i1,j1,k1)
       if m1>0:                                             # After the first step check that each iteration is moving into
                                                            # a new element.
         if i2==i1 and j2==j1 and k2==k1:                   # If the indices are equal pass as no new element.
-          pass
-
+          stpch=0
         else:
-          i2=i1                                           # Reset the check indices for the next check.
-          j2=j1
-          k2=k1
+          i1=i2                                           # Reset the check indices for the next check.
+          j1=j2
+          k1=k2
+          stpch=_Mesh.stopcheck(i1,j1,k1,endposition,h)
       if stpch:
         p2=room.coordinate(h,i1,j1,k1)                     # Calculate the co-ordinate of the center
                                                            # of the element the ray hit
@@ -461,7 +462,7 @@ class Ray:
           _Mesh[i1,j1,k1,i3,col]=distcor*_calcvec[i3,0]
         del alcor, distcor
         Nc=s.number_cone_steps(deldist,_dist,Nra)           # No. of cone steps required for this ray step.
-        for m2 in range(Nc):
+        for m2 in range(1,Nc):
           p3=np.tile(p1,(Nnor,1))+m2*alpha*norm             # Step along all the normals from the ray point p1.
           copos=room.position(p3,h)                         # Find the indices corresponding to the cone points.
           #print("before",copos,m2,alpha,nre)
@@ -497,7 +498,7 @@ class Ray:
       _dist+=deldist
       i2,j2,k2=room.position(p1,h)
       #FIXME don't stop at the end as the cone needs to be filled
-      if lf.length(np.array([p1,s.points[-2][0:3]]))<h:
+      if lf.length(np.array([p1-alpha*direc,s.points[-2][0:3]]))<h/2:
         break
     del norm, i1,j1,k1,deldist,p1,p0,m1,alpha,direc,h
     return _Mesh,_dist,_calcvec
@@ -603,16 +604,18 @@ class Ray:
       _RefCoef=np.matmul(np.array([[refpar,0],[0,refper]]),_RefCoef)
       del cthi, ctht, refper, refpar
     for m1 in range(0,Ns+1):                             # Step through the ray
-      stpch=DSM.stopcheck(i1,j1,k1,endposition,h,Nx,Ny,Nz) # Check if the ray point is outside the domain.
+      if m1==0:
+          stpch=DSM.stopcheck(i1,j1,k1,endposition,h,Nx,Ny,Nz) # Check if the ray point is outside the domain.
       #print(Ns,stpch,i1,j1,k1)
       if m1>0:                                             # After the first step check that each iteration is moving into
                                                            # a new element.
         if i2==i1 and j2==j1 and k2==k1:                   # If the indices are equal pass as no new element.
           stpch=0
         else:
-          i2=i1                                           # Reset the check indices for the next check.
-          j2=j1
-          k2=k1
+          i1=i2                                           # Reset the check indices for the next check.
+          j1=j2
+          k1=k2
+          stpch=DSM.stopcheck(i1,j1,k1,endposition,h,Nx,Ny,Nz)
       if stpch:
         p2=room.coordinate(h,i1,j1,k1)                     # Calculate the co-ordinate of the center
                                                            # of the element the ray hit
@@ -625,7 +628,7 @@ class Ray:
         _Grid[i1,j1,k1,1]+=(1.0/(rtil))*np.exp(1j*khat*rtil*(L**2))*_RefCoef[1]
         del alcor, rtil
         Nc=s.number_cone_steps(deldist,_dist,Nra)           # No. of cone steps required for this ray step.
-        for m2 in range(Nc):
+        for m2 in range(1,Nc):
           p3=np.tile(p1,(Nnor,1))+m2*alpha*norm             # Step along all the normals from the ray point p1.
           copos=room.position(p3,h)                         # Find the indices corresponding to the cone points.
           #print("before",copos,m2,alpha,nre,nra)
@@ -668,7 +671,7 @@ class Ray:
       _dist+=deldist
       i2,j2,k2=room.position(p1,h)
       #FIXME don't stop at the end as the cone needs to be filled
-      if lf.length(np.array([p1,s.points[-2][0:3]]))<h/2:
+      if lf.length(np.array([p1-alpha*direc,s.points[-2][0:3]]))<h/2:
         break
       #print(_Grid)
     return _Grid,_dist,_RefCoef

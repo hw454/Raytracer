@@ -440,7 +440,7 @@ def power_grid(Roomnum=0):
     refindex     =np.load('Parameters/refindex'+str(index)+'.npy')
     # Make the refindex, impedance and gains vectors the right length to
     # match the matrices.
-    Znobrat=np.tile(Znobrat,(Nre,1))                    # The number of rows is Nob*Nre+1. Repeat Nob
+    Znobrat=np.tile(Znobrat,(Nre,1))          # The number of rows is Nob*Nre+1. Repeat Nob
     Znobrat=np.insert(Znobrat,0,1.0+0.0j)     # Use a zero for placement in the LOS row
     refindex=np.tile(refindex,(Nre,1))
     refindex=np.insert(refindex,0,1.0+0.0j)
@@ -489,8 +489,8 @@ def RefCoefComputation(Mesh):
 
   '''
   out=PI.ObstacleCoefficients()
-  Znobrat      =np.load('Parameters/Znobrat.npy')
-  refindex     =np.load('Parameters/refindex.npy')
+  Znobrat      =np.load('Parameters/Znobrat'+str(index)+'.npy')
+  refindex     =np.load('Parameters/refindex'+str(index)+'.npy')
   print('-------------------------------')
   print('Computing the reflection coeficients')
   print('-------------------------------')
@@ -575,7 +575,8 @@ def plot_grid(index=0):
   P2=np.load(pstrstd)
   Pdiff=np.zeros((P.shape),dtype=np.single)
   Pdiff=abs(np.divide(P-P2,P, where=(abs(P)>epsilon)))
-  #print(Pdiff)
+  err=np.sum(Pdiff)/(P.shape[0]*P.shape[1]*P.shape[2])
+  print('Residual value',err)
   n=P.shape[2]
   n2=P2.shape[2]
   n3=Pdiff.shape[2]
@@ -605,7 +606,7 @@ def plot_grid(index=0):
   for i in range(n3):
     mp.figure(n2+n+i)
     #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-    mp.imshow(Pdiff[:,:,i], cmap='viridis', vmax=max(ub2,ub),vmin=min(lb,lb2))
+    mp.imshow(Pdiff[:,:,i], cmap='viridis')#, vmax=max(ub2,ub),vmin=min(lb,lb2))
     mp.colorbar()
     filename=str('GeneralMethodPowerFigures/NoBoxPowerDiffSliceNra'+str(int(Nra))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
     mp.savefig(filename)
@@ -620,8 +621,8 @@ if __name__=='__main__':
   print(sys.version)
   #out=RayTracer() # To compute just the rays with no storage uncomment this line.
   timetest=1
-  testnum=12
-  roomnumstat=2
+  testnum=7
+  roomnumstat=1
   Timemat=np.zeros((testnum,6))
   for j in range(0,timetest):
     Roomnum=roomnumstat
@@ -636,7 +637,8 @@ if __name__=='__main__':
       Timemat[count,0]+=Roomnum
       Timemat[count,1]+=mid-start
       Timemat[count,2]+=(end-mid)/(Roomnum)
-      Timemat[0,2]+=(end-mid)/(Roomnum)
+      if count !=0:
+        Timemat[0,2]+=(end-mid)/(Roomnum)
       Timemat[count,3]+=end-start
       start=t.time()
       for i in range(0,Roomnum):
@@ -644,7 +646,8 @@ if __name__=='__main__':
       end=t.time()
       Timemat[count,4]+=end-start
       Timemat[count,5]+=(end-start)/(Roomnum)
-      Timemat[0,5]+=(end-start)/(Roomnum)
+      if count !=0:
+        Timemat[0,5]+=(end-start)/(Roomnum)
       Roomnum*=2
       del Mesh1, Grid
   Timemat[0,2]/=(testnum)
