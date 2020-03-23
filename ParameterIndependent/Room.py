@@ -278,6 +278,7 @@ class room:
     elif n>1:
       Addarray=np.tile(s.bounds[0]+h*np.array([0.5,0.5,0.5]),(n,1))
       coord=np.array((h*np.c_[i,j,k]+Addarray),dtype=float)
+      #coord=coord.T
       return coord
     else:
       raise ValueError("Neither point nor array of points")
@@ -342,8 +343,8 @@ class room:
     directions    =r*directions
     # Iterate through the rays find the ray reflections
     # FIXME rays are independent of each other so this is parallelisable
-    #j=int(3*Nra/4)
-    for it in range(0,Nra): #j,j+2):
+    #j=int(Nra/2)
+    for it in range(0,Nra):#j,j+3):
       Dir       =directions[it]
       start     =np.append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
@@ -393,7 +394,7 @@ class room:
     # FIXME rays are independent of each other so this is parallelisable
     #FIXME Find out whether the ray points are correct.
     #j=int(3*Nra/4)
-    for it in range(0,Nra):#j,j+2):
+    for it in range(3,4):#j,j+2):
       Dir       =directions[it]
       start     =np.append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
@@ -405,7 +406,7 @@ class room:
     Nz=Grid.shape[2]
     #print(Grid)
     P=np.zeros((Nx,Ny,Nz),dtype=np.longdouble)
-    P=np.power(np.absolute(Grid[:,:,:,0])+np.absolute(Grid[:,:,:,1]),2)
+    P=np.power(np.absolute(Grid[:,:,:,0])+np.absolute(Grid[:,:,:,1]),1)
     P=10*np.log10(P,where=(P!=0))
     s.time=t.time()-start_time
     return raylist, P

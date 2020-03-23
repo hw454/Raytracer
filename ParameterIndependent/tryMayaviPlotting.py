@@ -20,11 +20,11 @@ def PlotRays():
     #Nre=5
 
     #L=1
-    Nra=int(np.sqrt(Nrao/2.0)-1)*int(np.sqrt(2.0*Nrao))+1
+    #Nra=int(np.sqrt(Nrao/2.0)-1)*int(np.sqrt(2.0*Nrao))+1
     #Nra=Nrao
 
     ##---Retrieve the Ray points ---------------------------------------
-    data_matrix=np.load('./Mesh/RayMeshPoints'+str(int(Nrao))+'Refs'+str(int(Nre))+'m.npy')
+    data_matrix=L*np.load('./Mesh/RayMeshPoints'+str(int(Nrao))+'Refs'+str(int(Nre))+'m.npy')
     #data_matrix=data_matrix #print(data_matrix)
 
     ##----Retrieve the environment--------------------------------------
@@ -43,13 +43,13 @@ def PlotRays():
     mlab.clf()
     #mlab.figure(1)
     mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.25)
-    for j in range(0,int(Nra)):
+    for j in range(0,int(Nrao)):
       #j=int(Nre)*k
       x=np.array([data_matrix[j][0][0]])
       y=np.array([data_matrix[j][0][1]])
       z=np.array([data_matrix[j][0][2]])
       s=np.array([data_matrix[j][0][3]])
-      for l in range(1,int(Nre)+1):
+      for l in range(1,2):#int(Nre)+1):
           #FIXME problem finding intersection for directly up
           if all( ma.isnan(x) for x in data_matrix[j][l]):
             pass

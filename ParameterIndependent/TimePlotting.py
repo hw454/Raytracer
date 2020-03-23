@@ -12,14 +12,14 @@ def PlotTimes():
     Nrao,Nre,h ,L    =np.load('Parameters/Raytracing.npy')
 
     #Nra=int(np.sqrt(Nrao/2.0)-1)*int(np.sqrt(2.0*Nrao))+1
-    Nra=Nrao
+    Nra=int(Nrao)
 
     roomnumstat=np.load('roomnumstat.npy')
     Roomnum    =np.load('Roomnum.npy')
 
 
     ##---Retrieve the Timematrix ---------------------------------------
-    timename=('./Times/TimesNra'+str(Nra)+'Refs'+str(Nre)+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
+    timename=('./Times/TimesNra'+str(Nra)+'Refs'+str(int(Nre))+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
     Timemat=np.load(timename)
     x=Timemat[:,0]
     hay=Timemat[:,3]

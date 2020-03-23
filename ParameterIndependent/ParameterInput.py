@@ -37,9 +37,9 @@ def DeclareParameters():
   # -------------------------------------------------------------------
 
   #print('Saving ray-launcher parameters')
-  Nra=200.0 # Number of rays
-  Nre=5 # Number of reflections
-  Ns=9   # Number of steps on longest axis.
+  Nra=1500.0 # Number of rays
+  Nre=2 # Number of reflections
+  Ns=10   # Number of steps on longest axis.
   l1=2.0   # Interior obstacle scale
   l2=3.0   # Outer Boundary length scale
 
@@ -63,7 +63,7 @@ def DeclareParameters():
   OuterBoundary=BoxBuild(xmi,xma,ymi,yma,zmi,zma)
 
   # -Router location -co-ordinate of three real numbers
-  Tx=np.array([0.75,0.75,0.125])*l2
+  Tx=np.array([0.5,0.5,0.5])*l2
 
   # CONSTRUCT THE ARRAYS FOR STORING OBSTACLES
   Oblist=(1.0/l1)*Oblist
@@ -252,8 +252,10 @@ def ObstacleCoefficients(index=0):
   top=complex(0,frequency*mu0)*mur
   bottom=sigma+complex(0,eps0*frequency)*epsr
   Znob =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
-  Znobrat=Znob/Z0
-  refindex=np.sqrt(np.multiply(mur,epsr))     # Refractive index of the obstacles
+  Znobrat=np.ones((Nob,1),dtype=np.complex128)
+  #Znobrat[0]=Znob[0]/Z0
+  refindex=np.ones((Nob,1),dtype=np.complex128)
+  #refindex[0]=np.sqrt(np.multiply(mur[0],epsr[0]))     # Refractive index of the obstacles
   # CLEAR THE TERMS JUST FOR CALCULATION
   del top, bottom,Znob
 

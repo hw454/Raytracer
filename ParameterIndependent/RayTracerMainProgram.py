@@ -213,20 +213,20 @@ def MeshProgram():
 
   ##----Retrieve the environment--------------------------------------
   Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
-  Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
+  Tx            =np.load('Parameters/Origin.npy')/L             # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
   Direc         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
   deltheta      =np.load('Parameters/delangle.npy')
-  Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+  Oblist        =OuterBoundary/L #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
 
   # Room contains all the obstacles and walls.
   Room=rom.room(Oblist)
   Nob=Room.Nob
   np.save('Parameters/Nob.npy',Nob)
 
-  Nx=int(Room.maxxleng()/(L*h)+1)
-  Ny=int(Room.maxyleng()/(L*h)+1)
-  Nz=int(Room.maxzleng()/(L*h)+1)
+  Nx=int(Room.maxxleng()/(h))
+  Ny=int(Room.maxyleng()/(h))
+  Nz=int(Room.maxzleng()/(h))
   Mesh=DSM.DS(Nx,Ny,Nz,Nob*Nre+1,Nra*(Nre+1))
   #print('-------------------------------')
   #print('Mesh built')
@@ -333,11 +333,11 @@ def StdProgram(index=0):
 
   ##----Retrieve the environment--------------------------------------
   Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
-  Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
+  Tx            =np.load('Parameters/Origin.npy')/L             # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
   Direc         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
   deltheta      =np.load('Parameters/delangle.npy')
-  Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+  Oblist        =OuterBoundary/L #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
 
   # Room contains all the obstacles and walls.
   Room=rom.room(Oblist)
@@ -361,9 +361,9 @@ def StdProgram(index=0):
   Znobrat=np.insert(Znobrat,0,1.0+0.0j)     # Use a zero for placement in the LOS row
   refindex=np.insert(refindex,0,1.0+0.0j)
 
-  Nx=int(Room.maxxleng()/(L*h)+1)
-  Ny=int(Room.maxyleng()/(L*h)+1)
-  Nz=int(Room.maxzleng()/(L*h)+1)
+  Nx=int(Room.maxxleng()/(h)+1)
+  Ny=int(Room.maxyleng()/(h)+1)
+  Nz=int(Room.maxzleng()/(h)+1)
   Mesh=np.zeros((Nx,Ny,Nz,2),dtype=np.complex128)
   print('-------------------------------')
   print('Mesh for Std program built')
@@ -373,7 +373,7 @@ def StdProgram(index=0):
   Rays, Grid=Room.ray_mesh_power_bounce(Tx,Nre,Nra,Direc,Mesh,Znobrat,refindex,Antpar,Gt,Pol,deltheta)
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
-  np.save('./Mesh/RayMeshPointsstd'+str(int(Nra))+'Refs'+str(int(Nre))+'m.npy',Rays)
+  np.save('./Mesh/RayMeshPointsstd'+str(int(Nra))+'Refs'+str(int(Nre))+'m.npy',Rays*L)
   np.save('./Mesh/Power_gridstd'+str(Nra)+'Refs'+str(int(Nre))+'m'+str(int(index))+'.npy',Grid)
   # print('-------------------------------')
   # print('Ray-launching complete')
@@ -452,6 +452,7 @@ def power_grid(Roomnum=0):
     c             =Freespace[3]
     khat          =freq*L/c
     lam           =(2*np.pi*c)/freq
+    print(lam)
     Antpar        =np.array([khat,lam,L])
     if index==0:
       Grid,ind=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra,Nre,Ns)
@@ -573,46 +574,86 @@ def plot_grid(index=0):
   Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
   pstr=str('./Mesh/Power_grid'+str(int(Nra))+'Refs'+str(int(Nre))+'m'+str(index)+'.npy')
   pstrstd=str('./Mesh/Power_gridstd'+str(int(Nra))+'Refs'+str(int(Nre))+'m'+str(index)+'.npy')
+  truestr=str('Parameters/True.npy')
+  P3=np.load(truestr)
+  #P3/=np.abs(np.average(P3))
+  #print(P2)
   P=np.load(pstr)
-  P2=np.load(pstrstd)
-  Pdiff=np.zeros((P.shape),dtype=np.single)
-  Pdiff=abs(np.divide(P-P2,P, where=(abs(P)>epsilon)))
-  err=np.sum(Pdiff)/(P.shape[0]*P.shape[1]*P.shape[2])
-  print('Residual value',err)
+  #P/=np.abs(np.average(P))
+  #P2=np.load(pstrstd)
+  #P2/=np.abs(np.average(P2))
+  #Pdiff=np.zeros((P.shape),dtype=np.single)
+  #Pdiff=abs(np.divide(P-P2,P, where=(abs(P)>epsilon)))
+  Pdifftil=abs(np.divide(P-P3,P, where=(abs(P)>epsilon)))
+  #Pdiffhat=abs(np.divide(P2-P3,P, where=(abs(P)>epsilon)))
+  #err=np.sum(Pdiff)/(P.shape[0]*P.shape[1]*P.shape[2])
+  #print('Residual GRL to std',err)
+  err2=np.sum(Pdifftil)/(P.shape[0]*P.shape[1]*P.shape[2])
+  print('Residual GRL to true',err2)
+  #err3=np.sum(Pdiffhat)/(P.shape[0]*P.shape[1]*P.shape[2])
+  #print('Residual of std to true',err3)
   n=P.shape[2]
-  n2=P2.shape[2]
-  n3=Pdiff.shape[2]
+  #n2=P2.shape[2]
+  #n3=Pdiff.shape[2]
   lb=np.amin(P)
-  lb2=np.amin(P2)
+  #lb2=np.amin(P2)
+  lb3=np.amin(P3)
+  lb=min(lb,lb3)
   ub=np.amax(P)
-  ub2=np.amax(P2)
+  #ub2=np.amax(P2)
+  ub3=np.amax(P3)
+  ub=max(ub,ub3)
   if not os.path.exists('./GeneralMethodPowerFigures'):
     os.makedirs('./GeneralMethodPowerFigures')
   for i in range(n):
     mp.figure(i)
     #
     #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-    mp.imshow(P[:,:,i], cmap='viridis', vmax=max(ub2,ub),vmin=min(lb,lb2))
+    mp.imshow(P[:,:,i], cmap='viridis', vmax=ub,vmin=lb)
     mp.colorbar()
     filename=str('GeneralMethodPowerFigures/NoBoxPowerSliceNra'+str(int(Nra))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
     mp.savefig(filename)
     mp.clf()
-  for i in range(n2):
+  # for i in range(n2):
+    # mp.figure(n+i)
+    # #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
+    # mp.imshow(P2[:,:,i], cmap='viridis',  vmax=ub,vmin=lb)
+    # mp.colorbar()
+    # filename=str('GeneralMethodPowerFigures/NoBoxPowerSliceNrastd'+str(int(Nra))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
+    # mp.savefig(filename)
+    # mp.clf()
+  for i in range(n):
     mp.figure(n+i)
     #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-    mp.imshow(P2[:,:,i], cmap='viridis', vmax=max(ub2,ub),vmin=min(lb,lb2))
+    mp.imshow(P3[:,:,i], cmap='viridis',  vmax=ub,vmin=lb)
     mp.colorbar()
-    filename=str('GeneralMethodPowerFigures/NoBoxPowerSliceNrastd'+str(int(Nra))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
+    filename=str('GeneralMethodPowerFigures/NoBoxTrueSliceNra'+str(int(Nra))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
     mp.savefig(filename)
     mp.clf()
-  for i in range(n3):
-    mp.figure(n2+n+i)
+  # for i in range(n3):
+    # mp.figure(n2+n+i)
+    # #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
+    # mp.imshow(Pdiff[:,:,i], cmap='viridis')#, vmax=max(ub2,ub),vmin=min(lb,lb2))
+    # mp.colorbar()
+    # filename=str('GeneralMethodPowerFigures/NoBoxPowerDiffSliceNra'+str(int(Nra))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
+    # mp.savefig(filename)
+    # mp.clf()
+  for i in range(n):
+    mp.figure(2*n+i)
     #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-    mp.imshow(Pdiff[:,:,i], cmap='viridis')#, vmax=max(ub2,ub),vmin=min(lb,lb2))
+    mp.imshow(Pdifftil[:,:,i], cmap='viridis')#, vmax=max(ub2,ub),vmin=min(lb,lb2))
     mp.colorbar()
-    filename=str('GeneralMethodPowerFigures/NoBoxPowerDiffSliceNra'+str(int(Nra))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
+    filename=str('GeneralMethodPowerFigures/NoBoxPowerDifftilSliceNra'+str(int(Nra))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
     mp.savefig(filename)
     mp.clf()
+  # for i in range(n3):
+    # mp.figure(n2+n+i)
+    # #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
+    # mp.imshow(Pdiffhat[:,:,i], cmap='viridis')#, vmax=max(ub2,ub),vmin=min(lb,lb2))
+    # mp.colorbar()
+    # filename=str('GeneralMethodPowerFigures/NoBoxPowerDiffhatSliceNra'+str(int(Nra))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
+    # mp.savefig(filename)
+    # mp.clf()
   #mp.show()
   return
 
@@ -623,7 +664,7 @@ if __name__=='__main__':
   print(sys.version)
   #out=RayTracer() # To compute just the rays with no storage uncomment this line.
   timetest=1
-  testnum=7
+  testnum=1
   roomnumstat=1
   Timemat=np.zeros((testnum,6))
   for j in range(0,timetest):
@@ -643,8 +684,8 @@ if __name__=='__main__':
         Timemat[0,2]+=(end-mid)/(Roomnum)
       Timemat[count,3]+=end-start
       start=t.time()
-      for i in range(0,Roomnum):
-        Mesh2=StdProgram(i) # Shoot the rays and store the information
+      #for i in range(0,Roomnum):
+      #  Mesh2=StdProgram(i) # Shoot the rays and store the information
       end=t.time()
       Timemat[count,4]+=end-start
       Timemat[count,5]+=(end-start)/(Roomnum)
@@ -659,12 +700,12 @@ if __name__=='__main__':
   mp.clf()
   print('-------------------------------')
   print('Time to complete program')
-  print(Timemat)
+  #print(Timemat)
   print('-------------------------------')
   Nra,Nre,h,L     =np.load('Parameters/Raytracing.npy')
   if not os.path.exists('./Times'):
     os.makedirs('./Times')
-  timename=('./Times/TimesNra'+str(Nra)+'Refs'+str(Nre)+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
+  timename=('./Times/TimesNra'+str(int(Nra))+'Refs'+str(int(Nre))+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
   np.save(timename,Timemat)
   np.save('roomnumstat.npy',roomnumstat)
   np.save('Roomnum.npy',Roomnum)

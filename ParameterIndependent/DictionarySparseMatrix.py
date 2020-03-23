@@ -646,7 +646,7 @@ class DS:
             if s[x1,y1,z1][ind[0][n-1],ind[1][n-1]]!=s[x2,y2,z2][ind[0][n-1],ind[1][n-1]]: return False
             else: pass
     return True
-  def __get_rad__(s, ind=-1):
+  def __get_rad__(s, h,Nra,ind=-1):
     ''' Return a DS corresponding to the distances stored in the mesh.
 
       * Initialise out=DS(Nx,Ny,Nz,1,s.shape[1])
@@ -677,19 +677,33 @@ class DS:
     n=len(ind[0])
     check=-1
     for i in range(0,n):
-      if out[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]==0:
-        out[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=abs(s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]])
-        if check==0:
-          indicesSec=np.array([ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]])
-          indout=np.vstack((indout,indicesSec))
-          del indicesSec
-        else:
-          check=0
-          indout=np.array([ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]])
+      l=abs(s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]])
+      M=out[ind[0][i],ind[1][i],ind[2][i]]
+      indM=M.nonzero()
+      n2=len(indM[0])
+      rep=1
+      if np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])==0 and l!=0:
+        for j in range(0,n2):
+          if np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,indM[1][j]])==0 and abs(M[indM[0][j],indM[1][j]]-l)<h/4 and indM[1][j]!=ind[4][i]:
+           rep=0
+           #repcol=indM[1][j]
+          else:
+            pass
+      if rep==0:
+        out[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=0
+        #out[ind[0][i],ind[1][i],ind[2][i],0,repcol]=0
       else:
-        pass
-    if check==-1:
-      indout=np.array([])
+        if M[0,ind[4][i]]==0:
+          out[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=l
+          if check==0:
+            indicesSec=np.array([ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]])
+            indout=np.vstack((indout,indicesSec))
+            del indicesSec
+          else:
+            check=0
+            indout=np.array([ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]])
+      if check==-1:
+        indout=np.array([])
     return out,indout
   def refcoefdiv(s,S2,cthi,ctht, ind=-1):
     if isinstance(ind, type(-1)):
@@ -790,18 +804,29 @@ class DS:
           # out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=((S1-ctht)/(S1+ctht))*(lam/(L*4*math.pi))
           # out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=((cthi-S2)/(cthi+S2))*(lam/(L*4*math.pi))
       #else:
-        if ind[3][i]==0:
-          out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=(lam/(L*4*math.pi))
-          out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=(lam/(L*4*math.pi))
+        if ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])==0:
+          out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
+          out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
+        elif ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])!=0:
+              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=0
+              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=0
+              #FIXME This is only to get just LOS
         else:
-          theta=s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
-          cthi=np.cos(theta)
-          ctht=np.sqrt(1-(np.sin(theta)/refindex[ind[3][i]])**2)
-          S1=cthi*m[ind[3][i]]
-          S2=ctht*m[ind[3][i]]
-          out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=(S1-ctht)/(S1+ctht)
-          out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=(cthi-S2)/(cthi+S2)
-          del cthi,ctht,S1,S2
+            theta=s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
+            cthi=np.cos(theta)
+            ctht=np.cos(np.arcsin(np.sin(theta)/refindex[ind[3][i]]))
+            #np.sqrt(1-(np.sin(theta)/refindex[ind[3][i]])**2)
+            S1=cthi*m[ind[3][i]]
+            S2=ctht*m[ind[3][i]]
+            if cthi==0 and ctht==0:
+              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=0
+              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=0
+            elif out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]==0:
+              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=0#(S1-ctht)/(S1+ctht)
+              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=0#(cthi-S2)/(cthi+S2)
+            else:
+              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=0#(S1-ctht)/(S1+ctht)
+              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=0#(cthi-S2)/(cthi+S2)
     return out1,out2
 
   def togrid(s,ind):
@@ -1229,7 +1254,7 @@ class DS:
     del x,y,z,a,b,Ni,m,k
     return out1,out2
 
-  def gain_phase_rad_ref_mul_add(s,Com1,Com2,G,khat,L,ind=-1):
+  def gain_phase_rad_ref_mul_add(s,Com1,Com2,G,khat,L,lam,ind=-1):
     """ Multiply all terms of s element wise with Com1/Rad and each row by Gt.
         Multiply all terms of s elementwise with Com2/Rad and each row by Gt.
 
@@ -1266,11 +1291,16 @@ class DS:
     Ni=len(np.transpose(ind)[4]) #FIXME find the nonzero columns without repeat column index for each term
     for l in range(0,Ni):
       x,y,z,a,b=ind[l]
-      m=s[x,y,z,a,b]*khat*(L**2)
-      k=(np.sqrt(G[b])*(np.cos(m)+np.sin(m)*1j)/(s[x,y,z,a,b]))[0]
-      out1[x,y,z]+=k*Com1[x,y,z,a,b]
-      out2[x,y,z]+=k*Com2[x,y,z,a,b]
-      del x,y,z,a,b,m,k
+      if s[x,y,z,a,b]==0:
+        pass
+      else:
+        m=s[x,y,z,a,b]*khat*(L**2)
+        k=lam*(np.sqrt(G[b])*(np.cos(m)+np.sin(m)*1j)/(s[x,y,z,a,b]*4*np.pi*L))[0]
+        if x==5 and y==5 and z==5:
+          print(s[x,y,z,a,b],k,Com1[x,y,z,a,b],a,b)
+        out1[x,y,z]+=k*Com1[x,y,z,a,b]
+        out2[x,y,z]+=k*Com2[x,y,z,a,b]
+        del x,y,z,a,b,m,k
     del Ni
     return out1,out2
 
@@ -1877,7 +1907,16 @@ class DS:
     newp3=np.array([])
     newn =np.array([])
     j=0
-    for k in ps:
+    if isinstance(ps[0],(float,int,np.int64, np.complex128 )):
+      check=s.stopcheck(ps[0],ps[1],ps[2],p1,h)
+      if check==1:
+        newps=np.array([[ps[0]],[ps[1]],[ps[2]]])
+        newp3=np.array([[p3[0]],[p3[1]],[p3[2]]])
+        newn =np.array([[n[0]], [n[1]], [n[2]]])
+      else:
+        pass
+    else:
+     for k in ps:
       check=s.stopcheck(k[0],k[1],k[2],p1,h)
       # if check==1 and start==1:
         # if k[0] in newps[0]:
@@ -2092,7 +2131,9 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
     AngDSM.save_dict(angfile)
   #AngDSM=Mesh.sparse_angles(ind)
   #t2=t.time()
+  #(AngDSM[0,0,5])
   Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,lam,L,ind)
+  #print(Comper[0,0,5], Compar[0,0,5])
   #print(Rper,Rpar)
   # Combine the reflection coefficients to get the reflection loss on each ray.
   #t3=t.time()
@@ -2101,13 +2142,15 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
   # Get the distances for each ray segment from the Mesh
   rfile=str('./Mesh/rad'+str(int(Nra))+'Refs'+str(int(Nre))+'Ns'+str(int(Ns))+'.npy')
   radfile = Path(rfile)
+  h=1/Mesh.Nx
   if radfile.is_file():
     RadMesh=load_dict(rfile)
     ind=RadMesh.nonzero()
   else:
-    RadMesh,ind=Mesh.__get_rad__(ind)
+    RadMesh,ind=Mesh.__get_rad__(h,ind)
     RadMesh.save_dict(rfile)
   t4=t.time()
+  #print(RadMesh[0,0,5])
   # Compute the mesh of phases
    #FIXME try removing this line and using the previous indices
   #pha=RadMesh.phase_calc(khat,L,ind)
@@ -2126,7 +2169,7 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
   # t6=t.time()
   # GtphaRpe,GtphaRpa=pharad.gain_phase_ref_mul(Comper,Compar,Gt,ind)
   # t7=t.time()
-  Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,ind)
+  Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)
   #t7=t.time()
   # if t7-t6>t6-t5:
     # print("method 1",t7-t6,t6-t5)
@@ -2151,8 +2194,9 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
   #t9=t.time()
   # Power
   P=np.zeros((Mesh.Nx,Mesh.Ny,Mesh.Nz),dtype=np.longdouble)
-  P=np.power(np.absolute(Gridpe*Pol[0])+np.absolute(Gridpa*Pol[1]),2)
-  P=10*np.log10(P,where=(P!=0))
+  P=np.absolute(Gridpe*Pol[0])+np.absolute(Gridpa*Pol[1])
+  P=20*np.log10(P,where=(P!=0))
+  print('edge',P[0,0,5],'centre',P[5,5,5],'low',P[2,1,7])
   #t10=t.time()
   # print('----------------------------------------------------------')
   # print('Total time to find power', t10-t0)
