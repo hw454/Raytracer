@@ -37,7 +37,7 @@ def DeclareParameters():
   # -------------------------------------------------------------------
 
   #print('Saving ray-launcher parameters')
-  Nra=1500.0 # Number of rays
+  Nra=500.0 # Number of rays
   Nre=2 # Number of reflections
   Ns=10   # Number of steps on longest axis.
   l1=2.0   # Interior obstacle scale
