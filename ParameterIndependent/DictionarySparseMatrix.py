@@ -1296,8 +1296,10 @@ class DS:
       else:
         m=s[x,y,z,a,b]*khat*(L**2)
         k=lam*(np.sqrt(G[b])*(np.cos(m)+np.sin(m)*1j)/(s[x,y,z,a,b]*4*np.pi*L))[0]
-        if x==5 and y==5 and z==5:
-          print(s[x,y,z,a,b],k,Com1[x,y,z,a,b],a,b)
+        #if x==0 and y==5 and z==4:
+        #  print('top',s[x,y,z,a,b],k,Com1[x,y,z,a,b],a,b)
+        #if x==9 and y==4 and z==4:
+        #  print('bottom',s[x,y,z,a,b],k,Com1[x,y,z,a,b],a,b)
         out1[x,y,z]+=k*Com1[x,y,z,a,b]
         out2[x,y,z]+=k*Com2[x,y,z,a,b]
         del x,y,z,a,b,m,k
