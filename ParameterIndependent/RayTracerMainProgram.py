@@ -120,7 +120,9 @@ def RayTracer():
   print('Trajectory calculation completed')
   print('Time taken',Room.time)
   print('-------------------------------')
-  filename=str('RayPoints'+str(int(Nra))+'Refs'+str(int(Nre))+'m.npy')
+  if not os.path.exists('./Mesh'):
+    os.makedirs('./Mesh')
+  filename=str('./Mesh/RayPoints'+str(int(Nra))+'Refs'+str(int(Nre))+'m.npy')
   np.save(filename,Rays)
   # The "Rays" file is Nra+1 x Nre+1 x 4 array containing the
   # co-ordinate and obstacle number for each reflection point corresponding
@@ -452,7 +454,6 @@ def power_grid(Roomnum=0):
     c             =Freespace[3]
     khat          =freq*L/c
     lam           =(2*np.pi*c)/freq
-    print(lam)
     Antpar        =np.array([khat,lam,L])
     if index==0:
       Grid,ind=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra,Nre,Ns)
@@ -468,6 +469,91 @@ def power_grid(Roomnum=0):
   print('-------------------------------')
   return Grid
 
+def Quality(Roomnum=0):
+  ''' Calculate the field on a grid using enviroment parameters and the \
+  ray Mesh.
+
+  Loads:
+
+  * (*Nra*\ = number of rays, *Nre*\ = number of reflections, \
+  *h*\ = meshwidth, *L*\ = room length scale)=`Paramters/Raytracing.npy`
+  * (*Nob*\ =number of obstacles)=`Parameters/Nob.npy`
+  * (*Gt*\ =transmitter gains)=`Parameters/TxGains.npy`
+  * (*freq*\ = frequency)=`Parameters/frequency.npy`
+  * (*Freespace*\ = permittivity, permeabilty \
+  and spead of light)=`Parameters/Freespace.npy`
+  * (*Znobrat*\ = Znob/Z0, the ratio of the impedance of obstacles and \
+  the impedance in freespace.) = `Parameters/Znobrat.npy`
+  * (*refindex*\ = the refractive index of the obstacles)=\
+  Paramerters/refindex.npy`
+  * (*Mesh*)=`DSM\ **Nra**\ Refs\ **Nre**\ m.npy`
+
+  Method:
+  * Initialise Grid using the number of x, y, and z steps in *Mesh*.
+  * Use the function :py:func:`DictionarySparseMatrix.DS.power_compute`
+  to compute the power.
+
+  :rtype: Nx \ Ny x Nz numpy array of floats.
+
+  :returns: Grid
+
+  '''
+
+  ##----Retrieve the Raytracing Parameters-----------------------------
+  Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
+  Nra=int(Nra)
+  Nre=int(Nre)
+  #Roomnum        =int(input('How many combinations of room values do you want to test?'))
+  Nob            =np.load('Parameters/Nob.npy')
+
+  ##----Retrieve the Mesh--------------------------------------
+  meshname=str('./Mesh/DSM'+str(Nra)+'Refs'+str(Nre)+'m.npy')
+  Mesh= DSM.load_dict(meshname)
+
+  ##----Initialise Grid For Power------------------------------------------------------
+  Nx=Mesh.Nx
+  Ny=Mesh.Ny
+  Nz=Mesh.Nz
+  Ns=max(Nx,Ny,Nz)
+  Grid=np.zeros((Nx,Ny,Nz),dtype=float)
+  t0=t.time()
+  for index in range(0,Roomnum):
+    PI.ObstacleCoefficients(index)
+    ##----Retrieve the antenna parameters--------------------------------------
+    Gt            = np.load('Parameters/TxGains'+str(index)+'.npy')
+    freq          = np.load('Parameters/frequency'+str(index)+'.npy')
+    Freespace     = np.load('Parameters/Freespace'+str(index)+'.npy')
+    Pol           = np.load('Parameters/Pol'+str(index)+'.npy')
+
+    ##----Retrieve the Obstacle Parameters--------------------------------------
+    Znobrat      =np.load('Parameters/Znobrat'+str(index)+'.npy')
+    refindex     =np.load('Parameters/refindex'+str(index)+'.npy')
+    # Make the refindex, impedance and gains vectors the right length to
+    # match the matrices.
+    Znobrat=np.tile(Znobrat,(Nre,1))          # The number of rows is Nob*Nre+1. Repeat Nob
+    Znobrat=np.insert(Znobrat,0,1.0+0.0j)     # Use a zero for placement in the LOS row
+    refindex=np.tile(refindex,(Nre,1))
+    refindex=np.insert(refindex,0,1.0+0.0j)
+    Gt=np.tile(Gt,(Nre+1,1))
+
+    # Calculate the necessry parameters for the power calculation.
+    c             =Freespace[3]
+    khat          =freq*L/c
+    lam           =(2*np.pi*c)/freq
+    Antpar        =np.array([khat,lam,L])
+    if index==0:
+     Q,ind=DSM.quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra,Nre,Ns)
+    else:
+     Q,ind=DSM.quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra,Nre,Ns,ind)
+    if not os.path.exists('./Quality'):
+      os.makedirs('./Quality')
+    np.save('./Quality/Quality'+str(Nra)+'Refs'+str(Nre)+'m'+str(index)+'.npy',Q)
+  t1=t.time()
+  print('-------------------------------')
+  print('Quality from DSM complete', Q)
+  print('Time taken',t1-t0)
+  print('-------------------------------')
+  return Grid
 
 def RefCoefComputation(Mesh):
   ''' Compute the mesh of reflection coefficients.
@@ -675,6 +761,7 @@ if __name__=='__main__':
       Mesh1=MeshProgram() # Shoot the rays and store the information
       mid=t.time()
       Grid=power_grid(Roomnum)  # Use the ray information to compute the power
+      Q=Quality(Roomnum)
       # plot_grid()        # Plot the power in slices.
       end=t.time()
       Timemat[count,0]+=Roomnum
