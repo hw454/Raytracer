@@ -2120,7 +2120,6 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
     ind=ind.T
     indout=ind
   # Compute the reflection coefficients
-  #ind=Mesh.nonzero()
   #t1=t.time()
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
@@ -2198,7 +2197,6 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
   P=np.zeros((Mesh.Nx,Mesh.Ny,Mesh.Nz),dtype=np.longdouble)
   P=np.absolute(Gridpe*Pol[0])+np.absolute(Gridpa*Pol[1])
   P=20*np.log10(P,where=(P!=0))
-  print('edge',P[0,0,5],'centre',P[5,5,5],'low',P[2,1,7])
   #t10=t.time()
   # print('----------------------------------------------------------')
   # print('Total time to find power', t10-t0)
@@ -2226,6 +2224,91 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
   # del t2, t1, t0
   # print('----------------------------------------------------------')
   return P,indout
+
+
+def quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
+  ''' Compute the field from a Mesh of ray information and the physical \
+  parameters.
+
+  :param Mesh: The :py:class:`DS` mesh of ray information.
+  :param Znobrat: An Nob x Nre+1 array containing tiles of the impedance \
+    of obstacles divided by the impedance of air.
+  :param refindex: An Nob x Nre+1 array containing tiles of the refractive\
+    index of obstacles.
+  :param Antpar: Numpy array containing the wavenumber, wavelength and lengthscale.
+  :param Gt: Array of the transmitting antenna gains.
+  :param Pol: 2x1 numpy array containing the polarisation terms.
+
+  Method:
+
+    * First compute the reflection coefficients using \
+    :py:func:`ref_coef(Mesh,Znobrat,refindex)`
+    * Combine the reflection coefficients that correspond to the same \
+    ray using :py:class:`DS`. :py:func:`dict_col_mult()`. This \
+    multiplies reflection coefficients in the same column.
+    * Extract the distance each ray had travelled using \
+    :py:class:`DS`. :py:func:`__get_rad__()`
+    * Multiply by the gains for the corresponding ray.
+    * Multiply terms by the phases \
+    :math:`\\exp(i\hat{k} \hat{r})^{L^{-2}}`. With :math:`L` being \
+    the room length scale. :math:`\hat{r}` being the relative distance \
+    travelled which is the actual distance divided by the room length \
+    scale, and :math:`\hat{k}` is the relative wavenumber which is the \
+    actual wavenumber times the room length scale.
+    * Multiply by the gains corresponding to each ray.
+    * Divide by the distance corresponding to each ray segment.
+    * Sum all the ray segments in a grid point.
+    * Multiply the grid by the transmitted field times the wavelngth \
+    divided by the room length scale. :math:`\\frac{\\lambda}{L 4 \pi}`
+    * Multiply by initial polarisation vectors and combine.
+    * Ignore dividing by initial phi as when converting to power in db \
+    this disappears.
+    * Take the amplitude and square.
+    * Take :math:`10log10()` to get the db Power.
+
+  :rtype: Nx x Ny x Nz numpy array of real values.
+
+  :return: Grid
+
+  '''
+  #print('----------------------------------------------------------')
+  #print('Start computing the power from the Mesh')
+  #print('----------------------------------------------------------')
+  t0=t.time()
+  # Retrieve the parameters
+  khat,lam,L = Antpar
+  if isinstance(ind, type(-1)):
+    ind=Mesh.nonzero().T
+    indout=ind
+  else:
+    ind=ind.T
+    indout=ind
+  if not os.path.exists('./Mesh'):
+    os.makedirs('./Mesh')
+  angfile=str('./Mesh/ang'+str(int(Nra))+'Refs'+str(int(Nre))+'Ns'+str(int(Ns))+'.npy')
+  afile=Path(angfile)
+  if afile.is_file():
+    AngDSM=load_dict(angfile)
+  else:
+    AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
+    AngDSM.save_dict(angfile)
+  Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,lam,L,ind)
+  rfile=str('./Mesh/rad'+str(int(Nra))+'Refs'+str(int(Nre))+'Ns'+str(int(Ns))+'.npy')
+  radfile = Path(rfile)
+  h=1/Mesh.Nx
+  if radfile.is_file():
+    RadMesh=load_dict(rfile)
+    ind=RadMesh.nonzero()
+  else:
+    RadMesh,ind=Mesh.__get_rad__(h,ind)
+    RadMesh.save_dict(rfile)
+  t4=t.time()
+  Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)
+  P=np.zeros((Mesh.Nx,Mesh.Ny,Mesh.Nz),dtype=np.longdouble)
+  P=np.absolute(Gridpe*Pol[0])+np.absolute(Gridpa*Pol[1])
+  Q=np.sum(P)/(Mesh.Nx*Mesh.Ny*Mesh.Nz)
+  return Q,ind
+
 
 def nonzero_bycol(SM):
   ''' Find the index pairs for the nonzero terms in a sparse matrix.
