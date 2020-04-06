@@ -37,7 +37,7 @@ def DeclareParameters():
   # -------------------------------------------------------------------
 
   #print('Saving ray-launcher parameters')
-  Nra=500.0 # Number of rays
+  Nra=500 # Number of rays
   Nre=2 # Number of reflections
   Ns=10   # Number of steps on longest axis.
   l1=2.0   # Interior obstacle scale
@@ -81,28 +81,42 @@ def DeclareParameters():
   h=1.0/Ns
 
   # CALCULATE ANGLE SPACING
-  deltheta      =(np.sqrt(2.0*Nra-3)-1)*(np.pi/(Nra-2)) # Calculate angle spacing
+  deltheta      =(np.sqrt(np.pi*(np.pi-2+Nra))+np.pi)/(Nra-2) # Calculate angle spacing
   xysteps       =int(2.0*np.pi/deltheta)
-  zsteps        =int((np.pi/deltheta)-1)
+  zsteps        =int((np.pi/deltheta)-2)
   Nra           =(xysteps)*zsteps+2
   # ^^ Due to need of integer steps the input number of rays can not
   # always be used if everything is equally spaced ^^
-  theta1        =deltheta*np.arange(0,xysteps)
-  theta2        =deltheta*np.arange(1,zsteps+1)
-  xydirecs      =np.transpose(np.vstack((np.cos(theta1),np.sin(theta1))))
+  theta1        =np.linspace(0.0,2*np.pi,num=int(xysteps), endpoint=False) # Create an array of all the angles
+  deltheta=theta1[1]-theta1[0]
+  theta2        =np.linspace(deltheta,np.pi-deltheta,num=int(zsteps), endpoint=False) # Create an array of all the angles
+  xydirecs      =np.c_[np.cos(theta1),np.sin(theta1)]
+  sinalpha      =np.tile(np.tensordot(np.sin(theta2),np.ones(xysteps),axes=0).ravel(),(2,1))
   z             =np.tensordot(np.cos(theta2),np.ones(xysteps),axes=0).ravel()
+  coords  =np.c_[np.tile(xydirecs,(zsteps,1))*sinalpha.T,z.T]
 
-  # COMBINE THE RAY-LAUNCHER PARAMETERS INTO ONE ARRAY
-  RTPar=np.array([Nra,Nre,h,roomlengthscale])
-
-  # FORM THE ARRAY OF INITIAL RAY DIRECTIONS
-  directions    =np.zeros((Nra,4))
-
-  sinalpha=np.tile(np.sin(theta2),xysteps)
-  coords  =np.c_[np.tile(xydirecs,(zsteps,1))*sinalpha[:,np.newaxis],z.T]
+  directions=np.zeros((zsteps*xysteps+2,4))
   directions[1:-1]=np.c_[coords,np.zeros((Nra-2,1))]
   directions[0] =np.array([0.0,0.0, 1.0,0.0])
   directions[-1]=np.array([0.0,0.0,-1.0,0.0])
+
+  # # For comparing vector code to loop version
+  # directions2=np.zeros((zsteps*xysteps+2,4))
+  # for phi in range(0,zsteps):
+    # c=np.cos(theta2[phi])
+    # s=np.sin(theta2[phi])
+    # for the in range(0,xysteps):
+        # x=np.cos(theta1[the])*s
+        # y=np.sin(theta1[the])*s
+        # z=c
+        # j=phi*xysteps+the+1
+        # directions2[j]=np.array([x,y,z,0.0])
+  # directions2[0] =np.array([0.0,0.0, 1.0,0.0])
+  # directions2[-1]=np.array([0.0,0.0,-1.0,0.0])
+  # print(np.sum(directions-directions2))
+
+  # COMBINE THE RAY-LAUNCHER PARAMETERS INTO ONE ARRAY
+  RTPar=np.array([Nra,Nre,h,roomlengthscale])
 
   print('Number of rays ', Nra,'Number of reflections ', Nre,'Mesh spacing ', h)
   #print('Origin of raytracer ', Tx)
