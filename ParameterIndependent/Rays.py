@@ -95,23 +95,33 @@ class Ray:
   def number_steps(s,alpha,segleng,dist,delangle,refangle):
     '''The number of steps along the ray between intersection points'''
     refangle=np.pi*0.5-refangle
-    c=np.cos(refangle)
-    s=np.sin(refangle)
-    t=np.tan(delangle/2)
-    t2=np.tan(refangle+np.arcsin(np.sqrt(2)*t))
-    return int(1+(segleng+np.sqrt(2)*dist*t*(c+s*t2))/alpha)
-  def number_cones(s,h,dist,delangle):
+    c=np.cos(2*refangle)
+    si=np.sin(2*refangle)
+    delth=2*np.arcsin(np.sqrt(2)*ma.sin(delangle/2))
+    t2=np.tan(refangle+delth)
+    top=np.tan(delth/2)
+    beta=dist*top
+    return int(1+(segleng+0.5*beta*(si+(1-c)*t2))/alpha)
+  def number_cones(s,h,dist,delangle,refangle):
      '''find the number of steps taken along one normal in the cone'''
-     ta=ma.tan(delangle/2)   # Nra>2 and an integer. Therefore tan(theta) exists.
-     Ncon=int(1+np.pi/np.arcsin(h**2/(8*np.sqrt(2)*dist*ta))) # Compute the distance of the normal vector
+     delth=2*np.arcsin(np.sqrt(2)*ma.sin(delangle/2))
+     t2=np.sqrt(1-ma.tan(delth/2)**2)   # Nra>2 and an integer. Therefore tan(theta) exists.
+     ta=np.tan(delth/2)
+     top2=1+0.5*ta*(ma.sin(2*refangle)+(1-np.cos(2*refangle))*t2)
+     beta=dist*ta*top2
+     if beta<(h/4):
+       Ncon=0
+     else:
+       Ncon=int(1+np.pi/np.arcsin(h/(4*beta))) # Compute the distance of the normal vector
                             # for the cone and the number of mesh points
                             # that would fit in that distance.
      #Ncon=1
      return Ncon
   def number_cone_steps(s,h,dist,delangle):
      '''find the number of steps taken along one normal in the cone'''
-     s=ma.sin(delangle/2)   # Nra>2 and an integer. Therefore tan(theta) exists.
-     Nc=int(1+2*np.sqrt(2)*(dist*s)/(h*np.sqrt(1-2*s**2))) # Compute the distance of the normal vector
+     delth=2*np.arcsin(np.sqrt(2)*ma.sin(delangle/2))
+     t=ma.tan(delth/2)   # Nra>2 and an integer. Therefore tan(theta) exists.
+     Nc=int(1+(dist*t/h)) # Compute the distance of the normal vector
                             # for the cone and the number of mesh points
                             # that would fit in that distance.
      #Nc=0
@@ -426,7 +436,7 @@ class Ray:
     else: return _Mesh, _dist, _calcvec                    # If the direction vector is 0 nothing is happening.
 
     deldist=lf.length(np.array([(0.0,0.0,0.0),alpha*direc]))     # Calculate the distance travelled through a mesh cube
-    p0=s.points[-3][0:3]                                   # Set the initial point to the start of the segment.
+    p0=np.array([s.points[-3][0],s.points[-3][1],s.points[-3][2]])                              # Set the initial point to the start of the segment.
     #if nre==0 and nra==0:
     p1=p0                                                  # p0 should remain constant and p1 is stepped.
     #else:
@@ -440,9 +450,12 @@ class Ray:
     Ns=s.number_steps(deldist,segleng,_dist+segleng,deltheta,theta)                         # Compute the number of steps that'll be taken along the ray.
     # Compute a matrix with rows corresponding to normals for the cone.
     #Nc=s.number_cone_steps(deldist,_dist+segleng,Nra)
-    Ncon=s.number_cones(deldist,_dist+segleng,deltheta)
-    norm=s.normal_mat(Ncon,Nra,direc,_dist,h)              # Matrix of normals to the direc, all of distance 1 equally
-                                                           # angle spaced
+    Ncon=s.number_cones(deldist,_dist+segleng,deltheta,theta)
+    if Ncon>0:
+      norm=s.normal_mat(Ncon,Nra,direc,_dist,h)              # Matrix of normals to the direc, all of distance 1 equally
+                                                             # angle spaced
+    else:
+      norm=np.array([])
     #Nnor=len(norm)                                         # The number of normal vectors
     # Add the reflection angle to the vector of  ray history. s.points[-2][-1] is the obstacle number of the last hit.
     if nre==0:                                             # Before reflection use a 1 so that the distance is still stored
@@ -481,27 +494,17 @@ class Ray:
               distcor=1
           calind=_calcvec.nonzero()
           for i3 in calind[0]:
-            if i1==9 and j1==4 and k1==4 and nre==0:
-                print('LOS below',distcor,p1,p2,nra,alcor,direc,_dist)
-            if i1==0 and j1==5 and k1==4 and nre==0:
-                print('LOS above',distcor,p1,p2,nra,alcor,direc,_dist)
             _Mesh[i1,j1,k1,i3,col]=distcor*_calcvec[i3,0]
           del alcor, distcor
-        Nc=s.number_cone_steps(alpha,_dist,deltheta)           # No. of cone steps required for this ray step.
-        for m2 in range(1,split*(Nc+1)):
-          p3=np.tile(p1,(Ncon,1))+m2*alpha*norm/split             # Step along all the normals from the ray point p1.
+        if Ncon>0:
+          Nc=s.number_cone_steps(alpha,_dist,deltheta)           # No. of cone steps required for this ray step.
+        else:
+          Nc=0
+        for m2 in range(0,split*(Nc)):
+          p3=np.tile(p1,(Ncon,1))+(m2+1)*alpha*norm/split             # Step along all the normals from the ray point p1.
           copos=room.position(p3,h)                              # Find the indices corresponding to the cone points.
-          #print("before",copos,m2,alpha,nre)
-          #FIXME CHECK AGAINST PREVIOUS copos list.
-          # if i2==i1 and j2==j1 and k2==k1:                   # If the indices are equal pass as no new element.
-            # rep=1
-          # else:
-            # i1=i2                                           # Reset the check indices for the next check.
-            # j1=j2
-            # k1=k2
-            # rep=0
           rep=0
-          if m2==1:
+          if m2==0:
              copos2=copos
           else:
             for j in range(0,Ncon):
@@ -514,7 +517,7 @@ class Ray:
                   altcopos=np.vstack((altcopos,np.array([copos[j][0],copos[j][1],copos[j][2]])))
                   p3out=np.vstack((p3out,np.array([p3[j][0],p3[j][1],p3[j][2]])))
                   normout=np.vstack((normout,np.array([norm[j,0],norm[j,1],norm[j,2]])))
-          copos2=copos
+            copos2=copos
           if rep==1:
             start,altcopos,p3,norm2=_Mesh.stopchecklist(altcopos,endposition,h,p3out,normout) # Check if the point is valid.
           else: start=0
@@ -541,10 +544,6 @@ class Ray:
             #FIXME try to set them all at once not one by
             for j in range(0,n):
               for ic in calind[0]:
-                if altcopos[0][j]==1 and altcopos[1][j]==1 and altcopos[2][j]==3 and nre==0:
-                    print('below cone',Ns,m2)
-                if altcopos[0][j]==1 and altcopos[1][j]==1 and altcopos[2][j]==5 and nre==0:
-                    print('above cone',Ns,m2)
                 _Mesh[altcopos[0][j],altcopos[1][j],altcopos[2][j],ic,col]=r2[j]*_calcvec[ic,0]
             del r2
         # Compute the next point along the ray

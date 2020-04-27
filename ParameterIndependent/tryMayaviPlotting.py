@@ -15,7 +15,9 @@ def PlotRays():
     ##Plot the obstacles and the room first
 
     ##----Retrieve the Raytracing Parameters-----------------------------
-    Nrao,Nre,h ,L    =np.load('Parameters/Raytracing.npy')
+    Nra         =np.load('Parameters/Nra.npy')
+    Nrao=Nra[0]
+    Nre,h ,L    =np.load('Parameters/Raytracing.npy')
     #Nra=98
     #Nre=5
 
@@ -72,23 +74,29 @@ def PlotRays():
     if not os.path.exists('./ConeFigures'):
       os.makedirs('./ConeFigures')
     mlab.savefig('ConeFigures/Room.jpg',size=(1000,1000))
+    mlab.clf()
     mlab.close()
-    #gui = GUI()
-    #gui.start_event_loop()
     return
 
 def PlotCones():
-    ##Plot the obstacles and the room first
+    '''Plot the cone calculations.'''
 
     ##----Retrieve the Raytracing Parameters-----------------------------
-    Nrao,Nre,h ,L    =np.load('Parameters/Raytracing.npy')
-    data_matrix         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
+    Nra         =np.load('Parameters/Nra.npy')
+    Nrao=Nra[0]
+    Nre,h ,L =np.load('Parameters/Raytracing.npy')
     # Take Tx to be 0,0,0
-    delangle      =np.load('Parameters/delangle.npy')
+    directionname=str('Parameters/Directions'+str(0)+'.npy')
+    data_matrix   =np.load(directionname)         # Matrix of ray directions
+    delang      =np.load('Parameters/delangle.npy')
+    delangle=delang[0]
 
     mlab.points3d(0,0,0,scale_factor=0.1)
-    mulfac=4
-    xysteps=73
+    mulfac=1
+    xysteps=int(2*np.pi/delangle)
+    zsteps=int(np.pi/delangle)
+    turn=int(zsteps/4)
+    turn2=int(xysteps/8)
     iternum=int(Nrao)
     #mlab.savefig('ConeFigures/Rays.jpg',size=(1000,1000))
     #mlab.clf()
@@ -96,7 +104,7 @@ def PlotCones():
     delth=2*np.arcsin(np.sqrt(2)*ma.sin(delangle/2))
     ta=np.sqrt(1-ma.tan(delth/2)**2)   # Nra>2 and an integer. Therefore tan(theta) exists.
     s=ma.sin(delth/2)
-    beta=mulfac*ta*s
+    beta=np.sqrt(2)*mulfac*ta*s
     if beta<h:
         Ncon=0
     else:
@@ -120,33 +128,26 @@ def PlotCones():
         Norm=np.outer(np.cos(anglevec),Norm[0])+np.outer(np.sin(anglevec),yax) # Use the outer product to multiple the axis
       for k in range(0,Ncon):
           Cones[j*Ncon+k][0]=np.array([cx,cy,cz])
+          beta=mulfac*ta*s
           Cones[j*Ncon+k][1]=(mulfac*data_matrix[j][0:3]/np.linalg.norm(data_matrix[j][0:3]))+beta*Norm[k]
     if not os.path.exists('./ConeFigures'):
       os.makedirs('./ConeFigures')
-    #mlab.savefig('ConeFigures/Rays.jpg',size=(1000,1000))
+    for j in range(0,iternum):
+      x=0
+      y=0
+      z=0
+      x2,y2,z2=mulfac*data_matrix[j][0:3]
+      x=np.append(x,[x2])
+      y=np.append(y,[y2])
+      z=np.append(z,[z2])
+      mlab.plot3d(x,y,z,color= (0, 1, 1))
+    mlab.savefig('ConeFigures/Rays.jpg',size=(1000,1000))
     N=int(len(Cones)/(xysteps*Ncon))
-    for l in range(0,N-1):
+    for l in range(0,N+1):
       #j=int(Nre)*k
       if l==0:
-        j=l
-        x=0
-        y=0
-        z=0
-        x2,y2,z2=mulfac*data_matrix[j][0:3]/np.linalg.norm(data_matrix[j][0:3])
-        x=np.append(x,[x2])
-        y=np.append(y,[y2])
-        z=np.append(z,[z2])
-        mlab.plot3d(x,y,z,color= (0, 1, 1))
-        x=0
-        y=0
-        z=0
-        x2,y2,z2=mulfac*data_matrix[-1][0:3]/np.linalg.norm(data_matrix[-1][0:3])
-        x=np.append(x,[x2])
-        y=np.append(y,[y2])
-        z=np.append(z,[z2])
-        mlab.plot3d(x,y,z,color= (0, 1, 1))
-        for k in range(0, Ncon):
-          j=k
+        for k in range(0, int(Ncon)):
+          j=-k
           x=np.array([Cones[j][0][0]])
           y=np.array([Cones[j][0][1]])
           z=np.array([Cones[j][0][2]])
@@ -163,18 +164,8 @@ def PlotCones():
           zp=np.append(z,[Cones[j][1][2]])
           mlab.plot3d(xp,yp,zp,color= (1,0,1))
       else:
-        for k in range(0,xysteps): #int(Nrao)):
-          j=(l-1)*xysteps+k+1
-          x=0
-          y=0
-          z=0
-          x2,y2,z2=mulfac*data_matrix[j][0:3]
-          x=np.append(x,[x2])
-          y=np.append(y,[y2])
-          z=np.append(z,[z2])
-          mlab.plot3d(x,y,z,color= (0, 1, 1))
-        for k in range(0,xysteps*Ncon):
-          j=(l)*xysteps*Ncon+k
+        for k in range(0,int(xysteps*Ncon)):
+          j=-((l-1)*xysteps*Ncon+Ncon+k)
           x=np.array([Cones[j][0][0]])
           y=np.array([Cones[j][0][1]])
           z=np.array([Cones[j][0][2]])
@@ -182,17 +173,193 @@ def PlotCones():
           yp=np.append(y,[Cones[j][1][1]])
           zp=np.append(z,[Cones[j][1][2]])
           mlab.plot3d(xp,yp,zp,color= (1,0,1))
-      filename=str('ConeFigures/Cone'+str(l)+'.jpg')
-      mlab.savefig(filename,size=(1000,1000))
-      mlab.clf()
-    mlab.close()
-    #gui = GUI()
-    #gui.start_event_loop()
+    filename=str('ConeFigures/Cone.jpg')
+    mlab.savefig(filename,size=(1000,1000))
+    #mlab.clf()
+    #mlab.show()
+    return
+
+def PlotConesOnSquare():
+    '''Plot the cone calculations.'''
+
+    ##----Retrieve the Raytracing Parameters-----------------------------
+    Nra         =np.load('Parameters/Nra.npy')
+    Nrao=Nra[-1]
+    Nre,h ,L =np.load('Parameters/Raytracing.npy')
+    # Take Tx to be 0,0,0
+    Tx=     np.load('Parameters/Origin.npy')
+    data_matrix   =L*np.load('./Mesh/RayMeshPoints'+str(int(Nrao))+'Refs'+str(int(Nre))+'m.npy')
+    delang      =np.load('Parameters/delangle.npy')
+    delangle=delang[-1]
+
+    mlab.points3d(0,0,0,scale_factor=0.1)
+    xysteps=int(2*np.pi/delangle)
+    zsteps=int(np.pi/delangle)
+    turn=int(zsteps/4)
+    turn2=int(xysteps/8)
+    iternum=int(Nrao)
+    #mlab.savefig('ConeFigures/Rays.jpg',size=(1000,1000))
+    #mlab.clf()
+    #mlab.close()
+    delth=2*np.arcsin(np.sqrt(2)*ma.sin(delangle/2))
+    ta=np.sqrt(1-ma.tan(delth/2)**2)   # Nra>2 and an integer. Therefore tan(theta) exists.
+    s=ma.sin(delth/2)
+    beta=np.sqrt(2)*ta*s
+    if beta<h:
+        Ncon=0
+    else:
+      Ncon=int(1+np.pi/np.arcsin(h/(beta)))
+    anglevec=np.linspace(0.0,2*ma.pi,num=int(Ncon), endpoint=False) # Create an array of all the angles
+    Norm=np.zeros((Ncon,3),dtype=np.float) # Initialise the matrix of normals
+    Cones=np.zeros((iternum*Ncon,2,3))
+    for j in range(0,iternum):#int(Nrao)):
+      cx,cy,cz,cs=data_matrix[j][1]
+      d=data_matrix[j][1][0:3]-data_matrix[j][0][0:3]               # The direction of the ray
+      d/=np.linalg.norm(d)
+      if abs(d[2])>0 and Ncon>0:
+       Norm[0]=np.array([1,1,-(d[0]+d[1])/d[2]])# This vector will lie in the plane unless d_z=0
+       Norm[0]/=np.linalg.norm(Norm[0]) # Normalise the vector
+       yax=np.cross(Norm[0],d)            # Compute another vector in the plane for the axis.
+       yax/=np.linalg.norm(yax)             # Normalise y. y and Norm[0] are now the co-ordinate axis in the plane.
+      elif Ncon>0:
+       Norm[0]=np.array([0,0,1])        # If d_z is 0 then this vector is always in the plane.
+       yax=np.cross(Norm[0],d)            # Compute another vector in the plane to form co-ordinate axis.
+       yax/=np.linalg.norm(yax)             # Normalise y. y and Norm[0] are now the co-ordinate axis in the plane.
+      if Ncon>0:
+        Norm=np.outer(np.cos(anglevec),Norm[0])+np.outer(np.sin(anglevec),yax) # Use the outer product to multiple the axis
+      for k in range(0,Ncon):
+          Cones[j*Ncon+k][0]=np.array([cx,cy,cz])
+          dist=np.linalg.norm(data_matrix[j][1][0:3]-data_matrix[j][0][0:3])
+          beta=dist*ta*s
+          Cones[j*Ncon+k][1]=(data_matrix[j][1][0:3])+beta*Norm[k]
+    if not os.path.exists('./ConeFigures'):
+      os.makedirs('./ConeFigures')
+    #mlab.savefig('ConeFigures/Rays.jpg',size=(1000,1000))
+    N=int(len(Cones)/(xysteps*Ncon))
+    for l in range(0,N+1):
+      #j=int(Nre)*k
+      if l==0:
+        j=l
+        x=np.array([Cones[j][0][0]])
+        y=np.array([Cones[j][0][1]])
+        z=np.array([Cones[j][0][2]])
+        xc=np.append(x,[Tx[0]])
+        yc=np.append(y,[Tx[1]])
+        zc=np.append(z,[Tx[2]])
+        mlab.plot3d(xc,yc,zc,color= (0, 1, 1))
+        j=-1
+        x=np.array([Cones[j][0][0]])
+        y=np.array([Cones[j][0][1]])
+        z=np.array([Cones[j][0][2]])
+        xc=np.append(x,[Tx[0]])
+        yc=np.append(y,[Tx[1]])
+        zc=np.append(z,[Tx[2]])
+        mlab.plot3d(xc,yc,zc,color= (0, 1, 1))
+        for k in range(0, int(Ncon)):
+          j=-k
+          x=np.array([Cones[j][0][0]])
+          y=np.array([Cones[j][0][1]])
+          z=np.array([Cones[j][0][2]])
+          xp=np.append(x,[Cones[j][1][0]])
+          yp=np.append(y,[Cones[j][1][1]])
+          zp=np.append(z,[Cones[j][1][2]])
+          mlab.plot3d(xp,yp,zp,color= (1,0,1))
+          j=-1-k
+          x=np.array([Cones[j][0][0]])
+          y=np.array([Cones[j][0][1]])
+          z=np.array([Cones[j][0][2]])
+          xp=np.append(x,[Cones[j][1][0]])
+          yp=np.append(y,[Cones[j][1][1]])
+          zp=np.append(z,[Cones[j][1][2]])
+          mlab.plot3d(xp,yp,zp,color= (1,0,1))
+        filename=str('ConeFigures/ConeSquare'+str(int(l))+'.jpg')
+        mlab.savefig(filename,size=(1000,1000))
+        mlab.clf()
+      else:
+        for k in range(0,int(xysteps*Ncon)):
+          j=((l-1)*xysteps*Ncon+Ncon+k)
+          x=np.array([Cones[j][0][0]])
+          y=np.array([Cones[j][0][1]])
+          z=np.array([Cones[j][0][2]])
+          if j % Ncon ==0:
+            xc=np.append(x,[Tx[0]])
+            yc=np.append(y,[Tx[1]])
+            zc=np.append(z,[Tx[2]])
+            mlab.plot3d(xc,yc,zc,color= (0, 1, 1))
+          xp=np.append(x,[Cones[j][1][0]])
+          yp=np.append(y,[Cones[j][1][1]])
+          zp=np.append(z,[Cones[j][1][2]])
+          mlab.plot3d(xp,yp,zp,color= (1,0,1))
+        filename=str('ConeFigures/ConeSquare'+str(int(l))+'.jpg')
+        mlab.savefig(filename,size=(1000,1000))
+        mlab.clf()
+#mlab.show()
+    return
+
+def PlotDirections():
+
+    ##Plot the obstacles and the room first
+
+    ##----Retrieve the Raytracing Parameters-----------------------------
+    Nra         =np.load('Parameters/Nra.npy')
+    Nrao=Nra[0]
+    Nre,h ,L    =np.load('Parameters/Raytracing.npy')
+    directionname=str('Parameters/Directions'+str(0)+'.npy')
+    data_matrix   =np.load(directionname)         # Matrix of ray directions
+    # Take Tx to be 0,0,0
+    delang      =np.load('Parameters/delangle.npy')
+    delangle=delang[0]
+
+    mlab.points3d(0,0,0,scale_factor=0.1)
+    mulfac=4
+    xysteps=int(2*np.pi/delangle)
+    zsteps=int(np.pi/delangle)
+    turn=int(zsteps/4)
+    turn2=int(xysteps/8)
+    iternum=int(Nrao)
+    #mlab.savefig('ConeFigures/Rays.jpg',size=(1000,1000))
+    #mlab.clf()
+    #mlab.close()
+    delth=2*np.arcsin(np.sqrt(2)*ma.sin(delangle/2))
+    ta=np.sqrt(1-ma.tan(delth/2)**2)   # Nra>2 and an integer. Therefore tan(theta) exists.
+    s=ma.sin(delth/2)
+    for l in range(0,iternum):
+      #j=int(Nre)*k
+      m=int(abs(zsteps/2-l/xysteps))
+      m2=int(abs(xysteps/2-np.mod(l,xysteps)))
+      if 0<m<turn:
+        f=m*delangle
+      elif turn<=m<2*turn:
+        f=np.pi/2-m*delangle
+      else:
+        f=0
+      if 0<m2<=turn2 or 3*turn2<=m2<4*turn2:
+        g=m2*delangle
+      elif turn2<m2<2*turn2 or 2*turn2<m2<3*turn2:
+        g=np.pi/2-m2*delangle
+      else:
+        g=0
+      sqfac=abs(1/(np.cos(f)*np.cos(g)))
+      j=l
+      x=0
+      y=0
+      z=0
+      x2,y2,z2=sqfac*mulfac*data_matrix[j][0:3]/np.linalg.norm(data_matrix[j][0:3])
+      x=np.append(x,[x2])
+      y=np.append(y,[y2])
+      z=np.append(z,[z2])
+      mlab.plot3d(x,y,z,color= (0, 1, 1))
+    filename=str('ConeFigures/Rays.jpg')
+    mlab.savefig(filename,size=(1000,1000))
+    #mlab.clf()
+    mlab.show()
     return
 
 if __name__=='__main__':
-  PlotCones()
-  PlotRays
+  #PlotCones()
+  PlotConesOnSquare()
+  #PlotRays()
+  #PlotDirections()
   print('Running  on python version')
   print(sys.version)
 exit()

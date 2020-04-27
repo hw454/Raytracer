@@ -2,6 +2,7 @@
 # Hayley Wragg 2019-03-20
 ''' The code saves the values for the parameters in a ray tracer '''
 import numpy as np
+import math as ma
 import sys
 import os
 
@@ -37,7 +38,8 @@ def DeclareParameters():
   # -------------------------------------------------------------------
 
   #print('Saving ray-launcher parameters')
-  Nra=500 # Number of rays
+  nrays=5
+  Nra=200*np.linspace(1,nrays,num=nrays,dtype=int) # Number of rays
   Nre=2 # Number of reflections
   Ns=10   # Number of steps on longest axis.
   l1=2.0   # Interior obstacle scale
@@ -80,25 +82,32 @@ def DeclareParameters():
   #Oblist=Oblist/roomlengthscale
   h=1.0/Ns
 
-  # CALCULATE ANGLE SPACING
-  deltheta      =(np.sqrt(np.pi*(np.pi-2+Nra))+np.pi)/(Nra-2) # Calculate angle spacing
-  xysteps       =int(2.0*np.pi/deltheta)
-  zsteps        =int((np.pi/deltheta)-2)
-  Nra           =(xysteps)*zsteps+2
-  # ^^ Due to need of integer steps the input number of rays can not
-  # always be used if everything is equally spaced ^^
-  theta1        =np.linspace(0.0,2*np.pi,num=int(xysteps), endpoint=False) # Create an array of all the angles
-  deltheta=theta1[1]-theta1[0]
-  theta2        =np.linspace(deltheta,np.pi-deltheta,num=int(zsteps), endpoint=False) # Create an array of all the angles
-  xydirecs      =np.c_[np.cos(theta1),np.sin(theta1)]
-  sinalpha      =np.tile(np.tensordot(np.sin(theta2),np.ones(xysteps),axes=0).ravel(),(2,1))
-  z             =np.tensordot(np.cos(theta2),np.ones(xysteps),axes=0).ravel()
-  coords  =np.c_[np.tile(xydirecs,(zsteps,1))*sinalpha.T,z.T]
+  if not os.path.exists('./Parameters'):
+    os.makedirs('./Parameters')
 
-  directions=np.zeros((zsteps*xysteps+2,4))
-  directions[1:-1]=np.c_[coords,np.zeros((Nra-2,1))]
-  directions[0] =np.array([0.0,0.0, 1.0,0.0])
-  directions[-1]=np.array([0.0,0.0,-1.0,0.0])
+  # CALCULATE ANGLE SPACING
+  deltheta=np.zeros((nrays,1))
+  for j in range(0,nrays):
+    deltheta[j]      =np.pi*(-1+np.sqrt(2*Nra[j]-3))/(Nra[j]-2) # Calculate angle spacing
+    xysteps       =int(ma.ceil(abs(2.0*np.pi/deltheta[j])))
+    zsteps        =int(ma.ceil(abs(np.pi//deltheta[j]))-1)
+    Nra[j]           =(xysteps)*zsteps+2
+    # ^^ Due to need of integer steps the input number of rays can not
+    # always be used if everything is equally spaced ^^
+    theta1        =np.linspace(0.0,2*np.pi,num=int(xysteps), endpoint=False) # Create an array of all the angles
+    deltheta[j]=theta1[1]-theta1[0]
+    theta2        =np.linspace(deltheta[j],np.pi,num=int(zsteps), endpoint=False) # Create an array of all the angles
+    xydirecs      =np.c_[np.cos(theta1),np.sin(theta1)]
+    sinalpha      =np.tile(np.tensordot(np.sin(theta2),np.ones(xysteps),axes=0).ravel(),(2,1))
+    z             =np.tensordot(np.cos(theta2),np.ones(xysteps),axes=0).ravel()
+    coords  =np.c_[np.tile(xydirecs,(zsteps,1))*sinalpha.T,z.T]
+
+    directions=np.zeros((zsteps*xysteps+2,4))
+    directions[1:-1]=np.c_[coords,np.zeros((Nra[j]-2,1))]
+    directions[0] =np.array([0.0,0.0, 1.0,0.0])
+    directions[-1]=np.array([0.0,0.0,-1.0,0.0])
+    directionname=str('Parameters/Directions'+str(int(j))+'.npy')
+    np.save(directionname,directions)
 
   # # For comparing vector code to loop version
   # directions2=np.zeros((zsteps*xysteps+2,4))
@@ -116,7 +125,7 @@ def DeclareParameters():
   # print(np.sum(directions-directions2))
 
   # COMBINE THE RAY-LAUNCHER PARAMETERS INTO ONE ARRAY
-  RTPar=np.array([Nra,Nre,h,roomlengthscale])
+  RTPar=np.array([Nre,h,roomlengthscale])
 
   print('Number of rays ', Nra,'Number of reflections ', Nre,'Mesh spacing ', h)
   #print('Origin of raytracer ', Tx)
@@ -124,11 +133,9 @@ def DeclareParameters():
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS IN A FOLDER TITLED `Parameters`
   # --------------------------------------------------------------------
-  if not os.path.exists('./Parameters'):
-    os.makedirs('./Parameters')
   np.save('Parameters/Raytracing.npy',RTPar)
+  np.save('Parameters/Nra.npy',Nra)
   np.save('Parameters/delangle.npy',deltheta)
-  np.save('Parameters/Directions.npy',directions)
   np.save('Parameters/Obstacles.npy',Oblist)
   np.save('Parameters/OuterBoundary.npy',OuterBoundary)
   np.save('Parameters/Origin.npy',Tx)
@@ -224,8 +231,12 @@ def ObstacleCoefficients(index=0):
   Oblist        =np.load('Parameters/Obstacles.npy')
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')
   Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)
-  Nra=int(RTPar[0])                           # Number of rays
-  Nre=int(RTPar[1])                           # Number of reflections
+  Nra           =np.load('Parameters/Nra.npy')
+  if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
+      nra=np.array([Nra])
+  else:
+      nra=len(Nra)
+  Nre=int(RTPar[0])                           # Number of reflections
   Nob=np.load('Parameters/Nob.npy')          # The Number of obstacle.
 
   # -------------------------------------------------------------------
@@ -239,7 +250,10 @@ def ObstacleCoefficients(index=0):
   # ANTENNA PARAMETERS
   #-----------------------------------------------------------------------
   # Gains of the rays
-  Gt=np.ones((Nra,1),dtype=np.complex128)
+  for j in range(0,nra):
+    Gt=np.ones((Nra[j],1),dtype=np.complex128)
+    gainname=str('Parameters/Tx'+str(Nra[j])+'Gains'+str(index)+'.npy')
+    np.save(gainname, Gt)
   frequency=2*np.pi*2.79E+08                   # 2.79 GHz #FIXME make this a table and choose a frequency option
   Pol      =np.array([1.0,0.0])
 
@@ -283,7 +297,6 @@ def ObstacleCoefficients(index=0):
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS
   # --------------------------------------------------------------------
-  np.save('Parameters/TxGains'+str(index)+'.npy', Gt)
   np.save('Parameters/Freespace'+str(index)+'.npy',Freespace)
   np.save('Parameters/frequency'+str(index)+'.npy',frequency)
   np.save('Parameters/Znobrat'+str(index)+'.npy',Znobrat)
@@ -343,7 +356,7 @@ if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   out=DeclareParameters()
-  out=ObstacleCoefficients()
+  #out=ObstacleCoefficients()
 
   exit()
 
