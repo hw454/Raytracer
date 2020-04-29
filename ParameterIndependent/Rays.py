@@ -116,7 +116,7 @@ class Ray:
                             # for the cone and the number of mesh points
                             # that would fit in that distance.
      #Ncon=1
-     return Ncon
+     return 2*Ncon
   def number_cone_steps(s,h,dist,delangle):
      '''find the number of steps taken along one normal in the cone'''
      delth=2*np.arcsin(np.sqrt(2)*ma.sin(delangle/2))

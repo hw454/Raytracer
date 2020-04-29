@@ -217,7 +217,8 @@ def MeshProgram():
   Nre,h,L    =np.load('Parameters/Raytracing.npy')
   Nra        =np.load('Parameters/Nra.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
-      nra=np.array([Nra])
+      Nra=np.array([Nra])
+      nra=1
   else:
       nra=len(Nra)
   Nre=int(Nre)
@@ -592,7 +593,10 @@ def Quality(Roomnum=0):
   print('Quality from DSM complete', Qmat)
   print('Time taken',timemat)
   print('-------------------------------')
-  return Qmat
+  truestr=str('Parameters/True.npy')
+  P3=np.load(truestr)
+  Q2=np.sum(P3)/(Mesh.Nx*Mesh.Ny*Mesh.Nz)
+  return Qmat, Q2
 
 def RefCoefComputation(Mesh):
   ''' Compute the mesh of reflection coefficients.
@@ -743,7 +747,7 @@ def plot_grid(index=0):
       #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
       mp.imshow(P[:,:,i], cmap='viridis', vmax=ub,vmin=lb)
       mp.colorbar()
-      filename=str('GeneralMethodPowerFigures/NoBoxPowerSliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
+      filename=str('GeneralMethodPowerFigures/NoBoxPowerSliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.jpg')#.eps')
       mp.savefig(filename)
       mp.clf()
   # for i in range(n2):
@@ -759,7 +763,7 @@ def plot_grid(index=0):
       #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
       mp.imshow(P3[:,:,i], cmap='viridis',  vmax=ub,vmin=lb)
       mp.colorbar()
-      filename=str('GeneralMethodPowerFigures/NoBoxTrueSliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
+      filename=str('GeneralMethodPowerFigures/NoBoxTrueSliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.jpg')#.eps')
       mp.savefig(filename)
       mp.clf()
       # for i in range(n3):
@@ -775,7 +779,7 @@ def plot_grid(index=0):
       #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
       mp.imshow(Pdifftil[:,:,i], cmap='viridis')#, vmax=max(ub2,ub),vmin=min(lb,lb2))
       mp.colorbar()
-      filename=str('GeneralMethodPowerFigures/NoBoxPowerDifftilSliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
+      filename=str('GeneralMethodPowerFigures/NoBoxPowerDifftilSliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.jpg')#.eps')
       mp.savefig(filename)
       mp.clf()
   # for i in range(n3):
@@ -799,7 +803,14 @@ if __name__=='__main__':
   testnum=1
   roomnumstat=1
   Timemat=np.zeros((testnum,6))
-  Qmat   =np.zeros((testnum,5))
+  Nra =np.load('Parameters/Nra.npy')
+  if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
+      Nra=np.array([Nra])
+      nra=1
+  else:
+      nra=len(Nra)
+  Qmat   =np.zeros((testnum,nra))
+  Qtruemat   =np.zeros((testnum,nra))
   for j in range(0,timetest):
     Roomnum=roomnumstat
     #Timemat[0,0]=Roomnum
@@ -808,8 +819,9 @@ if __name__=='__main__':
       Mesh1=MeshProgram() # Shoot the rays and store the information
       mid=t.time()
       Grid=power_grid(Roomnum)  # Use the ray information to compute the power
-      Q=Quality(Roomnum)
+      Q,Q2=Quality(Roomnum)
       Qmat[count,:]=Q
+      Qtruemat[count,:]=Q2
       # plot_grid()        # Plot the power in slices.
       end=t.time()
       Timemat[count,0]+=Roomnum
@@ -853,7 +865,8 @@ if __name__=='__main__':
   np.save(qualityname,Qmat[0,:])
   print(Qmat)
   mp.plot(Nra,Qmat[0,:])
-  filename=str('Quality/Quality'+str(int(Nra[0]))+'to'+str(int(Nra[-1]))+'Nref'+str(int(Nre))+'.eps')
+  mp.plot(Nra,Qtruemat[0,:])
+  filename=str('Quality/Quality'+str(int(Nra[0]))+'to'+str(int(Nra[-1]))+'Nref'+str(int(Nre))+'.jpg')#.eps').
   mp.savefig(filename)
   np.save(timename,Timemat)
   np.save('roomnumstat.npy',roomnumstat)

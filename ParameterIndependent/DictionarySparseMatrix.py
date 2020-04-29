@@ -2195,8 +2195,8 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
   #t9=t.time()
   # Power
   P=np.zeros((Mesh.Nx,Mesh.Ny,Mesh.Nz),dtype=np.longdouble)
-  P=np.absolute(Gridpe*Pol[0])+np.absolute(Gridpa*Pol[1])
-  P=20*np.log10(P,where=(P!=0))
+  P=np.absolute(Gridpe*Pol[0])**2+np.absolute(Gridpa*Pol[1])**2
+  P=10*np.log10(P,where=(P!=0))
   #t10=t.time()
   # print('----------------------------------------------------------')
   # print('Total time to find power', t10-t0)
@@ -2305,7 +2305,8 @@ def quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1)
   t4=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)
   P=np.zeros((Mesh.Nx,Mesh.Ny,Mesh.Nz),dtype=np.longdouble)
-  P=np.absolute(Gridpe*Pol[0])+np.absolute(Gridpa*Pol[1])
+  P=np.absolute(Gridpe*Pol[0])**2+np.absolute(Gridpa*Pol[1])**2
+  P=10*np.log10(P,where=(P!=0))
   Q=np.sum(P)/(Mesh.Nx*Mesh.Ny*Mesh.Nz)
   return Q,ind
 

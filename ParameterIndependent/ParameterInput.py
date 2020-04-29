@@ -38,8 +38,9 @@ def DeclareParameters():
   # -------------------------------------------------------------------
 
   #print('Saving ray-launcher parameters')
-  nrays=5
-  Nra=200*np.linspace(1,nrays,num=nrays,dtype=int) # Number of rays
+  nrays=5 #20
+  #Nra=75*np.linspace(1,nrays,num=nrays,dtype=int) # Number of rays
+  Nra=np.array([200,400,600,800,1000])
   Nre=2 # Number of reflections
   Ns=10   # Number of steps on longest axis.
   l1=2.0   # Interior obstacle scale
