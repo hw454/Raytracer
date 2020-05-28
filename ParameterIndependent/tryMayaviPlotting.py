@@ -103,7 +103,6 @@ def PlotCones():
       directionname=str('Parameters/Directions'+str(int(i))+'.npy')
       data_matrix   =np.load(directionname)         # Matrix of ray directions
       mlab.points3d(0,0,0,scale_factor=0.1)
-      xysteps=int(2*np.pi/delangle[i])
       zsteps=int(np.pi/delangle[i])
       turn=int(zsteps/4)
       turn2=int(xysteps/8)
@@ -151,7 +150,8 @@ def PlotCones():
         z=np.append(z,[z2])
         mlab.plot3d(x,y,z,color= (0, 1, 1))
       mlab.savefig('ConeFigures/Rays'+str(int(Nra[i]))+'.jpg',size=(1000,1000))
-      N=int(len(Cones)/(xysteps*Ncon))
+      N=int(zsteps*Ncon)
+      count=0
       for l in range(0,N+1):
         #j=int(Nre)*k
         if l==0:
@@ -172,9 +172,18 @@ def PlotCones():
             yp=np.append(y,[Cones[j][1][1]])
             zp=np.append(z,[Cones[j][1][2]])
             mlab.plot3d(xp,yp,zp,color= (1,0,1))
+            count+=1
         else:
+          mid=(np.cos(delangle[i])-np.sin(k*delangle[i])**2)/(np.cos(delangle[i]*k)**2)
+          if abs(mid)>1:
+            xyk=0
+          else:
+            bot=ma.acos(mid)
+            xyk=int(2*np.pi/bot)
+            if xyk<=1:
+              xyk=0
           for k in range(0,int(xysteps*Ncon)):
-            j=-((l-1)*xysteps*Ncon+Ncon+k)
+            j=count
             x=np.array([Cones[j][0][0]])
             y=np.array([Cones[j][0][1]])
             z=np.array([Cones[j][0][2]])
@@ -182,6 +191,7 @@ def PlotCones():
             yp=np.append(y,[Cones[j][1][1]])
             zp=np.append(z,[Cones[j][1][2]])
             mlab.plot3d(xp,yp,zp,color= (1,0,1))
+            count+=1
       filename=str('ConeFigures/Cone'+str(int(Nra[i]))+'.jpg')
       mlab.savefig(filename,size=(1000,1000))
       mlab.clf()
@@ -248,22 +258,19 @@ def PlotConesOnSquare():
       Pmin=np.amin(Power)
       Pmax=np.amax(Power)
       mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
-      xysteps=int(2*np.pi/delangle[i])
       zsteps=int(np.pi/delangle[i])
-      turn=int(zsteps/4)
-      turn2=int(xysteps/8)
       iternum=int(Nra[i])
-      #mlab.savefig('ConeFigures/Rays.jpg',size=(1000,1000))
-      #mlab.clf()
-      #mlab.close()
+      dist=np.linalg.norm(data_matrix[i][0][0:3]-data_matrix[i][1][0:3])
+      refangle=np.pi/2
       delth=2*np.arcsin(np.sqrt(2)*ma.sin(delangle[i]/2))
-      ta=np.sqrt(1-ma.tan(delth/2)**2)   # Nra>2 and an integer. Therefore tan(theta) exists.
-      s=ma.sin(delth/2)
-      beta=np.sqrt(2)*ta*s
-      if beta<h:
+      t2=np.sqrt(1-ma.tan(delth/2)**2)   # Nra>2 and an integer. Therefore tan(theta) exists.
+      ta=np.tan(delth/2)
+      top2=1+0.5*ta*(ma.sin(2*refangle)+(1-np.cos(2*refangle))*t2)
+      beta=dist*ta*top2
+      if beta<(h/4):
         Ncon=0
       else:
-        Ncon=int(1+np.pi/np.arcsin(h/(beta)))
+        Ncon=int(1+np.pi/np.arcsin(h/(4*beta)))
       anglevec=np.linspace(0.0,2*ma.pi,num=int(Ncon), endpoint=False) # Create an array of all the angles
       Norm=np.zeros((Ncon,3),dtype=np.float) # Initialise the matrix of normals
       Cones=np.zeros((iternum*Ncon,2,3))
@@ -285,21 +292,29 @@ def PlotConesOnSquare():
         for k in range(0,Ncon):
             Cones[j*Ncon+k][0]=np.array([cx,cy,cz])
             dist=np.linalg.norm(data_matrix[j][1][0:3]-data_matrix[j][0][0:3])
-            beta=dist*ta*s
             Cones[j*Ncon+k][1]=(data_matrix[j][1][0:3])+beta*Norm[k]
       if not os.path.exists('./ConeFigures'):
         os.makedirs('./ConeFigures')
       #mlab.savefig('ConeFigures/Rays.jpg',size=(1000,1000))
-      N=int(len(Cones)/(xysteps*Ncon))
+      count=0
+      N=int(zsteps*Ncon)
+      xysteps=int(ma.ceil(abs(2.0*np.pi/delangle[i])))
       for l in range(0,N+1):
         #j=int(Nre)*k
+        mid=(np.cos(delangle[i])-np.sin(l*delangle[i])**2)/(np.cos(delangle[i]*l)**2)
+        if abs(mid)>1:
+          break
+        bot=ma.acos(mid)
+        xyk=int(2*np.pi/bot)
+        if xyk<=1:
+          break
         #mlab.volume_slice(Powx,Powy,Powz,Power, plane_orientation='z_axes', slice_index=N-l)
         #mlab.volume_slice(Powx,Powy,Powz,Power, plane_orientation='x_axes', slice_index=int(0.5*Nx))
         #mlab.volume_slice(Powx,Powy,Powz,Power, plane_orientation='y_axes', slice_index=int(0.5*Ny))
         if l==0:
           SI=Nz
         else:
-          j=((l-1)*xysteps*Ncon+Ncon+k)
+          j=count
           z=np.array([Cones[j][0][2]])
           SI=int(Nz-(zmax-z)/(h*L))
         if Cut==0:
@@ -312,9 +327,8 @@ def PlotConesOnSquare():
                         )
           mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.1)
         if l==0:
-          #
-          j=l
-          x=np.array([Cones[j][0][0]])
+          j=count
+          x=np.array([Cones[0,0,0]])
           y=np.array([Cones[j][0][1]])
           z=np.array([Cones[j][0][2]])
           xc=np.append(x,[Tx[0]])
@@ -322,7 +336,7 @@ def PlotConesOnSquare():
           zc=np.append(z,[Tx[2]])
           mlab.plot3d(xc,yc,zc,color= (0, 1, 1),opacity=0.1)
           for k in range(0, int(Ncon)):
-            j=k
+            j=count
             x=np.array([Cones[j][0][0]])
             y=np.array([Cones[j][0][1]])
             z=np.array([Cones[j][0][2]])
@@ -330,6 +344,7 @@ def PlotConesOnSquare():
             yp=np.append(y,[Cones[j][1][1]])
             zp=np.append(z,[Cones[j][1][2]])
             mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.1)
+            count+=1
           if Cut==0:
             filename=str('ConeFigures/Cone'+str(iternum)+'Square'+str(int(l))+'.jpg')
           #mlab.show()
@@ -345,7 +360,7 @@ def PlotConesOnSquare():
           zc=np.append(z,[Tx[2]])
           mlab.plot3d(xc,yc,zc,color= (0, 1, 1),opacity=0.1)
           for k in range(0,Ncon):
-            j=-k-1
+            j=count
             x=np.array([Cones[j][0][0]])
             y=np.array([Cones[j][0][1]])
             z=np.array([Cones[j][0][2]])
@@ -353,6 +368,7 @@ def PlotConesOnSquare():
             yp=np.append(y,[Cones[j][1][1]])
             zp=np.append(z,[Cones[j][1][2]])
             mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.1)
+            count+=1
           if Cut==0:
             filename=str('ConeFigures/Cone'+str(iternum)+'Square'+str(int(l))+'.jpg')
             #mlab.show()
@@ -360,8 +376,8 @@ def PlotConesOnSquare():
             mlab.clf()
         else:
           #mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.5,0.5,0.5),opacity=0.5)
-          for k in range(0,int(xysteps*Ncon)):
-            j=((l-1)*xysteps*Ncon+Ncon+k)
+          for k in range(0,int(xyk*Ncon)):
+            j=count
             x=np.array([Cones[j][0][0]])
             y=np.array([Cones[j][0][1]])
             z=np.array([Cones[j][0][2]])
@@ -374,6 +390,7 @@ def PlotConesOnSquare():
             yp=np.append(y,[Cones[j][1][1]])
             zp=np.append(z,[Cones[j][1][2]])
             mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.1)
+            count+=1
           if Cut==0:
             filename=str('ConeFigures/Cone'+str(iternum)+'Square'+str(int(l))+'.jpg')
             #mlab.show()
@@ -381,72 +398,47 @@ def PlotConesOnSquare():
             mlab.clf()
       if Cut==1 and Vid==0:
         for l in range(0,Nz):
-          mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
+           mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='z_axes',
                             slice_index=l,
                             colormap='viridis',
                             vmax=Pmax,
                             vmin=Pmin
                         )
-          mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.1)
-          if l>0:
-            for l2 in range(0,N+1):
-              if l2==0:
-                j=l2
-                x=np.array([Cones[j][0][0]])
-                y=np.array([Cones[j][0][1]])
-                z=np.array([Cones[j][0][2]])
-                xc=np.append(x,[Tx[0]])
-                yc=np.append(y,[Tx[1]])
-                zc=np.append(z,[Tx[2]])
-                mlab.plot3d(xc,yc,zc,color= (0, 1, 1),opacity=0.1)
-                for k in range(0, int(Ncon)):
-                  j=k
-                  x=np.array([Cones[j][0][0]])
-                  y=np.array([Cones[j][0][1]])
-                  z=np.array([Cones[j][0][2]])
-                  xp=np.append(x,[Cones[j][1][0]])
-                  yp=np.append(y,[Cones[j][1][1]])
-                  zp=np.append(z,[Cones[j][1][2]])
-                  mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.1)
-              elif l2==N:
-                j=-Ncon
-                x=np.array([Cones[j][0][0]])
-                y=np.array([Cones[j][0][1]])
-                z=np.array([Cones[j][0][2]])
-                xc=np.append(x,[Tx[0]])
-                yc=np.append(y,[Tx[1]])
-                zc=np.append(z,[Tx[2]])
-                mlab.plot3d(xc,yc,zc,color= (0, 1, 1),opacity=0.1)
-                for k in range(0,Ncon):
-                  j=-k-1
-                  x=np.array([Cones[j][0][0]])
-                  y=np.array([Cones[j][0][1]])
-                  z=np.array([Cones[j][0][2]])
-                  xp=np.append(x,[Cones[j][1][0]])
-                  yp=np.append(y,[Cones[j][1][1]])
-                  zp=np.append(z,[Cones[j][1][2]])
-                  mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.1)
-              else:
-                for k in range(0,int(xysteps*Ncon)):
-                  j=((l2-1)*xysteps*Ncon+Ncon+k)
-                  x=np.array([Cones[j][0][0]])
-                  y=np.array([Cones[j][0][1]])
-                  z=np.array([Cones[j][0][2]])
-                  if j % Ncon ==0:
-                    xc=np.append(x,[Tx[0]])
-                    yc=np.append(y,[Tx[1]])
-                    zc=np.append(z,[Tx[2]])
-                    mlab.plot3d(xc,yc,zc,color= (0, 1, 1),opacity=0.1)
-                  xp=np.append(x,[Cones[j][1][0]])
-                  yp=np.append(y,[Cones[j][1][1]])
-                  zp=np.append(z,[Cones[j][1][2]])
-                  mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.1)
-          filename=str('ConeFigures/Cone'+str(iternum)+'FullSquareZ'+str(int(l))+'.jpg')
+           mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.1)
+           count=0
+           for l in range(0,nra):
+             j=count
+             x=np.array([Cones[j][0][0]])
+             y=np.array([Cones[j][0][1]])
+             z=np.array([Cones[j][0][2]])
+             xc=np.append(x,[Tx[0]])
+             yc=np.append(y,[Tx[1]])
+             zc=np.append(z,[Tx[2]])
+             mlab.plot3d(xc,yc,zc,color= (0, 1, 1),opacity=0.1)
+             for k in range(0, int(Ncon)):
+               j=count
+               x=np.array([Cones[j][0][0]])
+               y=np.array([Cones[j][0][1]])
+               z=np.array([Cones[j][0][2]])
+               xp=np.append(x,[Cones[j][1][0]])
+               yp=np.append(y,[Cones[j][1][1]])
+               zp=np.append(z,[Cones[j][1][2]])
+               mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.1)
+               count+=1
+           filename=str('ConeFigures/Cone'+str(iternum)+'FullSquareZ'+str(int(l))+'.jpg')
+           if l==nra-1:
+              mlab.savefig(filename,size=(1000,1000))
+              mlab.clf()
           #mlab.show()
-          mlab.savefig(filename,size=(1000,1000))
-          mlab.clf()
         for l in range(0,Nx):
+          mid=(np.cos(delangle[i])-np.sin(l*delangle[i])**2)/(np.cos(delangle[i]*l)**2)
+          if abs(mid)>1:
+            break
+          bot=ma.acos(mid)
+          xyk=int(2*np.pi/bot)
+          if xyk<=1:
+            break
           mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='x_axes',
                             slice_index=l,
@@ -456,7 +448,7 @@ def PlotConesOnSquare():
                             )
           for l2 in range(0,N+1):
               if l2==0:
-                j=l2
+                j=count
                 x=np.array([Cones[j][0][0]])
                 y=np.array([Cones[j][0][1]])
                 z=np.array([Cones[j][0][2]])
@@ -473,8 +465,9 @@ def PlotConesOnSquare():
                   yp=np.append(y,[Cones[j][1][1]])
                   zp=np.append(z,[Cones[j][1][2]])
                   mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.1)
+                  count+=1
               elif l2==N:
-                j=-Ncon
+                j=count
                 x=np.array([Cones[j][0][0]])
                 y=np.array([Cones[j][0][1]])
                 z=np.array([Cones[j][0][2]])
@@ -491,9 +484,10 @@ def PlotConesOnSquare():
                   yp=np.append(y,[Cones[j][1][1]])
                   zp=np.append(z,[Cones[j][1][2]])
                   mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.1)
+                  count+=1
               else:
-                for k in range(0,int(xysteps*Ncon)):
-                  j=((l2-1)*xysteps*Ncon+Ncon+k)
+                for k in range(0,int(xyk*Ncon)):
+                  j=count
                   x=np.array([Cones[j][0][0]])
                   y=np.array([Cones[j][0][1]])
                   z=np.array([Cones[j][0][2]])
@@ -506,12 +500,20 @@ def PlotConesOnSquare():
                   yp=np.append(y,[Cones[j][1][1]])
                   zp=np.append(z,[Cones[j][1][2]])
                   mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.1)
+                  count+=1
           mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.1)
           filename=str('ConeFigures/Cone'+str(iternum)+'FullSquareX'+str(int(l))+'.jpg')
           #mlab.show()
           mlab.savefig(filename,size=(1000,1000))
           mlab.clf()
         for l in range(0,Ny):
+          mid=(np.cos(delangle[i])-np.sin(l*delangle[i])**2)/(np.cos(delangle[i]*l)**2)
+          if abs(mid)>1:
+            break
+          bot=ma.acos(mid)
+          xyk=int(2*np.pi/bot)
+          if xyk<=1:
+            break
           mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='y_axes',
                             slice_index=l,
@@ -519,58 +521,25 @@ def PlotConesOnSquare():
                             vmax=Pmax,
                             vmin=Pmin
                         )
-          for l2 in range(0,N+1):
-              if l2==0:
-                j=l2
-                x=np.array([Cones[j][0][0]])
-                y=np.array([Cones[j][0][1]])
-                z=np.array([Cones[j][0][2]])
-                xc=np.append(x,[Tx[0]])
-                yc=np.append(y,[Tx[1]])
-                zc=np.append(z,[Tx[2]])
-                mlab.plot3d(xc,yc,zc,color= (0, 1, 1),opacity=0.1)
-                for k in range(0, int(Ncon)):
-                  j=k
-                  x=np.array([Cones[j][0][0]])
-                  y=np.array([Cones[j][0][1]])
-                  z=np.array([Cones[j][0][2]])
-                  xp=np.append(x,[Cones[j][1][0]])
-                  yp=np.append(y,[Cones[j][1][1]])
-                  zp=np.append(z,[Cones[j][1][2]])
-                  mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.1)
-              elif l2==N:
-                j=-Ncon
-                x=np.array([Cones[j][0][0]])
-                y=np.array([Cones[j][0][1]])
-                z=np.array([Cones[j][0][2]])
-                xc=np.append(x,[Tx[0]])
-                yc=np.append(y,[Tx[1]])
-                zc=np.append(z,[Tx[2]])
-                mlab.plot3d(xc,yc,zc,color= (0, 1, 1),opacity=0.1)
-                for k in range(0,Ncon):
-                  j=-k-1
-                  x=np.array([Cones[j][0][0]])
-                  y=np.array([Cones[j][0][1]])
-                  z=np.array([Cones[j][0][2]])
-                  xp=np.append(x,[Cones[j][1][0]])
-                  yp=np.append(y,[Cones[j][1][1]])
-                  zp=np.append(z,[Cones[j][1][2]])
-                  mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.1)
-              else:
-                for k in range(0,int(xysteps*Ncon)):
-                  j=((l2-1)*xysteps*Ncon+Ncon+k)
-                  x=np.array([Cones[j][0][0]])
-                  y=np.array([Cones[j][0][1]])
-                  z=np.array([Cones[j][0][2]])
-                  if j % Ncon ==0:
-                    xc=np.append(x,[Tx[0]])
-                    yc=np.append(y,[Tx[1]])
-                    zc=np.append(z,[Tx[2]])
-                    mlab.plot3d(xc,yc,zc,color= (0, 1, 1),opacity=0.1)
-                  xp=np.append(x,[Cones[j][1][0]])
-                  yp=np.append(y,[Cones[j][1][1]])
-                  zp=np.append(z,[Cones[j][1][2]])
-                  mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.1)
+          for l2 in range(0,nra):
+            j=count
+            x=np.array([Cones[j][0][0]])
+            y=np.array([Cones[j][0][1]])
+            z=np.array([Cones[j][0][2]])
+            xc=np.append(x,[Tx[0]])
+            yc=np.append(y,[Tx[1]])
+            zc=np.append(z,[Tx[2]])
+            mlab.plot3d(xc,yc,zc,color= (0, 1, 1),opacity=0.1)
+            for k in range(0, int(Ncon)):
+              j=k
+              x=np.array([Cones[j][0][0]])
+              y=np.array([Cones[j][0][1]])
+              z=np.array([Cones[j][0][2]])
+              xp=np.append(x,[Cones[j][1][0]])
+              yp=np.append(y,[Cones[j][1][1]])
+              zp=np.append(z,[Cones[j][1][2]])
+              mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.1)
+              count+=1
           mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.5,0.5,0.5),opacity=0.1)
           filename=str('ConeFigures/Cone'+str(iternum)+'FullSquareY'+str(int(l))+'.jpg')
           #mlab.show()
@@ -695,45 +664,38 @@ def PlotDirections():
       Nra=np.array([Nra])
       nra=1
     else:
-      nra=len(Nra)
+      nra=len(Nra[0])
     Nre,h ,L    =np.load('Parameters/Raytracing.npy')
     # Take Tx to be 0,0,0
     delang     =np.load('Parameters/delangle.npy')
 
     mlab.points3d(0,0,0,scale_factor=0.1)
     mulfac=4
-    for j in range(0,nra):
-      directionname=str('Parameters/Directions'+str(int(j))+'.npy')
+    for i in range(0,nra):
+      directionname=str('Parameters/Directions'+str(int(i))+'.npy')
       data_matrix   =np.load(directionname)         # Matrix of ray directions
-      delangle=delang[j]
-      xysteps=int(2*np.pi/delangle)
-      zsteps=int(np.pi/delangle)
-      turn=int(zsteps/4)
-      turn2=int(xysteps/8)
+      delangle=delang[i]
       #mlab.savefig('ConeFigures/Rays.jpg',size=(1000,1000))
       #mlab.clf()
       #mlab.close()
       delth=2*np.arcsin(np.sqrt(2)*ma.sin(delangle/2))
       ta=np.sqrt(1-ma.tan(delth/2)**2)   # Nra>2 and an integer. Therefore tan(theta) exists.
       s=ma.sin(delth/2)
-      for l in range(0,int(Nra[j])):
-        #j=int(Nre)*k
-        m=int(abs(zsteps/2-l/xysteps))
-        m2=int(abs(xysteps/2-np.mod(l,xysteps)))
-        if 0<m<turn:
-          f=m*delangle
-        elif turn<=m<2*turn:
-          f=np.pi/2-m*delangle
-        else:
-          f=0
-        if 0<m2<=turn2 or 3*turn2<=m2<4*turn2:
-          g=m2*delangle
-        elif turn2<m2<2*turn2 or 2*turn2<m2<3*turn2:
-          g=np.pi/2-m2*delangle
-        else:
-          g=0
-        sqfac=abs(1/(np.cos(f)*np.cos(g)))
+      for l in range(0,int(Nra[0,i])):
         j=l
+        if data_matrix[j][0]!=0:
+          a=1/abs(data_matrix[j][0])
+        else:
+          a=1
+        if data_matrix[j][1]!=0:
+          b=1/abs(data_matrix[j][1])
+        else:
+          b=1
+        if data_matrix[j][2]!=0:
+          c=1/abs(data_matrix[j][2])
+        else:
+          c=1
+        sqfac=min(a,b,c)
         x=0
         y=0
         z=0
@@ -742,7 +704,7 @@ def PlotDirections():
         y=np.append(y,[y2])
         z=np.append(z,[z2])
         mlab.plot3d(x,y,z,color= (0, 1, 1))
-      filename=str('ConeFigures/Rays'+str(Nra[j])+'.jpg')
+      filename=str('ConeFigures/Rays'+str(Nra[0,i])+'.jpg')
       mlab.savefig(filename,size=(1000,1000))
       mlab.clf()
       mlab.close()
@@ -789,7 +751,7 @@ if __name__=='__main__':
   PlotConesOnSquare()
   #PlotPowerSlice()
   #PlotRays()
-  #PlotDirections()
+  PlotDirections()
   print('Running  on python version')
   print(sys.version)
 exit()

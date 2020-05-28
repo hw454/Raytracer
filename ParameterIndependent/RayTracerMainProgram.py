@@ -446,6 +446,9 @@ def power_grid(Roomnum=0):
   #Roomnum        =int(input('How many combinations of room values do you want to test?'))
   Nob            =np.load('Parameters/Nob.npy')
 
+  # Initialise variable for counting zeros
+  G_z=np.zeros((1,nra))
+
   ##----Retrieve the Mesh--------------------------------------
   for j in range(0,nra):
     meshname=str('./Mesh/DSM'+str(Nra[j])+'Refs'+str(Nre)+'m.npy')
@@ -490,13 +493,16 @@ def power_grid(Roomnum=0):
       if not os.path.exists('./Mesh'):
         os.makedirs('./Mesh')
       np.save('./Mesh/Power_grid'+str(int(Nra[j]))+'Refs'+str(Nre)+'m'+str(index)+'.npy',Grid) #.compressed())
+      if j==3:
+          print(Grid[0,8,0],Grid[8,0,8],Grid[9,7,9])
+      G_z[0,j]=np.count_nonzero((Grid==0))
     t1=t.time()
     timemat[j]=t1-t0
   print('-------------------------------')
   print('Power from DSM complete')
   print('Time taken',timemat)
   print('-------------------------------')
-  return Grid
+  return Grid,G_z
 
 def Quality(Roomnum=0):
   ''' Calculate the field on a grid using enviroment parameters and the \
@@ -810,7 +816,8 @@ if __name__=='__main__':
   else:
       nra=len(Nra)
   Qmat   =np.zeros((testnum,nra))
-  Qtruemat   =np.zeros((testnum,nra))
+  Qtruemat=np.zeros((testnum,nra))
+  G_zeros =np.zeros((testnum,nra))
   for j in range(0,timetest):
     Roomnum=roomnumstat
     #Timemat[0,0]=Roomnum
@@ -818,7 +825,8 @@ if __name__=='__main__':
       start=t.time()
       Mesh1=MeshProgram() # Shoot the rays and store the information
       mid=t.time()
-      Grid=power_grid(Roomnum)  # Use the ray information to compute the power
+      Grid,G_z=power_grid(Roomnum)  # Use the ray information to compute the power
+      G_zeros[count,:]=G_z
       Q,Q2=Quality(Roomnum)
       Qmat[count,:]=Q
       Qtruemat[count,:]=Q2
@@ -864,6 +872,7 @@ if __name__=='__main__':
   qualityname=('./Quality/QualityNra'+str(int(nra))+'Refs'+str(int(Nre))+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
   np.save(qualityname,Qmat[0,:])
   print(Qmat)
+  print(G_zeros)
   mp.plot(Nra,Qmat[0,:])
   mp.plot(Nra,Qtruemat[0,:])
   filename=str('Quality/Quality'+str(int(Nra[0]))+'to'+str(int(Nra[-1]))+'Nref'+str(int(Nre))+'.jpg')#.eps').

@@ -41,7 +41,7 @@ if __name__=='__main__':
 
         videoname=str('./ConeFigures/Nra'+str(Nra[i])+'.avi')
         out = cv2.VideoWriter(videoname,cv2.VideoWriter_fourcc(*'DIVX'), tp, size)
-
+        print(videoname)
         for i in range(len(img_array)):
             out.write(img_array[i])
         out.release()
