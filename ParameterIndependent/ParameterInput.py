@@ -40,9 +40,10 @@ def DeclareParameters():
   #print('Saving ray-launcher parameters')
   #nrays=3 #20
   #Nra=75*np.linspace(1,nrays,num=nrays,dtype=int) # Number of rays
-  deltheta=np.pi*np.array([1/3,1/4,1/9,1/12,1/14,1/16,1/18,1/19,1/20,1/22])#,1/25,1/36])
+  deltheta=np.pi*np.array([1/3,1/5,1/7,1/8,1/9,1/12,1/14,1/16,1/18,1/19,1/20,1/22,1/25,1/36])
   nrays=len(deltheta)
   Nra=np.ones((1,nrays),dtype=int)
+  Nra=Nra[0]
   #Nra=np.array([600])
   Nre=2 # Number of reflections
   Ns=10   # Number of steps on longest axis.
@@ -92,33 +93,44 @@ def DeclareParameters():
   # CALCULATE ANGLE SPACING
   for j in range(0,nrays):
     xysteps       =int(ma.ceil(abs(2.0*np.pi/deltheta[j])))
-    Nra[0,j]=xysteps+2
     theta1        =np.linspace(0.0,2*np.pi,num=int(xysteps), endpoint=False) # Create an array of all the angles
     deltheta[j]=theta1[1]-theta1[0]
-    zsteps        =int(ma.ceil(abs(np.pi/(2*deltheta[j]))))
-    coords      =np.c_[np.cos(theta1),np.sin(theta1),np.zeros((xysteps,1))]
-    for k in range(1,zsteps):
+    zsteps        =int(ma.ceil(abs(np.pi/(deltheta[j]))))
+    Nra[j]=2
+    Nraout=np.array([])
+    start=0
+    for k in range(-int(zsteps/2),int(zsteps/2)):
       mid=(np.cos(deltheta[j])-np.sin(k*deltheta[j])**2)/(np.cos(deltheta[j]*k)**2)
       if abs(mid)>1:
+        pass
+      else:
+        bot=ma.acos(mid)
+        xyk=int(2*np.pi/bot)
+        if xyk<=1:
           break
-      bot=ma.acos(mid)
-      xyk=int(2*np.pi/bot)
-      if xyk<=1:
-          break
-      Nra[0,j]+=2*xyk
-      theta1        =np.linspace(0.0,2*np.pi,num=int(xyk), endpoint=False) # Create an array of all the angles
-      co=np.cos(k*deltheta[j])
-      si=np.sin(k*deltheta[j])
-      updirecs     =np.c_[co*np.cos(theta1),co*np.sin(theta1),si*np.ones((xyk,1))]
-      downdirecs   =np.c_[co*np.cos(theta1),co*np.sin(theta1),-si*np.ones((xyk,1))]
-      coords  =np.r_[coords,downdirecs]
-      coords  =np.r_[updirecs,coords]
-    directions=np.zeros((Nra[0,j],4))
-    directions[1:-1]=np.c_[coords,np.zeros((Nra[0,j]-2,1))]
-    directions[0] =np.array([0.0,0.0, 1.0,0.0])
-    directions[-1]=np.array([0.0,0.0,-1.0,0.0])
-    directionname=str('Parameters/Directions'+str(int(j))+'.npy')
-    np.save(directionname,directions)
+        Nra[j]+=xyk
+        theta1        =np.linspace(0.0,2*np.pi,num=int(xyk), endpoint=False) # Create an array of all the angles
+        co=np.cos(k*deltheta[j])
+        si=np.sin(k*deltheta[j])
+        updirecs     =np.c_[co*np.cos(theta1),co*np.sin(theta1),si*np.ones((xyk,1))]
+        #downdirecs   =np.c_[co*np.cos(theta1),co*np.sin(theta1),-si*np.ones((xyk,1))]
+        if start==0:
+          coords=updirecs
+          start=1
+        else:
+          #coords  =np.r_[coords,downdirecs]
+          coords  =np.r_[updirecs,coords]
+    if len(coords)<=1:
+      Nraout=Nra[j+1:]
+      pass
+    else:
+      Nraout=Nra
+      directions=np.zeros((Nra[j],4))
+      directions[1:-1]=np.c_[coords,np.zeros((Nra[j]-2,1))]
+      directions[0] =np.array([0.0,0.0, 1.0,0.0])
+      directions[-1]=np.array([0.0,0.0,-1.0,0.0])
+      directionname=str('Parameters/Directions'+str(int(j))+'.npy')
+      np.save(directionname,directions)
 
   # # For comparing vector code to loop version
   # directions2=np.zeros((zsteps*xysteps+2,4))
@@ -138,14 +150,15 @@ def DeclareParameters():
   # COMBINE THE RAY-LAUNCHER PARAMETERS INTO ONE ARRAY
   RTPar=np.array([Nre,h,roomlengthscale])
 
-  print('Number of rays ', Nra,'Number of reflections ', Nre,'Mesh spacing ', h)
+  print('Number of rays ', Nraout,'Number of reflections ', Nre,'Mesh spacing ', h)
+  print('Angle spacing ', deltheta)
   #print('Origin of raytracer ', Tx)
 
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS IN A FOLDER TITLED `Parameters`
   # --------------------------------------------------------------------
   np.save('Parameters/Raytracing.npy',RTPar)
-  np.save('Parameters/Nra.npy',Nra[0])
+  np.save('Parameters/Nra.npy',Nraout)
   np.save('Parameters/delangle.npy',deltheta)
   np.save('Parameters/Obstacles.npy',Oblist)
   np.save('Parameters/OuterBoundary.npy',OuterBoundary)

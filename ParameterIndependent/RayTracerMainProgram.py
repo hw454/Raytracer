@@ -753,7 +753,13 @@ def plot_grid(index=0):
       #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
       mp.imshow(P[:,:,i], cmap='viridis', vmax=ub,vmin=lb)
       mp.colorbar()
-      filename=str('GeneralMethodPowerFigures/NoBoxPowerSliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.jpg')#.eps')
+      rayfolder=str('./GeneralMethodPowerFigures/PowerSlice/Nra'+str(int(Nra[j])))
+      if not os.path.exists('./GeneralMethodPowerFigures/PowerSlice'):
+        os.makedirs('./GeneralMethodPowerFigures/PowerSlice')
+        os.makedirs(rayfolder)
+      elif not os.path.exists(rayfolder):
+        os.makedirs(rayfolder)
+      filename=str(rayfolder+'/NoBoxPowerSliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.jpg')#.eps')
       mp.savefig(filename)
       mp.clf()
   # for i in range(n2):
@@ -769,7 +775,13 @@ def plot_grid(index=0):
       #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
       mp.imshow(P3[:,:,i], cmap='viridis',  vmax=ub,vmin=lb)
       mp.colorbar()
-      filename=str('GeneralMethodPowerFigures/NoBoxTrueSliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.jpg')#.eps')
+      truefolder=str('./GeneralMethodPowerFigures/TrueSlice/Nra'+str(int(Nra[j])))
+      if not os.path.exists('./GeneralMethodPowerFigures/TrueSlice'):
+        os.makedirs('./GeneralMethodPowerFigures/TrueSlice')
+        os.makedirs(truefolder)
+      elif not os.path.exists(truefolder):
+        os.makedirs(truefolder)
+      filename=str(truefolder+'/NoBoxTrueSliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.jpg')#.eps')
       mp.savefig(filename)
       mp.clf()
       # for i in range(n3):
@@ -785,7 +797,13 @@ def plot_grid(index=0):
       #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
       mp.imshow(Pdifftil[:,:,i], cmap='viridis')#, vmax=max(ub2,ub),vmin=min(lb,lb2))
       mp.colorbar()
-      filename=str('GeneralMethodPowerFigures/NoBoxPowerDifftilSliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.jpg')#.eps')
+      Difffolder=str('./GeneralMethodPowerFigures/DiffSlice/Nra'+str(int(Nra[j])))
+      if not os.path.exists('./GeneralMethodPowerFigures/DiffSlice'):
+        os.makedirs('./GeneralMethodPowerFigures/DiffSlice')
+        os.makedirs(Difffolder)
+      elif not os.path.exists(Difffolder):
+        os.makedirs(Difffolder)
+      filename=str(Difffolder+'/NoBoxPowerDifftilSliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.jpg')#.eps')
       mp.savefig(filename)
       mp.clf()
   # for i in range(n3):

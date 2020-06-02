@@ -1869,7 +1869,7 @@ class DS:
     #FIXME add the check for the end of the ray.
     #if i>=p1[0] and j>=p1[1] and k>=p1[2]:
     #  return 0
-    if i>s.Nx-1 or j>s.Ny-1 or k>s.Nz-1 or i<0 or j<0 or k<0:
+    if i>s.Nx-1 or j>s.Ny-1 or k>s.Nz-1 or i<0 or j<0 or k<0: #i>s.Nx or j>s.Ny or k>s.Nz or i<0 or j<0 or k<0:#
       return 0
     else: return 1
   ## Check if the list of points is valid.

@@ -104,25 +104,12 @@ class Ray:
     return int(1+(segleng+0.5*beta*(si+(1-c)*t2))/alpha)
   def number_cones(s,h,dist,delangle,refangle):
      '''find the number of steps taken along one normal in the cone'''
-     delth=2*np.arcsin(np.sqrt(2)*ma.sin(delangle/2))
-     t2=np.sqrt(1-ma.tan(delth/2)**2)   # Nra>2 and an integer. Therefore tan(theta) exists.
-     ta=np.tan(delth/2)
-     top2=1+0.5*ta*(ma.sin(2*refangle)+(1-np.cos(2*refangle))*t2)
-     beta=dist*ta*top2
-     if beta<(h/4):
-       Ncon=0
-     else:
-       Ncon=int(1+np.pi/np.arcsin(h/(4*beta))) # Compute the distance of the normal vector
-                            # for the cone and the number of mesh points
-                            # that would fit in that distance.
+     nref=s.points.shape[0]
+     Ncon=no_cones(h,dist,delangle,refangle,nref)
      return Ncon
   def number_cone_steps(s,h,dist,delangle):
      '''find the number of steps taken along one normal in the cone'''
-     delth=2*np.arcsin(np.sqrt(2)*ma.sin(delangle/2))
-     t=ma.tan(delth/2)    # Nra>2 and an integer. Therefore tan(theta) exists.
-     Nc=int(1+(dist*t/h)) # Compute the distance of the normal vector for
-                          # the cone and the number of mesh points that would
-                          # fit in that distance.
+     Nc=no_cone_steps(h,dist,delangle)
      return Nc
   def normal_mat(s,Ncones,Nra,d,dist,h):
      ''' Form a matrix of vectors representing the plane which is \
@@ -168,6 +155,7 @@ class Ray:
 
      '''
      d/=np.linalg.norm(d)                  # Normalise the direction of the ray
+     print(Ncones)
      anglevec=np.linspace(0.0,2*ma.pi,num=int(Ncones), endpoint=False) # Create an array of all the angles
      Norm=np.zeros((Ncones,3),dtype=np.float) # Initialise the matrix of normals
      if abs(d[2])>0:
@@ -441,9 +429,9 @@ class Ray:
     #  p1=p0+alpha*direc
     #  _dist+=deldist
     i1,j1,k1=room.position(p1,h)                           # Find the indices for position p0
-    i2=0
-    j2=0
-    k2=0
+    i2=-1
+    j2=-1
+    k2=-1
     endposition=np.zeros((1,3))
     endposition=room.position(s.points[-2][0:3],h)         # The indices of the end of the segment
     theta=s.ref_angle(room)                                # Compute the reflection angle
@@ -496,8 +484,8 @@ class Ray:
           calind=_calcvec.nonzero()
           for i3 in calind[0]:
             _Mesh[i1,j1,k1,i3,col]=distcor*_calcvec[i3,0]
-            if i1==5 and j1==5 and k1==1 and nre==0:
-              print(Ncon,Nra,nre)
+            if i1==5 and j1==5 and k1==0 and nre==0:
+              print('direct ray',Ncon,Nra,nre)
           del alcor, distcor
         if Ncon>0:
           Nc=s.number_cone_steps(alpha,_dist,deltheta)           # No. of cone steps required for this ray step.
@@ -549,7 +537,7 @@ class Ray:
             for j in range(0,n):
               for ic in calind[0]:
                 if altcopos[0][j]==5 and altcopos[1][j]==5 and altcopos[2][j]==0 and nre==0:
-                  print(Ncon,Nc,Nra,nre,r2[j],'check')
+                  print('cone',Ncon,Nc,Nra,nre,r2[j],'check')
                 _Mesh[altcopos[0][j],altcopos[1][j],altcopos[2][j],ic,col]=r2[j]*_calcvec[ic,0]
             del r2
         # Compute the next point along the ray
@@ -764,4 +752,38 @@ class Ray:
       s.ray[-1]=cp
       s.ray=np.vstack((s.ray,lf.Direction(refray)))
       #print('ray',ray, 'refray', refray, 'error', err)
-    return err
+    return
+
+def no_cones(h,dist,delangle,refangle,nref):
+     '''find the number of steps taken along one normal in the cone'''
+     print(h,dist,delangle,refangle,nref)
+     delth=angle_space(delangle,nref)
+     beta=beta_leng(dist,delth,refangle)
+     print(beta)
+     if beta<(h/4):
+       Ncon=0
+     else:
+       Ncon=int(1+np.pi/np.arcsin(h/(4*beta))) # Compute the distance of the normal vector
+                            # for the cone and the number of mesh points
+                            # that would fit in that distance.
+     return Ncon
+def angle_space(delangle,nref):
+    if nref==0:
+      return 2*np.arcsin(np.sqrt(2)*ma.sin(delangle/2))
+    else:
+      return delangle
+
+def beta_leng(dist,delth,refangle):
+    # Nra>2 and an integer. Therefore tan(theta) exists.
+    ta=np.tan(delth/2)
+    top2=(1+0.5*ta*(ma.sin(2*refangle)+1-np.cos(2*refangle)))*ta
+    beta=dist*top2
+    return beta
+def no_cone_steps(h,dist,delangle):
+     '''find the number of steps taken along one normal in the cone'''
+     delth=2*np.arcsin(np.sqrt(2)*ma.sin(delangle/2))
+     t=ma.tan(delth/2)    # Nra>2 and an integer. Therefore tan(theta) exists.
+     Nc=int(1+(dist*t/h)) # Compute the distance of the normal vector for
+                          # the cone and the number of mesh points that would
+                          # fit in that distance.
+     return Nc
