@@ -778,9 +778,11 @@ def beta_leng(dist,delth,refangle):
     return beta
 
 def extra_r(dist,delth,refangle=0):
-    ta=np.tan(delth/2)
-    t2=np.tan(refangle+delth*0.5)
     print('hi',(np.pi/2)/(refangle+delth*0.5),refangle,delth,np.pi/refangle)
+    if refangle>np.pi/4:
+      refangle=np.pi/2-refangle
+    ta=np.tan(delth/2)
+    t2=np.tan(refangle+delth/2)
     top2=0.5*ta*(ma.sin(2*refangle)+(1-np.cos(2*refangle))*t2)
     rhat=dist*top2
     return rhat
