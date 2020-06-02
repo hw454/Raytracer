@@ -95,15 +95,12 @@ class Ray:
   def number_steps(s,alpha,segleng,dist,delangle,refangle):
     '''The number of steps along the ray between intersection points'''
     refangle=np.pi*0.5-refangle
-    c=np.cos(2*refangle)
-    si=np.sin(2*refangle)
-    delth=2*np.arcsin(np.sqrt(2)*ma.sin(delangle/2))
-    t2=np.tan(refangle+delth)
-    top=np.tan(delth/2)
-    beta=dist*top
-    return int(1+(segleng+0.5*beta*(si+(1-c)*t2))/alpha)
+    rhat=extra_r(dist,delangle,refangle)
+    ns=(segleng+rhat)/alpha
+    return int(1+ns)
   def number_cones(s,h,dist,delangle,refangle):
      '''find the number of steps taken along one normal in the cone'''
+     refangle=np.pi*0.5-refangle
      nref=s.points.shape[0]
      Ncon=no_cones(h,dist,delangle,refangle,nref)
      return Ncon
@@ -776,9 +773,16 @@ def angle_space(delangle,nref):
 def beta_leng(dist,delth,refangle):
     # Nra>2 and an integer. Therefore tan(theta) exists.
     ta=np.tan(delth/2)
-    top2=(1+0.5*ta*(ma.sin(2*refangle)+1-np.cos(2*refangle)))*ta
-    beta=dist*top2
+    rhat=extra_r(dist,delth,refangle)
+    beta=(rhat+dist)*ta
     return beta
+    
+def extra_r(dist,delth,refangle=0):
+	ta=np.tan(delth/2)
+    t2=np.tan(refangle+delth/2)
+    top2=0.5*ta*(ma.sin(2*refangle)+(1-np.cos(2*refangle))*t2)
+    beta=dist*top2
+	return rhat
 def no_cone_steps(h,dist,delangle):
      '''find the number of steps taken along one normal in the cone'''
      delth=2*np.arcsin(np.sqrt(2)*ma.sin(delangle/2))
