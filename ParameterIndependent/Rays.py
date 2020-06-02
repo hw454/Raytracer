@@ -776,13 +776,14 @@ def beta_leng(dist,delth,refangle):
     rhat=extra_r(dist,delth,refangle)
     beta=(rhat+dist)*ta
     return beta
-    
+
 def extra_r(dist,delth,refangle=0):
-	ta=np.tan(delth/2)
-    t2=np.tan(refangle+delth/2)
+    ta=np.tan(delth/2)
+    t2=np.tan(refangle+delth*0.5)
+    print('hi',(np.pi/2)/(refangle+delth*0.5),refangle,delth,np.pi/refangle)
     top2=0.5*ta*(ma.sin(2*refangle)+(1-np.cos(2*refangle))*t2)
-    beta=dist*top2
-	return rhat
+    rhat=dist*top2
+    return rhat
 def no_cone_steps(h,dist,delangle):
      '''find the number of steps taken along one normal in the cone'''
      delth=2*np.arcsin(np.sqrt(2)*ma.sin(delangle/2))
