@@ -808,8 +808,8 @@ class DS:
           out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
           out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
         elif ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])!=0:
-              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=0
-              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=0
+              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
+              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
               #FIXME This is only to get just LOS
         else:
             theta=s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
@@ -818,15 +818,15 @@ class DS:
             #np.sqrt(1-(np.sin(theta)/refindex[ind[3][i]])**2)
             S1=cthi*m[ind[3][i]]
             S2=ctht*m[ind[3][i]]
-            if cthi==0 and ctht==0:
+            if abs(cthi)<epsilon and abs(ctht)<epsilon:
               out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=0
               out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=0
             elif out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]==0:
-              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=0#(S1-ctht)/(S1+ctht)
-              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=0#(cthi-S2)/(cthi+S2)
+              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=(S1-ctht)/(S1+ctht)
+              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=(cthi-S2)/(cthi+S2)
             else:
-              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=0#(S1-ctht)/(S1+ctht)
-              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=0#(cthi-S2)/(cthi+S2)
+              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=(S1-ctht)/(S1+ctht)
+              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=(cthi-S2)/(cthi+S2)
     return out1,out2
 
   def togrid(s,ind):
@@ -1296,10 +1296,6 @@ class DS:
       else:
         m=s[x,y,z,a,b]*khat*(L**2)
         k=lam*(np.sqrt(G[b])*(np.cos(m)+np.sin(m)*1j)/(s[x,y,z,a,b]*4*np.pi*L))[0]
-        #if x==0 and y==5 and z==4:
-        #  print('top',s[x,y,z,a,b],k,Com1[x,y,z,a,b],a,b)
-        #if x==9 and y==4 and z==4:
-        #  print('bottom',s[x,y,z,a,b],k,Com1[x,y,z,a,b],a,b)
         out1[x,y,z]+=k*Com1[x,y,z,a,b]
         out2[x,y,z]+=k*Com2[x,y,z,a,b]
         del x,y,z,a,b,m,k
@@ -1845,7 +1841,7 @@ class DS:
   # @param p1 is the point at the end of the ray.
   # @param h is the mesh width
   # @return 0 if valid, 1 if not.
-  def stopcheck(s,i,j,k,p1,h):
+  def stopcheck(s,i,j,k):
     """ Check if the index [i,j,k] is valid.
 
     :param i: is the index for the x axis.
@@ -1883,7 +1879,7 @@ class DS:
   # valid points, p3=[[x1,y1,z1],...,[xn,yn,zn]] co-ordinates of
   # the valid points., N=[n0,...,Nn] the normal vectors corresponding to
   # the valid points.
-  def stopchecklist(s,ps,p1,h,p3,n):
+  def stopchecklist(s,ps,p3,n):
     """ Check if the list of points is valid.
 
     :param ps: the indices for the points in the list
@@ -1910,41 +1906,32 @@ class DS:
     newn =np.array([])
     j=0
     if isinstance(ps[0],(float,int,np.int64, np.complex128 )):
-      check=s.stopcheck(ps[0],ps[1],ps[2],p1,h)
+      check=s.stopcheck(ps[0],ps[1],ps[2])
       if check==1:
-        newps=np.array([[ps[0]],[ps[1]],[ps[2]]])
-        newp3=np.array([[p3[0]],[p3[1]],[p3[2]]])
-        newn =np.array([[n[0]], [n[1]], [n[2]]])
+        newps=np.array([ps[0],ps[1],ps[2]])
+        newp3=np.array([p3[0,0],p3[0,1],p3[0,2]])
+        newn =np.array([n[0,0],n[0,1],n[0,2]])
       else:
         pass
     else:
      for k in ps:
-      check=s.stopcheck(k[0],k[1],k[2],p1,h)
-      # if check==1 and start==1:
-        # if k[0] in newps[0]:
-          # kindex=np.where(newp3[0]==k[0])
-          # if k[1]==newps[1][kindex] and k[2]==newps[2][kindex]:
-            # check==0
-          # else:
-            # pass
-        # else:
-          # pass
+      check=s.stopcheck(k[0],k[1],k[2])
       if check==1:
         if start==0:
-          newps=np.array([[k[0]],[k[1]],[k[2]]])
-          newp3=np.array([[p3[j][0]],[p3[j][1]],[p3[j][2]]])
-          newn =np.array([[n[j][0]], [n[j][1]], [n[j][2]]])
+          newps=np.array([k[0],k[1],k[2]])
+          newp3=np.array([p3[j,0],p3[j,1],p3[j,2]])
+          newn =np.array([n[j,0], n[j,1],n[j,2]])
           start=1
         else:
-          newps=np.hstack((newps,np.array([[k[0]],[k[1]],[k[2]]])))
-          newp3=np.hstack((newp3,np.array([[p3[j][0]],[p3[j][1]],[p3[j][2]]])))
-          newn =np.hstack((newn, np.array([[n[j][0]], [n[j][1]], [ n[j][2]]])))
+          newps=np.vstack((newps,np.array([k[0],k[1],k[2]])))
+          newp3=np.vstack((newp3,np.array([p3[j,0],p3[j,1],p3[j,2]])))
+          newn =np.vstack((newn, np.array([n[j,0],n[j,1], n[j,2]])))
       else:
         pass
       j+=1
     return start, newps, newp3, newn
 
-def stopcheck(i,j,k,p1,h,Nx,Ny,Nz):
+def stopcheck(i,j,k,Nx,Ny,Nz):
     """ Check if the index [i,j,k] is valid.
 
     :param i: is the index for the x axis.
@@ -1982,7 +1969,7 @@ def stopcheck(i,j,k,p1,h,Nx,Ny,Nz):
   # valid points, p3=[[x1,y1,z1],...,[xn,yn,zn]] co-ordinates of
   # the valid points., N=[n0,...,Nn] the normal vectors corresponding to
   # the valid points.
-def stopchecklist(ps,p1,h,p3,n,Nx,Ny,Nz):
+def stopchecklist(ps,p3,n,Nx,Ny,Nz):
     """ Check if the list of points is valid.
 
     :param ps: the indices for the points in the list
@@ -2017,14 +2004,14 @@ def stopchecklist(ps,p1,h,p3,n,Nx,Ny,Nz):
             check==0
       if check==1:
         if start==0:
-          newps=np.array([[k[0]],[k[1]],[k[2]]])
-          newp3=np.array([[p3[j][0]],[p3[j][1]],[p3[j][2]]])
-          newn =np.array([[n[j][0]], [n[j][1]], [n[j][2]]])
+          newps=np.array([k[0],k[1],k[2]])
+          newp3=np.array([p3[j][0],p3[j][1],p3[j][2]])
+          newn =np.array([n[j][0], n[j][1], n[j][2]])
           start=1
         else:
-          newps=np.hstack((newps,np.array([[k[0]],[k[1]],[k[2]]])))
-          newp3=np.hstack((newp3,np.array([[p3[j][0]],[p3[j][1]],[p3[j][2]]])))
-          newn =np.hstack((newn, np.array([[n[j][0]], [n[j][1]], [ n[j][2]]])))
+          newps=np.vstack((newps,np.array([k[0],k[1],k[2]])))
+          newp3=np.vstack((newp3,np.array([p3[j][0],p3[j][1],p3[j][2]])))
+          newn =np.vstack((newn, np.array([n[j][0],n[j][1], n[j][2]])))
       else:
         pass
       j+=1
@@ -2066,19 +2053,23 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
   ''' Compute the field from a Mesh of ray information and the physical \
   parameters.
 
-  :param Mesh: The :py:class:`DS` mesh of ray information.
+  :param Mesh:    The :py:class:`DS` mesh of ray information.
   :param Znobrat: An Nob x Nre+1 array containing tiles of the impedance \
-    of obstacles divided by the impedance of air.
+  of obstacles divided by the impedance of air.
   :param refindex: An Nob x Nre+1 array containing tiles of the refractive\
-    index of obstacles.
+  index of obstacles.
   :param Antpar: Numpy array containing the wavenumber, wavelength and lengthscale.
-  :param Gt: Array of the transmitting antenna gains.
-  :param Pol: 2x1 numpy array containing the polarisation terms.
+  :param Gt:     Array of the transmitting antenna gains.
+  :param Pol:    2x1 numpy array containing the polarisation terms.
+  :param Nra:    The number of rays in the ray tracer.
+  :param Nre:    The number of reflections in the ray tracer.
+  :param Ns:     The number of terms on each axis
 
   Method:
 
-    * First compute the reflection coefficients using \
-    :py:func:`ref_coef(Mesh,Znobrat,refindex)`
+    * First compute the angles of reflectio using py:func:`Mesh.sparse_angles()`
+    * Compute the combined reflection coefficients using \
+    :py:func:`Mesh.refcoefbyterm_withmu(Nre,refindex,lam,L, ind=-1)`
     * Combine the reflection coefficients that correspond to the same \
     ray using :py:class:`DS`. :py:func:`dict_col_mult()`. This \
     multiplies reflection coefficients in the same column.
@@ -2113,16 +2104,16 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
   t0=t.time()
   # Retrieve the parameters
   khat,lam,L = Antpar
+  # Check in the nonzero indices have been input or not, if not then find them.
   if isinstance(ind, type(-1)):
     ind=Mesh.nonzero().T
     indout=ind
   else:
     ind=ind.T
     indout=ind
-  # Compute the reflection coefficients
-  #t1=t.time()
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
+  # Check if the reflections angles are saved, if not then find them.
   angfile=str('./Mesh/ang'+str(int(Nra))+'Refs'+str(int(Nre))+'Ns'+str(int(Ns))+'.npy')
   afile=Path(angfile)
   if afile.is_file():
@@ -2130,17 +2121,7 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
   else:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
     AngDSM.save_dict(angfile)
-  #AngDSM=Mesh.sparse_angles(ind)
-  #t2=t.time()
-  #(AngDSM[0,0,5])
   Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,lam,L,ind)
-  #print(Comper[0,0,5], Compar[0,0,5])
-  #print(Rper,Rpar)
-  # Combine the reflection coefficients to get the reflection loss on each ray.
-  #t3=t.time()
-  #Comper,Compar=Rper.double_dict_col_mult_(Rpar,ind) # with ind
-  #t2=t.time()
-  # Get the distances for each ray segment from the Mesh
   rfile=str('./Mesh/rad'+str(int(Nra))+'Refs'+str(int(Nre))+'Ns'+str(int(Ns))+'.npy')
   radfile = Path(rfile)
   h=1/Mesh.Nx
@@ -2151,77 +2132,12 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
     RadMesh,ind=Mesh.__get_rad__(h,ind)
     RadMesh.save_dict(rfile)
   t4=t.time()
-  #print(RadMesh[0,0,5])
-  # Compute the mesh of phases
-   #FIXME try removing this line and using the previous indices
-  #pha=RadMesh.phase_calc(khat,L,ind)
- # print(pha)
-  #t4=t.time()
-  # Divide by the rads
-  # pharad=pha.__truediv__(RadMesh,ind)
-  # t5=t.time()
-  # # Multiply by the gains.
-  # #ind=pharad.nonzero()
-  # Gtpha=pharad.dict_row_vec_multiply(np.sqrt(Gt),ind)
-  # #print(Gtpha.nonzero())
-  # # Combine Gains, phase and reflection
-  # GtphaRpe=Gtpha.__mul__(Comper,ind)
-  # GtphaRpa=Gtpha.__mul__(Compar,ind)
-  # t6=t.time()
-  # GtphaRpe,GtphaRpa=pharad.gain_phase_ref_mul(Comper,Compar,Gt,ind)
-  # t7=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)
-  #t7=t.time()
-  # if t7-t6>t6-t5:
-    # print("method 1",t7-t6,t6-t5)
-  # else:
-    # print("method 2",t7-t6,t6-t5)
-  # if t8-t7>t6-t4:
-    # print("method A",t8-t7,t6-t4)
-  # else:
-    # print("method B",t8-t7,t6-t4)
-  #FIXME
-  #t7=t.time()
-  #Gridpe=GtphaRpe.togrid(ind) #Add all terms in each SM to give the term in the np array
-  #Gridpa=GtphaRpa.togrid(ind) #Add all terms in each SM to give the term in the np array
-  #t7=t.time()
-  # Multiply by the lambda\L
-  #Gridpe*=(lam/(L*4*math.pi))
-  #Gridpa*=(lam/(L*4*math.pi))
-  #t8=t.time()
-  # Polarisation
-  #apar=Pol[0]
-  #aper=Pol[1]
-  #t9=t.time()
-  # Power
   P=np.zeros((Mesh.Nx,Mesh.Ny,Mesh.Nz),dtype=np.longdouble)
   P=np.absolute(Gridpe*Pol[0])**2+np.absolute(Gridpa*Pol[1])**2
   P=10*np.log10(P,where=(P!=0))
-  #t10=t.time()
   # print('----------------------------------------------------------')
   # print('Total time to find power', t10-t0)
-  # print('----------------------------------------------------------')
-  # print('----------------------------------------------------------')
-  # print('Time computing square and log ', t10-t9)
-  # del t10
-  # print('Time assigning polarisation ', t9-t8)
-  # del t9
-  # print('Time multiplying by wavelength term ', t8-t7)
-  # del t8
-  # print('Time combining reflection coefficents, gains and phase, rad div add and convert to np array', t7-t4)
-  # del t7
-  #print('Time multiplying phase terms by gains ', t6-t5)
-  #del t6
-  #print('Time dividing phase terms by radius ', t5-t4)
-  #del t5
-  #print('Time computing phase,', t5-t4)
-  #del t4
-  # print('Time getting distances ', t4-t3)
-  # del t4
-  # print('Time computing reflection coefficients ', t3-t2)
-  # del t3
-  # print('Time finding angles', t2-t1)
-  # del t2, t1, t0
   # print('----------------------------------------------------------')
   return P,indout
 

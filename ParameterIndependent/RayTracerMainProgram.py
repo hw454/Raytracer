@@ -493,8 +493,6 @@ def power_grid(Roomnum=0):
       if not os.path.exists('./Mesh'):
         os.makedirs('./Mesh')
       np.save('./Mesh/Power_grid'+str(int(Nra[j]))+'Refs'+str(Nre)+'m'+str(index)+'.npy',Grid) #.compressed())
-      if j==3:
-          print(Grid[0,8,0],Grid[8,0,8],Grid[9,7,9])
       G_z[0,j]=np.count_nonzero((Grid==0))
     t1=t.time()
     timemat[j]=t1-t0
@@ -889,8 +887,9 @@ if __name__=='__main__':
     os.makedirs('./Quality')
   qualityname=('./Quality/QualityNra'+str(int(nra))+'Refs'+str(int(Nre))+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
   np.save(qualityname,Qmat[0,:])
-  print(Qmat)
+
   print(G_zeros)
+  print(Qmat)
   mp.plot(Nra,Qmat[0,:])
   mp.plot(Nra,Qtruemat[0,:])
   filename=str('Quality/Quality'+str(int(Nra[0]))+'to'+str(int(Nra[-1]))+'Nref'+str(int(Nre))+'.jpg')#.eps').

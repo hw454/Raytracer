@@ -15,6 +15,8 @@ from pyface.api import GUI
 import scipy.sparse.linalg
 from itertools import product
 
+epsilon=sys.float_info.epsilon
+
 def PlotRays():
     ##Plot the obstacles and the room first
 
@@ -98,7 +100,7 @@ def PlotCones():
       #mlab.clf()
       #mlab.close()
       nre=0
-      dist=L
+      dist=1 #L
       Ncon=ra.no_cones(h,dist,delangle[i],0,nre)
       anglevec=np.linspace(0.0,2*ma.pi,num=int(Ncon), endpoint=False) # Create an array of all the angles
       Norm=np.zeros((Ncon,3),dtype=np.float) # Initialise the matrix of normals
@@ -137,7 +139,6 @@ def PlotCones():
       N=int(zsteps)
       count=0
       for l in range(0,N):
-        print(count,Nra[i],Ncon)
         if count>(Nra[i]*Ncon):
           break
         #j=int(Nre)*k
@@ -621,7 +622,7 @@ def PlotDirections():
           c=1/abs(data_matrix[j][2])
         else:
           c=1
-        sqfac=min(a,b,c)
+        sqfac=1 #min(a,b,c)
         x=0
         y=0
         z=0
@@ -672,9 +673,102 @@ def PlotPowerSlice():
     mlab.show()
     return Power
 
+def PlotSingleCone():
+  '''Plot a single cone from the Ray Tracer. '''
+  ##----Retrieve the Raytracing Parameters-----------------------------
+  Nra         =np.load('Parameters/Nra.npy')
+  if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
+      Nra=np.array([Nra])
+      nra=1
+  else:
+      nra=len(Nra)
+  Nre,h ,L =np.load('Parameters/Raytracing.npy')
+  # Take Tx to be 0,0,0
+  Tx=     np.load('Parameters/Origin.npy')/L
+  delangle      =np.load('Parameters/delangle.npy')
+  ##----Retrieve the environment--------------------------------------
+  Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
+  OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
+  Oblist        =OuterBoundary/L #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+
+  # Room contains all the obstacles and walls.
+  Room=rom.room(Oblist)
+
+  Nz=int(Room.maxyleng()/(h))
+  Nx=int(Room.maxxleng()/(h))
+  Ny=int(Room.maxyleng()/(h))
+
+  Oblist=Oblist
+
+  Room=rom.room(Oblist)
+
+  xmin=Room.bounds[0][0]
+  xmax=Room.bounds[1][0]
+  ymin=Room.bounds[0][1]
+  ymax=Room.bounds[1][1]
+  zmin=Room.bounds[0][2]
+  zmax=Room.bounds[1][2]
+  xgrid=np.linspace(xmin,xmax,Nx)
+  for i in range(0,  nra):
+      data_matrix   =np.load('./Mesh/RayMeshPoints'+str(int(Nra[i]))+'Refs'+str(int(Nre))+'m.npy')
+      Power=np.load('./Mesh/Power_grid'+str(int(Nra[i]))+'Refs'+str(int(Nre))+'m'+str(0)+'.npy')
+      Powx,Powy,Powz=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
+      Cones=np.load('./Mesh/SingleCone'+str(int(Nra[i]))+'Refs'+str(int(Nre))+'m.npy')
+      mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
+      for j in range(0, Nra[i]):
+        x=Tx[0]
+        y=Tx[1]
+        z=Tx[2]
+        x2,y2,z2=data_matrix[j][1][0:3]
+        x=np.append(x,[x2])
+        y=np.append(y,[y2])
+        z=np.append(z,[z2])
+        mlab.plot3d(x,y,z,color= (0, 1, 1))
+        nob=data_matrix[j][1][3]
+        dist=np.linalg.norm(np.array([x2,y2,z2])-Tx)
+        direc=(np.array([x2,y2,z2])-Tx)/dist
+        if j==0:
+          obst=Room.obst[int(nob-1)]
+          norm=np.cross(obst[1]-obst[0],obst[2]-obst[0])
+          norm/=(np.linalg.norm(norm))
+          check=(np.linalg.norm(direc)*np.linalg.norm(norm))
+          if abs(check-0.0)<=epsilon:
+            raise ValueError('direction or normal has no length')
+          else:
+            nleng=np.linalg.norm(norm)
+            dleng=np.linalg.norm(direc)
+            frac=np.dot(direc,norm)/(nleng*dleng)
+          refangle=ma.acos(frac)
+          if refangle>np.pi/2:
+            refangle=np.pi-refangle
+          Ncon=ra.no_cones(h,dist,delangle[i],refangle,0)
+          Ns=int(Cones.shape[0]/((Ncon+1)))
+          p0=Tx
+          for l in range(0,Ns):
+            j=l*(Ncon+1)
+            p0=Cones[j]
+            for k in range(0,Ncon):
+              j=l*(Ncon+1)+k+1
+              x,y,z=Room.coordinate(h,Cones[j][0],Cones[j][1],Cones[j][2])
+              xp=np.append(p0[0],[x])
+              yp=np.append(p0[1],[y])
+              zp=np.append(p0[2],[z])
+              mlab.plot3d(xp,yp,zp,color= (1,0,1))
+      if not os.path.exists('./ConeFigures'):
+        os.makedirs('./ConeFigures')
+      filename=str('ConeFigures/SingleCone'+str(int(Nra[i]))+'.jpg')
+      mlab.savefig(filename,size=(1000,1000))
+      #mlab.clf()
+      gui = GUI()
+      gui.start_event_loop()
+      #mlab.close()
+    #mlab.show()
+  return
+
 if __name__=='__main__':
-  PlotCones()
+  PlotSingleCone()
   PlotConesOnSquare()
+  PlotCones()
   PlotPowerSlice()
   PlotRays()
   PlotDirections()

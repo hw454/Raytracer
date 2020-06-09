@@ -344,6 +344,8 @@ class room:
     # Iterate through the rays find the ray reflections
     # FIXME rays are independent of each other so this is parallelisable
     #j=int(Nra/2)
+    Dir=np.array([]) # Initialising to prevent pointing error.
+    start=0 # Initialising to prevent pointing error.
     for it in range(0,Nra):#j,j+3):
       Dir       =directions[it]
       start     =np.append(Tx,[0])
@@ -404,23 +406,11 @@ class room:
     Nx=Grid.shape[0]
     Ny=Grid.shape[1]
     Nz=Grid.shape[2]
-    #print(Grid)
     P=np.zeros((Nx,Ny,Nz),dtype=np.longdouble)
     P=np.power(np.absolute(Grid[:,:,:,0])+np.absolute(Grid[:,:,:,1]),1)
     P=10*np.log10(P,where=(P!=0))
     s.time=t.time()-start_time
     return raylist, P
- ## ray_bounceTraces ray's uniformly emitted from an origin around a room.
- # @param Nra Number of rays
- # @param Nre number of reflections Nre
- # @param directions A Nra*3 array of the initial directions for each ray.
- # .
- # \par The multiref function is used to find the Nre reflections for
- # the Nra rays with the obstacles s.obst.
- # @return An array of the ray points.
- # \f$
- # raylist=[[p00,p01,...,p0Nre],[p10,...,p1Nre],...,[pNra0,...,pNraNre]]
- #  \f$
   def ray_bounce(s,Tx,Nre,Nra,directions):
     ''' Trace ray's uniformly emitted from an origin around a room.
 
