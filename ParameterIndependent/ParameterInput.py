@@ -5,17 +5,13 @@ import numpy as np
 import math as ma
 import sys
 import os
+import pickle
 
 def DeclareParameters():
   '''All input parameters for the ray-launching method are entered in
   this function which will then save them inside a Parameters folder.
 
-  * Nra - Number of rays
-
-    .. note::
-
-       Due to need of integer steps the input number of rays can not
-       always be used if everything is equally spaced.
+  * deltheta- The array of angle spacings.
 
   * Nre - Number of reflections
   * Ns - Number of steps to split longest axis.
@@ -72,6 +68,11 @@ def DeclareParameters():
   # -Router location -co-ordinate of three real numbers
   Tx=np.array([0.5,0.5,0.5])*l2
 
+  runplottype= str('PerfectRefCentre')
+
+  LOS=0     # LOS=1 for LOS propagation, LOS=0 for reflected propagation
+  PerfRef=1 # Perfect reflection has no loss and ignores angles.
+
   # CONSTRUCT THE ARRAYS FOR STORING OBSTACLES
   Oblist=(1.0/l1)*Oblist
 
@@ -99,7 +100,7 @@ def DeclareParameters():
     Nra[j]=2
     Nraout=np.array([])
     start=0
-    for k in range(-int(zsteps/2),int(zsteps/2)):
+    for k in range(-int(zsteps/2),int(zsteps/2)+1):
       mid=(np.cos(deltheta[j])-np.sin(k*deltheta[j])**2)/(np.cos(deltheta[j]*k)**2)
       if abs(mid)>1:
         pass
@@ -162,7 +163,14 @@ def DeclareParameters():
   np.save('Parameters/delangle.npy',deltheta)
   np.save('Parameters/Obstacles.npy',Oblist)
   np.save('Parameters/OuterBoundary.npy',OuterBoundary)
+  np.save('Parameters/Ns.npy',Ns)
   np.save('Parameters/Origin.npy',Tx)
+  np.save('Parameters/LOS.npy',LOS)
+  np.save('Parameters/PerfRef.npy',PerfRef)
+
+  text_file = open('Parameters/runplottype.txt', 'w')
+  n = text_file.write(runplottype)
+  text_file.close()
   #print('------------------------------------------------')
   #print('Geometrical parameters saved')
   #print('------------------------------------------------')
@@ -252,6 +260,7 @@ def ObstacleCoefficients(index=0):
   if not os.path.exists('./Parameters/'):
     os.makedirs('./Parameters/')
   RTPar         =np.load('Parameters/Raytracing.npy')
+  Nre,h,L       =RTPar
   Oblist        =np.load('Parameters/Obstacles.npy')
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')
   Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)
@@ -279,6 +288,9 @@ def ObstacleCoefficients(index=0):
     gainname=str('Parameters/Tx'+str(Nra[j])+'Gains'+str(index)+'.npy')
     np.save(gainname, Gt)
   frequency=2*np.pi*2.79E+08                   # 2.79 GHz #FIXME make this a table and choose a frequency option
+  khat          =frequency*L/c                 # Non-dimensional wave number
+  lam           =(2*np.pi)/khat                # Non-dimensional wavelength
+  Antpar        =np.array([khat,lam,L])
   Pol      =np.array([1.0,0.0])
 
   # OBSTACLE CONTSTANTS
@@ -304,31 +316,30 @@ def ObstacleCoefficients(index=0):
   top=complex(0,frequency*mu0)*mur
   bottom=sigma+complex(0,eps0*frequency)*epsr
   Znob =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
-  Znobrat=np.ones((Nob,1),dtype=np.complex128)
-  #Znobrat[0]=Znob[0]/Z0
-  refindex=np.ones((Nob,1),dtype=np.complex128)
-  #refindex[0]=np.sqrt(np.multiply(mur[0],epsr[0]))     # Refractive index of the obstacles
+  #Znobrat=np.ones((Nob,1),dtype=np.complex128)
+  Znobrat=Znob/Z0
+  #refindex=np.ones((Nob,1),dtype=np.complex128)
+  refindex=np.zeros((Nob,1),dtype=np.complex128)          # Perfect Relection
+  refindex[0]=1 #np.sqrt(np.multiply(mur[0],epsr[0]))     # Refractive index of the obstacles
+  refindex[1]=1
   # CLEAR THE TERMS JUST FOR CALCULATION
   del top, bottom,Znob
-
-
-  # PRINT THE PARAMETERS
-  #print('Permittivity mu0 ', mu0,'Permeability eps0 ', eps0)
-  #print('Characteristic Impedence ', Z0,'Number of obstacles',Nob)
-  #print('Speed of light ', c)
-  #print('Relative Impedance ', Znobrat[0],'Refractive index ', refindex[0],'Polarisation ', Pol)
 
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS
   # --------------------------------------------------------------------
   np.save('Parameters/Freespace'+str(index)+'.npy',Freespace)
   np.save('Parameters/frequency'+str(index)+'.npy',frequency)
-  np.save('Parameters/Znobrat'+str(index)+'.npy',Znobrat)
-  np.save('Parameters/refindex'+str(index)+'.npy',refindex)
+  np.save('Parameters/lam'+str(index)+'.npy',lam)
+  np.save('Parameters/khat'+str(index)+'.npy',khat)
+  np.save('Parameters/Antpar'+str(index)+'.npy',Antpar)
+  np.save('Parameters/Znobrat'+str(index)+'.npy',Znobrat[:,0])
+  np.save('Parameters/refindex'+str(index)+'.npy',refindex[:,0])
   np.save('Parameters/Pol'+str(index)+'.npy',Pol)
   #print('------------------------------------------------')
   #print('Material parameters saved')
   #print('------------------------------------------------')
+  del Freespace, frequency,lam,khat, Antpar, Znobrat,refindex,Pol,index
   return 0
 
 def BoxBuild(xmi,xma,ymi,yma,zmi,zma):
@@ -380,7 +391,7 @@ if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   out=DeclareParameters()
-  #out=ObstacleCoefficients()
+  out=ObstacleCoefficients()
 
   exit()
 

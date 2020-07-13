@@ -1,5 +1,8 @@
-\begin{theindex}
-\def\bigletter#1{{\Large\sffamily#1}\nopagebreak\vspace{1mm}}
+\begin{sphinxtheindex}
+\let\bigletter\sphinxstyleindexlettergroup
+\let\spxpagem \sphinxstyleindexpagemain
+\let\spxentry \sphinxstyleindexentry
+\let\spxextra \sphinxstyleindexextra
 
   \bigletter A
   \item asin() (DictionarySparseMatrix.DS method), \hyperpage{15}
@@ -103,4 +106,4 @@
   \item test\_21() (in module DictionarySparseMatrix), \hyperpage{22}
   \item togrid() (DictionarySparseMatrix.DS method), \hyperpage{19}
 
-\end{theindex}
+\end{sphinxtheindex}
