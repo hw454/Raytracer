@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Updated Hayley Wragg 2019-03-15
+# Updated Hayley Wragg 2020-06-30
 ''' Code to trace rays around a room. This code uses:
 
   * the function :py:func:`RayTracer` to compute the points for \
@@ -38,11 +38,13 @@ import DictionarySparseMatrix as DSM
 import time as t
 import matplotlib.pyplot as mp
 import os
+import pickle
+import csv
 
 epsilon=sys.float_info.epsilon
 
 def RayTracer():
-  ''' Refect rays and output the points of reflection.
+  ''' Reflect rays and output the points of reflection.
 
   Parameters for the raytracer are input in \
   :py:func:`ParameterInput.DeclareParameters()` The raytracing \
@@ -128,7 +130,10 @@ def RayTracer():
     print('-------------------------------')
     if not os.path.exists('./Mesh'):
       os.makedirs('./Mesh')
-    filename=str('./Mesh/RayPoints'+str(int(Nra[j]))+'Refs'+str(int(Nre))+'m.npy')
+      os.makedirs('./Mesh/'+plottype)
+    if not os.path.exists('./Mesh/'+plottype):
+      os.makedirs('./Mesh/'+plottype)
+    filename=str('./Mesh/'+plottype+'/RayPoints'+str(int(Nra[j]))+'Refs'+str(int(Nre))+'m.npy')
     np.save(filename,Rays)
     # The "Rays" file is Nra+1 x Nre+1 x 4 array containing the
     # co-ordinate and obstacle number for each reflection point corresponding
@@ -137,8 +142,9 @@ def RayTracer():
   return 0
 
 
-def MeshProgram():
-  ''' Refect rays and output the Mesh containing ray information.
+def MeshProgram(repeat=0,plottype=str()):
+  ''' Reflect rays and output the Mesh containing ray information. \
+  This mesh contains the distance rays have travelled and the angles of reflection.
 
   Parameters for the raytracer are input in :py:mod:`ParameterInput`
   The raytracing parameters defined in this module are saved and then loaded.
@@ -207,11 +213,13 @@ def MeshProgram():
   #print('-------------------------------')
   #print('Building Mesh')
   #print('-------------------------------')
-  # Run the ParameterInput file
-  out=PI.DeclareParameters()
+  # Run the ParameterInput file, if this is a repeat run then we know
+  # the parameters are already saved so this does not need to be run again.
+  if repeat==1:
+    pass
+  else:
+    out=PI.DeclareParameters()
 
-  ##---- Define the room co-ordinates----------------------------------
-  # Obstacles are triangles stored as three 3D co-ordinates
 
   ##----Retrieve the Raytracing Parameters-----------------------------
   Nre,h,L    =np.load('Parameters/Raytracing.npy')
@@ -225,44 +233,63 @@ def MeshProgram():
   timesmat=np.zeros((nra))
 
   ##----Retrieve the environment--------------------------------------
-  Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
+  ##----The lengths are non-dimensionalised---------------------------
+  Oblist        =np.load('Parameters/Obstacles.npy')/L         # The obstacles which are within the outerboundary
   Tx            =np.load('Parameters/Origin.npy')/L             # The location of the source antenna (origin of every ray)
-  OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
+  OuterBoundary =np.load('Parameters/OuterBoundary.npy')/L      # The Obstacles forming the outer boundary of the room
   deltheta      =np.load('Parameters/delangle.npy')
-  Oblist        =OuterBoundary/L #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+  Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
 
   # Room contains all the obstacles and walls.
   Room=rom.room(Oblist)
   Nob=Room.Nob
+  print('Number of obstacles',Nob)
+  # This number will be used in further functions so resaving will ensure the correct number is used.
   np.save('Parameters/Nob.npy',Nob)
 
+  # -------------Find the number of cells in the x, y and z axis.-------
   Nx=int(Room.maxxleng()/(h))
   Ny=int(Room.maxyleng()/(h))
   Nz=int(Room.maxzleng()/(h))
 
+  #--------------Run the ray tracer for each ray number-----------------
   for j in range(0,nra):
+    #------------Initialise the Mesh------------------------------------
     Mesh=DSM.DS(Nx,Ny,Nz,Nob*Nre+1,Nra[j]*(Nre+1))
     print('-------------------------------')
     print('Starting the ray bouncing and information storage')
     print('-------------------------------')
     t0=t.time()
+    #-----------The input directions changes for each ray number.-------
     directionname=str('Parameters/Directions'+str(int(j))+'.npy')
     Direc=np.load(directionname)
+    '''Find the ray points and the mesh storing their information
+    The rays are reflected Nre times in directions Direc from Tx then
+    the information about their paths is stored in Mesh.'''
     Rays, Mesh=Room.ray_mesh_bounce(Tx,Nre,Nra[j],Direc,Mesh,deltheta[j])
     t1=t.time()
     timesmat[j]=t1-t0
+    #----------Save the Mesh for further calculations
     if not os.path.exists('./Mesh'):
       os.makedirs('./Mesh')
-    np.save('./Mesh/RayMeshPoints'+str(Nra[j])+'Refs'+str(Nre)+'m.npy',Rays)
-    meshname=str('./Mesh/DSM'+str(Nra[j])+'Refs'+str(Nre)+'m.npy')
+      os.makedirs('./Mesh/'+plottype)
+    if not os.path.exists('./Mesh/'+plottype):
+      os.makedirs('./Mesh/'+plottype)
+    np.save('./Mesh/'+plottype+'/RayMeshPoints'+str(Nra[j])+'Refs'+str(Nre)+'m.npy',Rays)
+    meshname=str('./Mesh/'+plottype+'/DSM'+str(Nra[j])+'Refs'+str(Nre)+'m.npy')
     Mesh.save_dict(meshname)
+    meshnamecsv=str('./Mesh/RayMeshPoints'+str(Nra[j])+'Refs'+str(Nre)+'m.csv')
+    myFile = open(meshnamecsv, 'w')
+    with myFile:
+      writer = csv.writer(myFile)
+      writer.writerows(Rays)
     print('-------------------------------')
     print('Ray-launching complete')
     print('Time taken',t1-t0)
     print('-------------------------------')
   return Mesh
 
-def StdProgram(index=0):
+def StdProgram(plottype,index=0):
   ''' Refect rays and input object information output the power.
 
   Parameters for the raytracer are input in :py:mod:`ParameterInput`
@@ -396,15 +423,18 @@ def StdProgram(index=0):
     Rays, Grid=Room.ray_mesh_power_bounce(Tx,Nre,Nra[j],Direc,Mesh,Znobrat,refindex,Antpar,Gt,Pol,deltheta)
     if not os.path.exists('./Mesh'):
       os.makedirs('./Mesh')
-    np.save('./Mesh/RayMeshPointsstd'+str(int(Nra[j]))+'Refs'+str(int(Nre))+'m.npy',Rays*L)
-    np.save('./Mesh/Power_gridstd'+str(Nra[j])+'Refs'+str(int(Nre))+'m'+str(int(index))+'.npy',Grid)
+      os.makedirs('./Mesh/'+plottype)
+    if not os.path.exists('./Mesh/'+plottype):
+      os.makedirs('./Mesh/'+plottype)
+    np.save('./Mesh/'+plottype+'/RayMeshPointsstd'+str(int(Nra[j]))+'Refs'+str(int(Nre))+'m.npy',Rays*L)
+    np.save('./Mesh/'+plottype+'/Power_gridstd'+str(Nra[j])+'Refs'+str(int(Nre))+'m'+str(int(index))+'.npy',Grid)
   # print('-------------------------------')
   # print('Ray-launching complete')
   # print('Time taken',Room.time)
   # print('-------------------------------')
   return Grid
 
-def power_grid(Roomnum=0):
+def power_grid(repeat=0,plottype=str(),Roomnum=0):
   ''' Calculate the field on a grid using enviroment parameters and the \
   ray Mesh.
 
@@ -422,6 +452,7 @@ def power_grid(Roomnum=0):
   * (*refindex*\ = the refractive index of the obstacles)=\
   Paramerters/refindex.npy`
   * (*Mesh*)=`DSM\ **Nra**\ Refs\ **Nre**\ m.npy`
+  * (*LOS*)=`LOS.npy`, 1 if a Line of Sight Calculation and 0 if not.
 
   Method:
   * Initialise Grid using the number of x, y, and z steps in *Mesh*.
@@ -435,6 +466,8 @@ def power_grid(Roomnum=0):
   '''
 
   ##----Retrieve the Raytracing Parameters-----------------------------
+  PerfRef    =np.load('Parameters/PerfRef.npy')
+  LOS        =np.load('Parameters/LOS.npy')
   Nre,h,L    =np.load('Parameters/Raytracing.npy')
   Nra        =np.load('Parameters/Nra.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
@@ -443,26 +476,28 @@ def power_grid(Roomnum=0):
       nra=len(Nra)
   timemat=np.zeros((nra,1))
   Nre=int(Nre)
-  #Roomnum        =int(input('How many combinations of room values do you want to test?'))
   Nob            =np.load('Parameters/Nob.npy')
 
   # Initialise variable for counting zeros
   G_z=np.zeros((1,nra))
 
-  ##----Retrieve the Mesh--------------------------------------
+  #-------Run the power calculations for each ray number----------------
   for j in range(0,nra):
-    meshname=str('./Mesh/DSM'+str(Nra[j])+'Refs'+str(Nre)+'m.npy')
+    ##----Retrieve the Mesh--------------------------------------
+    meshname=str('./Mesh/'+plottype+'/DSM'+str(Nra[j])+'Refs'+str(Nre)+'m.npy')
     Mesh= DSM.load_dict(meshname)
 
-    ##----Initialise Grid For Power------------------------------------------------------
+    ##----Initialise Grid For Power-------------------------------------
     Nx=Mesh.Nx
     Ny=Mesh.Ny
     Nz=Mesh.Nz
     Ns=max(Nx,Ny,Nz)
     Grid=np.zeros((Nx,Ny,Nz),dtype=float)
     t0=t.time()
+    #-------If multiple room variations are desired then run for all----
     for index in range(0,Roomnum):
-      PI.ObstacleCoefficients(index)
+      if repeat==0:
+        PI.ObstacleCoefficients(index)
       ##----Retrieve the antenna parameters--------------------------------------
       gainname=str('Parameters/Tx'+str(Nra[j])+'Gains'+str(index)+'.npy')
       Gt            = np.load(gainname)
@@ -475,24 +510,30 @@ def power_grid(Roomnum=0):
       refindex     =np.load('Parameters/refindex'+str(index)+'.npy')
       # Make the refindex, impedance and gains vectors the right length to
       # match the matrices.
-      Znobrat=np.tile(Znobrat,(Nre,1))          # The number of rows is Nob*Nre+1. Repeat Nob
-      Znobrat=np.insert(Znobrat,0,1.0+0.0j)     # Use a zero for placement in the LOS row
-      refindex=np.tile(refindex,(Nre,1))
-      refindex=np.insert(refindex,0,1.0+0.0j)
+      Znobrat=np.tile(Znobrat,(Nre,1))          # The number of rows is Nob*Nre+1. Repeat Znobrat to match Mesh dimensions
+      Znobrat=np.insert(Znobrat,0,1.0+0.0j)     # Use a 1 for placement in the LOS row
+      refindex=np.tile(refindex,(Nre,1))        # The number of rows is Nob*Nre+1. Repeat refindex to match Mesh dimensions
+      refindex=np.insert(refindex,0,1.0+0.0j)   # Use a 1 for placement in the LOS row
       Gt=np.tile(Gt,(Nre+1,1))
 
       # Calculate the necessry parameters for the power calculation.
-      c             =Freespace[3]
-      khat          =freq*L/c
-      lam           =(2*np.pi*c)/freq
-      Antpar        =np.array([khat,lam,L])
+      c             =Freespace[3]            # Speed of Light
+      Antpar        =np.load('Parameters/Antpar'+str(index)+'.npy')
+      khat          =Antpar[0]
+      lam           =Antpar[1]
+      L             =Antpar[2]
       if index==0:
-        Grid,ind=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns)
+        Grid,RadA,RadB,ind=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,LOS,PerfRef)
       else:
-        Grid,ind=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,ind)
+        Grid,RadA,RadB,ind=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,LOS,PerfRef,ind)
       if not os.path.exists('./Mesh'):
         os.makedirs('./Mesh')
-      np.save('./Mesh/Power_grid'+str(int(Nra[j]))+'Refs'+str(Nre)+'m'+str(index)+'.npy',Grid) #.compressed())
+        os.makedirs('./Mesh/'+plottype)
+      if not os.path.exists('./Mesh/'+plottype):
+        os.makedirs('./Mesh/'+plottype)
+      np.save('./Mesh/'+plottype+'/Power_grid'+str(int(Nra[j]))+'Refs'+str(Nre)+'m'+str(index)+'.npy',Grid)
+      np.save('./Mesh/'+plottype+'/RadA_grid'+str(int(Nra[j]))+'Refs'+str(Nre)+'m'+str(index)+'.npy',RadA)
+      np.save('./Mesh/'+plottype+'/RadB_grid'+str(int(Nra[j]))+'Refs'+str(Nre)+'m'+str(index)+'.npy',RadB) #.compressed())
       G_z[0,j]=np.count_nonzero((Grid==0))
     t1=t.time()
     timemat[j]=t1-t0
@@ -502,7 +543,7 @@ def power_grid(Roomnum=0):
   print('-------------------------------')
   return Grid,G_z
 
-def Quality(Roomnum=0):
+def Quality(plottype=str(),Roomnum=0):
   ''' Calculate the field on a grid using enviroment parameters and the \
   ray Mesh.
 
@@ -544,11 +585,13 @@ def Quality(Roomnum=0):
   Nre=int(Nre)
   #Roomnum        =int(input('How many combinations of room values do you want to test?'))
   Nob            =np.load('Parameters/Nob.npy')
+  LOS            =np.load('Parameters/LOS.npy')
+  PerfRef        =np.load('Parameters/PerfRef.npy')
 
 
   for j in range(0,nra):
     ##----Retrieve the Mesh--------------------------------------
-    meshname=str('./Mesh/DSM'+str(Nra[j])+'Refs'+str(Nre)+'m.npy')
+    meshname=str('./Mesh/'+plottype+'/DSM'+str(Nra[j])+'Refs'+str(Nre)+'m.npy')
     Mesh= DSM.load_dict(meshname)
 
     ##----Initialise Grid For Power------------------------------------------------------
@@ -584,25 +627,27 @@ def Quality(Roomnum=0):
       lam           =(2*np.pi*c)/freq
       Antpar        =np.array([khat,lam,L])
       if index==0:
-       Q,ind=DSM.quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns)
+       Q,ind=DSM.quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,LOS,PerfRef)
       else:
-       Q,ind=DSM.quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,ind)
+       Q,ind=DSM.quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,LOS,PerfRef,ind)
       Qmat[0,j]=Q
       if not os.path.exists('./Quality'):
         os.makedirs('./Quality')
-      np.save('./Quality/Quality'+str(Nra[j])+'Refs'+str(Nre)+'m'+str(index)+'.npy',Q)
+      if not os.path.exists('./Quality/'+plottype):
+        os.makedirs('./Quality/'+plottype)
+      np.save('./Quality/'+plottype+'/Quality'+str(Nra[j])+'Refs'+str(Nre)+'m'+str(index)+'.npy',Q)
     t1=t.time()
     timemat[j]=t1-t0
   print('-------------------------------')
   print('Quality from DSM complete', Qmat)
   print('Time taken',timemat)
   print('-------------------------------')
-  truestr=str('Parameters/True.npy')
+  truestr=str('Parameters/'+plottype+'/True.npy')
   P3=np.load(truestr)
   Q2=np.sum(P3)/(Mesh.Nx*Mesh.Ny*Mesh.Nz)
   return Qmat, Q2
 
-def RefCoefComputation(Mesh):
+def RefCoefComputation(Mesh,plottype=str()):
   ''' Compute the mesh of reflection coefficients.
 
   :param Mesh: The DS mesh which contains the angles and distances rays \
@@ -639,7 +684,7 @@ def RefCoefComputation(Mesh):
   print('-------------------------------')
   return RefCoefPerp, RefCoefPar
 
-def RefCombine(Rper,Rpar):
+def RefCombine(Rper,Rpar,plottype=str()):
   ''' Combine reflection coefficients to get the loss from reflection \
   coefficient for each ray segment.
 
@@ -698,7 +743,7 @@ def RefCombine(Rper,Rpar):
   Combpar=Rpar.dict_col_mult()
   return Combper, Combpar
 
-def plot_grid(index=0):
+def plot_grid(plottype=str(),index=0):
   ''' Plots slices of a 3D power grid.
 
   Loads `Power_grid.npy` and for each z step plots a heatmap of the \
@@ -706,28 +751,24 @@ def plot_grid(index=0):
   '''
   Nre,h,L    =np.load('Parameters/Raytracing.npy')
   Nra        =np.load('Parameters/Nra.npy')
-  Nra        =np.load('Parameters/Nra.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       Nra=np.array([Nra])
       nra=1
   else:
       nra=len(Nra)
   for j in range(0,nra):
-    pstr=str('./Mesh/Power_grid'+str(int(Nra[j]))+'Refs'+str(int(Nre))+'m'+str(index)+'.npy')
-    pstrstd=str('./Mesh/Power_gridstd'+str(int(Nra[j]))+'Refs'+str(int(Nre))+'m'+str(index)+'.npy')
-    truestr=str('Parameters/True.npy')
-    P3=np.load(truestr)
-    #P3/=np.abs(np.average(P3))
-    P=np.load(pstr)
-    #P/=np.abs(np.average(P))
-    #P2=np.load(pstrstd)
-    #P2/=np.abs(np.average(P2))
-    #Pdiff=np.zeros((P.shape),dtype=np.single)
-    #Pdiff=abs(np.divide(P-P2,P, where=(abs(P)>epsilon)))
-    Pdifftil=abs(np.divide(P-P3,P, where=(abs(P)>epsilon)))
-    #Pdiffhat=abs(np.divide(P2-P3,P, where=(abs(P)>epsilon)))
-    #err=np.sum(Pdiff)/(P.shape[0]*P.shape[1]*P.shape[2])
-    #print('Residual GRL to std',err)
+    pstr=str('./Mesh/'+plottype+'/Power_grid'+str(int(Nra[j]))+'Refs'+str(int(Nre))+'m'+str(index)+'.npy')
+    RadAstr=str('./Mesh/'+plottype+'/RadA_grid'+str(int(Nra[j]))+'Refs'+str(int(Nre))+'m'+str(index)+'.npy')
+    RadBstr=str('./Mesh/'+plottype+'/RadB_grid'+str(int(Nra[j]))+'Refs'+str(int(Nre))+'m'+str(index)+'.npy')
+    pstrstd=str('./Mesh/'+plottype+'/Power_gridstd'+str(int(Nra[j]))+'Refs'+str(int(Nre))+'m'+str(index)+'.npy')
+    truestr=str('Parameters/'+plottype+'/True.npy')#SinglePerfect.npy')
+    P3  =np.load(truestr)
+    P   =np.load(pstr)
+    RadA=np.load(RadAstr)
+    RadB=np.load(RadBstr)
+    Pdifftil=abs(np.divide(P-P3,P, where=(abs(P)>epsilon)))  # Normalised Difference Mesh
+    pdiffstr=str('./Mesh/'+plottype+'/PowerDiff_grid'+str(int(Nra[j]))+'Refs'+str(int(Nre))+'m'+str(index)+'.npy')
+    np.save(pdiffstr,Pdifftil)
     err2=np.sum(Pdifftil)/(P.shape[0]*P.shape[1]*P.shape[2])
     print('Residual GRL to true',err2)
     #err3=np.sum(Pdiffhat)/(P.shape[0]*P.shape[1]*P.shape[2])
@@ -739,25 +780,47 @@ def plot_grid(index=0):
     #lb2=np.amin(P2)
     lb3=np.amin(P3)
     lb=min(lb,lb3)
+    rlb=min(np.amin(RadA),np.amin(RadB))
     ub=np.amax(P)
     #ub2=np.amax(P2)
     ub3=np.amax(P3)
     ub=max(ub,ub3)
+    rub=max(np.amax(RadA),np.amax(RadB))
     if not os.path.exists('./GeneralMethodPowerFigures'):
       os.makedirs('./GeneralMethodPowerFigures')
+    if not os.path.exists('./GeneralMethodPowerFigures/'+plottype):
+      os.makedirs('./GeneralMethodPowerFigures/'+plottype)
     for i in range(n):
       mp.figure(i)
       #
       #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
       mp.imshow(P[:,:,i], cmap='viridis', vmax=ub,vmin=lb)
       mp.colorbar()
-      rayfolder=str('./GeneralMethodPowerFigures/PowerSlice/Nra'+str(int(Nra[j])))
-      if not os.path.exists('./GeneralMethodPowerFigures/PowerSlice'):
-        os.makedirs('./GeneralMethodPowerFigures/PowerSlice')
+      rayfolder=str('./GeneralMethodPowerFigures/'+plottype+'/PowerSlice/Nra'+str(int(Nra[j])))
+      if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/PowerSlice'):
+        os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/PowerSlice')
         os.makedirs(rayfolder)
       elif not os.path.exists(rayfolder):
         os.makedirs(rayfolder)
       filename=str(rayfolder+'/NoBoxPowerSliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.jpg')#.eps')
+      mp.savefig(filename)
+      mp.clf()
+      mp.figure(i)
+      mp.imshow(RadA[:,:,i], cmap='viridis', vmax=rub,vmin=rlb)
+      mp.colorbar()
+      rayfolder=str('./GeneralMethodPowerFigures/'+plottype+'/RadSlice/Nra'+str(int(Nra[j])))
+      if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/RadSlice'):
+        os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/RadSlice')
+        os.makedirs(rayfolder)
+      elif not os.path.exists(rayfolder):
+        os.makedirs(rayfolder)
+      filename=str(rayfolder+'/NoBoxRadASliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.jpg')#.eps')
+      mp.savefig(filename)
+      mp.clf()
+      mp.figure(i)
+      mp.imshow(RadB[:,:,i], cmap='viridis', vmax=rub,vmin=rlb)
+      mp.colorbar()
+      filename=str(rayfolder+'/NoBoxRadBSliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.jpg')#.eps')
       mp.savefig(filename)
       mp.clf()
   # for i in range(n2):
@@ -768,20 +831,6 @@ def plot_grid(index=0):
     # filename=str('GeneralMethodPowerFigures/NoBoxPowerSliceNrastd'+str(int(Nra))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
     # mp.savefig(filename)
     # mp.clf()
-    for i in range(n):
-      mp.figure(n+i)
-      #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-      mp.imshow(P3[:,:,i], cmap='viridis',  vmax=ub,vmin=lb)
-      mp.colorbar()
-      truefolder=str('./GeneralMethodPowerFigures/TrueSlice/Nra'+str(int(Nra[j])))
-      if not os.path.exists('./GeneralMethodPowerFigures/TrueSlice'):
-        os.makedirs('./GeneralMethodPowerFigures/TrueSlice')
-        os.makedirs(truefolder)
-      elif not os.path.exists(truefolder):
-        os.makedirs(truefolder)
-      filename=str(truefolder+'/NoBoxTrueSliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.jpg')#.eps')
-      mp.savefig(filename)
-      mp.clf()
       # for i in range(n3):
         # mp.figure(n2+n+i)
         # #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
@@ -793,26 +842,31 @@ def plot_grid(index=0):
     for i in range(n):
       mp.figure(2*n+i)
       #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-      mp.imshow(Pdifftil[:,:,i], cmap='viridis')#, vmax=max(ub2,ub),vmin=min(lb,lb2))
+      mp.imshow(Pdifftil[:,:,i], cmap='viridis', vmax=1,vmin=0)
       mp.colorbar()
-      Difffolder=str('./GeneralMethodPowerFigures/DiffSlice/Nra'+str(int(Nra[j])))
-      if not os.path.exists('./GeneralMethodPowerFigures/DiffSlice'):
-        os.makedirs('./GeneralMethodPowerFigures/DiffSlice')
+      Difffolder=str('./GeneralMethodPowerFigures/'+plottype+'/DiffSlice/Nra'+str(int(Nra[j])))
+      if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/DiffSlice'):
+        os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/DiffSlice')
         os.makedirs(Difffolder)
       elif not os.path.exists(Difffolder):
         os.makedirs(Difffolder)
       filename=str(Difffolder+'/NoBoxPowerDifftilSliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.jpg')#.eps')
       mp.savefig(filename)
       mp.clf()
-  # for i in range(n3):
-    # mp.figure(n2+n+i)
-    # #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-    # mp.imshow(Pdiffhat[:,:,i], cmap='viridis')#, vmax=max(ub2,ub),vmin=min(lb,lb2))
-    # mp.colorbar()
-    # filename=str('GeneralMethodPowerFigures/NoBoxPowerDiffhatSliceNra'+str(int(Nra))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
-    # mp.savefig(filename)
-    # mp.clf()
-  #mp.show()
+  for i in range(n):
+      mp.figure(n+i)
+      #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
+      mp.imshow(P3[:,:,i], cmap='viridis',  vmax=ub,vmin=lb)
+      mp.colorbar()
+      truefolder=str('./GeneralMethodPowerFigures/'+plottype+'/TrueSlice')
+      if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/TrueSlice'):
+        os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/TrueSlice')
+        os.makedirs(truefolder)
+      elif not os.path.exists(truefolder):
+        os.makedirs(truefolder)
+      filename=str(truefolder+'/NoBoxTrueSliceNref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.jpg')#.eps')
+      mp.savefig(filename)
+      mp.clf()
   return
 
 
@@ -826,6 +880,9 @@ if __name__=='__main__':
   roomnumstat=1
   Timemat=np.zeros((testnum,6))
   Nra =np.load('Parameters/Nra.npy')
+  myfile = open('Parameters/runplottype.txt', 'rt') # open lorem.txt for reading text
+  plottype= myfile.read()         # read the entire file into a string
+  myfile.close()
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       Nra=np.array([Nra])
       nra=1
@@ -834,18 +891,21 @@ if __name__=='__main__':
   Qmat   =np.zeros((testnum,nra))
   Qtruemat=np.zeros((testnum,nra))
   G_zeros =np.zeros((testnum,nra))
+  repeat=1
+
   for j in range(0,timetest):
     Roomnum=roomnumstat
     #Timemat[0,0]=Roomnum
     for count in range(0,testnum):
       start=t.time()
-      Mesh1=MeshProgram() # Shoot the rays and store the information
+      #Mesh1=MeshProgram(repeat,plottype) # Shoot the rays and store the information
       mid=t.time()
-      Grid,G_z=power_grid(Roomnum)  # Use the ray information to compute the power
+      Grid,G_z=power_grid(repeat,plottype,Roomnum)  # Use the ray information to compute the power
+      repeat=1
       G_zeros[count,:]=G_z
-      Q,Q2=Quality(Roomnum)
-      Qmat[count,:]=Q
-      Qtruemat[count,:]=Q2
+      #Q,Q2=Quality(plottype,Roomnum)
+      #Qmat[count,:]=Q
+      #Qtruemat[count,:]=Q2
       # plot_grid()        # Plot the power in slices.
       end=t.time()
       Timemat[count,0]+=Roomnum
@@ -864,12 +924,12 @@ if __name__=='__main__':
         Timemat[0,5]+=(end-start)/(Roomnum)
       Roomnum*=1 #FIXME      to increase roomnumber
 
-      del Mesh1, Grid
+      #del Mesh1, Grid
   Timemat[0,2]/=(testnum)
   Timemat[0,5]/=(testnum)
   Timemat/=(timetest)
-  plot_grid()        # Plot the power in slices.
-  mp.clf()
+  plot_grid(plottype)        # Plot the power in slices.
+  #mp.clf()
   print('-------------------------------')
   print('Time to complete program')
   #print(Timemat)
@@ -882,18 +942,21 @@ if __name__=='__main__':
   Nre,h,L     =np.load('Parameters/Raytracing.npy')
   if not os.path.exists('./Times'):
     os.makedirs('./Times')
-  timename=('./Times/TimesNra'+str(int(nra))+'Refs'+str(int(Nre))+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
-  if not os.path.exists('./Quality'):
-    os.makedirs('./Quality')
-  qualityname=('./Quality/QualityNra'+str(int(nra))+'Refs'+str(int(Nre))+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
-  np.save(qualityname,Qmat[0,:])
+  if not os.path.exists('./Times/'+plottype):
+    os.makedirs('./Times/'+plottype)
+  timename=('./Times/'+plottype+'/TimesNra'+str(int(nra))+'Refs'+str(int(Nre))+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
+  # if not os.path.exists('./Quality'):
+    # os.makedirs('./Quality')
+  # if not os.path.exists('./Quality/'+plottype):
+    # os.makedirs('./Quality/'+plottype)
+  # qualityname=('./Quality/'+plottype+'/QualityNra'+str(int(nra))+'Refs'+str(int(Nre))+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
+  # np.save(qualityname,Qmat[0,:])
 
-  print(G_zeros)
-  print(Qmat)
-  mp.plot(Nra,Qmat[0,:])
-  mp.plot(Nra,Qtruemat[0,:])
-  filename=str('Quality/Quality'+str(int(Nra[0]))+'to'+str(int(Nra[-1]))+'Nref'+str(int(Nre))+'.jpg')#.eps').
-  mp.savefig(filename)
+  #print(Qmat)
+  #mp.plot(Nra,Qmat[0,:])
+  #mp.plot(Nra,Qtruemat[0,:])
+  #filename=str('Quality/'+plottype+'Quality'+str(int(Nra[0]))+'to'+str(int(Nra[-1]))+'Nref'+str(int(Nre))+'.jpg')#.eps').
+  #mp.savefig(filename)
   np.save(timename,Timemat)
   np.save('roomnumstat.npy',roomnumstat)
   np.save('Roomnum.npy',Roomnum)
