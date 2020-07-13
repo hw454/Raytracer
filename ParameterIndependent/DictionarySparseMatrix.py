@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Hayley 2019-05-01
+# Hayley 2020-07-01
 '''Code for the dictionary of sparse matrices class :py:class:`DS` which\
  indexes like a multidimensional array but the array is sparse. \
  To exploit :py:mod:`scipy.sparse.dok_matrix`=SM the `DS` uses a key for \
@@ -45,6 +45,7 @@ class DS:
   :math:`\{ (x,y,z) \\forall x \in [0,Nx), y \in [0,Ny), z \in [0,Nz)\}.`
 
   With the value at each key being an na*nb SM.
+
   '''
   def __init__(s,Nx=1,Ny=1,Nz=1,na=1,nb=1,dt=np.complex128):
     s.shape=(na,nb)
@@ -646,10 +647,18 @@ class DS:
             if s[x1,y1,z1][ind[0][n-1],ind[1][n-1]]!=s[x2,y2,z2][ind[0][n-1],ind[1][n-1]]: return False
             else: pass
     return True
-  def __get_rad__(s, h,Nra,ind=-1):
+  def __get_rad__(s,h,Nob,ind=-1):
     ''' Return a DS corresponding to the distances stored in the mesh.
 
+    :param h:   Mesh width
+
+    :param Nob: The number of obstacles.
+
+    :param ind: The array of indices for non-zero terms. Defaults to -1 for a check to get it computed.
+
       * Initialise out=DS(Nx,Ny,Nz,1,s.shape[1])
+
+      * Initialise RadA and RadB as 0 Nx x Ny x Nz arrays. Containing the LOS radius and the distances after reflection.
 
       * Go through all the nonzero x,y,z grid points.
 
@@ -664,6 +673,9 @@ class DS:
 
     '''
     out=DS(s.Nx,s.Ny,s.Nz,1,s.shape[1],float)
+    RadA=np.zeros((s.Nx,s.Ny,s.Nz),dtype=float)
+    RadA=np.zeros((s.Nx,s.Ny,s.Nz),dtype=float)
+    RadB=np.zeros((s.Nx,s.Ny,s.Nz),dtype=float)
     # Find the nonzero indices. There's no need to retrieve distances on 0 terms.
     if isinstance(ind, type(-1)):
       ind=s.nonzero().T
@@ -681,18 +693,28 @@ class DS:
       M=out[ind[0][i],ind[1][i],ind[2][i]]
       indM=M.nonzero()
       n2=len(indM[0])
-      rep=1
+      rep=0
       if np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])==0 and l!=0:
         for j in range(0,n2):
           if np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,indM[1][j]])==0 and abs(M[indM[0][j],indM[1][j]]-l)<h/4 and indM[1][j]!=ind[4][i]:
-           rep=0
+           rep=1
            #repcol=indM[1][j]
           else:
             pass
-      if rep==0:
-        out[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=0
-        #out[ind[0][i],ind[1][i],ind[2][i],0,repcol]=0
+      if rep==1:
+        pass
       else:
+        nob=(ind[3][i]-1)%Nob
+        nre=int(((ind[3][i]-nob-1)/Nob)+1)
+        if ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])==0:
+            RadA[ind[0][i],ind[1][i],ind[2][i]]=l
+            if l>np.sqrt(3)/2:
+              raise ValueError('LOS rad is too long',l)
+        elif nob==0 and nre==1 or nob==1 and nre==1:
+            print(ind[3][i],nob,nre,Nob,l)
+            RadB[ind[0][i],ind[1][i],ind[2][i]]=l
+            if l>1.5*np.sqrt(3):
+              raise ValueError('Reflection rad is too long',l)
         if M[0,ind[4][i]]==0:
           out[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=l
           if check==0:
@@ -704,7 +726,7 @@ class DS:
             indout=np.array([ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]])
       if check==-1:
         indout=np.array([])
-    return out,indout
+    return out,RadA,RadB,indout
   def refcoefdiv(s,S2,cthi,ctht, ind=-1):
     if isinstance(ind, type(-1)):
       ind=ctht.nonzero().T
@@ -776,7 +798,54 @@ class DS:
         out2[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]=(cthi-S2)/(cthi+S2)
     del cthi,ctht,x,n,S1,S2
     return out1,out2
-  def refcoefbyterm_withmul(s,m,refindex,lam,L, ind=-1):
+  def refcoefbyterm_withmul(s,m,refindex,LOS=0,PerfRef=0, ind=-1):
+    ''' Using the refractive index of obstacles, the wavelength and the
+    length scaling the unit mesh the reflection coefficents for each ray
+    are calculated.
+
+    :meta public:
+
+    :param m: The vector of impedance ratios. (Repeated to line up with terms in Mesh).
+
+    :param refindex: The vector of refractive indices of obstacles. (Repeated to line up with terms in Mesh).
+
+    :param LOS: Line of sight yes LOS=1, Line of sight no LOS=0.
+
+    :parm PerfRef: Perfect Reflection yes or no. If yes then PerfRef=1 and angles are ignored at reflection. If no then PerfRef=0.
+
+    out1 is the combinations of the reflection coefficients for the parallel to polarisation terms.
+
+    out2 is the combinations of the reflection coefficients for the perpendicular to polarisation terms.
+
+    * out1 and out2 are initialised to be zero everywhere with dimensions (Nx,Ny,Nz,1,nb)
+    * Go through the non-zero indices (i0,i1,i2,i3,i4). If the row number (i3) is 0 and there are no other terms in the column \
+    this is a line of sight ray.
+    * If(i3==0):
+
+      * If the term in out1(i0,i1,i2,0,i4) is zero then this and out2(i0,i1,i2,0,i4) should be set to 1.
+      * If out1(i0,i1,i2,0,i4) is non-zero then this ray is already accounted for and nothing should be done.
+
+    * Else:
+
+       * Calculate the reflection coefficients.
+
+       .. math::
+
+          \\theta=s[i0,i1,i2,i3,i4]
+          cthi=\\cos(\\theta)
+          ctht=\\cos(\\arcsin(\\sin(\\theta)/n))
+          S1=m[i3]*cthi
+          S2=mpi3]*ctht
+          Rpar=(S1-ctht)/(S1+ctht)
+          Rper=(cthi-S2)/(cthi+S2)
+
+      * out1[i0,i1,i2,0,i4]=Rper, out2[i0,i1,i2,0,i4]=Rpar
+
+    :rtype: 2 DSMs with dimensions (Nx,Ny,Nz,1,nb)
+
+    :return: out1 out2
+
+    '''
     if isinstance(ind, type(-1)):
       ind=s.nonzero().T
     else:
@@ -789,49 +858,78 @@ class DS:
     out1=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
     out2=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
     n=len(ind[0])
-    for i in range(n):
-      #if out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]==0:
-       # if ind[3][i]==0:
-        #  out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=(lam/(L*4*math.pi))
-         # out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=(lam/(L*4*math.pi))
-        #else:
-         # pass
-          # theta=s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
-          # cthi=np.cos(theta)
-          # ctht=np.sqrt(1-(np.sin(theta)/refindex[ind[3][i]])**2)
-          # S1=cthi*m[ind[3][i]]
-          # S2=ctht*m[ind[3][i]]
-          # out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=((S1-ctht)/(S1+ctht))*(lam/(L*4*math.pi))
-          # out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=((cthi-S2)/(cthi+S2))*(lam/(L*4*math.pi))
-      #else:
+    if LOS==0 and PerfRef==0:
+      for i in range(n):
         if ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])==0:
+          # LOS ray has hit the cell
           out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
           out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
         elif ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])!=0:
-              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
-              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
-              #FIXME This is only to get just LOS
+          # LOS term in a rag segment with reflections
+          pass
         else:
-            theta=s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
-            cthi=np.cos(theta)
-            ctht=np.cos(np.arcsin(np.sin(theta)/refindex[ind[3][i]]))
-            #np.sqrt(1-(np.sin(theta)/refindex[ind[3][i]])**2)
-            S1=cthi*m[ind[3][i]]
-            S2=ctht*m[ind[3][i]]
-            if abs(cthi)<epsilon and abs(ctht)<epsilon:
-              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=0
-              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=0
-            elif out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]==0:
-              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=(S1-ctht)/(S1+ctht)
-              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=(cthi-S2)/(cthi+S2)
+          # Reflection coefficient for non-LOS rays.
+          theta=s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
+          cthi=np.cos(theta)
+          ctht=np.cos(np.arcsin(np.sin(theta)/refindex[ind[3][i]]))
+          S1=cthi*m[ind[3][i]]
+          S2=ctht*m[ind[3][i]]
+          if abs(cthi)<epsilon and abs(ctht)<epsilon:
+            # Ref coef is very close to 1
+            if abs(m[ind[3][i]])>epsilon:
+              print(ind[3][i])
+              frac=(m[ind[3][i]]-1)/(m[ind[3][i]]+1)
+              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=frac
+              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=frac
             else:
-              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=(S1-ctht)/(S1+ctht)
-              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=(cthi-S2)/(cthi+S2)
+              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=0
+              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=0
+          elif out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]==0:
+            # Store the first reflection term of the ray segment
+            out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=(S1-ctht)/(S1+ctht)
+            out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=(cthi-S2)/(cthi+S2)
+          else:
+            # The reflection terms when another term has already been stored
+            out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=(S1-ctht)/(S1+ctht)
+            out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=(cthi-S2)/(cthi+S2)
+    if LOS==0 and PerfRef==1:
+      for i in range(n):
+        if ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])==0:
+          # LOS ray has hit the cell
+          out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
+          out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
+        elif ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])!=0:
+          # LOS term in a ray segment with reflections
+          pass
+        else:
+          # Reflection coefficient for non-LOS rays.
+          if abs(refindex[ind[3][i]])>epsilon:
+            if out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]==0:
+              # Store the first reflection term of the ray segment
+              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=refindex[ind[3][i]]
+              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=refindex[ind[3][i]]
+            else:
+              # The reflection terms when another term has already been stored, Revelant for multiple reflections
+              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=refindex[ind[3][i]]
+              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=refindex[ind[3][i]]
+          else:
+             pass
+    elif LOS==1:
+      for i in range(n):
+        if ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])==0:
+          # LOS ray has hit the cell
+          out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
+          out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
+        else:
+          pass
+    else: raise ValueError('Incorrect Value for LOS')
     return out1,out2
 
   def togrid(s,ind):
-    ''' Computethe matrix norm at each grid point and return a \
+    ''' Compute the matrix norm at each grid point and return a \
     3d numpy array.
+
+    :meta private:
 
     :rtype: Nx x Ny x Nz numpy array
 
@@ -862,16 +960,19 @@ class DS:
     return Grid
 
   def asin(s,ind=-1):
-    """ Finds
+    """ Finds the arcsin of the nonzero terms in the DSM.
+
+    :param ind: The nonzero indices of s. if this is not input then this is found using :func:`nonzero`.
 
     :math:`\\theta=\\arcsin(x)` for all terms :math:`x != 0` in \
     the DS s. Since all angles \
     :math:`\\theta` are in :math:`[0,\pi /2]`, \
     :math:`\\arcsin(x)` is not a problem.
 
-    :returns: DSM with the same dimensions as s, with \
-    :math:`\\arcsin(s)=\\theta` in \
+    :returns: DSM  with :math:`\\arcsin(s)=\\theta` in \
      the same positions as the corresponding theta terms.
+
+    :rtype: DSM with dimensions (Nx,Ny,Nz, na,nb) (same as input DSM).
 
     """
     if isinstance(ind, type(-1)):
@@ -950,6 +1051,9 @@ class DS:
   # same position as the corresponding theta terms.
   def sin(s,ind=-1):
     """ Finds :math:`\\sin(\\theta)` for all terms \
+
+    :meta private:
+
     :math:`\\theta != 0` in the DS s.
 
     :return: A DSM with the same dimensions with \
@@ -983,9 +1087,18 @@ class DS:
     """ Finds the angles :math:`\\theta` which are the arguments \
     of the nonzero complex terms in the DSM s.
 
-    :return: A DSM with the same dimensions with \
-    :math:`\\theta` in the same \
-     position as the corresponding complex terms.
+    :param ind: The non-zero indices of s in the form [[x0,y0,z0,a0,b0],...,[xn,yn,zn,an,bn]] \
+    if ind is not input then the function :func:`nonzero` is run at the start to find it.
+
+    * Go through the nonzero terms (i0,i1,i2,i3,i4) in s.
+
+    :math:`\\theta`  is the angle of the term at s[i0,i1,i2,i3,i4]
+
+    * AngDSM[i0,i1,i2,i3,i4]=:math:`\\theta`
+
+    :rtype: A DSM with the same dimensions as s
+
+    :return: AngDSM
 
     """
     #print('start angles')
@@ -1295,7 +1408,7 @@ class DS:
         pass
       else:
         m=s[x,y,z,a,b]*khat*(L**2)
-        k=lam*(np.sqrt(G[b])*(np.cos(m)+np.sin(m)*1j)/(s[x,y,z,a,b]*4*np.pi*L))[0]
+        k=lam*(np.sqrt(G[b])*(np.cos(m)+np.sin(m)*1j)/(s[x,y,z,a,b]*4*np.pi))[0]
         out1[x,y,z]+=k*Com1[x,y,z,a,b]
         out2[x,y,z]+=k*Com2[x,y,z,a,b]
         del x,y,z,a,b,m,k
@@ -1613,6 +1726,8 @@ class DS:
   def save_dict(s, filename_):
     """ Save the DSM s.
 
+    :meta private:
+
     :param filename_: the name of the file to save to.
 
     :return: nothing
@@ -1719,6 +1834,8 @@ class DS:
   def xyznonzero(s):
     """ Find the indices of the nonzero terms in the DSM s.
 
+    :meta public:
+
       .. note::
 
           The indices are found by iterating through all \
@@ -1779,6 +1896,8 @@ class DS:
   def phase_calc(s,khat,L,ind=-1):
     ''' Compute :math:`\\exp(i\frac{\hat{k}\hat{r}}{L^2})` \
     for a Mesh of :math:`r`
+
+    :meta public:
 
     The phase is usually expressed at :math:`exp(ikr)`.
     Since :math:`\hat{k}` and :math:`\hat{r}` are nondimensional lengths \
@@ -1860,6 +1979,9 @@ class DS:
 
     .. todo:: add the check for the end of the ray.
 
+    :warning: This currently only checks a point is \
+    inside a room, it doesn't account for if you have gone inside an object.
+
     """
     #FIXME add the inside check to this function
     #FIXME add the check for the end of the ray.
@@ -1892,10 +2014,12 @@ class DS:
 
     :param n: the normal vectors forming the cone.
 
-    start=0 if no points were valid if at least 1 point was valid,
-    ps=[[i1,j1,k1],...,[in,jn,kn]] the indices of the valid points,
-    p3=[[x1,y1,z1],...,[xn,yn,zn]] co-ordinates of the valid points,
-    N=[n0,...,nN] the normal vectors corresponding to the valid points.
+    * start=0 if no points were valid.
+    * if at least 1 point was valid,
+
+      * ps=[[i1,j1,k1],...,[in,jn,kn]] the indices of the valid points,
+      * p3=[[x1,y1,z1],...,[xn,yn,zn]] co-ordinates of the valid points,
+      * N=[n0,...,nN] the normal vectors corresponding to the valid points.
 
     :return: start, ps, p3, N
 
@@ -2026,7 +2150,7 @@ def phase_calc(RadMesh,khat,L,ind=-1):
   scaled by the room length L the power of :math:`L^{-2}` must be used.
 
   Exponentials are not defined on DS, instead use \
-  :math:`\\exp(i \theta)=\\cos(\theta)+i\\sin(\theta)`.
+  :math:`\\exp(i \\theta)=\\cos(\\theta)+i\\sin(\\theta)`.
 
   .. code::
 
@@ -2049,11 +2173,12 @@ def phase_calc(RadMesh,khat,L,ind=-1):
   return out
 
 
-def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
+def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,PerfRef=0,ind=-1):
   ''' Compute the field from a Mesh of ray information and the physical \
   parameters.
 
-  :param Mesh:    The :py:class:`DS` mesh of ray information.
+  :param Mesh:    The :py:class:`DS` mesh of ray information. \
+  Containing the non-dimensionalised ray lengths and their angles of reflection.
   :param Znobrat: An Nob x Nre+1 array containing tiles of the impedance \
   of obstacles divided by the impedance of air.
   :param refindex: An Nob x Nre+1 array containing tiles of the refractive\
@@ -2063,30 +2188,24 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
   :param Pol:    2x1 numpy array containing the polarisation terms.
   :param Nra:    The number of rays in the ray tracer.
   :param Nre:    The number of reflections in the ray tracer.
-  :param Ns:     The number of terms on each axis
+  :param Ns:     The number of terms on each axis.
+  :param LOS:    Line of sight, 1 for yes 0 for no, default is 0.
+  :param ind:    The non-zero indices of the Mesh, default is -1, then \
+  the indices are found after a check.
 
   Method:
 
-    * First compute the angles of reflectio using py:func:`Mesh.sparse_angles()`
-    * Compute the combined reflection coefficients using \
-    :py:func:`Mesh.refcoefbyterm_withmu(Nre,refindex,lam,L, ind=-1)`
-    * Combine the reflection coefficients that correspond to the same \
-    ray using :py:class:`DS`. :py:func:`dict_col_mult()`. This \
-    multiplies reflection coefficients in the same column.
-    * Extract the distance each ray had travelled using \
+    * First compute the angles of reflection using py:func:`Mesh.sparse_angles()`.\
+    If the angles are already saved from previous calculations then they are loaded.
+    * Compute the combined reflection coefficients for the parallel and \
+    perpendicular to polarisation terms using \
+    :py:class:`DS`.:py:func:`Mesh.refcoefbyterm_withmu(Nre,refindex,LOS=0,PerfRef=0, ind=-1)`=Comper,Compar.
+    * Extract the distance each ray travelled using \
     :py:class:`DS`. :py:func:`__get_rad__()`
-    * Multiply by the gains for the corresponding ray.
-    * Multiply terms by the phases \
-    :math:`\\exp(i\hat{k} \hat{r})^{L^{-2}}`. With :math:`L` being \
-    the room length scale. :math:`\hat{r}` being the relative distance \
-    travelled which is the actual distance divided by the room length \
-    scale, and :math:`\hat{k}` is the relative wavenumber which is the \
-    actual wavenumber times the room length scale.
-    * Multiply by the gains corresponding to each ray.
-    * Divide by the distance corresponding to each ray segment.
-    * Sum all the ray segments in a grid point.
-    * Multiply the grid by the transmitted field times the wavelngth \
-    divided by the room length scale. :math:`\\frac{\\lambda}{L 4 \pi}`
+    * Multiply by the gains for the corresponding ray, the phase, \
+    the combined reflection coefficients and divide by the distance the \
+    ray travelled to get the power in the different polarisation directions.\
+    Using :py:class:`DS`.:py:func:`gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)`
     * Multiply by initial polarisation vectors and combine.
     * Ignore dividing by initial phi as when converting to power in db \
     this disappears.
@@ -2103,7 +2222,9 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
   #print('----------------------------------------------------------')
   t0=t.time()
   # Retrieve the parameters
-  khat,lam,L = Antpar
+  khat,lam,L = Antpar # khat is the non-dimensional wave number,
+                      # lam is the non-dimensionalised wave length.
+                      # L is the length scale for the dimensions.
   # Check in the nonzero indices have been input or not, if not then find them.
   if isinstance(ind, type(-1)):
     ind=Mesh.nonzero().T
@@ -2121,16 +2242,18 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
   else:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
     AngDSM.save_dict(angfile)
-  Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,lam,L,ind)
+  Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,LOS,PerfRef,ind)
   rfile=str('./Mesh/rad'+str(int(Nra))+'Refs'+str(int(Nre))+'Ns'+str(int(Ns))+'.npy')
   radfile = Path(rfile)
+  Nob=int((Mesh.shape[0]-1)/Nre)
   h=1/Mesh.Nx
   if radfile.is_file():
-    RadMesh=load_dict(rfile)
+    RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nob,ind)#=load_dict(rfile)
     ind=RadMesh.nonzero()
   else:
-    RadMesh,ind=Mesh.__get_rad__(h,ind)
+    RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nob,ind)
     RadMesh.save_dict(rfile)
+  print(RadB)
   t4=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)
   P=np.zeros((Mesh.Nx,Mesh.Ny,Mesh.Nz),dtype=np.longdouble)
@@ -2139,10 +2262,10 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
   # print('----------------------------------------------------------')
   # print('Total time to find power', t10-t0)
   # print('----------------------------------------------------------')
-  return P,indout
+  return P,RadA,RadB,indout
 
 
-def quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1):
+def quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,PerfRef,ind=-1):
   ''' Compute the field from a Mesh of ray information and the physical \
   parameters.
 
@@ -2208,24 +2331,52 @@ def quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,ind=-1)
   else:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
     AngDSM.save_dict(angfile)
-  Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,lam,L,ind)
+  Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,LOS,PerfRef,ind)
   rfile=str('./Mesh/rad'+str(int(Nra))+'Refs'+str(int(Nre))+'Ns'+str(int(Ns))+'.npy')
   radfile = Path(rfile)
   h=1/Mesh.Nx
+  Nob=int((Mesh.shape[1]-1)/Nre)
   if radfile.is_file():
     RadMesh=load_dict(rfile)
     ind=RadMesh.nonzero()
   else:
-    RadMesh,ind=Mesh.__get_rad__(h,ind)
+    RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nob,ind)
     RadMesh.save_dict(rfile)
   t4=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)
   P=np.zeros((Mesh.Nx,Mesh.Ny,Mesh.Nz),dtype=np.longdouble)
   P=np.absolute(Gridpe*Pol[0])**2+np.absolute(Gridpa*Pol[1])**2
   P=10*np.log10(P,where=(P!=0))
-  Q=np.sum(P)/(Mesh.Nx*Mesh.Ny*Mesh.Nz)
+  Q=QualityFromPower(P)
   return Q,ind
 
+def QualityFromPower(P):
+  return np.sum(P)/(P.shape[0]*P.shape[1]*P.shape[2])
+
+def RadGrid(RadMesh,ind=-1):
+  Nx=RadMesh.Nx
+  Ny=RadMesh.Ny
+  Nz=RadMesh.Nz
+  RadA=np.zeros((Nx,Ny,Nz),dtype=float)
+  RadB=np.zeros((Nx,Ny,Nz),dtype=float)
+  if isinstance(ind, type(-1)):
+    ind=RadMesh.nonzero().T
+  else:
+    if len(ind[0])==5 and len(ind.T[0]!=5):
+      ind=ind.T
+    elif len(ind[0])!=5 and len(ind.T[0]==5):
+      pass
+    else:
+      ind=s.nonzero().T
+  n=len(ind[0])
+  x,y,z=-1,-1,-1
+  for i in range(0,n):
+    l=RadMesh[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
+    if 0<l<=1:
+     RadA[ind[0][i],ind[1][i],ind[2][i]]+=l
+    else:
+     RadB[ind[0][i],ind[1][i],ind[2][i]]+=l
+  return RadA, RadB
 
 def nonzero_bycol(SM):
   ''' Find the index pairs for the nonzero terms in a sparse matrix.
@@ -2263,6 +2414,7 @@ def load_dict(filename_):
   :returns: nothing
 
   '''
+
   with open(filename_, 'rb') as f:
     ret_di = pkl.load(f)
   Keys=ret_di.keys()
