@@ -711,8 +711,8 @@ class DS:
             if l>np.sqrt(3)/2:
               raise ValueError('LOS rad is too long',l)
         elif nob==0 and nre==1 or nob==1 and nre==1:
-            print(ind[3][i],nob,nre,Nob,l)
-            RadB[ind[0][i],ind[1][i],ind[2][i]]=l
+            #print(ind[3][i],nob,nre,Nob,l)
+            RadB[ind[0][i],ind[1][i],ind[2][i]]+=l
             if l>1.5*np.sqrt(3):
               raise ValueError('Reflection rad is too long',l)
         if M[0,ind[4][i]]==0:
@@ -2253,7 +2253,6 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,Per
   else:
     RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nob,ind)
     RadMesh.save_dict(rfile)
-  print(RadB)
   t4=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)
   P=np.zeros((Mesh.Nx,Mesh.Ny,Mesh.Nz),dtype=np.longdouble)
