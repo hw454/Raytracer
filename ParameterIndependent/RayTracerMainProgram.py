@@ -898,7 +898,7 @@ if __name__=='__main__':
     #Timemat[0,0]=Roomnum
     for count in range(0,testnum):
       start=t.time()
-      #Mesh1=MeshProgram(repeat,plottype) # Shoot the rays and store the information
+      Mesh1=MeshProgram(repeat,plottype) # Shoot the rays and store the information
       mid=t.time()
       Grid,G_z=power_grid(repeat,plottype,Roomnum)  # Use the ray information to compute the power
       repeat=1
