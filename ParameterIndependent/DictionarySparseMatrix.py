@@ -584,19 +584,75 @@ class DS:
           # out[ind[l][0],ind[l][1],ind[l][2]]=s.d[ind[l][0],ind[l][1],ind[l][2]]-DSM.d[ind[l][0],ind[l][1],ind[l][2]]
           # x,y,z=ind[l][0:3]
     return out
-  def __mul__(s, DSM2,ind=-1):
-    ''' Multiply DSM2 with s
-    Perform matrix multiplication AB for all sparse matrices A in s and \
-    B in DSM2 with the same key (x,y,z)
+  def __mul__(s, M2,DSM2=0,ind=-1):
+    ''' Multiply M2 with s.
 
-    :param DSM2: is a DSM with the same dimensions as s
-    :returns: s[x,y,z]DSM2[x,y,z] :math: `\\forall x, y, z, \in [0,Nx], [0,Ny], [0,Nz]`
-    :rtype: a new DSM with the same dimensions
+    :param M2: is a DSM with the same dimensions as s, or a matrix with dimensions a,b or a scalar.
+    :param DSM2: optional input, if used then the multiplication applied to s is also applied to DSM2.
+
+    * If M2 is a scalar multiply all non-zero terms in s by M2.
+    * If M2 is a matrix, array, list or tuple, with same dimensions as each SM in s\
+     multiply every SM in s by M2.
+    * If M2 is a matrix, array, list or tuple, with the dimensions[s.shape[0],1], or [1,s.shape[0]],\
+    then multiply every column in each SM in s by M2.
+    * If M2 is a DSM:
+
+      * Perform matrix multiplication AB for all sparse matrices A in s and \
+      B in DSM2 with the same key (x,y,z)
+
+    outDSM=s[x,y,z]*M2[x,y,z] :math: `\\forall x, y, z, \in [0,Nx], [0,Ny], [0,Nz]`,\
+    or s[x,y,z]*M2 :math: `\\forall x, y, z, \in [0,Nx], [0,Ny], [0,Nz]`,
+
+    :returns: outDSM or (outDSM,outDSM2)
+
+    :rtype: DSM with the dimensions[s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1]] \
+    or (DSM with the dimensions[s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1]],DSM with the dimensions[s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1]])
+
     '''
-    out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
+    outDSM=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
+    if isinstance(DSM2,type(0)):
+      double=0
+    else:
+      outDSM2=DS(s.Nx,s.Ny,s.Nz,na,nb
+      double=1
     if isinstance(ind, type(-1)):
-      for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
-        out[x,y,z]=s[x,y,z].multiply(DSM2[x,y,z])
+      if singletype(M2) and double==0:
+        for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
+          outDSM[x,y,z]=M2*s[x,y,z]
+        return outDSM
+      elif singletype(M2) and double==1:
+        for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
+          outDSM[x,y,z]=M2*s[x,y,z]
+          outDSM2[x,y,z]=M2*DSM2[x,y,z]
+        return outDSM,outDSM2
+      elif isinstance(M2, (list, tuple, np.ndarray,SM)) and double==0:
+        if M2.shape=s[x,y,z].shape:
+          for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
+            outDSM[x,y,z]=s[x,y,z].multiply(M2)
+        else:
+          for x,y,z,a,b in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz),range(0,s.shape[0]),range(0,s.shape[1])):
+            outDSM[x,y,z,a,b]=s[x,y,z,a,b]*M2[a]
+        return outDSM
+      elif isinstance(M2, (list, tuple, np.ndarray,SM)) and double==1:
+        if M2.shape=s[x,y,z].shape:
+          for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
+            outDSM[x,y,z]=s[x,y,z].multiply(M2)
+            outDSM2[x,y,z]=DSM2[x,y,z].multiply(M2)
+        else:
+          for x,y,z,a,b in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz),range(0,s.shape[0]),range(0,s.shape[1])):
+            outDSM[x,y,z,a,b]=s[x,y,z,a,b]*M2[a]
+            outDSM2[x,y,z,a,b]=s[x,y,z,a,b]*M2[a]
+        return outDSM,outDSM2
+      else:
+        if double==1:
+          for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
+            outDSM[x,y,z]=s[x,y,z].multiply(M2[x,y,z])
+            outDSM2[x,y,z]=DSM2[x,y,z].multiply(M2[x,y,z])
+          return outDSM,outDSM2
+        else:
+          for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
+            outDSM[x,y,z]=s[x,y,z].multiply(M2[x,y,z])
+          return outDSM
     else:
       if len(ind[0])==5 and len(ind.T[0]!=5):
         ind=ind.T
@@ -608,18 +664,97 @@ class DS:
       p=-1
       l=-1
       m=-1
-      for i in range(n):
-        x=ind[0][i]
-        y=ind[1][i]
-        z=ind[2][i]
-        if x==p and y==l and z==m:
-          pass
+      if singletype(M2) and double==0:
+        for i in range(0,n):
+          # No need to go through the same grid element again.
+          if ind[0][i]==x and ind[1][i]==y and ind[2][i]==z:
+            pass
+          else:
+            x=ind[0][i]
+            y=ind[1][i]
+            z=ind[2][i]
+            outDSM[x,y,z]=M2*s[x,y,z]
+        return outDSM
+      elif singletype(M2) and double==1:
+        for i in range(0,n):
+          # No need to go through the same grid element again.
+          if ind[0][i]==x and ind[1][i]==y and ind[2][i]==z:
+            pass
+          else:
+            x=ind[0][i]
+            y=ind[1][i]
+            z=ind[2][i]
+            outDSM[x,y,z]=M2*s[x,y,z]
+            outDSM2[x,y,z]=M2*DSM2[x,y,z]
+        return outDSM,outDSM2
+      elif isinstance(M2, (list, tuple, np.ndarray,SM)) and double==0:
+        if M2.shape=s.shape:
+          for i in range(0,n):
+            # No need to go through the same grid element again.
+            if ind[0][i]==x and ind[1][i]==y and ind[2][i]==z:
+              pass
+            else:
+              x=ind[0][i]
+              y=ind[1][i]
+              z=ind[2][i]
+              outDSM[x,y,z]=s[x,y,z].multipy(M2)
         else:
-          p=x
-          l=y
-          m=z
-          out[x,y,z]=s[x,y,z].multiply(DSM2[x,y,z])
-    return out
+          for i in range(0,n):
+            # No need to go through the same grid element again.
+            x=ind[0][i]
+            y=ind[1][i]
+            z=ind[2][i]
+            a=ind[3][i]
+            b=ind[4][i]
+            outDSM[x,y,z,a,b]=s[x,y,z,a,b]*M2[a]
+        return outDSM
+      elif isinstance(M2, (list, tuple, np.ndarray,SM)) and double==1:
+        if M2.shape=s.shape:
+          for i in range(0,n):
+            # No need to go through the same grid element again.
+            if ind[0][i]==x and ind[1][i]==y and ind[2][i]==z:
+              pass
+            else:
+              x=ind[0][i]
+              y=ind[1][i]
+              z=ind[2][i]
+              outDSM[x,y,z]=s[x,y,z].multipy(M2)
+              outDSM2[x,y,z]=DSM2[x,y,z].multipy(M2)
+        else:
+          for i in range(0,n):
+            # No need to go through the same grid element again.
+            x=ind[0][i]
+            y=ind[1][i]
+            z=ind[2][i]
+            a=ind[3][i]
+            b=ind[4][i]
+            outDSM[x,y,z,a,b]=s[x,y,z,a,b]*M2[a]
+            outDSM2[x,y,z,a,b]=DSM2[x,y,z,a,b]*M2[a]
+        return outDSM,outDSM2
+      else:
+        if double==0:
+          for i in range(0,n):
+            # No need to go through the same grid element again.
+            if ind[0][i]==x and ind[1][i]==y and ind[2][i]==z:
+              pass
+            else:
+              x=ind[0][i]
+              y=ind[1][i]
+              z=ind[2][i]
+              outDSM[x,y,z]=s[x,y,z].multipy(M2[x,y,z])
+          return outDSM
+        else:
+          for i in range(0,n):
+            # No need to go through the same grid element again.
+            if ind[0][i]==x and ind[1][i]==y and ind[2][i]==z:
+              pass
+            else:
+              x=ind[0][i]
+              y=ind[1][i]
+              z=ind[2][i]
+              outDSM[x,y,z]=s[x,y,z].multipy(M2[x,y,z])
+              outDSM2[x,y,z]=DSM2[x,y,z].multipy(M2[x,y,z])
+        return outDSM,outDSM2
   ## Divide elementwise s with DSM2
   # Perform elementwise division A/B for all sparse matrices A in DSM
   # and B in DSM2 with the same key (x,y,z).
@@ -640,36 +775,93 @@ class DS:
     for i in range(n):
       out[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]=np.true_divide(s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]],DSM2[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]])
     return out
-  # Rper=(S1-ctht).__truediv__(S1+ctht,ind)     # Compute the Reflection coeficient perpendicular
-                                              # # to the polarisiation Rper=(Zm/Z0cos(theta_i)-cos(theta_t))/(Zm/Z0cos(theta_i)+cos(theta_t))
-  # Rpar=(cthi-S2).__truediv__(cthi+S2,ind)     # Compute the Reflection coeficient parallel
-
-  def __eq__(s,DSM2):
+  def __eq__(s,DSM2,ind=-1):
     ''' If all non-zero terms aren't equal then matrices aren't equal.
+    :param: DSM2 the DSM to compare to.
+    :param: ind, the nonzero indices of s. If this is input then only \
+    these terms are checked. To check that there aren't more terms in \
+    DSM2 then leave this term blank.
+
+    :rtype: boolian
+
     :return: True if equal, False if not.
     '''
-    for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
-      if scipy.sparse.linalg.norm(s[x,y,z]-DSM2[x,y,z],1) != 0:
-        if scipy.sparse.linalg.norm(s[x,y,z]-DSM2[x,y,z],1)>epsilon:
-          return False
+    if isinstance(ind, type(-1)):
+      for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
+        if scipy.sparse.linalg.norm(s[x,y,z]-DSM2[x,y,z],1) != 0:
+          if scipy.sparse.linalg.norm(s[x,y,z]-DSM2[x,y,z],1)>epsilon:
+            return False
+          else: pass
         else: pass
-      else: pass
-    return True
-  def __self_eq__(s):
-    ''' Check that the SMs at each grid point aren't equal.
-    Method:
-    Check each grid point against a different one. If o
-    :return: True if equal, False if not.
-    '''
-    for x1,y1,z1 in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
-      for x2,y2,z2 in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
-        if x1==x1 and y1==y2 and z1==z2: pass
+    else:
+      if len(ind[0])==5 and len(ind.T[0]!=5):
+        ind=ind.T
+      elif len(ind[0])!=5 and len(ind.T[0]==5):
+        pass
+      else:
+        ind=s.nonzero().T
+      n=len(ind[0])
+      for i in range(n):
+        a=s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
+        b=DSM2[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
+        if abs(a-b)<epsilon
+          continue
         else:
-          ind=s[x1,y1,z1].nonzero()
-          n=len(ind[0])
-          for i in range(n):
-            if s[x1,y1,z1][ind[0][n-1],ind[1][n-1]]!=s[x2,y2,z2][ind[0][n-1],ind[1][n-1]]: return False
-            else: pass
+          return False
+    return True
+  def __self_eq__(s,ind=-1):
+    ''' Check that the SMs at each grid point aren't equal.
+
+    :param ind: Optional input, the non-zero indices.
+
+    Method:
+    Check each matrix at (x,y,z) position doesn't have the same
+    non-zero terms as the other matrices.
+
+    * If the non-zero indices aren't input then go through the x,y,z \
+    options and check if there are any terms in any of the matrix at the\
+    same (a,b) position which aren't equal to a term in the same position in another (x,y,z) matrix.\
+    * If the indices are input then go through the list and compare terms\
+     with the same a,b co-ordinate but different x,y,z co-ordinate.
+
+    :rtype: boolian
+
+    :return: True if equal, False if not.
+
+    '''
+    if isinstance(ind, type(-1)):
+      for x1,y1,z1 in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
+        for x2,y2,z2 in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
+          if x1==x2 and y1==y2 and z1==z2: continue
+          else:
+            ind=s[x1,y1,z1].nonzero()
+            n=len(ind[0])
+            for i in range(n):
+              if s[x1,y1,z1][ind[0][i],ind[1][i]]!=s[x2,y2,z2][ind[0][i],ind[1][i]]: return False
+              else: pass
+    else:
+      if len(ind[0])==5 and len(ind.T[0]!=5):
+        ind=ind.T
+      elif len(ind[0])!=5 and len(ind.T[0]==5):
+        pass
+      else:
+        ind=s.nonzero().T
+      n=len(ind[0])
+      for i in range(n):
+        x1=ind[0][i]
+        y1=ind[1][i]
+        z1=ind[2][i]
+        a1=ind[3][i]
+        b1=ind[4][i]
+        for j in range(n)
+          x2=ind[0][i]
+          y2=ind[1][i]
+          z2=ind[2][i]
+          a2=ind[3][i]
+          b2=ind[4][i]
+          if x1==x2 and y1==y2 and z1==z2 and a1!=a2 and b1!=b2: continue
+          elif s[x1,y1,z1,a1,b1]!=s[x2,y2,z2,a2,b2]: return False
+          else: pass
     return True
   def __get_rad__(s,h,Nob,ind=-1):
     ''' Return a DS corresponding to the distances stored in the mesh.
@@ -691,9 +883,13 @@ class DS:
 
       * Pass until the next nonzero index is for a new column and repeat.
 
-    :rtype: DS(Nx,Ny,Nz,1,s.shape[1]) of real values.
+      * When non-zero terms are stored add the position [x,y,z,a,b] to \
+      the array of non-zero indices indout.
 
-    :return: out
+    :rtype: DS(Nx,Ny,Nz,1,s.shape[1]) of real values, [Nx,Ny,Nz] numpy array,\
+    [Nx,Ny,Nz] numpy array,[[x,y,z,a,b],...,[xn,yn,zn,an,bn]] numpy array
+
+    :return: out, RadA, RadB,indout
 
     '''
     out=DS(s.Nx,s.Ny,s.Nz,1,s.shape[1],float)
@@ -752,6 +948,8 @@ class DS:
     return out,RadA,RadB,indout
   def __del_doubles__(s,h,Nob,ind=-1):
     ''' Return a DS corresponding to the distances stored in the mesh.
+
+    :meta public:
 
     :param h:   Mesh width
 
@@ -830,79 +1028,9 @@ class DS:
       if check==-1:
         indout=np.array([])
     return out,indout
-  def refcoefdiv(s,S2,cthi,ctht, ind=-1):
-    if isinstance(ind, type(-1)):
-      ind=ctht.nonzero().T
-    else:
-      if len(ind[0])==5 and len(ind.T[0]!=5):
-        ind=ind.T
-      elif len(ind[0])!=5 and len(ind.T[0]==5):
-        pass
-      else:
-        ind=ctht.nonzero().T
-    out1=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
-    out2=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
-    n=len(ind[0])
-    for i in range(n):
-      x=ind[0][i]
-      y=ind[1][i]
-      z=ind[2][i]
-      a=ind[3][i]
-      b=ind[4][i]
-      out1[x,y,z,a,b]=np.true_divide(s[x,y,z,a,b]-ctht[x,y,z,a,b],s[x,y,z,a,b]+ctht[x,y,z,a,b])
-      out2[x,y,z,a,b]=np.true_divide(cthi[x,y,z,a,b]-S2[x,y,z,a,b],cthi[x,y,z,a,b]+S2[x,y,z,a,b])
-    return out1,out2
-  def refcoefmultdiv(s,ctht,m, ind=-1):
-    if isinstance(ind, type(-1)):
-      ind=s.nonzero().T
-    else:
-      if len(ind[0])==5 and len(ind.T[0]!=5):
-        ind=ind.T
-      elif len(ind[0])!=5 and len(ind.T[0]==5):
-        pass
-      else:
-        ind=s.nonzero().T
-    out1=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
-    out2=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
-    n=len(ind[0])
-    for i in range(n):
-      x=ind[0][i]
-      y=ind[1][i]
-      z=ind[2][i]
-      a=ind[3][i]
-      b=ind[4][i]
-      out1[x,y,z,a,b]=np.true_divide(s[x,y,z,a,b]*m[a]-ctht[x,y,z,a,b],s[x,y,z,a,b]*m[a]+ctht[x,y,z,a,b])
-      out2[x,y,z,a,b]=np.true_divide(s[x,y,z,a,b]-ctht[x,y,z,a,b]*m[a],s[x,y,z,a,b]+ctht[x,y,z,a,b]*m[a])
-    return out1,out2
-  def refcoefbyterm(s,m,refindex, ind=-1):
-    if isinstance(ind, type(-1)):
-      ind=s.nonzero().T
-    else:
-      if len(ind[0])==5 and len(ind.T[0]!=5):
-        ind=ind.T
-      elif len(ind[0])!=5 and len(ind.T[0]==5):
-        pass
-      else:
-        ind=s.nonzero().T
-    out1=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
-    out2=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
-    n=len(ind[0])
-    for i in range(n):
-      if ind[3][i]==0:
-        out1[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]=1.0
-        out2[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]=1.0
-      else:
-        x=s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
-        cthi=np.cos(x)
-        ctht=np.sqrt(1-(np.sin(x)/refindex[ind[3][i]])**2)
-        S1=cthi*m[ind[3][i]]
-        S2=ctht*m[ind[3][i]]
-        out1[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]=(S1-ctht)/(S1+ctht)
-        out2[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]=(cthi-S2)/(cthi+S2)
-    del cthi,ctht,x,n,S1,S2
-    return out1,out2
   def refcoefbyterm_withmul(s,m,refindex,LOS=0,PerfRef=0, ind=-1):
-    ''' Using the refractive index of obstacles, the wavelength and the
+    ''' Using the impedance ratios of the obstacles, \
+    refractive index of obstacles, the wavelength and the
     length scaling the unit mesh the reflection coefficents for each ray
     are calculated.
 
@@ -912,9 +1040,11 @@ class DS:
 
     :param refindex: The vector of refractive indices of obstacles. (Repeated to line up with terms in Mesh).
 
-    :param LOS: Line of sight yes LOS=1, Line of sight no LOS=0.
+    :param LOS: Line of sight yes LOS=1, Line of sight no LOS=0. \
+    This overrides PerfRef, if LOS=1 then no reflection is stored regardless of PerfRef.
 
-    :parm PerfRef: Perfect Reflection yes or no. If yes then PerfRef=1 and angles are ignored at reflection. If no then PerfRef=0.
+    :parm PerfRef: Perfect Reflection yes or no. If yes then PerfRef=1 \
+    and angles are ignored at reflection. If no then PerfRef=0.
 
     out1 is the combinations of the reflection coefficients for the parallel to polarisation terms.
 
@@ -989,6 +1119,12 @@ class DS:
               out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=0
           elif out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]==0:
             # Store the first reflection term of the ray segment
+            # Compute the Reflection coeficient perpendicular
+            # Rper=(S1-ctht)/(S1+ctht,ind)
+            # to the polarisiation Rper=(Zm/Z0cos(theta_i)-cos(theta_t))/(Zm/Z0cos(theta_i)+cos(theta_t))
+            # Compute the Reflection coeficient parallel
+            # Rpar=(cthi-S2).__truediv__(cthi+S2,ind)
+
             out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=(S1-ctht)/(S1+ctht)
             out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=(cthi-S2)/(cthi+S2)
           else:
@@ -996,6 +1132,8 @@ class DS:
             out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=(S1-ctht)/(S1+ctht)
             out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=(cthi-S2)/(cthi+S2)
     if LOS==0 and PerfRef==1:
+      '''When PerfRef==1 the refindex terms are 'a<=1' in the positions \
+      corresponding to reflective surfaces and 0 elsewhere. This is not the real refractive indexes.'''
       for i in range(n):
         if ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])==0:
           # LOS ray has hit the cell
@@ -1064,6 +1202,8 @@ class DS:
   def asin(s,ind=-1):
     """ Finds the arcsin of the nonzero terms in the DSM.
 
+    :meta private:
+
     :param ind: The nonzero indices of s. if this is not input then this is found using :func:`nonzero`.
 
     :math:`\\theta=\\arcsin(x)` for all terms :math:`x != 0` in \
@@ -1101,7 +1241,7 @@ class DS:
     """ Finds :math:`\\cos(\\theta)` for all terms \
     :math:`\\theta != 0` in the DS s.
 
-    :returns: A DSM with the same dimensions with \
+    :rtype: A DSM with the same dimensions with \
     :math:`\\cos(\\theta)` in the \
      same position as the corresponding theta terms.
 
@@ -1120,33 +1260,6 @@ class DS:
     n=len(ind[0])
     for j in range(0,n):
       CosDSM[ind[0][j],ind[1][j],ind[2][j],ind[3][j],ind[4][j]]=np.cos(s[ind[0][j],ind[1][j],ind[2][j],ind[3][j],ind[4][j]])
-    return CosDSM
-  def cos_asin(s,ind=-1):
-    """ Finds :math:`\\cos( \\asin( \\theta))` for all terms \
-    :math:`\\theta != 0` in the DS s.
-
-    :returns: A DSM with the same dimensions with \
-    :math:`\\cos( \\asin( \\theta))` in the \
-     same position as the corresponding theta terms.
-
-    """
-    if isinstance(ind, type(-1)):
-      ind=s.nonzero().T
-    else:
-      if len(ind[0])==5 and len(ind.T[0]!=5):
-        ind=ind.T
-        #pass
-      elif len(ind[0])!=5 and len(ind.T[0]==5):
-        pass
-        #ind=ind.T
-      else:
-        ind=s.nonzero().T
-    na,nb=s.shape
-    CosDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
-    #ind=np.transpose(ind)
-    n=len(ind[0])
-    for j in range(0,n):
-      CosDSM[ind[0][j],ind[1][j],ind[2][j],ind[3][j],ind[4][j]]=np.cos(np.arcsin(s[ind[0][j],ind[1][j],ind[2][j],ind[3][j],ind[4][j]]))
     return CosDSM
   ## Finds sin(theta) for all terms theta \!= 0 in DSM.
   # @return a DSM with the same dimensions with sin(theta) in the
@@ -1203,272 +1316,20 @@ class DS:
     :return: AngDSM
 
     """
-    #print('start angles')
-    #t0=t.time()
-    na,nb=s.shape
-    AngDSM=DS(s.Nx,s.Ny,s.Nz,na,nb,dt=float)
-    #t1=t.time()
+    AngDSM=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1],dt=float)
     if isinstance(ind, type(-1)):
       ind=s.nonzero().T
     else:
       if len(ind[0])==5 and len(ind.T[0]!=5):
-        #ind=s.nonzero().T
         ind=ind.T
       elif len(ind[0])!=5 and len(ind.T[0]==5):
-        #ind=s.nonzero().T
         pass
       else:
         ind=s.nonzero().T
     n=len(ind[0])
     for j in range(0,n):
       AngDSM[ind[0][j],ind[1][j],ind[2][j],ind[3][j],ind[4][j]]=np.angle(s[ind[0][j],ind[1][j],ind[2][j],ind[3][j],ind[4][j]])
-    #t4=t.time()
-    #print('time creating AngDSM',t1-t0)
-    #print('time getting indices and finding angles',t3-t1)
-    #print('time setting line of sight dummy angles',t4-t3)
-    #print('time for all of sparse angles',t4-t0)
     return AngDSM
-  ## Multiply every column of the DSM s elementwise with the vector vec.
-  # @param vec a row vector with length na.
-  # @return a DSM 'out' with the same dimensions as s.
-  # out[x,y,z,k,j]=vec[k]*DSM[x,y,z,k,j]
-  def dict_scal_mult(s,scal,ind=-1):
-    '''Multiply every term of the DSM s by scal.
-
-    :param scal: scalar variable
-
-    For integers :math:`x,y,z,k` and :math:`j` such that,
-    :math:`x \in [0,Nx), y \in [0,Ny), z \in [0,Nz), k \in [0,na),j \in [0,nb)`,
-
-    .. code::
-
-       out[x,y,z,k,j]=scal*DSM[x,y,z,k,j]
-
-    :rtype: DS(Nx,Ny,Nz,na,nb)
-
-    :return: out
-
-    '''
-    out=DS(s.Nx,s.Ny,s.Nz,1,s.shape[1])
-    if isinstance(ind, type(-1)):
-      ind=s.nonzero().T
-    else:
-      if len(ind[0])==5 and len(ind.T[0]!=5):
-        ind=ind.T
-      elif len(ind[0])!=5 and len(ind.T[0]==5):
-        pass
-      else:
-        ind=s.nonzero().T
-    n=len(ind[0])
-    p=-1
-    l=-1
-    m=-1
-    for i in range(0,n):
-      # No need to go through the same grid element again.
-      if ind[0][i]==p and ind[1][i]==l and ind[2][i]==m:
-        pass
-      else:
-        p=ind[0][i]
-        l=ind[1][i]
-        m=ind[2][i]
-        out[p,l,m]=scal*s[p,l,m]
-    return out
-  def double_dict_vec_multiply(s,DSM2,vec,ind=-1):
-    """ Multiply every column of the DSM s elementwise with the \
-    vector vec.
-
-    :param vec: a row vector with length na.
-
-    For integers :math:`x,y,z,k` and :math:`j` such that,
-    :math:`x \in [0,Nx), y \in [0,Ny), z \in [0,Nz), k \in [0,na),j \in [0,nb)`,
-
-    .. code::
-
-       out[x,y,z,k,j]=vec[k]*DSM[x,y,z,k,j]
-
-    Multiplication is done using \
-    :py:class:`DS`. :py:func:`dict_vec_multiply(vec)`
-
-    :rtype: A DSM 'out' with the same dimensions as s.
-
-    :returns: out
-
-     """
-    na,nb=s.shape
-    outDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
-    outDSM2=DS(s.Nx,s.Ny,s.Nz,na,nb)
-    if isinstance(ind, type(-1)):
-      ind=s.nonzero().T
-    else:
-      if len(ind[0])==5 and len(ind.T[0]!=5):
-        pass
-      elif len(ind[0])!=5 and len(ind.T[0]==5):
-        ind=ind.T
-      else:
-        ind=s.nonzero().T
-    Ni=len(np.transpose(ind)[0])
-    j=-1
-    x,y,z=ind[0][0:3]
-    for l in range(0,Ni):
-      outDSM[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]]=vec[ind[l][3]]*s[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]]
-      outDSM2[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]]=vec[ind[l][3]]*DSM2[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]]
-      # if x==ind[l][0] and y==ind[l][1] and z==ind[l][2]:
-        # pass
-      # else:
-        # x,y,z=ind[l][0:3]
-        # j=-1
-      # else:
-        # pass
-      # if ind[l][4]==j:
-        # pass
-      # else:
-        # outDSM[ind[l][0],ind[l][1],ind[l][2],:,ind[l][4]]=np.multiply(vec,s[ind[l][0],ind[l][1],ind[l][2],:,ind[l][4]])
-        # j=ind[l][4]
-    return outDSM,outDSM2
-  def dict_vec_multiply(s,vec,ind=-1):
-    """ Multiply every column of the DSM s elementwise with the \
-    vector vec.
-
-    :param vec: a row vector with length na.
-
-    For integers :math:`x,y,z,k` and :math:`j` such that,
-    :math:`x \in [0,Nx), y \in [0,Ny), z \in [0,Nz), k \in [0,na),j \in [0,nb)`,
-
-    .. code::
-
-       out[x,y,z,k,j]=vec[k]*DSM[x,y,z,k,j]
-
-    Multiplication is done using \
-    :py:class:`DS`. :py:func:`dict_vec_multiply(vec)`
-
-    :rtype: A DSM 'out' with the same dimensions as s.
-
-    :returns: out
-
-     """
-    na,nb=s.shape
-    outDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
-    if isinstance(ind, type(-1)):
-      ind=s.nonzero().T
-    else:
-      if len(ind[0])==5 and len(ind.T[0]!=5):
-        pass
-      elif len(ind[0])!=5 and len(ind.T[0]==5):
-        ind=ind.T
-      else:
-        ind=s.nonzero().T
-    Ni=len(np.transpose(ind)[0])
-    j=-1
-    x,y,z=ind[0][0:3]
-    for l in range(0,Ni):
-      outDSM[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]]=vec[ind[l][3]]*s[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]]
-      # if x==ind[l][0] and y==ind[l][1] and z==ind[l][2]:
-        # pass
-      # else:
-        # x,y,z=ind[l][0:3]
-        # j=-1
-      # else:
-        # pass
-      # if ind[l][4]==j:
-        # pass
-      # else:
-        # outDSM[ind[l][0],ind[l][1],ind[l][2],:,ind[l][4]]=np.multiply(vec,s[ind[l][0],ind[l][1],ind[l][2],:,ind[l][4]])
-        # j=ind[l][4]
-    return outDSM
-  ## Divide every column of the DSM s elementwise with the vector vec.
-  # @param vec a row vector with length na.
-  # @return a DSM 'out' with the same dimensions as s.
-  # out[x,y,z,k,j]=DSM[x,y,z,k,j]/vec[k]
-  ## Divide every column of the DSM s elementwise with the vector vec.
-  # @param vec a row vector with length na.
-  # @return a DSM 'out' with the same dimensions as s.
-  # out[x,y,z,k,j]=DSM[x,y,z,k,j]/vec[k]
-  def gain_phase_ref_mul(s,Com1,Com2,G,ind=-1):
-    """
-        Multiply all terms of s element wise with Com1 and each row by Gt.
-        Multiply all terms of s elementwise with Com2 and each row by Gt.
-
-    :param G: a row vector with length na.
-    :param Com1: A DSM with size Nx, Ny,Nz, 1,na
-    :param Com2: A DSM with size Nx, Ny,Nz, 1,na
-
-    For integers :math:`x,y,z,k` and :math:`j` such that,
-    :math:`x \in [0,Nx), y \in [0,Ny), z \in [0,Nz), k \in [0,na),j \in [0,nb)`,
-
-    .. code::
-
-       out1[x,y,z,k,j]=G[j]*s[x,y,z,k,j]*Com1[x,y,z,k,j]
-       out2[x,y,z,k,j]=G[j]*s[x,y,z,k,j]*Com2[x,y,z,k,j]
-
-    :rtype: A DSM 'out' with the same dimensions as s.
-
-    :returns: out
-
-     """
-    na,nb=s.shape
-    out1=DS(s.Nx,s.Ny,s.Nz,na,nb)
-    out2=DS(s.Nx,s.Ny,s.Nz,na,nb)
-    if isinstance(ind, type(-1)):
-      ind=s.nonzero()
-    else:
-      if len(ind[0])==5 and len(ind.T[0]!=5):
-        pass
-      elif len(ind[0])!=5 and len(ind.T[0]==5):
-        ind=ind.T
-      else:
-        ind=s.nonzero()
-    Ni=len(np.transpose(ind)[4]) #FIXME find the nonzero columns without repeat column index for each term
-    for l in range(0,Ni):
-      x,y,z,a,b=ind[l]
-      k=G[b]*s[x,y,z,a,b]
-      out1[x,y,z,a,b]=k*Com1[x,y,z,a,b]
-      out2[x,y,z,a,b]=k*Com2[x,y,z,a,b]
-    del x,y,z,a,b,Ni
-    return out1,out2
-  def gain_phase_rad_ref_mul(s,Com1,Com2,G,khat,L,ind=-1):
-    """ Multiply all terms of s element wise with Com1/Rad and each row by Gt.
-        Multiply all terms of s elementwise with Com2/Rad and each row by Gt.
-
-    :param G: a row vector with length na.
-    :param Rad: A DSM with size Nx, Ny,Nz, 1,na
-    :param Com1: A DSM with size Nx, Ny,Nz, 1,na
-    :param Com2: A DSM with size Nx, Ny,Nz, 1,na
-
-    For integers :math:`x,y,z,k` and :math:`j` such that,
-    :math:`x \in [0,Nx), y \in [0,Ny), z \in [0,Nz), k \in [0,na),j \in [0,nb)`,
-
-    .. code::
-
-       out1[x,y,z,k,j]=G[j]*s[x,y,z,k,j]*Rad[x,y,z,k,j]*Com1[x,y,z,k,j]
-       out2[x,y,z,k,j]=G[j]*s[x,y,z,k,j]*Rad[x,y,z,k,j]*Com2[x,y,z,k,j]
-
-    :rtype: A DSM 'out' with the same dimensions as s.
-
-    :returns: out
-
-     """
-    na,nb=s.shape
-    out1=DS(s.Nx,s.Ny,s.Nz,na,nb)
-    out2=DS(s.Nx,s.Ny,s.Nz,na,nb)
-    if isinstance(ind, type(-1)):
-      ind=s.nonzero()
-    else:
-      if len(ind[0])==5 and len(ind.T[0]!=5):
-        pass
-      elif len(ind[0])!=5 and len(ind.T[0]==5):
-        ind=ind.T
-      else:
-        ind=s.nonzero()
-    Ni=len(np.transpose(ind)[4]) #FIXME find the nonzero columns without repeat column index for each term
-    for l in range(0,Ni):
-      x,y,z,a,b=ind[l]
-      m=s[x,y,z,a,b]*khat*(L**2)
-      k=G[b]*(np.cos(m)+np.sin(m)*1j)/(s[x,y,z,a,b])
-      out1[x,y,z,a,b]=k*Com1[x,y,z,a,b]
-      out2[x,y,z,a,b]=k*Com2[x,y,z,a,b]
-    del x,y,z,a,b,Ni,m,k
-    return out1,out2
-
   def gain_phase_rad_ref_mul_add(s,Com1,Com2,G,khat,L,lam,ind=-1):
     """ Multiply all terms of s element wise with Com1/Rad and each row by Gt.
         Multiply all terms of s elementwise with Com2/Rad and each row by Gt.
@@ -1516,7 +1377,6 @@ class DS:
         del x,y,z,a,b,m,k
     del Ni
     return out1,out2
-
   def dict_row_vec_multiply(s,vec,ind=-1):
     """ Multiply every row of the DSM s elementwise with the
     vector vec.
@@ -1554,18 +1414,6 @@ class DS:
     x,y,z=ind[0][0:3]
     for l in range(0,Ni):
       outDSM[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]]=vec[ind[l][4]]*s[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]]
-      #out=np.multiply(vec,s[ind[l][3]],s[ind[l][0],ind[l][1],ind[l][2],ind[l][3],ind[l][4]])
-      # if ind[l][0]!=x or ind[l][1]!=y or ind[l][2]!=z:
-        # x,y,z=ind[l][0:3]
-        # j=-1
-      # else:
-        # pass
-      # if ind[l][3]==j:
-        # pass
-      # else:
-        # outDSM[ind[l][0],ind[l][1],ind[l][2],ind[l][3],:]=np.multiply(vec.T, s[ind[l][0],ind[l][1],ind[l][2],ind[l][3],:].todense()) #FIXME don't need out just set outDSM
-        # j=ind[l][3]
-    # del x,y,z, j#,out
     return outDSM
   def dict_DSM_divideby_vec(s,vec,ind=-1):
     """ Divide every column of the DSM s elementwise with the vector vec.
@@ -1613,41 +1461,6 @@ class DS:
     #del p,lm,q,x,y,z,bi,n
     return outDSM
 
-  def costhetat(s,refindex,ind=-1):
-    ''' Takes in a Mesh of angles with nonzero terms at ind. Computes
-    cos of thetat at those angles using the refractive index's.
-    :param ind: The indices of the nonzero terms.
-    :param refindex: The refractive index's of the obstacles in a vector.
-
-    .. code::
-
-       SIN=sin(s)
-       thetat=asin(SIN/refindex)
-       ctht=cos(thetat)
-
-    :rtype: DSM
-    :returns: ctht'''
-    na,nb=s.shape
-    ctht=DS(s.Nx,s.Ny,s.Nz,na,nb)
-    if isinstance(ind, type(-1)):
-      ind=s.nonzero().T
-    else:
-      if len(ind[0])==5 and len(ind.T[0]!=5):
-        ind=ind.T
-      elif len(ind[0])!=5 and len(ind.T[0]==5):
-        pass
-      else:
-        ind=s.nonzero().T
-    n=len(ind[0])
-    for i in range(n):
-        x=ind[0][i]
-        y=ind[1][i]
-        z=ind[2][i]
-        ai=ind[3][i]
-        bi=ind[4][i]
-        ctht[x,y,z,ai,bi]=np.cos(np.arcsin(np.sin(s[x,y,z,ai,bi])/refindex[ai]))
-    del x,y,z,ai,bi,n
-    return ctht
   def dict_col_mult_(s,ind=-1):
     ''' Multiply all nonzero terms in a column.
 
@@ -1810,17 +1623,7 @@ class DS:
     j=-1
     x,y,z=indices[0][0:3]
     for l in range(0,Ni):
-      # if x==indices[l][0] and  y==indices[l][1] and z==indices[l][2]:
-        # pass
-      # else:
-        # x,y,z=indices[l][0:3]
-        # j=-1
-      # if j==indices[l][3]:
-        # pass
-      # else:
       outDSM[indices[l][0],indices[l][1],indices[l][2],indices[l][3],indices[l][4]]=np.divide(vec[indices[l][3]],s[indices[l][0],indices[l][1],indices[l][2],indices[l][3],indices[l][4]])
-      #outDSM[indices[l][0],indices[l][1],indices[l][2],:,indices[l][4]]=out
-      #  j=indices[l][3]
     return outDSM
   ## Save the DSM s.
   # @param filename_ the name of the file to save to.
@@ -1847,6 +1650,8 @@ class DS:
   # @return indices=[ [x1,y1,z1,k1,j1],...,[xn,yn,zn,kn,jn]]
   def nonzero(s):
     """ Find the indices of the nonzero terms in the DSM s.
+
+    :meta public:
 
       .. note::
 
@@ -1883,91 +1688,6 @@ class DS:
     if check==-1:
       indices=np.array([])
     return indices
-  def row_sum(s,ind=-1):
-    ''' Sum all nonzero terms in a row.
-
-    In every grid point x,y,z of s there is a sparse matrix SM.
-    Construct a new DS of size Nx x Ny x Nz x na=s.shape[0] x 1.
-    Call this out.
-    out[x,y,z] should be the corresponding na x1 SM to the SM in s at x,y,z.
-
-    Method:
-      * Find the :py:class:`DS`. :py:func:`nonzero()` indices of s`
-      * Go through each of these indice. Check if the \
-      row index is new. If so assign the row in out to the matching \
-      value in the SM. If the row number is not new then sum the \
-      value in the column in out by the corresponding value in the SM.
-
-    .. code::
-
-       out=[
-       [sum(nonzero terms in row 0 in s[0,0,0]),
-       sum(nonzero terms in row 1 in s[0,0,0]),
-       ...,
-       sum(nonzero terms in row na in s[0,0,0]
-       ],
-       ...,
-       [sum(nonzero terms in row 0 in s[Nx-1,Ny-1,Nz-1]),
-       sum(nonzero terms in row 1 in s[Nx-1,Ny-1,Nz-1]),
-       ...,
-       sum(nonzero terms in row na in s[Nx-1,Ny-1,Nz-1]
-       ]
-       ]
-
-    :rtype: DS of size Nx x Ny x Nz x na x  1
-
-    :return: out
-
-    '''
-    out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],1)
-    if isinstance(ind, type(-1)):
-      ind=s.nonzero().T
-    else:
-      if len(ind[0])==5 and len(ind.T[0]!=5):
-        ind=ind.T
-      elif len(ind[0])!=5 and len(ind.T[0]==5):
-        pass
-      else:
-        ind=s.nonzero().T
-    n=len(ind[0])
-    for i in range(0,n):
-      out[ind[0][i],ind[1][i],ind[2][i],ind[3][i],0]+=s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
-    return out
-  def xyznonzero(s):
-    """ Find the indices of the nonzero terms in the DSM s.
-
-    :meta public:
-
-      .. note::
-
-          The indices are found by iterating through all \
-          keys (x,y,z) for the DSM s and finding the nonzero \
-          indices of the corresponding sparse matrix. \
-          These indices are then combinded \
-          with the x,y,z key and stacked to create a 5xN \
-          array of all the nonzero terms in the DSM, \
-          where N is the number of nonzero \
-          terms.
-
-    :return: indices=[ [x1,y1,z1,k1,j1],...,[xn,yn,zn,kn,jn]]
-
-    """
-    # FIXME this is too slow and needs parallelising / speeding up.
-    check=-1
-    for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
-      indicesM=s.d[x,y,z].nonzero()
-      NI=len(indicesM[0])
-      if abs(NI)<epsilon:
-        pass
-      else:
-        if check==-1:
-          check=0
-          indices=np.array([x,y,z])
-        else:
-          indices=np.vstack((indices,np.array([x,y,z])))
-    if check==-1:
-      indices=np.array([])
-    return indices
   def nonzeroMat(s,cor):
     """ Find the indices of the nonzero terms for part of the DSM s.
 
@@ -1995,51 +1715,6 @@ class DS:
   ## Fills the DSM s.
   # @return a dense Nx*Ny*Nz*na*nb array with matching nonzero terms to
   # the sparse matrix s and zeroes elsewhere.
-  def phase_calc(s,khat,L,ind=-1):
-    ''' Compute :math:`\\exp(i\frac{\hat{k}\hat{r}}{L^2})` \
-    for a Mesh of :math:`r`
-
-    :meta public:
-
-    The phase is usually expressed at :math:`exp(ikr)`.
-    Since :math:`\hat{k}` and :math:`\hat{r}` are nondimensional lengths \
-    scaled by the room length L the power of :math:`L^{-2}` must be used.
-
-    Exponentials are not defined on DS, instead use \
-    :math:`\\exp(i \theta)=\\cos(\theta)+i\\sin(\theta)`.
-
-    .. code::
-
-       S1=RadMesh.dict_scal_mult(khat)
-       S2=S1.dict_scal_mult(1.0/(L**2))
-       out=S1.cos()+S1.sin().dict_scal_mult(1j)
-
-    :rtype: DS of size Nx x Ny x Nz x na x 1
-
-    :return: out
-
-    '''
-    if isinstance(ind, type(-1)):
-      ind=s.nonzero().T
-    else:
-      if len(ind[0])==5 and len(ind.T[0]!=5):
-        ind=ind.T
-      elif len(ind[0])!=5 and len(ind.T[0]==5):
-        pass
-      else:
-        ind=s.nonzero().T
-    n=len(ind[0])
-    na,nb=s.shape
-    out=DS(s.Nx,s.Ny,s.Nz,na,nb)
-    for j in range(n):
-      x=ind[0][j]
-      y=ind[1][j]
-      z=ind[2][j]
-      a=ind[3][j]
-      b=ind[4][j]
-      m=s[x,y,z,a,b]*khat*(L**2)
-      out[x,y,z,a,b]=np.cos(m)+np.sin(m)*1j
-    return out
   def dense(s):
     """Fills the DSM s.
 
@@ -2092,17 +1767,6 @@ class DS:
     if i>s.Nx-1 or j>s.Ny-1 or k>s.Nz-1 or i<0 or j<0 or k<0: #i>s.Nx or j>s.Ny or k>s.Nz or i<0 or j<0 or k<0:#
       return 0
     else: return 1
-  ## Check if the list of points is valid.
-  # @param ps the indices for the points in the list
-  # @param p1 the end of the ray
-  # @param h the meshwidth
-  # @param p3 the points on the cone vectors
-  # @param the normal vectors forming the cone.
-  # @return start=0 if no points were valid if at least 1 point was
-  # valid, ps=[[i1,j1,k1],...,[in,jn,kn]] the indices of the
-  # valid points, p3=[[x1,y1,z1],...,[xn,yn,zn]] co-ordinates of
-  # the valid points., N=[n0,...,Nn] the normal vectors corresponding to
-  # the valid points.
   def stopchecklist(s,ps,p3,n):
     """ Check if the list of points is valid.
 
@@ -2156,6 +1820,11 @@ class DS:
         pass
       j+=1
     return start, newps, newp3, newn
+
+#=======================================================================
+# FUNCTIONS CONNECTED TO DS BUT AREN'T PART OF THE OBJECT
+#=======================================================================
+
 
 def stopcheck(i,j,k,Nx,Ny,Nz):
     """ Check if the index [i,j,k] is valid.
@@ -2242,38 +1911,6 @@ def stopchecklist(ps,p3,n,Nx,Ny,Nz):
         pass
       j+=1
     return start, newps, newp3, newn
-
-def phase_calc(RadMesh,khat,L,ind=-1):
-  ''' Compute :math:`\\exp(i\frac{\hat{k}\hat{r}}{L^2})` \
-  for a Mesh of :math:`r`
-
-  The phase is usually expressed at :math:`exp(ikr)`.
-  Since :math:`\hat{k}` and :math:`\hat{r}` are nondimensional lengths \
-  scaled by the room length L the power of :math:`L^{-2}` must be used.
-
-  Exponentials are not defined on DS, instead use \
-  :math:`\\exp(i \\theta)=\\cos(\\theta)+i\\sin(\\theta)`.
-
-  .. code::
-
-     S1=RadMesh.dict_scal_mult(khat)
-     S2=S1.dict_scal_mult(1.0/(L**2))
-     out=S1.cos()+S1.sin().dict_scal_mult(1j)
-
-  :rtype: DS of size Nx x Ny x Nz x na x 1
-
-  :return: out
-
-  '''
-  if isinstance(ind, type(-1)):
-    ind=RadMesh.nonzero()
-  else:
-    pass
-  S2=RadMesh.dict_scal_mult(khat*(L**2),ind)
-  #S2=S1.dict_scal_mult(L**2,ind)
-  out=S2.cos(ind)+S2.sin(ind).dict_scal_mult(1j,ind)
-  return out
-
 
 def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,PerfRef=0,ind=-1):
   ''' Compute the field from a Mesh of ray information and the physical \
@@ -2453,37 +2090,13 @@ def quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,Per
 
 def nob_fromrow(r,Nob):
      return (r-1)%Nob
+
 def nre_fromrow(r,Nob):
     nob=nob_fromrow(r,Nob)
     return int(((r-nob-1)/Nob)+1)
 
 def QualityFromPower(P):
   return np.sum(P)/(P.shape[0]*P.shape[1]*P.shape[2])
-
-def RadGrid(RadMesh,ind=-1):
-  Nx=RadMesh.Nx
-  Ny=RadMesh.Ny
-  Nz=RadMesh.Nz
-  RadA=np.zeros((Nx,Ny,Nz),dtype=float)
-  RadB=np.zeros((Nx,Ny,Nz),dtype=float)
-  if isinstance(ind, type(-1)):
-    ind=RadMesh.nonzero().T
-  else:
-    if len(ind[0])==5 and len(ind.T[0]!=5):
-      ind=ind.T
-    elif len(ind[0])!=5 and len(ind.T[0]==5):
-      pass
-    else:
-      ind=s.nonzero().T
-  n=len(ind[0])
-  x,y,z=-1,-1,-1
-  for i in range(0,n):
-    l=RadMesh[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
-    if 0<l<=1:
-     RadA[ind[0][i],ind[1][i],ind[2][i]]+=l
-    else:
-     RadB[ind[0][i],ind[1][i],ind[2][i]]+=l
-  return RadA, RadB
 
 def nonzero_bycol(SM):
   ''' Find the index pairs for the nonzero terms in a sparse matrix.
@@ -2497,10 +2110,6 @@ def nonzero_bycol(SM):
   inddum=SM.transpose().nonzero()
   ind=[inddum[1],inddum[0]]
   return ind
-
-#=======================================================================
-# FUNCTIONS CONNECTED TO DS BUT AREN'T PART OF THE OBJECT
-#=======================================================================
 
 def singletype(x):
   if isinstance(x,(float,int,np.int32,np.int64, np.complex128 )):
