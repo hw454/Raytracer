@@ -1,13 +1,37 @@
 #!/usr/bin/env python3
-# Hayley 2020-07-01
-'''Code for the dictionary of sparse matrices class :py:class:`DS` which\
+# Hayley 15th July 2020
+'''----------------------------------------------------------------------
+ NOTATION
+ ----------------------------------------------------------------------
+ dk is dictionary key, smk is sparse matrix key, SM is a sparse matrix
+ DS or DSM is a DS object which is a dictionary of sparse matrices
+ ----------------------------------------------------------------------
+
+ Code for the dictionary of sparse matrices class :py:class:`DS` which\
  indexes like a multidimensional array but the array is sparse. \
  To exploit :py:mod:`scipy.sparse.dok_matrix`=SM the `DS` uses a key for \
  each x,y, z position and associates a SM.
 
- This module also contains functions which are not part of the class \
- but act on it.
+ This module also contains functions which act on the class. Including: \
 
+ * :py:func:`QualityFromPower` which computes the quality from an array on power values.
+ * :py:func:`RadGrid`
+ * :py:func:`load_dict` which loads a dictionary sparse matriz when given a string.
+ * :py:func:`non_fromrow` which returns the obstacle number corresponding\
+  to a DS row given the row number and total number of obstacles.
+  * :py:func:`nre_fromrow` which returns the reflection number corresponding\
+  to a DS row given the row number and total number of obstacles.
+  * :py:func:`parnonzero`
+  * :py:func:`phase_calc`
+  * :py:func:`power_compute` this functions takes in obstacle parameters\
+   and a DS and outputs an array of power values.
+  * :py:func:`ref_coef` this functions computes the reflection \
+  coefficents of nonzero terms in a DS. With inputs of the DS and the obstacle coefficients.
+  * :py:func:`singletype` this function checks if an input term is a set\
+   of terms in the form of an array, list or tuple, or a single term, \
+   such as a float, complex number, or integer.
+  * :py:func:`stopcheck`
+  * :py:func:`stopchecklist`
  '''
 
 
@@ -674,7 +698,6 @@ class DS:
     '''
     out=DS(s.Nx,s.Ny,s.Nz,1,s.shape[1],float)
     RadA=np.zeros((s.Nx,s.Ny,s.Nz),dtype=float)
-    RadA=np.zeros((s.Nx,s.Ny,s.Nz),dtype=float)
     RadB=np.zeros((s.Nx,s.Ny,s.Nz),dtype=float)
     # Find the nonzero indices. There's no need to retrieve distances on 0 terms.
     if isinstance(ind, type(-1)):
@@ -727,6 +750,86 @@ class DS:
       if check==-1:
         indout=np.array([])
     return out,RadA,RadB,indout
+  def __del_doubles__(s,h,Nob,ind=-1):
+    ''' Return a DS corresponding to the distances stored in the mesh.
+
+    :param h:   Mesh width
+
+    :param Nob: The number of obstacles.
+
+    :param ind: The array of indices for non-zero terms. Defaults to -1 for a check to get it computed.
+
+      * Initialise out=DS(Nx,Ny,Nz,1,s.shape[1])
+
+      * Initialise RadA and RadB as 0 Nx x Ny x Nz arrays. Containing the LOS radius and the distances after reflection.
+
+      * Go through all the nonzero x,y,z grid points.
+
+      * Go through the nonzero columns and put the absolute value of the \
+      first term in the corresponding column in out[x,y,z]
+
+      * Pass until the next nonzero index is for a new column and repeat.
+
+    :rtype: DS(Nx,Ny,Nz,1,s.shape[1]) of real values.
+
+    :return: out
+
+    '''
+    out=DS(s.Nx,s.Nz,s.Nz,s.shape[0],s.shape[1])  # Initialise the mesh which will be output.
+    # Find the nonzero indices, If ind is -1 then it is of default input
+    # and needs to be found.
+    # If ind[0] has length 5 and ind.T[0] does not have length five then
+    #  the co-ordinates are going by row.
+    # If int.T[0] has length 5 but ind[0] doesn't the co-ordinates are
+    # in the right form.
+    # Otherwise there are both 5 and it's not possible to tell if they
+    # are the right way up so the co-ordinates need to be found again.
+    if isinstance(ind, type(-1)):
+      ind=s.nonzero().T
+    else:
+      if len(ind[0])==5 and len(ind.T[0]!=5):
+        ind=ind.T
+      elif len(ind[0])!=5 and len(ind.T[0]==5):
+        pass
+      else:
+        ind=s.nonzero().T
+    n=len(ind[0])                              # The number of non-zero terms
+    check=-1                                   # The term is in case no non-zero indices are found
+    for i in range(0,n):
+      l=abs(s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]])
+      M=out[ind[0][i],ind[1][i],ind[2][i]]
+      indM=M.nonzero()
+      n2=len(indM[0])
+      nob=nob_fromrow(ind[3][i],Nob)
+      nre=nre_fromrow(ind[3][i],Nob)
+      rep=0
+      if ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:,ind[4][i]])==0:
+        nre==0
+      elif s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].count_nonzero!=nre+1:
+        continue
+      for j in range(n2):
+        r=indM[0][j]
+        c=indM[1][j]
+        if r!=ind[3][i] and c!=ind[4][i]:
+          nobch=nob_fromrow(r,Nob)
+          nrech=nre_fromrow(r,Nob)
+          if abs(abs(M[r,c])-l)<h and nrech==nre and nobch==nob and M[:,c].count_nonzero==nrech+1:
+            rep=1
+          else:
+            pass
+      if rep==0:
+        out[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]]=s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]]
+        for x in s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].nonzero():
+          if check==0:
+            indicesSec=np.array([ind[0][i],ind[1][i],ind[2][i],x,ind[4][i]])
+            indout=np.vstack((indout,indicesSec))
+            del indicesSec
+          else:
+            check=0
+            indout=np.array([ind[0][i],ind[1][i],ind[2][i],x,ind[4][i]])
+      if check==-1:
+        indout=np.array([])
+    return out,indout
   def refcoefdiv(s,S2,cthi,ctht, ind=-1):
     if isinstance(ind, type(-1)):
       ind=ctht.nonzero().T
@@ -958,7 +1061,6 @@ class DS:
         Grid[ind[0][i],ind[1][i],ind[2][i]]=s[ind[0][i],ind[1][i],ind[2][i]].sum()
         x,y,z=ind[0][i],ind[1][i],ind[2][i]
     return Grid
-
   def asin(s,ind=-1):
     """ Finds the arcsin of the nonzero terms in the DSM.
 
@@ -2348,6 +2450,12 @@ def quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,Per
   P=10*np.log10(P,where=(P!=0))
   Q=QualityFromPower(P)
   return Q,ind
+
+def nob_fromrow(r,Nob):
+     return (r-1)%Nob
+def nre_fromrow(r,Nob):
+    nob=nob_fromrow(r,Nob)
+    return int(((r-nob-1)/Nob)+1)
 
 def QualityFromPower(P):
   return np.sum(P)/(P.shape[0]*P.shape[1]*P.shape[2])

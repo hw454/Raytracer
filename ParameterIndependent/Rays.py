@@ -499,6 +499,7 @@ class Ray:
           k1=k2
           rep=0
           stpch=Mesh.stopcheck(i1,j1,k1)
+          #FIXME- Double Check
       if stpch:
         p2=room.coordinate(h,i1,j1,k1)                     # Calculate the co-ordinate of the center
                                                            # of the element the ray hit

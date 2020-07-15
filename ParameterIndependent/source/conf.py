@@ -20,7 +20,6 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../'))
-
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -41,6 +40,7 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
+    'sphinx.ext.napoleon'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -440,3 +440,5 @@ intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 intersphinx_mapping = {'scipy': ('https://docs.scipy.org/doc/', None)}
 intersphinx_mapping = {'scipy.sparse': ('http://scipy.github.io/devdocs/sparse.html?highlight=sparse#module-scipy.sparse', None)}
 intersphinx_mapping = {'scipy.sparse.dok_matrix': ('http://scipy.github.io/devdocs/generated/scipy.sparse.dok_matrix.html#scipy.sparse.dok_matrix', None)}
+intersphinx_mapping = {'matplotlib': ('http://matplotlib.org/', None)}
+intersphinx_mapping = {'numpy': ('https://docs.scipy.org/doc/numpy/', None)}

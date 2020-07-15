@@ -267,6 +267,7 @@ def MeshProgram(repeat=0,plottype=str()):
     The rays are reflected Nre times in directions Direc from Tx then
     the information about their paths is stored in Mesh.'''
     Rays, Mesh=Room.ray_mesh_bounce(Tx,Nre,Nra[j],Direc,Mesh,deltheta[j])
+    Mesh,ind=Mesh.__del_doubles__(h,Nob)
     t1=t.time()
     timesmat[j]=t1-t0
     #----------Save the Mesh for further calculations

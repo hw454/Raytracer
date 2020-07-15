@@ -56,7 +56,7 @@ def PlotRays(plottype=str()):
       data_matrix=np.load('./Mesh/'+plottype+'/RayMeshPoints'+str(int(Nra[i]))+'Refs'+str(int(Nre))+'m.npy')
       #data_matrix=data_matrix #print(data_matrix)
       for j in range(0,int(Nra[i])):
-        for l in range(0,int(Nre)):
+        for l in range(0,int(Nre)+1):
           if l==0:
             x=np.array([data_matrix[j][0][0]])
             y=np.array([data_matrix[j][0][1]])
@@ -196,7 +196,7 @@ def PlotCones(plottype):
 def PlotConesOnSquare(plottype):
     '''Plot the cone calculations.'''
     ConeOn=0 # Plot Cones and Rays if 1
-    Cut=2    # Plot x,y plane cuts
+    Cut=0    # Plot x,y plane cuts
     Vid=0    # Rotate for video
     ##----Retrieve the Raytracing Parameters-----------------------------
     Nra         =np.load('Parameters/Nra.npy')
@@ -916,7 +916,7 @@ if __name__=='__main__':
   myfile.close()
   #PlotSingleCone(plottype)
   #PlotPowerSlice(plottype)
-  #PlotRays(plottype)
+  PlotRays(plottype)
   #PlotDirections(plottype)
   PlotConesOnSquare(plottype)
   #PlotCones(plottype)
