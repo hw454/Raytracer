@@ -44,7 +44,6 @@ import sys
 import time as t
 import matplotlib.pyplot as mp
 from six.moves import cPickle as pkl
-from multiprocessing import Pool
 from pathlib import Path
 import timeit
 import os
@@ -613,7 +612,7 @@ class DS:
     if isinstance(DSM2,type(0)):
       double=0
     else:
-      outDSM2=DS(s.Nx,s.Ny,s.Nz,na,nb
+      outDSM2=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
       double=1
     if isinstance(ind, type(-1)):
       if singletype(M2) and double==0:
@@ -626,7 +625,7 @@ class DS:
           outDSM2[x,y,z]=M2*DSM2[x,y,z]
         return outDSM,outDSM2
       elif isinstance(M2, (list, tuple, np.ndarray,SM)) and double==0:
-        if M2.shape=s[x,y,z].shape:
+        if M2.shape==s[x,y,z].shape:
           for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
             outDSM[x,y,z]=s[x,y,z].multiply(M2)
         else:
@@ -634,7 +633,7 @@ class DS:
             outDSM[x,y,z,a,b]=s[x,y,z,a,b]*M2[a]
         return outDSM
       elif isinstance(M2, (list, tuple, np.ndarray,SM)) and double==1:
-        if M2.shape=s[x,y,z].shape:
+        if M2.shape==s[x,y,z].shape:
           for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
             outDSM[x,y,z]=s[x,y,z].multiply(M2)
             outDSM2[x,y,z]=DSM2[x,y,z].multiply(M2)
@@ -688,7 +687,7 @@ class DS:
             outDSM2[x,y,z]=M2*DSM2[x,y,z]
         return outDSM,outDSM2
       elif isinstance(M2, (list, tuple, np.ndarray,SM)) and double==0:
-        if M2.shape=s.shape:
+        if M2.shape==s.shape:
           for i in range(0,n):
             # No need to go through the same grid element again.
             if ind[0][i]==x and ind[1][i]==y and ind[2][i]==z:
@@ -709,7 +708,7 @@ class DS:
             outDSM[x,y,z,a,b]=s[x,y,z,a,b]*M2[a]
         return outDSM
       elif isinstance(M2, (list, tuple, np.ndarray,SM)) and double==1:
-        if M2.shape=s.shape:
+        if M2.shape==s.shape:
           for i in range(0,n):
             # No need to go through the same grid element again.
             if ind[0][i]==x and ind[1][i]==y and ind[2][i]==z:
@@ -804,7 +803,7 @@ class DS:
       for i in range(n):
         a=s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
         b=DSM2[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
-        if abs(a-b)<epsilon
+        if abs(a-b)<epsilon:
           continue
         else:
           return False
@@ -853,7 +852,7 @@ class DS:
         z1=ind[2][i]
         a1=ind[3][i]
         b1=ind[4][i]
-        for j in range(n)
+        for j in range(n):
           x2=ind[0][i]
           y2=ind[1][i]
           z2=ind[2][i]
@@ -921,17 +920,18 @@ class DS:
           else:
             pass
       if rep==1:
-        pass
+        continue
       else:
-        nob=(ind[3][i]-1)%Nob
-        nre=int(((ind[3][i]-nob-1)/Nob)+1)
-        if ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])==0:
+        nob=nob_fromrow(ind[3][i],Nob)
+        nre=nre_fromrow(ind[3][i],Nob)
+        if s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz()==nre+1:
+          if s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz()==1:
             RadA[ind[0][i],ind[1][i],ind[2][i]]=l
             if l>np.sqrt(3)/2:
               raise ValueError('LOS rad is too long',l)
-        elif nob==0 and nre==1 or nob==1 and nre==1:
+          elif nob==0 and nre==1 or nob==1 and nre==1:
             #print(ind[3][i],nob,nre,Nob,l)
-            RadB[ind[0][i],ind[1][i],ind[2][i]]+=l
+            RadB[ind[0][i],ind[1][i],ind[2][i]]=l
             if l>1.5*np.sqrt(3):
               raise ValueError('Reflection rad is too long',l)
         if M[0,ind[4][i]]==0:
@@ -943,6 +943,16 @@ class DS:
           else:
             check=0
             indout=np.array([ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]])
+      if ind[0][i]==3 and ind[1][i]==3 and ind[2][i]==3:
+        nob=(ind[3][i]-1)%Nob
+        nre=int(((ind[3][i]-nob-1)/Nob)+1)
+        # print('------------------------------------------------------')
+        # print('Get rad')
+        # print('nre',nre,'nob',nob,'terms',s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz(),s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]])
+        # print(s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]])
+        # print('RadA',RadA[ind[0][i],ind[1][i],ind[2][i]])
+        # print('RadB',RadB[ind[0][i],ind[1][i],ind[2][i]])
+        # print('------------------------------------------------------')
       if check==-1:
         indout=np.array([])
     return out,RadA,RadB,indout
@@ -993,6 +1003,7 @@ class DS:
         ind=s.nonzero().T
     n=len(ind[0])                              # The number of non-zero terms
     check=-1                                   # The term is in case no non-zero indices are found
+    indout=np.array([])
     for i in range(0,n):
       l=abs(s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]])
       M=out[ind[0][i],ind[1][i],ind[2][i]]
@@ -1001,23 +1012,22 @@ class DS:
       nob=nob_fromrow(ind[3][i],Nob)
       nre=nre_fromrow(ind[3][i],Nob)
       rep=0
-      if ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:,ind[4][i]])==0:
-        nre==0
-      elif s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].count_nonzero!=nre+1:
+      if s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz()!=nre+1:
         continue
       for j in range(n2):
         r=indM[0][j]
         c=indM[1][j]
+        l2=abs(M[r,c])
         if r!=ind[3][i] and c!=ind[4][i]:
           nobch=nob_fromrow(r,Nob)
           nrech=nre_fromrow(r,Nob)
-          if abs(abs(M[r,c])-l)<h and nrech==nre and nobch==nob and M[:,c].count_nonzero==nrech+1:
+          if abs(l2-l)<h and nrech==nre and nobch==nob and M[:,c].getnnz==nrech+1:
             rep=1
           else:
             pass
       if rep==0:
-        out[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]]=s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]]
-        for x in s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].nonzero():
+        for x in s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].nonzero()[0]:
+          out[ind[0][i],ind[1][i],ind[2][i],x,ind[4][i]]=s[ind[0][i],ind[1][i],ind[2][i],x,ind[4][i]]
           if check==0:
             indicesSec=np.array([ind[0][i],ind[1][i],ind[2][i],x,ind[4][i]])
             indout=np.vstack((indout,indicesSec))
@@ -1025,8 +1035,12 @@ class DS:
           else:
             check=0
             indout=np.array([ind[0][i],ind[1][i],ind[2][i],x,ind[4][i]])
-      if check==-1:
-        indout=np.array([])
+      if ind[0][i]==3 and ind[1][i]==3 and ind[2][i]==3:
+        nob=nob_fromrow(ind[3][i],Nob)
+        nre=nre_fromrow(ind[3][i],Nob)
+        print(s[ind[0][i],ind[1][i],ind[2][i]])
+        print(s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]])
+        print(s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz())
     return out,indout
   def refcoefbyterm_withmul(s,m,refindex,LOS=0,PerfRef=0, ind=-1):
     ''' Using the impedance ratios of the obstacles, \
@@ -1965,6 +1979,8 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,Per
                       # lam is the non-dimensionalised wave length.
                       # L is the length scale for the dimensions.
   # Check in the nonzero indices have been input or not, if not then find them.
+  print('power start')
+  print(Mesh[3,3,3])
   if isinstance(ind, type(-1)):
     ind=Mesh.nonzero().T
     indout=ind
@@ -1986,6 +2002,8 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,Per
   radfile = Path(rfile)
   Nob=int((Mesh.shape[0]-1)/Nre)
   h=1/Mesh.Nx
+  print('before rad')
+  print(Mesh[3,3,3])
   if radfile.is_file():
     RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nob,ind)#=load_dict(rfile)
     ind=RadMesh.nonzero()
@@ -2089,9 +2107,13 @@ def quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,Per
   return Q,ind
 
 def nob_fromrow(r,Nob):
-     return (r-1)%Nob
+  if r ==0: return 0
+  else: return (r-1)%Nob
 
 def nre_fromrow(r,Nob):
+  if r==0:
+    return 0
+  else:
     nob=nob_fromrow(r,Nob)
     return int(((r-nob-1)/Nob)+1)
 
@@ -2241,39 +2263,6 @@ def ref_coef(Mesh,Znobrat,refindex,Nra,Nre,Ns,ind=-1):
   print('----------------------------------------------------------')
   return Rper, Rpar, ind
 
-def parnonzero(nj,DS):
-  ''' Parallel version of a program with a dummy DS and a function for \
-  finding the indices of the nonzero terms in a mesh.
-
-  :param nj: number of processes.
-  :param DS: the mesh
-
-  Pool the nj processes
-  Specify what needs to be done.
-  Combine the information.
-
-  :return: 5xn array which n is the number of nonzero terms.
-
-  '''
-  x=np.arange(0,DS.Nx,1)
-  y=np.arange(0,DS.Ny,1)
-  z=np.arange(0,DS.Nz,1)
-  coords=np.transpose(np.meshgrid(x,y,z))
-  with Pool(processes=nj) as pool:         # start nj worker processes
-    # prints "[0, 1, 4,..., 81]"
-    ind=pool.map(DS.nonzeroMat, product(range(DS.nx),range(DS.ny),range(DS.nz)))
-    #it = pool.imap(f, range(10))
-    #print(next(it))                     # prints "0"
-    #print(next(it))                     # prints "1"
-    #print(it.next(timeout=1))           # prints "4" unless your computer is *very* slow
-    #result = pool.apply_async(time.sleep, (10,))
-    #print(result.get(timeout=1))
-  #p.start()
-  #p.join
-  #FIXME
-  # print(ind)
-  return 0
-
 #=======================================================================
 
 # TEST FUNCTIONS
@@ -2413,7 +2402,6 @@ def test_11():
   for i,j,k in product(range(Nx),range(Ny),range(Nz)):
       M=DSM[i,j,k]
       AngM=sparse_angles(M)
-  #print(AngM)
   return AngM
 
 ## Extract the cos of the reflection angles of the DS
@@ -2429,8 +2417,7 @@ def test_12():
       indices=M.nonzero()
       CosAngM=SM(M.shape,dtype=float)
       CosAngM[indices]=np.cos(sparse_angles(M)[indices].todense())
-  print(CosAngM)
-  return CosAngM
+  return DSM.cos(indices).__eq__(CosAngM)
 
 ## Attempt to find angle of nonzero element of SM inside dictionary
 def test_13():
@@ -2440,7 +2427,7 @@ def test_13():
   na=3
   nb=3
   DSM=test_03c(Nx,Ny,Nz,na,nb)
-  ang=dict_sparse_angles(DSM)
+  ang=sparse_angles(DSM)
   return 1
 
 ## Attempt to compute Reflection Coefficents on DS
@@ -2491,16 +2478,16 @@ def test_14():
   refindex=np.insert(refindex,0,complex(0,0))
 
   Rper,Rpar=ref_coef(ds,Znobrat,refindex)
-  print(Rper,Rpar)
-  return Rper
+  Comper=Rpre.dict_col_mult_()
+  Compar=Rpar.dict_col_mult_()
+  Comper2,Compar2=ds.refcoefbyterm_withmul(Znobrat,refindex)
+  return Compar.__eq__(Compar2),Comper.__eq__(Comper2)
 
 def test_15():
   ''' Testing multiplying nonzero terms in columns '''
   DS=test_14()
-  print(DS)
   out=DS.dict_col_mult()
-  print(out)
-  return
+  return out
 
 ## Timing nonzero indexing
 def test_16():
@@ -2523,21 +2510,6 @@ def test_16():
   mp.title('Time against n for nonzero() function')
   mp.savefig('timenonzero.png')
   return timevec
-
-## Attempting to parallelise nonzero function
-def test_17():
-  ''' Test the :py:func:`parnonzero()` function which should find \
-  nonzero() indices in parallel.
-  '''
-  Nob=3
-  Nre=3
-  Nra=5
-  n=10
-  nj=4
-  DS=test_03(n,n,n,int(Nob*Nre+1),int((Nre)*(Nra)+1))
-  #p = Process(target=nonzeroMat, args=(cor,DS))
-  out=parnonzero(nj,DS)
-  return
 
 def test_18():
   '''Testing the save and load pickle functions. '''
@@ -2663,38 +2635,6 @@ def test_22():
   else:
     return 0
 
-def test_23():
-  Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
-  Nra=int(Nra)
-  Nre=int(Nre)
-  Nob            =np.load('Parameters/Nob.npy')
-
-  #PI.ObstacleCoefficients()
-  ##----Retrieve the antenna parameters--------------------------------------
-  Gt            = np.load('Parameters/TxGains.npy')
-  freq          = np.load('Parameters/frequency.npy')
-  Freespace     = np.load('Parameters/Freespace.npy')
-  c             =Freespace[3]
-  khat          =freq*L/c
-  lam           =(2*np.pi*c)/freq
-  Antpar        =np.array([khat,lam,L])
-
-  ##----Retrieve the Obstacle Parameters--------------------------------------
-  Znobrat      =np.load('Parameters/Znobrat.npy')
-  refindex     =np.load('Parameters/refindex.npy')
-
-  ##----Retrieve the Mesh--------------------------------------
-  meshname=str('DSM'+str(Nra)+'Refs'+str(Nre)+'m.npy')
-  Mesh= load_dict(meshname)
-  ind=Mesh.nonzero()
-  AngDSM=Mesh.sparse_angles()
-
-  ctht=DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta_t) #FIXME
-  SIN=AngDSM.sin(ind)
-  Div=SIN.dict_DSM_divideby_vec_withind(refindex,ind)             # Divide each column in DSM with refindex elementwise. Set any 0 term to 0.
-  ctht=Div.cos_asin(ind)
-  return ctht
-
 def test_24():
   Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
   Nra=int(Nra)
@@ -2720,10 +2660,7 @@ def test_24():
   Mesh= load_dict(meshname)
   ind=Mesh.nonzero()
   AngDSM=Mesh.sparse_angles()
-
-  ctht=DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])  # Initialise a DSM which will be cos(theta_t) #FIXME
-  ctht=AngDSM.costhetat(refindex,ind)
-  return ctht
+  return AngDSM
 
 
 if __name__=='__main__':

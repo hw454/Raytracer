@@ -36,7 +36,7 @@ def DeclareParameters():
   #print('Saving ray-launcher parameters')
   #nrays=3 #20
   #Nra=75*np.linspace(1,nrays,num=nrays,dtype=int) # Number of rays
-  deltheta=np.pi*np.array([1/3,1/5,1/7])#,1/8,1/9,1/12,1/14,1/16,1/18,1/19,1/20,1/22,1/25,1/36])
+  deltheta=np.pi*np.array([1/3,1/5,1/7,1/8,1/9,1/12,1/14,1/16,1/18,1/19,1/20,1/22,1/25,1/36])
   nrays=len(deltheta)
   Nra=np.ones((1,nrays),dtype=int)
   Nra=Nra[0]

@@ -450,8 +450,8 @@ class Ray:
     h=room.get_meshwidth(Mesh)  # The Meshwidth for a room with Mesh spaces
 
     # ------Get the parameters from the ray
-    nre=len(s.points)-3          # The reflection number of the current ray
-    nob=int(s.points[-2][-1])    # The obstacle number of the last reflection
+    nre=s.points.shape[0]-3         # The reflection number of the current ray
+    nob=int(s.points[-3][-1])    # The obstacle number of the last reflection
     # Compute the direction - Since the Ray has reflected but we are
     # storing previous information we want the direction of the ray which
     # hit the object not the outgoing ray.
@@ -785,7 +785,7 @@ def singleray_test():
     disttrue=np.linalg.norm(ry.points[0][0:3]-ry.points[1][0:3])
     dist=0
     calcvec=SM((Mesh.shape[0],1),dtype=np.complex128)
-    Mesh,dist,calcvec=ry.mesh_singleray_functest(Room,Mesh,dist,calcvec,Nra[i],Nre,nra,delangle[i])
+    Mesh,dist,calcvec=ry.mesh_singlera(Room,Mesh,dist,calcvec,Nra[i],Nre,nra,delangle[i])
     return Mesh
 
 def power_singleray_test(Mesh):

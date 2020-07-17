@@ -267,7 +267,9 @@ def MeshProgram(repeat=0,plottype=str()):
     The rays are reflected Nre times in directions Direc from Tx then
     the information about their paths is stored in Mesh.'''
     Rays, Mesh=Room.ray_mesh_bounce(Tx,Nre,Nra[j],Direc,Mesh,deltheta[j])
+    print(Mesh[3,3,3])
     Mesh,ind=Mesh.__del_doubles__(h,Nob)
+    print('After del',Mesh[3,3,3])
     t1=t.time()
     timesmat[j]=t1-t0
     #----------Save the Mesh for further calculations
@@ -487,6 +489,8 @@ def power_grid(repeat=0,plottype=str(),Roomnum=0):
     ##----Retrieve the Mesh--------------------------------------
     meshname=str('./Mesh/'+plottype+'/DSM'+str(Nra[j])+'Refs'+str(Nre)+'m.npy')
     Mesh= DSM.load_dict(meshname)
+    print('power func')
+    print(Mesh[3,3,3])
 
     ##----Initialise Grid For Power-------------------------------------
     Nx=Mesh.Nx
@@ -900,6 +904,7 @@ if __name__=='__main__':
     for count in range(0,testnum):
       start=t.time()
       Mesh1=MeshProgram(repeat,plottype) # Shoot the rays and store the information
+      print('In main',Mesh1[3,3,3])
       mid=t.time()
       Grid,G_z=power_grid(repeat,plottype,Roomnum)  # Use the ray information to compute the power
       repeat=1

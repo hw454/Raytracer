@@ -93,7 +93,7 @@ def makematrix_perfectreflection(index=0):
       # Find the length from the transmitter to the point
       Txleng=np.linalg.norm(x-Tx)
       xhatleng=np.linalg.norm(x-Txhat)
-      if i==5 and j==0 and k==5:
+      if i==3 and j==3 and k==3:
           print(xhatleng, Txleng,x,Txhat)
       field=(lam/(4*ma.pi*Txleng))*np.exp(1j*khat*Txleng*(L**2))*Pol
       field+=(lam/(4*ma.pi*xhatleng))*np.exp(1j*khat*(xhatleng)*(L**2))*Pol
