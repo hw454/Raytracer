@@ -1012,6 +1012,8 @@ class DS:
       nob=nob_fromrow(ind[3][i],Nob)
       nre=nre_fromrow(ind[3][i],Nob)
       rep=0
+      if ind[0][i]==5:
+        print(l,nob,nre,out[ind[0][i],ind[1][i],ind[2][i]],ind[1][i],ind[2][i])
       if s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz()!=nre+1:
         continue
       for j in range(n2):
@@ -1021,7 +1023,7 @@ class DS:
         if r!=ind[3][i] and c!=ind[4][i]:
           nobch=nob_fromrow(r,Nob)
           nrech=nre_fromrow(r,Nob)
-          if abs(l2-l)<h and nrech==nre and nobch==nob and M[:,c].getnnz==nrech+1:
+          if abs(l2-l)<h*0.25 and nrech==nre and nobch==nob and M[:,c].getnnz==nrech+1:
             rep=1
           else:
             pass
@@ -1038,9 +1040,9 @@ class DS:
       if ind[0][i]==3 and ind[1][i]==3 and ind[2][i]==3:
         nob=nob_fromrow(ind[3][i],Nob)
         nre=nre_fromrow(ind[3][i],Nob)
-        print(s[ind[0][i],ind[1][i],ind[2][i]])
-        print(s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]])
-        print(s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz())
+        #print(s[ind[0][i],ind[1][i],ind[2][i]])
+        #print(s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]])
+        #print(s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz())
     return out,indout
   def refcoefbyterm_withmul(s,m,refindex,LOS=0,PerfRef=0, ind=-1):
     ''' Using the impedance ratios of the obstacles, \
@@ -1124,7 +1126,7 @@ class DS:
           if abs(cthi)<epsilon and abs(ctht)<epsilon:
             # Ref coef is very close to 1
             if abs(m[ind[3][i]])>epsilon:
-              print(ind[3][i])
+              #print(ind[3][i])
               frac=(m[ind[3][i]]-1)/(m[ind[3][i]]+1)
               out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=frac
               out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=frac
@@ -1979,8 +1981,8 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,Per
                       # lam is the non-dimensionalised wave length.
                       # L is the length scale for the dimensions.
   # Check in the nonzero indices have been input or not, if not then find them.
-  print('power start')
-  print(Mesh[3,3,3])
+  #print('power start')
+  #(Mesh[3,3,3])
   if isinstance(ind, type(-1)):
     ind=Mesh.nonzero().T
     indout=ind
@@ -2002,8 +2004,8 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,Per
   radfile = Path(rfile)
   Nob=int((Mesh.shape[0]-1)/Nre)
   h=1/Mesh.Nx
-  print('before rad')
-  print(Mesh[3,3,3])
+  #print('before rad')
+  #print(Mesh[3,3,3])
   if radfile.is_file():
     RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nob,ind)#=load_dict(rfile)
     ind=RadMesh.nonzero()
