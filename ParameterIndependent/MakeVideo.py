@@ -19,7 +19,7 @@ def CombineImages(img_array,filename,Nslice,  size=(0,0)):
   return img_array,size
 
 if __name__=='__main__':
-    tp=1                               # Time pause in video
+    tp=2                              # Time pause in video
     Nra=np.load('./Parameters/Nra.npy')# Number of rays
     delangle      =np.load('Parameters/delangle.npy')
     myfile = open('Parameters/runplottype.txt', 'rt') # open lorem.txt for reading text
@@ -87,6 +87,34 @@ if __name__=='__main__':
         for j in range(len(img_array4)):
             out.write(img_array4[j])
         out.release()
+        img_array5=[]
+        filename=str(filestart+'RadAX')
+        img_array5,size=CombineImages(img_array5,filename,Nslice,size)
+        filename=str(filestart+'RadAY')
+        img_array5,size=CombineImages(img_array5,filename,Nslice,size)
+        filename=str(filestart+'RadAZ')
+        img_array5,size=CombineImages(img_array5,filename,Nslice,size)
+        videoname5=str('./ConeFigures/'+plottype+'/RadA'+str(Nra[i])+'.avi')
+        out = cv2.VideoWriter(videoname5,cv2.VideoWriter_fourcc(*'DIVX'), tp, size)
+        for j in range(len(img_array5)):
+            out.write(img_array5[j])
+        out.release()
+        img_array6=[]
+        filename=str(filestart+'RadBX')
+        img_array6,size=CombineImages(img_array6,filename,Nslice,size)
+        filename=str(filestart+'RadBY')
+        img_array6,size=CombineImages(img_array6,filename,Nslice,size)
+        filename=str(filestart+'RadBZ')
+        img_array6,size=CombineImages(img_array6,filename,Nslice,size)
+        videoname6=str('./ConeFigures/'+plottype+'/RadB'+str(Nra[i])+'.avi')
+        out = cv2.VideoWriter(videoname6,cv2.VideoWriter_fourcc(*'DIVX'), tp, size)
+        for j in range(len(img_array6)):
+            out.write(img_array6[j])
+        out.release()
+        videoname3=str('./ConeFigures/'+plottype+'/RadBoth'+str(Nra[i])+'Vid.avi')
+        bashCommand = str("avimerge -o "+videoname3+" -i " +videoname5+" "+videoname6)
+        process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
+        output, error = process.communicate()
     filestart=str('./ConeFigures/'+plottype+'/')
     img_array3=[]
     filename=str(filestart+'TruesliceX')
