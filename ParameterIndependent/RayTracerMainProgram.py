@@ -99,7 +99,7 @@ def RayTracer():
   # Obstacles are triangles stored as three 3D co-ordinates
 
   ##----Retrieve the Raytracing Parameters-----------------------------
-  Nre,h,L     =np.load('Parameters/Raytracing.npy')
+  Nre,h,L,split     =np.load('Parameters/Raytracing.npy')
   Nre=int(Nre)
   Nra        =np.load('Parameters/Nra.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
@@ -222,7 +222,7 @@ def MeshProgram(repeat=0,plottype=str()):
 
 
   ##----Retrieve the Raytracing Parameters-----------------------------
-  Nre,h,L    =np.load('Parameters/Raytracing.npy')
+  Nre,h,L,split    =np.load('Parameters/Raytracing.npy')
   Nra        =np.load('Parameters/Nra.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       Nra=np.array([Nra])
@@ -255,7 +255,7 @@ def MeshProgram(repeat=0,plottype=str()):
   #--------------Run the ray tracer for each ray number-----------------
   for j in range(0,nra):
     #------------Initialise the Mesh------------------------------------
-    Mesh=DSM.DS(Nx,Ny,Nz,Nob*Nre+1,Nra[j]*(Nre+1))
+    Mesh=DSM.DS(Nx,Ny,Nz,Nob*Nre+1,Nra[j]*(Nre+1),split)
     print('-------------------------------')
     print('Starting the ray bouncing and information storage')
     print('-------------------------------')
@@ -267,9 +267,15 @@ def MeshProgram(repeat=0,plottype=str()):
     The rays are reflected Nre times in directions Direc from Tx then
     the information about their paths is stored in Mesh.'''
     Rays, Mesh=Room.ray_mesh_bounce(Tx,Nre,Nra[j],Direc,Mesh,deltheta[j])
-    print(Mesh[3,3,3])
+    if Mesh.check_nonzero_col(Nre):
+      pass
+    else:
+      print('Too many nonzero terms in column')
     Mesh,ind=Mesh.__del_doubles__(h,Nob)
-    print('After del',Mesh[3,3,3])
+    if Mesh.check_nonzero_col(Nre):
+      pass
+    else:
+      print('Too many nonzero terms in column after del')
     t1=t.time()
     timesmat[j]=t1-t0
     #----------Save the Mesh for further calculations
@@ -489,8 +495,8 @@ def power_grid(repeat=0,plottype=str(),Roomnum=0):
     ##----Retrieve the Mesh--------------------------------------
     meshname=str('./Mesh/'+plottype+'/DSM'+str(Nra[j])+'Refs'+str(Nre)+'m.npy')
     Mesh= DSM.load_dict(meshname)
-    print('power func')
-    print(Mesh[3,3,3])
+    #print('power func')
+    #print(Mesh[3,3,3])
 
     ##----Initialise Grid For Power-------------------------------------
     Nx=Mesh.Nx
@@ -579,7 +585,7 @@ def Quality(plottype=str(),Roomnum=0):
   '''
 
   ##----Retrieve the Raytracing Parameters-----------------------------
-  Nre,h,L    =np.load('Parameters/Raytracing.npy')
+  Nre,h,L,split    =np.load('Parameters/Raytracing.npy')
   Nra        =np.load('Parameters/Nra.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       nra=np.array([Nra])
@@ -651,102 +657,6 @@ def Quality(plottype=str(),Roomnum=0):
   P3=np.load(truestr)
   Q2=np.sum(P3)/(Mesh.Nx*Mesh.Ny*Mesh.Nz)
   return Qmat, Q2
-
-def RefCoefComputation(Mesh,plottype=str()):
-  ''' Compute the mesh of reflection coefficients.
-
-  :param Mesh: The DS mesh which contains the angles and distances rays \
-  have travelled.
-
-  Load the physical parameters using
-  :py:func:`ParameterInput.ObstacleCoefficients`
-
-  * Znobrat - is the vector of characteristic impedances for obstacles \
-  divided by the characteristic impedance of air.
-  * refindex - if the vector of refractive indexes for the obstacles.
-
-  Compute the Reflection coefficients (RefCoefper,Refcoefpar) using: \
-  :py:func:`DictionarySparseMatrix.ref_coef`
-
-  :rtype: (:py:class:`DictionarySparseMatrix.DS` (Nx,Ny,Nz,na,nb)\
-    , :py:class:`DictionarySparseMatrix.DS` (Nx,Ny,Nz,na,nb))
-
-  :returns: (RefCoefper,Refcoefpar)
-
-  '''
-  out=PI.ObstacleCoefficients()
-  Znobrat      =np.load('Parameters/Znobrat'+str(index)+'.npy')
-  refindex     =np.load('Parameters/refindex'+str(index)+'.npy')
-  print('-------------------------------')
-  print('Computing the reflection coeficients')
-  print('-------------------------------')
-  start=t.time()
-  RefCoefPerp, RefCoefPar=DSM.ref_coef(Mesh,Znobrat,refindex)
-  end=t.time()
-  print('-------------------------------')
-  print('Reflection coeficients found')
-  print('Computation time',end-start)
-  print('-------------------------------')
-  return RefCoefPerp, RefCoefPar
-
-def RefCombine(Rper,Rpar,plottype=str()):
-  ''' Combine reflection coefficients to get the loss from reflection \
-  coefficient for each ray segment.
-
-  Take in the DS's (:py:mod:`DictionarySparseMatrix`. :py:class:`DS`)\
-  corresponding to the reflection coefficients for all the ray \
-  interactions (:py:mod:`DictionarySparseMatrix`. :py:func:`ref_coef(Mesh)`).
-
-  Use the function :py:mod:`DictionarySparseMatrix`. :py:class:`DS`. \
-  :py:func:`dict_col_mult()` to multiple reflection coefficients in the same column.
-
-  .. code::
-
-     Combper=[
-     [prod(nonzero terms in column 0 in Rper[0,0,0]),
-     prod(nonzero terms in column 1 in Rper[0,0,0]),
-     ...,
-     prod(nonzero terms in column nb in Rper[0,0,0]
-     ],
-     ...,
-     [prod(nonzero terms in column 0 in Rper[Nx-1,Ny-1,Nz-1]),
-     prod(nonzero terms in column 1 in Rper[Nx-1,Ny-1,Nz-1]),
-     ...,
-     prod(nonzero terms in column nb in Rper[Nx-1,Ny-1,Nz-1]
-     ]
-     ]
-
-  .. code::
-
-     Combpar=[
-     [prod(nonzero terms in column 0 in Rpar[0,0,0]),
-     prod(nonzero terms in column 1 in Rpar[0,0,0]),
-     ...,
-     prod(nonzero terms in column nb in Rpar[0,0,0]
-     ],
-     ...,
-     [prod(nonzero terms in column 0 in Rpar[Nx-1,Ny-1,Nz-1]),
-     prod(nonzero terms in column 1 in Rpar[Nx-1,Ny-1,Nz-1]),
-     ...,
-     prod(nonzero terms in column nb in Rpar[Nx-1,Ny-1,Nz-1]
-     ]
-     ]
-
-  :param Rper: The mesh corresponding to reflection coefficients \
-  perpendicular to the polarisation.
-
-  :param Rpar: The mesh corresponding to reflection coefficients \
-  parallel to the polarisation.
-
-  :rtype: (:py:class:`DictionarySparseMatrix.DS` (Nx,Ny,Nz,1,nb), \
-  :py:class:`DictionarySparseMatrix.DS` (Nx,Ny,Nz,na,nb))
-
-  :return: Combper, Combpar
-
-  '''
-  Combper=Rper.dict_col_mult()
-  Combpar=Rpar.dict_col_mult()
-  return Combper, Combpar
 
 def plot_grid(plottype=str(),index=0):
   ''' Plots slices of a 3D power grid.
@@ -904,7 +814,7 @@ if __name__=='__main__':
     for count in range(0,testnum):
       start=t.time()
       Mesh1=MeshProgram(repeat,plottype) # Shoot the rays and store the information
-      print('In main',Mesh1[3,3,3])
+      #('In main',Mesh1[3,3,3])
       mid=t.time()
       Grid,G_z=power_grid(repeat,plottype,Roomnum)  # Use the ray information to compute the power
       repeat=1
