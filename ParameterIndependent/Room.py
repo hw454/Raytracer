@@ -70,7 +70,7 @@ class room:
     # Points is the array of all the co-ordinates which form the surfaces in the room
     s.Nob=len(obst)
     # Nob is the number of surfaces forming obstacles in the room.
-    s.maxlength=np.zeros((4,1))
+    s.maxlength=np.zeros(4)
     s.bounds=np.array([np.min(s.points,axis=0),np.max(s.points,axis=0)])
     s.inside_points=np.array([])
     # The inside points line within obstacles and are used to detect if a ray is inside or outside.

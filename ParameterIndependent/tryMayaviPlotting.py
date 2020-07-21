@@ -196,7 +196,7 @@ def PlotCones(plottype):
 def PlotConesOnSquare(plottype):
     '''Plot the cone calculations.'''
     ConeOn=0 # Plot Cones and Rays if 1
-    Cut=0    # Plot x,y plane cuts
+    Cut=1    # Plot x,y plane cuts
     Vid=0    # Rotate for video
     ##----Retrieve the Raytracing Parameters-----------------------------
     Nra         =np.load('Parameters/Nra.npy')
@@ -684,15 +684,17 @@ def PlotPowerSlice(plottype):
       else:
           cubep=np.vstack((cubep,xyz))
     TrueGrid=np.load('Parameters/'+plottype+'/True.npy')
-    print('Loading true from','Parameters/'+plottype+'/True.npy')
     for i in range(0,nra):
       Power=np.load('./Mesh/'+plottype+'/Power_grid'+str(int(Nra[i]))+'Refs'+str(int(Nre))+'m'+str(0)+'.npy')
-      print(Power[5,9,5],TrueGrid[5,9,5])
-      PowerDiff=abs(np.divide(Power-TrueGrid,TrueGrid, where=(abs(Power)>epsilon)))
-      #np.load('./Mesh/'+plottype+'/PowerDiff_grid'+str(int(Nra[i]))+'Refs'+str(int(Nre))+'m'+str(0)+'.npy')
+      #PowerDiff=abs(np.divide(Power-TrueGrid,TrueGrid, where=(abs(Power)>epsilon)))
+      PowerDiff=np.load('./Mesh/'+plottype+'/PowerDiff_grid'+str(int(Nra[i]))+'Refs'+str(int(Nre))+'m'+str(0)+'.npy')
+      RadA=np.load('./Mesh/'+plottype+'/RadA_grid'+str(int(Nra[i]))+'Refs'+str(int(Nre))+'m'+str(0)+'.npy')
+      RadB=np.load('./Mesh/'+plottype+'/RadB_grid'+str(int(Nra[i]))+'Refs'+str(int(Nre))+'m'+str(0)+'.npy')
       Powx,Powy,Powz=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
       Pmin=np.amin(Power)
       Pmax=np.amax(Power)
+      Radmax=max(np.amax(RadA),np.amax(RadB))
+      Radmin=min(np.amin(RadA),np.amin(RadB))
       x,y,z=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
       mlab.volume_slice(x,y,z,Power, plane_orientation='x_axes', slice_index=10)
       #mlab.outline()
@@ -722,6 +724,28 @@ def PlotPowerSlice(plottype):
         filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'PowerDiffsliceX'+str(int(l))+'.jpg')
         mlab.savefig(filename,size=(1000,1000))
         mlab.clf()
+        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
+        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadA),
+                            plane_orientation='x_axes',
+                            slice_index=int(l),
+                            colormap='viridis',
+                            vmax=Radmax,
+                            vmin=Radmin
+                        )
+        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'RadAX'+str(int(l))+'.jpg')
+        mlab.savefig(filename,size=(1000,1000))
+        mlab.clf()
+        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
+        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadB),
+                            plane_orientation='x_axes',
+                            slice_index=int(l),
+                            colormap='viridis',
+                            vmax=Radmax,
+                            vmin=Radmin
+                        )
+        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'RadBX'+str(int(l))+'.jpg')
+        mlab.savefig(filename,size=(1000,1000))
+        mlab.clf()
       for l in range(0,Ny):
         mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
@@ -743,6 +767,28 @@ def PlotPowerSlice(plottype):
                             vmin=0
                         )
         filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'PowerDiffsliceY'+str(int(l))+'.jpg')
+        mlab.savefig(filename,size=(1000,1000))
+        mlab.clf()
+        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
+        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadA),
+                            plane_orientation='y_axes',
+                            slice_index=int(l),
+                            colormap='viridis',
+                            vmax=Radmax,
+                            vmin=Radmin
+                        )
+        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'RadAY'+str(int(l))+'.jpg')
+        mlab.savefig(filename,size=(1000,1000))
+        mlab.clf()
+        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
+        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadB),
+                            plane_orientation='y_axes',
+                            slice_index=int(l),
+                            colormap='viridis',
+                            vmax=Radmax,
+                            vmin=Radmin
+                        )
+        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'RadBY'+str(int(l))+'.jpg')
         mlab.savefig(filename,size=(1000,1000))
         mlab.clf()
       for l in range(0,Nz):
@@ -768,6 +814,27 @@ def PlotPowerSlice(plottype):
         filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'PowerDiffsliceZ'+str(int(l))+'.jpg')
         mlab.savefig(filename,size=(1000,1000))
         mlab.clf()
+        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
+        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadA),
+                            plane_orientation='z_axes',
+                            slice_index=int(l),
+                            colormap='viridis',
+                            vmax=Radmax,
+                            vmin=Radmin
+                        )
+        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'RadAZ'+str(int(l))+'.jpg')
+        mlab.savefig(filename,size=(1000,1000))
+        mlab.clf()
+        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
+        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadB),
+                            plane_orientation='z_axes',
+                            slice_index=int(l),
+                            colormap='viridis',
+                            vmax=Radmax,
+                            vmin=Radmin
+                        )
+        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'RadBZ'+str(int(l))+'.jpg')
+        mlab.savefig(filename,size=(1000,1000))
     Power=TrueGrid# np.load('./Parameters/'+plottype+'/True.npy')
     Powx,Powy,Powz=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
     Pmin=np.amin(Power)
@@ -915,10 +982,10 @@ if __name__=='__main__':
   plottype= myfile.read()         # read the entire file into a string
   myfile.close()
   #PlotSingleCone(plottype)
-  #PlotPowerSlice(plottype)
-  PlotRays(plottype)
+  PlotPowerSlice(plottype)
+  #PlotRays(plottype)
   #PlotDirections(plottype)
-  PlotConesOnSquare(plottype)
+  #PlotConesOnSquare(plottype)
   #PlotCones(plottype)
   print('Running  on python version')
   print(sys.version)
