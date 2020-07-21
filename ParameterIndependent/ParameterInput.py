@@ -34,15 +34,13 @@ def DeclareParameters():
   # -------------------------------------------------------------------
 
   #print('Saving ray-launcher parameters')
-  #nrays=3 #20
-  #Nra=75*np.linspace(1,nrays,num=nrays,dtype=int) # Number of rays
   deltheta=np.pi*np.array([1/3])#,1/5,1/7,1/8,1/9,1/12,1/14,1/16,1/18,1/19,1/20,1/22,1/25,1/36])
   nrays=len(deltheta)
   Nra=np.ones((1,nrays),dtype=int)
   Nra=Nra[0]
-  #Nra=np.array([600])
   Nre=2 # Number of reflections
   Ns=10   # Number of steps on longest axis.
+  split=4 # Number of steps through each mesh square
   l1=2.0   # Interior obstacle scale
   l2=3.0   # Outer Boundary length scale
 
@@ -149,7 +147,7 @@ def DeclareParameters():
   # print(np.sum(directions-directions2))
 
   # COMBINE THE RAY-LAUNCHER PARAMETERS INTO ONE ARRAY
-  RTPar=np.array([Nre,h,roomlengthscale])
+  RTPar=np.array([Nre,h,roomlengthscale,split])
 
   print('Number of rays ', Nraout,'Number of reflections ', Nre,'Mesh spacing ', h)
   print('Angle spacing ', deltheta)
@@ -260,7 +258,7 @@ def ObstacleCoefficients(index=0):
   if not os.path.exists('./Parameters/'):
     os.makedirs('./Parameters/')
   RTPar         =np.load('Parameters/Raytracing.npy')
-  Nre,h,L       =RTPar
+  Nre,h,L,split       =RTPar
   Oblist        =np.load('Parameters/Obstacles.npy')
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')
   Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)
