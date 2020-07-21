@@ -70,7 +70,7 @@ class DS:
   With the value at each key being an na*nb SM.
 
   '''
-  def __init__(s,Nx=1,Ny=1,Nz=1,na=1,nb=1,dt=np.complex128):
+  def __init__(s,Nx=1,Ny=1,Nz=1,na=1,nb=1,split=1,dt=np.complex128):
     s.shape=(na,nb)
     Keys=product(range(Nx),range(Ny),range(Nz))
     #default_value=SM(s.shape,dtype=dt)
@@ -83,6 +83,7 @@ class DS:
     s.Ny=Ny
     s.Nz=Nz
     s.time=np.array([t.time()])
+    s.split=int(split)
   def __get_SM__(s,smk,dk,n):
     ''' Get a SM at the position dk=[x,y,z].
     * n indicates whether a whole SM is set, a row or a column.
@@ -911,20 +912,20 @@ class DS:
       M=out[ind[0][i],ind[1][i],ind[2][i]]
       indM=M.nonzero()
       n2=len(indM[0])
-      rep=0
-      if np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])==0 and l!=0:
-        for j in range(0,n2):
-          if np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,indM[1][j]])==0 and abs(M[indM[0][j],indM[1][j]]-l)<h/4 and indM[1][j]!=ind[4][i]:
-           rep=1
-           #repcol=indM[1][j]
-          else:
-            pass
-      if rep==1:
-        continue
-      else:
-        nob=nob_fromrow(ind[3][i],Nob)
-        nre=nre_fromrow(ind[3][i],Nob)
-        if s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz()==nre+1:
+      #rep=0
+      #if np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])==0 and l!=0:
+      #  for j in range(0,n2):
+      #    if np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,indM[1][j]])==0 and abs(M[indM[0][j],indM[1][j]]-l)<h/4 and indM[1][j]!=ind[4][i]:
+           # rep=1
+           # #repcol=indM[1][j]
+          # else:
+            # pass
+      # if rep==1:
+        # continue
+      # else:
+      nob=nob_fromrow(ind[3][i],Nob)
+      nre=nre_fromrow(ind[3][i],Nob)
+      if s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz()==nre+1:
           if s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz()==1:
             RadA[ind[0][i],ind[1][i],ind[2][i]]=l
             if l>np.sqrt(3)/2:
@@ -934,7 +935,7 @@ class DS:
             RadB[ind[0][i],ind[1][i],ind[2][i]]=l
             if l>1.5*np.sqrt(3):
               raise ValueError('Reflection rad is too long',l)
-        if M[0,ind[4][i]]==0:
+      if M[0,ind[4][i]]==0:
           out[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=l
           if check==0:
             indicesSec=np.array([ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]])
@@ -943,9 +944,9 @@ class DS:
           else:
             check=0
             indout=np.array([ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]])
-      if ind[0][i]==3 and ind[1][i]==3 and ind[2][i]==3:
-        nob=(ind[3][i]-1)%Nob
-        nre=int(((ind[3][i]-nob-1)/Nob)+1)
+        #if ind[0][i]==3 and ind[1][i]==3 and ind[2][i]==3:
+        #nob=(ind[3][i]-1)%Nob
+        #nre=int(((ind[3][i]-nob-1)/Nob)+1)
         # print('------------------------------------------------------')
         # print('Get rad')
         # print('nre',nre,'nob',nob,'terms',s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz(),s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]])
@@ -953,11 +954,12 @@ class DS:
         # print('RadA',RadA[ind[0][i],ind[1][i],ind[2][i]])
         # print('RadB',RadB[ind[0][i],ind[1][i],ind[2][i]])
         # print('------------------------------------------------------')
-      if check==-1:
-        indout=np.array([])
+      #if check==-1:
+      #  indout=np.array([])
     return out,RadA,RadB,indout
   def __del_doubles__(s,h,Nob,ind=-1):
-    ''' Return a DS corresponding to the distances stored in the mesh.
+    ''' Return the same DS as input but with double counted rays removed.
+    Also output the onzero indices of this DSM.
 
     :meta public:
 
@@ -976,11 +978,14 @@ class DS:
       * Go through the nonzero columns and put the absolute value of the \
       first term in the corresponding column in out[x,y,z]
 
-      * Pass until the next nonzero index is for a new column and repeat.
+      * On the future columns iterate through those already stored to check if they have the same obstacle number sequence.\
+       If they do then don't store the next column as this is a repeat.
 
-    :rtype: DS(Nx,Ny,Nz,1,s.shape[1]) of real values.
+      * When a column is stored at the indices for the non-zero positions to indout.
 
-    :return: out
+    :rtype: DS(Nx,Ny,Nz,s.shape) of real values., np.array([x0,y0,z0,a0,b0],...,[xn,yn,zn,an,bn])
+
+    :return: out,indout
 
     '''
     out=DS(s.Nx,s.Nz,s.Nz,s.shape[0],s.shape[1])  # Initialise the mesh which will be output.
@@ -1012,8 +1017,8 @@ class DS:
       nob=nob_fromrow(ind[3][i],Nob)
       nre=nre_fromrow(ind[3][i],Nob)
       rep=0
-      if ind[0][i]==5:
-        print(l,nob,nre,out[ind[0][i],ind[1][i],ind[2][i]],ind[1][i],ind[2][i])
+      if ind[0][i]==5 and nre==1 and nob==0 or nob==1:
+        print('Testing statement',l,nob,nre,out[ind[0][i],ind[1][i],ind[2][i]],ind[1][i],ind[2][i])
       if s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz()!=nre+1:
         continue
       for j in range(n2):
@@ -1044,6 +1049,54 @@ class DS:
         #print(s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]])
         #print(s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz())
     return out,indout
+  def doubles__inMat__(s,h,vec,Nob,po):
+    ''' Check whether the input ray (vec) has already been counted in
+    the DSM.
+
+    :meta public:
+
+    :param h:   Mesh width
+
+    :param vec: The ray vector which will be set if there are no doubles.
+
+    :param Nob: The number of obstacles.
+
+    :param ind: The x,y,z position of the SM to check.
+
+      * Go through the nonzero columns and put the absolute value of the \
+      first term in the corresponding column in out[x,y,z]
+
+      * Pass until the next nonzero index is for a new column and repeat.
+
+    :rtype: DS(Nx,Ny,Nz,1,s.shape[1]) of real values.
+
+    :return: out
+
+    '''
+    ind=vec.nonzero()
+    l=abs(vec[0,0])
+    n=vec.getnnz()
+    M=s[po[0],po[1],po[2]]
+    indM=M.nonzero()
+    n2=len(indM[0])
+    c=-1
+    doub=0
+    for i in range(n2):
+      if indM[1][i]==c:
+        continue
+      r=indM[0][i]
+      c=indM[1][i]
+      if M[:,c].getnnz()==n:
+        for j in range(n):
+          if r==ind[0][j]:
+            l2=abs(M[r,c])
+            if abs(l2-l)<h*0.25 and l2>epsilon:
+              doub=1
+          else:
+            doub=0
+      if doub==1:
+        break
+    return doub
   def refcoefbyterm_withmul(s,m,refindex,LOS=0,PerfRef=0, ind=-1):
     ''' Using the impedance ratios of the obstacles, \
     refractive index of obstacles, the wavelength and the
@@ -1215,6 +1268,26 @@ class DS:
         Grid[ind[0][i],ind[1][i],ind[2][i]]=s[ind[0][i],ind[1][i],ind[2][i]].sum()
         x,y,z=ind[0][i],ind[1][i],ind[2][i]
     return Grid
+  def check_nonzero_col(s,Nre,Nob=0,nre=-1,ind=-1):
+    ''' Check the number of non-zero terms in a column of a SM in s is \
+    less than the maximum number of reflections+1(LOS). If nre and ind=[x,y,z,:,b] are \
+    input then number of nonzero terms in columns b is equal to nre+1. '''
+    if isinstance(ind, type(-1)):
+      for x,y,z,b in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz),range(0,s.shape[1])):
+        if s[x,y,z][:,b].getnnz()<=Nre+1:
+          indch=s[x,y,z][:,b].nonzero()
+          r=indch[0][-1]
+          nre=nre_fromrow(r,Nob)
+          if nre+1==s[x,y,z][:,b].getnnz():
+            pass
+          else: return False
+        #elif s[x,y,z][0,:].getnnz()>1:
+        #  return False
+        else: return False
+      return True
+    else:
+      return s[ind[0],ind[1],ind[2]][:,ind[-1]].getnnz()==nre+1
+    return True
   def asin(s,ind=-1):
     """ Finds the arcsin of the nonzero terms in the DSM.
 
