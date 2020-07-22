@@ -70,7 +70,7 @@ class DS:
   With the value at each key being an na*nb SM.
 
   '''
-  def __init__(s,Nx=1,Ny=1,Nz=1,na=1,nb=1,split=1,dt=np.complex128):
+  def __init__(s,Nx=1,Ny=1,Nz=1,na=1,nb=1,dt=np.complex128,split=1):
     s.shape=(na,nb)
     Keys=product(range(Nx),range(Ny),range(Nz))
     #default_value=SM(s.shape,dtype=dt)
@@ -86,14 +86,21 @@ class DS:
     s.split=int(split)
   def __get_SM__(s,smk,dk,n):
     ''' Get a SM at the position dk=[x,y,z].
+    :param dk:  The x,y,z key to retrieve the sparse matrix.
+    :param smk: The keys to the sparse matrix at the dk positions.
+    :param n:   The types wants from the sparse matrix.
+
     * n indicates whether a whole SM is set, a row or a column.
     * If n==0 a whole SM.
     * If n==1 a row or rows.
       * n2 is the number of rows.
     * If n==2 a column or columns.
       * n2 is the number of columns.
+
+    :rtype: DS
+
+    :returns: The terms in the SM[smk] at s[dk].
     '''
-    #out=SM(s.shape,dtype=np.complex128)
     dt=type(s.d[0,0,0][0,0])
     if n==0:
       out=s.d[dk]
@@ -108,13 +115,9 @@ class DS:
         out=s.d[dk][smk,:]
       # Get multiple rows
       else:
-        p=0
-        nkeys=len(smk)
-        nb=s.shape[1]
-        out=np.zeros((nkeys,nb),dtype=dt)
+        out=np.zeros((len(smk),s.shape[1]),dtype=dt)
         for j in smk:
           out[j,:]=s.d[dk][j,:]
-          p+=1
     # Get a  column or columns.
     elif n==2:
       if singletype(smk[1]): n2=1
@@ -304,6 +307,12 @@ class DS:
     return out
   def __set_SM__(s,smk,dk,x,n):
     ''' Set a SM at the position dk=[x,y,z].
+
+    :param dk:  The dictionary key
+    :param smk: The position within the sparse matrix at the dictionary key.
+    :param x:   The term to set the sm[smk] terms to.
+    :param n:   The type of terms being called.
+
     * n indicates whether a whole SM is set, a row or a column.
     * If n==0 a whole SM.
     * If n==1 a row or rows.
@@ -1007,20 +1016,21 @@ class DS:
       else:
         ind=s.nonzero().T
     n=len(ind[0])                              # The number of non-zero terms
-    check=-1                                   # The term is in case no non-zero indices are found
+    check=-1                                   # This term is in case no non-zero indices are found
     indout=np.array([])
     for i in range(0,n):
-      l=abs(s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]])
-      M=out[ind[0][i],ind[1][i],ind[2][i]]
-      indM=M.nonzero()
-      n2=len(indM[0])
-      nob=nob_fromrow(ind[3][i],Nob)
-      nre=nre_fromrow(ind[3][i],Nob)
-      rep=0
+      nob=nob_fromrow(ind[3][i],Nob)                              # The obstacle number of the last obstacle the considered ray hit
+      nre=nre_fromrow(ind[3][i],Nob)                              # The number of reflections the ray segment had.
+      if s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz()!=nre+1:
+        # we want to check the terms in a full column so use the reflection number of the last nonzero term.
+        continue
+      l=abs(s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]) # The length of the ray in the column being checked
+      M=out[ind[0][i],ind[1][i],ind[2][i]]                        # The rays which have already been stored
+      indM=M.nonzero()                                            # The positions of the nonzero terms which are already stored.
+      n2=len(indM[0])                                             # The number of nonzero columns already stored.
+      rep=0                                                       # Intialise the repetition variable to 0. It'll become 1 if there's a repeat ray.
       if ind[0][i]==5 and nre==1 and nob==0 or nob==1:
         print('Testing statement',l,nob,nre,out[ind[0][i],ind[1][i],ind[2][i]],ind[1][i],ind[2][i])
-      if s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz()!=nre+1:
-        continue
       for j in range(n2):
         r=indM[0][j]
         c=indM[1][j]
@@ -1076,6 +1086,7 @@ class DS:
     ind=vec.nonzero()
     l=abs(vec[0,0])
     n=vec.getnnz()
+    if n==0: raise ValueError('There are no nonzero terms in the ray vector')
     M=s[po[0],po[1],po[2]]
     indM=M.nonzero()
     n2=len(indM[0])
@@ -1268,21 +1279,41 @@ class DS:
         Grid[ind[0][i],ind[1][i],ind[2][i]]=s[ind[0][i],ind[1][i],ind[2][i]].sum()
         x,y,z=ind[0][i],ind[1][i],ind[2][i]
     return Grid
-  def check_nonzero_col(s,Nre,Nob=0,nre=-1,ind=-1):
+  def check_nonzero_col(s,Nre=1,Nob=1,nre=-1,ind=-1):
     ''' Check the number of non-zero terms in a column of a SM in s is \
     less than the maximum number of reflections+1(LOS). If nre and ind=[x,y,z,:,b] are \
-    input then number of nonzero terms in columns b is equal to nre+1. '''
+    input then number of nonzero terms in columns b is equal to nre+1.
+
+    :param Nre: The maximum number of reflections for any ray.
+    :param Nob: The number of obstacles in the envrionment. Not needed in nre and ind are input.
+    :param nre: The reflection number of the ray being checked. Only input if ind is also input.
+    :param ind: The position of the ray segment to be checked. If not input then all positions are checked.
+
+    The code checks which inputs are given.
+
+    * If nre and ind are given then the number of nonzero terms in \
+    the mesh s is found. If this is not equal to nre+1 then there is the incorrect number, return false. If \
+    the number of nonzero terms is nre+1 then return true.
+    * If nre and ind aren't given then go through every nonzero matrix in the DSM and every nonzero column within\
+    them. If the number of nonzero terms in that column is not equal to the reflection number calculated from \
+    the last term in the column then return false. Otherwise return true.
+
+    :rtype: bool
+    :returns: True (Correct number of zero terms) or False. (Incorrect number of nonzero terms)
+    '''
     if isinstance(ind, type(-1)):
       for x,y,z,b in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz),range(0,s.shape[1])):
-        if s[x,y,z][:,b].getnnz()<=Nre+1:
+        if 0==s[x,y,z][:,b].getnnz():
+            continue
+        elif 0<s[x,y,z][:,b].getnnz()<=Nre+1:
           indch=s[x,y,z][:,b].nonzero()
           r=indch[0][-1]
           nre=nre_fromrow(r,Nob)
           if nre+1==s[x,y,z][:,b].getnnz():
             pass
-          else: return False
-        #elif s[x,y,z][0,:].getnnz()>1:
-        #  return False
+          else:
+            print(s[x,y,z],r,b,nre,nob_fromrow(r,Nob),Nob)
+            return False
         else: return False
       return True
     else:
@@ -1420,7 +1451,7 @@ class DS:
       AngDSM[ind[0][j],ind[1][j],ind[2][j],ind[3][j],ind[4][j]]=np.angle(s[ind[0][j],ind[1][j],ind[2][j],ind[3][j],ind[4][j]])
     return AngDSM
   def gain_phase_rad_ref_mul_add(s,Com1,Com2,G,khat,L,lam,ind=-1):
-    """ Multiply all terms of s element wise with Com1/Rad and each row by Gt.
+    """ Multiply all terms of s elementwise with Com1/Rad and each row by Gt.
         Multiply all terms of s elementwise with Com2/Rad and each row by Gt.
 
     :param G: a row vector with length na.
@@ -1442,28 +1473,25 @@ class DS:
 
      """
     na,nb=s.shape
-    out1=np.zeros((s.Nx,s.Ny,s.Nz),dtype=np.complex128)#DS(s.Nx,s.Ny,s.Nz,na,nb)
-    out2=np.zeros((s.Nx,s.Ny,s.Nz),dtype=np.complex128)#DS(s.Nx,s.Ny,s.Nz,na,nb)
+    out1=np.zeros((s.Nx,s.Ny,s.Nz),dtype=np.complex128)
+    out2=np.zeros((s.Nx,s.Ny,s.Nz),dtype=np.complex128)
     if isinstance(ind, type(-1)):
-      ind=s.nonzero()
+      ind=s.nonzero().T
     else:
       if len(ind[0])==5 and len(ind.T[0]!=5):
-        pass
-      elif len(ind[0])!=5 and len(ind.T[0]==5):
         ind=ind.T
-      else:
-        ind=s.nonzero()
-    Ni=len(np.transpose(ind)[4]) #FIXME find the nonzero columns without repeat column index for each term
-    for l in range(0,Ni):
-      x,y,z,a,b=ind[l]
-      if s[x,y,z,a,b]==0:
+      elif len(ind[0])!=5 and len(ind.T[0]==5):
         pass
       else:
-        m=s[x,y,z,a,b]*khat*(L**2)
-        k=lam*(np.sqrt(G[b])*(np.cos(m)+np.sin(m)*1j)/(s[x,y,z,a,b]*4*np.pi))[0]
+        ind=s.nonzero().T
+    Ni=len(ind[0])
+    for l in range(0,Ni):
+      x,y,z,a,b=ind[:,l]
+      if s[x,y,z,a,b]!=0:
+        k=FieldEquation(s[x,y,z,a,b],khat,L,lam)
         out1[x,y,z]+=k*Com1[x,y,z,a,b]
         out2[x,y,z]+=k*Com2[x,y,z,a,b]
-        del x,y,z,a,b,m,k
+        del x,y,z,a,b,k
     del Ni
     return out1,out2
   def dict_row_vec_multiply(s,vec,ind=-1):
@@ -2183,17 +2211,42 @@ def quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,Per
 
 def nob_fromrow(r,Nob):
   if r ==0: return 0
+  elif Nob==0:
+    raise ValueError('The number of obstacles has been input as 0')
   else: return (r-1)%Nob
 
 def nre_fromrow(r,Nob):
   if r==0:
     return 0
+  elif Nob==0:
+    raise ValueError('The number of obstacles has been input as 0')
   else:
     nob=nob_fromrow(r,Nob)
     return int(((r-nob-1)/Nob)+1)
 
+def FieldEquation(r,khat,L,lam):
+  ''' The equation for calculating the field.
+
+  :param r: The distance travelled.
+  :param khat: Non-dimensionalised wave number.
+  :param lam: wavelength
+  :param L: Length scale
+  :param Pol: Polarisation
+
+  :rtype: Array with dimensions of Pol
+  :return: :math:`(lam/(4*ma.pi*r))*np.exp(1j*khat*r*(L**2))*Pol`
+  '''
+  return (lam/(4*math.pi*r))*np.exp(1j*khat*r*(L**2))
+
 def QualityFromPower(P):
-  return np.sum(P)/(P.shape[0]*P.shape[1]*P.shape[2])
+   '''Calculate the quality of coverage from Power.
+   :param P: Power as a Nx x Ny x Nz array
+
+   :rtype: float
+
+   :returns: :math:`sum(P)/Nx*Ny*Nz`
+   '''
+   return np.sum(P)/(P.shape[0]*P.shape[1]*P.shape[2])
 
 def nonzero_bycol(SM):
   ''' Find the index pairs for the nonzero terms in a sparse matrix.

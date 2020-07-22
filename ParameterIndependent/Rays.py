@@ -55,20 +55,15 @@ class Ray:
     ''' The closest intersection out of the possible intersections with
     the wall_segments in room. Returns the intersection point and the
     wall intersected with '''
-    leng=0.0          # Initialising to prevent pointing error.
-    leng2=0.0         # Initialising to prevent pointing error.
-    robj=np.array([]) # Initialising to prevent pointing error.
-    rcp=np.array([])  # Initialising to prevent pointing error.
-    rNob=0            # Initialising to prevent pointing error.
-    cp =np.array([])  # Initialising to prevent pointing error.
     # Find the intersection with all the walls and check which is the
     #closest. Verify that the intersection is not the current origin.
     if all(p is not None for p in s.points[-1]):
       # Retreive the Maximum length from the Room
+      leng2=0
       leng=room.maxleng()
       # Initialise the intersection point, obstacle and obstacle number
-      robj=room.obst[0]
-      rcp=s._obst_collision_point_(robj)
+      robj=room.obst[0].copy()
+      rcp=s._obst_collision_point_(robj).copy()
       Nob=1
       # Check the initialised intersection point exists.
       if all(p is None for p in rcp): rNob=0
@@ -83,8 +78,8 @@ class Ray:
           leng2=s._ray_length_(cp)
           if (leng2<leng and leng2>-epsilon) :
             leng=leng2
-            rcp=cp
-            robj=obj
+            rcp=cp.copy()
+            robj=obj.copy()
             rNob=Nob
           Nob+=1
         else:
@@ -94,17 +89,33 @@ class Ray:
       return np.array([None, None, None]), 0
   def _ray_length_(s,inter):
     '''The length of the ray upto the intersection '''
-    o=np.array([])  # Initialising to prevent pointing error.
-    ray=np.array([])# Initialising to prevent pointing error.
     o=s.points[-2][0:3]
     ray=np.array([o,inter])
     return lf.length(ray)
   def _number_steps_(s,alpha,segleng,dist,delangle,refangle):
-    '''The number of steps along the ray between intersection points'''
+    '''The number of steps along the ray between intersection points.
+    :meta private:
+
+    :param alpha: float, distance stepped through each cube.
+    :param segleng: float, the length of the ray segment.
+    :param dist: float the total distance of the ray.
+    :param delangle: The angle spacing between rays at the transmitter.
+    :param refangle: The angle the ray hits the next obstacle at.
+
+    Calculate the number of steps (ns) using :py:func:`no_steps`
+
+    :rtype: int
+
+    :returns: 1+ns'''
     ns=no_steps(alpha,segleng,dist,delangle,refangle)
     return int(1+ns)
   def _number_cones_(s,h,dist,delangle,refangle):
-     '''find the number of steps taken along one normal in the cone'''
+     '''find the number of steps taken along one normal in the cone.
+
+     :param h:
+     :param dist:
+     :param delangle:
+     :param refangle:'''
      nref=max(s.points.shape[0]-3,0)
      Ncon=no_cones(h,dist,delangle,refangle,nref)
      return Ncon
@@ -312,10 +323,11 @@ class Ray:
       if abs(end)<epsilon:
           Mesh,dist,vec=s.mesh_singleray(room,Mesh,dist,vec,Nra,Nre,nra,deltheta)
       else: pass
-      if Mesh.check_nonzero_col(Nre,Nob):
+      if Mesh.check_nonzero_col(Nre,room.Nob):
         pass
       else:
-        raise Error('There is a column in the mesh with too many terms.',Nre,' reflections completed')
+        errmsg=str('There is a column in the mesh with too many terms, '+str(Nre)+' reflections completed')
+        raise ValueError(errmsg)
     del dist,vec
     return Mesh
   def mesh_power_multiref(s,room,Nre,Mesh,Nra,it,Znobrat,refindex,Antpar,refcoef,deltheta):
@@ -432,7 +444,7 @@ class Ray:
     direc/=np.sqrt(np.dot(direc,direc)) # Normalise direc
 
     col=int(Nra*nre+nra) # The column number which the ray information should be stored in.
-    row=int((nre-1)*Nob+nob+1) # The row number which the newest terms should be stored at.
+    row=max(nre,int((nre-1)*Nob+nob)) # The row number which the newest terms should be stored at. Note nob goes from 1-12 not starting at 0.
 
     # Check that the Ray is travelling in a direction
     if abs(direc.any()-0.0)>epsilon:                       # Before computing the dist travelled through a mesh cube
@@ -491,19 +503,12 @@ class Ray:
           l1=np.square(dist+alcor)
           l2=np.dot(p2-p1-alcor*direc/np.linalg.norm(direc),p2-p1-alcor*direc/np.linalg.norm(direc))
           distcor=np.sqrt(l1+l2)
-          if abs(distcor)<epsilon:
-              distcor=1
-          # Find the positions of the nonzero terms in calcvec and check the number of terms is valid.
-          calind=calcvec.nonzero()
-          if nre==0:
-            if len(calind[0])!=1:
-              print('incorrect vec length')
-          else:
-            if len(calind[0])!=nre+1:
-              print('incorrec vec length')
-          if Mesh.doubles__inMat__(h,distcor*calcvec[:,0],Nob,np.array([i1,j1,k1])):
-            pass
-          else:
+          # If the distance is 0 then the point is at the centre and the power is not well defined.
+          if abs(distcor)>epsilon and Mesh.doubles__inMat__(h,calcvec[:,0],Nob,np.array([i1,j1,k1])):
+            # Find the positions of the nonzero terms in calcvec and check the number of terms is valid.
+            calind=calcvec.nonzero()
+            if calcvec.getnnz()!=nre+1:
+              raise ValueError('incorrect vec length')
             for i3 in calind[0]:
               Mesh[i1,j1,k1,i3,col]=distcor*calcvec[i3,0]
             if Mesh.check_nonzero_col(Nre,Nob,nre,np.array([i1,j1,k1,col])):
@@ -868,77 +873,67 @@ def conestepping(col,dist,m1,split,Nc,p1,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh
   '''# --- Initialise variables to prevent pointing erros
   Nnorcor=0           # Number of normal vectors in cone after duplicate checking.
   Nob=room.Nob
-  p3=np.array([])     # The co-ordinates of the points on the cone. Changed at each step.
-  coords=np.array([]) # The co-ordinates of the centre points of a Mesh cube for cone
-                                 # points after duplicate checking.
-  l1vec=np.array([])           # Array of one of the lengths used to find the distance correction for the cone points
-  l2vec=np.array([])           # Array of one of the lengths used to find the distance correction for the cone points
-  alcorrvec=np.array([])       # Array of one of the lengths used to find the distance correction for the cone points
-  p1cone=np.array([])          # The point on the ray as stepped. This is tiled to be used on all cone points at once.
-  diffvec=np.array([])         # The difference between the cone centre points and the ray point.
-  r2=np.array([])              # The distance corrections for the cones.
-
   Ncon=norm.shape[0]
   for m2 in range(0,split*(Nc)):
     p3=np.tile(p1,(Ncon,1))+(m2+1)*alpha*norm/split   # Step along all the normals from the ray point p1.
-    if alpha/split>h:                               # The step size should never be bigger than the meshwidth
+    if alpha/split>h:                                 # The step size should never be bigger than the meshwidth
       errmsg=str('The step size '+str(alpha/split)+' along the ray should not be bigger than the mesh width '+str(h))
       raise ValueError(errmsg)
     copos=room.position(p3,h)                              # Find the indices corresponding to the cone points.
     if m2==split*Nc-1:
       if m1==0:
         Cones=np.c_[p1[0],p1[1],p1[2]]
-        Cones=np.r_[Cones,copos]
+        Cones=np.r_['0',Cones,copos]
       else:
-        Cones=np.r_[Cones,np.c_[p1[0],p1[1],p1[2]]]
-        Cones=np.r_[Cones,copos]
-      if not os.path.exists('./Mesh'):
-        os.makedirs('./Mesh')
-      np.save('./Mesh/SingleCone'+str(int(Nra))+'Ray'+str(int(nra))+'Refs'+str(int(Nre))+'m.npy',Cones)
+        Cones=np.r_['0',Cones,np.c_[p1[0],p1[1],p1[2]]]
+        Cones=np.r_['0',Cones,copos]
+      # This line saves the points of the cone, only needed for testing.
+      # if not os.path.exists('./Mesh'):
+      #  os.makedirs('./Mesh')
+      # np.save('./Mesh/SingleCone'+str(int(Nra))+'Ray'+str(int(nra))+'Refs'+str(int(Nre))+'m.npy',Cones)
     if m2==0 and m1==0:
       copos2=np.zeros(copos.shape)
-      altcopos,p3out,normout,copos2=removedoubles(copos,p3,norm,Mesh)
-      check,altcopos,p3out,normout=Mesh.stopchecklist(altcopos,p3,norm)
+      altcopos,p3out,normout,copos2=removedoubles(copos,p3,norm,Mesh)    # If there are any repeated cone indices in copos then these are removed.
+      check,altcopos,p3out,normout=Mesh.stopchecklist(altcopos,p3,norm)  # The indices which do not correspond to positions in the environment are removed.
       copos2=altcopos
     else:
-      altcopos,p3out,normout,copos =removedoubles(copos,p3,norm,Mesh)
-      #print('after dub',altcopos.shape)
-      altcopos,p3out,normout,copos2=duplicatecheck(copos,copos2,p3,norm,Mesh)
-      #print('after dup', altcopos.shape)
-    if altcopos.shape[0]>0:
-      start=1
-    else:
-      start=0
-    if start==1:
+      altcopos,p3out,normout,copos =removedoubles(copos,p3,norm,Mesh)         # If there are any cone indices in list twice these are removed.
+      altcopos,p3out,normout,copos2=duplicatecheck(copos,copos2,p3,norm,Mesh) # If there are any cone indices which were in the previous step these are removed.
+
+    if altcopos.shape[0]>0: # Check that there are some cone positions to store.
+      # Check whether there is more than one vector in the list of cones.
       if isinstance(normout[0],(float,int,np.int64, np.complex128 )):
            Nnorcor=1
       else:
           Nnorcor=normout.shape[0]
-      #print(m1,m2,start,altcopos)
       if Nnorcor==1:
         coords=room.coordinate(h,altcopos[0],altcopos[1],altcopos[2]) # Find the centre of
-                                                           # element point for each cone normal.
+                                                                      # element point for each cone normal.
+        if Mesh.doubles__inMat__(h,calcvec,Nob,np.array([altcopos[0],altcopos[1],altcopos[2]])):
+          # If there is only one cone point then check if it has a double stored in the matrix before distances are calculated.
+          continue
       else:
-        #print(altcopos.shape)
         coords=room.coordinate(h,altcopos[:,0],altcopos[:,1],altcopos[:,2])
-      p1cone=np.tile(p1,(Nnorcor,1))
-      diffvec=np.subtract(coords,p1cone)
-      direcstack=np.tile(direc,(Nnorcor,1))
+      # The following computes the distance a ray which travelled to the center of the mesh cube would have travelled.
+      # This is calculated using the distance the tracked ray has travelled and the radius of the cone.
+      p1cone=np.tile(p1,(Nnorcor,1))               # The ray point is tiled to perform arithmetic which each cone vector.
+      diffvec=np.subtract(coords,p1cone)           # The vector from the ray point to the cone-point.
+      direcstack=np.tile(direc,(Nnorcor,1))        # The ray direction tiled to perform arithmetic with each cone vector.
       alcorrvec=lf.coordlistdot(diffvec,direcstack)# Compute the dot between the vector between the two element points and corresponding normal.
       alcorrvec/=np.linalg.norm(direc)
       l1vec=np.power(dist+alcorrvec,2)
       l2vec=diffvec-direcstack*alcorrvec[:,np.newaxis]/np.linalg.norm(direc)
       l2vec=lf.coordlistdot(l2vec,l2vec)
-      r2=np.sqrt(l1vec+l2vec)
+      r2=np.sqrt(l1vec+l2vec)                      # r2 is the corrected distance.
+                                                   # This is a vector with terms corresponding to the corrected distance for each cone point.
       del l1vec, l2vec, diffvec, alcorrvec,direcstack
       if Nnorcor==1:
         calind=calcvec.nonzero()
-        if Mesh.doubles__inMat__(h,r2[0]*calcvec,Nob,np.array([altcopos[0],altcopos[1],altcopos[2]])):
-            pass
-        else:
+        if abs(r2[0])>epsilon:
           for ic in calind[0]:
             Mesh[altcopos[0],altcopos[1],altcopos[2],ic,col]=r2[0]*calcvec[ic,0]
           if Mesh.check_nonzero_col(Nre,Nob,nre,np.array([altcopos[0],altcopos[1],altcopos[2],col])):
+            # Check that the number of terms stored
             pass
           else:
             errmsg1=('The number of nonzero terms at ')
@@ -948,36 +943,46 @@ def conestepping(col,dist,m1,split,Nc,p1,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh
       else:
         calind=calcvec.nonzero()
         for j in range(0,Nnorcor):
-          if Mesh.doubles__inMat__(h,r2[j]*calcvec,Nob,np.array([altcopos[j,0],altcopos[j,1],altcopos[j,2]])):
+          if Mesh.doubles__inMat__(h,calcvec,Nob,np.array([altcopos[j,0],altcopos[j,1],altcopos[j,2]])):
             # If the ray is already accounted for in this mesh square then step to the next point.
             continue
           else:
-            for ic in calind[0]:
-              if altcopos.shape[0]!=r2.shape[0]:
-                raise ValueError('Axis/ length error somewhere '+str(r2))
-              Mesh[altcopos[j,0],altcopos[j,1],altcopos[j,2],ic,col]=r2[j]*calcvec[ic,0]
-            if Mesh.check_nonzero_col(Nre,Nob,nre,np.array([altcopos[j,0],altcopos[j,1],altcopos[j,2],col])):
-              pass
-            else:
-              errmsg1=str('The number of nonzero terms at ')
-              errmsg2=str(str(altcopos[j])+' col '+str(col)+' is not '+str(nre+1))
-              errmsg=str(errmsg1+errmsg2)
-              print(Mesh[altcopos[j,0],altcopos[j,1],altcopos[j,2]])
-              raise ValueError(errmsg)
-  del p1cone,p3,r2
+            if abs(r2[j])>epsilon:
+              for ic in calind[0]:
+                if altcopos.shape[0]!=r2.shape[0]:
+                  raise ValueError('Number of cone positions '+str(altcopos)+' not the same as number of distances.'+str(r2))
+                Mesh[altcopos[j,0],altcopos[j,1],altcopos[j,2],ic,col]=r2[j]*calcvec[ic,0]
+              if Mesh.check_nonzero_col(Nre,Nob,nre,np.array([altcopos[j,0],altcopos[j,1],altcopos[j,2],col])):
+                # Check that the correct number of terms have been stored in the mesh column
+                pass
+              else:
+                errmsg1=str('The number of nonzero terms at ')
+                errmsg2=str(str(altcopos[j])+' col '+str(col)+' is not '+str(nre+1))
+                errmsg=str(errmsg1+errmsg2)
+                raise ValueError(errmsg)
   return copos2,calcvec,Mesh,Cones
 
 def removedoubles(copos,p3,norm,Mesh):
+  ''' This function checks whether any of the co-ordinates in the array copos are repeated.
+
+  :param copos: array of cone position indices
+  :param p3:    The array of cone points co-ordinates corresponding to copos indices.
+  :param norm:  The cone directions corresponding to copos.
+  :param Mesh:  The DSM which is storing the ray information.
+
+  * Iterate through the list of cone positions copos. If another point
+  in the list is the same then that point is not stored in altcopos.
+  * If the point is stored in altcopos then the corresponding norm and p3 are also stored.
+
+  :rtype: numpy array,numpy array, numpy array
+  :returns: copos, p3, norm, copos2
+  '''
   copos2=np.array([])
   if isinstance(copos[0],(float,int,np.int64, np.complex128 )):
-    copos2=copos
-    return copos,p3,norm,copos2
+    return copos,p3,norm,copos
   #----Find the iteration lengths
   Ncon=copos.shape[0]
   #----Initialise output variables
-  altcopos=np.array([])
-  p3out=np.array([])
-  normout=np.array([])
   rep=0
   for j in range(0,Ncon):
     if Mesh.stopcheck(copos[j][0],copos[j][1],copos[j][2]):
@@ -1023,8 +1028,7 @@ def removedoubles(copos,p3,norm,Mesh):
     altcopos=copos
     p3out=p3
     normout=norm
-  copos2=copos
-  return altcopos,p3out,normout,copos2
+  return altcopos,p3out,normout,copos
 
 def removedoubletest():
     arr=np.zeros((20,3))

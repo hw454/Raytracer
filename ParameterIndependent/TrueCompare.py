@@ -34,7 +34,7 @@ def makematrix_perfectreflection(index=0):
   # Obstacles are triangles stored as three 3D co-ordinates
 
   ##----Retrieve the Raytracing Parameters-----------------------------
-  Nre,h,L    =np.load('Parameters/Raytracing.npy')
+  Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
   Nra        =np.load('Parameters/Nra.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       Nra=np.array([Nra])
@@ -86,18 +86,17 @@ def makematrix_perfectreflection(index=0):
   y=(Tx-np.dot((Tx-p0),n)*n/np.dot(n,n))
   # Txhat is the image transmitter location
   Txhat=2*y-Tx
-  print(Tx,Txhat)
   for i,j,k in product(range(Nx),range(Ny),range(Nz)):
       # Find the co-ordinate from the indexing positions
       x=Room.coordinate(h,i,j,k)
       # Find the length from the transmitter to the point
       Txleng=np.linalg.norm(x-Tx)
       xhatleng=np.linalg.norm(x-Txhat)
-      if i==3 and j==3 and k==3:
-          print(xhatleng, Txleng,x,Txhat)
-      field=(lam/(4*ma.pi*Txleng))*np.exp(1j*khat*Txleng*(L**2))*Pol
-      field+=(lam/(4*ma.pi*xhatleng))*np.exp(1j*khat*(xhatleng)*(L**2))*Pol
-      Mesh[i,j,k]=10*np.log10((np.absolute(field[0])**2+np.absolute(field[1])**2))
+      if Txleng!=0:
+        field=DSM.FieldEquation(Txleng,khat,L,lam)*Pol
+        field+=DSM.FieldEquation(xhatleng,khat,L,lam)*Pol
+      P=(np.absolute(field[0])**2+np.absolute(field[1])**2)
+      Mesh[i,j,k]=10*np.log10(P,where=(P!=0))
       RadMeshA[i,j,k]=Txleng
       RadMeshB[i,j,k]=xhatleng
   return Mesh,RadMeshA,RadMeshB
@@ -117,7 +116,7 @@ def makematrix_LOS(index=0):
   # Obstacles are triangles stored as three 3D co-ordinates
 
   ##----Retrieve the Raytracing Parameters-----------------------------
-  Nre,h,L    =np.load('Parameters/Raytracing.npy')
+  Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
   Nra        =np.load('Parameters/Nra.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       Nra=np.array([Nra])
@@ -178,7 +177,7 @@ def makematrix_withreflection(index=0):
   # Obstacles are triangles stored as three 3D co-ordinates
 
   ##----Retrieve the Raytracing Parameters-----------------------------
-  Nre,h,L    =np.load('Parameters/Raytracing.npy')
+  Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
   Nra        =np.load('Parameters/Nra.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       Nra=np.array([Nra])
@@ -261,10 +260,9 @@ def makematrix_withreflection(index=0):
       RadMeshB[i,j,k]=xhatleng
   return Mesh,RadMeshA, RadMeshB
 
-def plot_mesh(Mesh,Meshfolder,Meshname):
+def plot_mesh(Mesh,Meshfolder,Meshname,lb,ub):
   n=Mesh.shape[2]
-  lb=np.amin(Mesh)
-  ub=np.amax(Mesh)
+
   for i in range(n):
       mp.figure(n+i)
       #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
@@ -287,7 +285,7 @@ if __name__ == '__main__':
     Q3=DSM.QualityFromPower(Mesh3)
     loca=str('Centre')
     RTPar         =np.load('Parameters/Raytracing.npy')
-    Nre,h,L       =RTPar
+    Nre,h,L       =RTPar[0:3]
     if not os.path.exists('./Parameters'):
         os.makedirs('./Parameters')
         os.makedirs('./Parameters/LOS'+loca)
@@ -307,10 +305,14 @@ if __name__ == '__main__':
     np.save(TrueQname,Q1)
     TrueFolder=str('./GeneralMethodPowerFigures/LOS'+loca+'/TrueSlice')
     TruePlotName=str(TrueFolder+'/NoBoxTrueSliceNref'+str(int(Nre)))
-    plot_mesh(Mesh1,TrueFolder,TruePlotName)
+    ub=np.amax(Mesh1)
+    lb=np.amin(Mesh1)
+    plot_mesh(Mesh1,TrueFolder,TruePlotName,lb,ub)
     TrueFolder=str('./GeneralMethodPowerFigures/LOS'+loca+'/TrueSlice/Rad')
     TruePlotName=str(TrueFolder+'/NoBoxTrueSliceNref'+str(int(Nre)))
-    plot_mesh(RadMesh1,TrueFolder,TruePlotName)
+    ub=np.amax(RadMesh1)
+    lb=np.amin(RadMesh1)
+    plot_mesh(RadMesh1,TrueFolder,TruePlotName,lb,ub)
     print('True mesh saved at', Truename)
     print('Quality',Q1)
     Truename=str('Parameters/PerfectRef'+loca+'/True.npy')
@@ -323,13 +325,17 @@ if __name__ == '__main__':
     np.save(TrueQname,Q2)
     TrueFolder=str('./GeneralMethodPowerFigures/PerfectRef'+loca+'/TrueSlice')
     TruePlotName=str(TrueFolder+'/NoBoxTrueSliceNref'+str(int(Nre)))
-    plot_mesh(Mesh2,TrueFolder,TruePlotName)
+    ub=np.amax(Mesh2)
+    lb=np.amin(Mesh2)
+    plot_mesh(Mesh2,TrueFolder,TruePlotName,lb,ub)
     TrueFolder=str('./GeneralMethodPowerFigures/PerfectRef'+loca+'/TrueSlice/RadA')
     TruePlotName=str(TrueFolder+'/NoBoxTrueRadSliceNref'+str(int(Nre)))
-    plot_mesh(RadMesh2a,TrueFolder,TruePlotName)
+    ub=max(np.amax(RadMesh2a),np.amax(RadMesh2b))
+    lb=min(np.amin(RadMesh2a),np.amin(RadMesh2b))
+    plot_mesh(RadMesh2a,TrueFolder,TruePlotName,lb,ub)
     TrueFolder=str('./GeneralMethodPowerFigures/PerfectRef'+loca+'/TrueSlice/RadB')
     TruePlotName=str(TrueFolder+'/NoBoxTrueRadSliceNref'+str(int(Nre)))
-    plot_mesh(RadMesh2b,TrueFolder,TruePlotName)
+    plot_mesh(RadMesh2b,TrueFolder,TruePlotName,lb,ub)
     print('True mesh saved at', Truename)
     print('Quality',Q2)
     Truename=str('Parameters/SingleRef'+loca+'/True.npy')
@@ -342,13 +348,17 @@ if __name__ == '__main__':
     np.save(TrueQname,Q3)
     TrueFolder=str('./GeneralMethodPowerFigures/SingleRef'+loca+'/TrueSlice')
     TruePlotName=str(TrueFolder+'/NoBoxTrueSliceNref'+str(int(Nre)))
-    plot_mesh(Mesh3,TrueFolder,TruePlotName)
+    ub=np.amax(Mesh3)
+    lb=np.amin(Mesh3)
+    plot_mesh(Mesh3,TrueFolder,TruePlotName,lb,ub)
     TrueFolder=str('./GeneralMethodPowerFigures/SingleRef'+loca+'/TrueSlice/RadA')
     TruePlotName=str(TrueFolder+'/NoBoxTrueRadSliceNref'+str(int(Nre)))
-    plot_mesh(RadMesh3a,TrueFolder,TruePlotName)
+    ub=max(np.amax(RadMesh3a),np.amax(RadMesh3b))
+    lb=min(np.amin(RadMesh3a),np.amin(RadMesh3b))
+    plot_mesh(RadMesh3a,TrueFolder,TruePlotName,lb,ub)
     TrueFolder=str('./GeneralMethodPowerFigures/SingleRef'+loca+'/TrueSlice/RadB')
     TruePlotName=str(TrueFolder+'/NoBoxTrueRadSliceNref'+str(int(Nre)))
-    plot_mesh(RadMesh3b,TrueFolder,TruePlotName)
+    plot_mesh(RadMesh3b,TrueFolder,TruePlotName,lb,ub)
     print('True mesh saved at', Truename)
     print('Quality',Q3)
     #sys.exit(main(sys.argv))

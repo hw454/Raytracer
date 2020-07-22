@@ -255,7 +255,7 @@ def MeshProgram(repeat=0,plottype=str()):
   #--------------Run the ray tracer for each ray number-----------------
   for j in range(0,nra):
     #------------Initialise the Mesh------------------------------------
-    Mesh=DSM.DS(Nx,Ny,Nz,Nob*Nre+1,Nra[j]*(Nre+1),split)
+    Mesh=DSM.DS(Nx,Ny,Nz,Nob*Nre+1,Nra[j]*(Nre+1),np.complex128,split)
     print('-------------------------------')
     print('Starting the ray bouncing and information storage')
     print('-------------------------------')
@@ -267,15 +267,15 @@ def MeshProgram(repeat=0,plottype=str()):
     The rays are reflected Nre times in directions Direc from Tx then
     the information about their paths is stored in Mesh.'''
     Rays, Mesh=Room.ray_mesh_bounce(Tx,Nre,Nra[j],Direc,Mesh,deltheta[j])
-    if Mesh.check_nonzero_col(Nre):
+    if Mesh.check_nonzero_col(Nre,Nob):
       pass
     else:
       print('Too many nonzero terms in column')
-    Mesh,ind=Mesh.__del_doubles__(h,Nob)
-    if Mesh.check_nonzero_col(Nre):
-      pass
-    else:
-      print('Too many nonzero terms in column after del')
+    #Mesh,ind=Mesh.__del_doubles__(h,Nob)
+    # if Mesh.check_nonzero_col(Nre):
+      # pass
+    # else:
+      # print('Too many nonzero terms in column after del')
     t1=t.time()
     timesmat[j]=t1-t0
     #----------Save the Mesh for further calculations
@@ -477,7 +477,7 @@ def power_grid(repeat=0,plottype=str(),Roomnum=0):
   ##----Retrieve the Raytracing Parameters-----------------------------
   PerfRef    =np.load('Parameters/PerfRef.npy')
   LOS        =np.load('Parameters/LOS.npy')
-  Nre,h,L    =np.load('Parameters/Raytracing.npy')
+  Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
   Nra        =np.load('Parameters/Nra.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       nra=np.array([Nra])
@@ -664,7 +664,7 @@ def plot_grid(plottype=str(),index=0):
   Loads `Power_grid.npy` and for each z step plots a heatmap of the \
   values at the (x,y) position.
   '''
-  Nre,h,L    =np.load('Parameters/Raytracing.npy')
+  Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
   Nra        =np.load('Parameters/Nra.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       Nra=np.array([Nra])
@@ -845,17 +845,16 @@ if __name__=='__main__':
   Timemat[0,5]/=(testnum)
   Timemat/=(timetest)
   plot_grid(plottype)        # Plot the power in slices.
-  #mp.clf()
   print('-------------------------------')
   print('Time to complete program')
-  #print(Timemat)
+  print(Timemat)
   print('-------------------------------')
   Nra         =np.load('Parameters/Nra.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       nra=Nra
   else:
       nra=Nra[0]
-  Nre,h,L     =np.load('Parameters/Raytracing.npy')
+  Nre,h,L     =np.load('Parameters/Raytracing.npy')[0:3]
   if not os.path.exists('./Times'):
     os.makedirs('./Times')
   if not os.path.exists('./Times/'+plottype):

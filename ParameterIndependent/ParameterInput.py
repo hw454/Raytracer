@@ -39,7 +39,7 @@ def DeclareParameters():
   Nra=np.ones((1,nrays),dtype=int)
   Nra=Nra[0]
   Nre=2 # Number of reflections
-  Ns=10   # Number of steps on longest axis.
+  Ns=5   # Number of steps on longest axis.
   split=4 # Number of steps through each mesh square
   l1=2.0   # Interior obstacle scale
   l2=3.0   # Outer Boundary length scale
