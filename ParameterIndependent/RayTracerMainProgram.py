@@ -6,18 +6,21 @@
   the ray trajectories.
   * the function :py:func:`MeshProgram` to compute the points for \
   the ray trajectories and iterate along the rays storing the \
-  information in a :py:class:`DictionarySparseMatrix.DS` and outputing \
+  information in a :py:mod:`DictionarySparseMatrix.DS` and outputing \
   the points and mesh.
-  * the function :py:func:`power_grid` which loads the last saved \
+  * the function :py:func:`StdProgram` uses a standard ray-tracing approach\
+  iterating along a ray and calculating the field as each step is taken \
+  then converting to power at the end. This is for comparison.
+  * the function :py:func:`power_grid` which loads the last saved power grid\
   and loads the antenna and obstacle physical parameters from \
   :py:func:`ParameterInput.ObstacleCoefficients`. It uses these and \
-  the functions :py:func:`RefCoefComputation` which output Rper \
-  and Rpar the perpendicular and parallel to polarisation reflection \
-  coefficients, and the function :py:func:`RefCombine` to \
-  get the loss from reflection for each ray segment entering each grid \
-  point. This is then combine with the distance of each raysegments \
-  travel from the mesh and the antenna gains to get the Power in \
-  decibels.
+  the functions :py:func:`power_compute` in \
+  :py:class:`DictionarySparseMatrix.DS` to compute the power in db \
+  at all the non-zero positions of the grid.
+  * the function :py:func:`Quality` uses the grid of values saved in \
+  './Mesh/'+plottype+'/DSM'+str(Nra[j])+'Refs'+str(Nre)+'m.npy' and the function \
+  :py:func:`quality_compute` in :py:mod:`DictionarySparseMatrix` to compute \
+  the quality on the environment.
 
   * The ray points from :py:func:`RayTracer` are saved as:
     'RayPoints\ **Nra**\ Refs\ **Nre**\ n.npy' with **Nra** replaced by the \
@@ -27,6 +30,8 @@
     by the \
     number of rays and **Nre** replaced by the number of reflections. \
     The mesh is saved as 'DSM\ **Nra**\ Refs\ **Nre**\ m.npy'.
+
+  When arrays are referrred to these are numpy arrays.
 
   '''
 import numpy as np
@@ -50,18 +55,18 @@ def RayTracer():
   :py:func:`ParameterInput.DeclareParameters()` The raytracing \
   parameters defined in this function are saved and then loaded.
 
-  * 'Raytracing.npy' - An array of 4 floats which is saved to \
+  * 'Raytracing.npy' - An array of shape (4,) of floats which is saved to \
   [Nra (number of rays), Nre (number of reflections), \
   h (relative meshwidth), \
   L (room length scale, the longest axis has been rescaled to 1 and this \
   is it's original length)]
-  * 'Obstacles.npy'  - An array for 3x3x1 arrays containing co-ordinates \
+  * 'Obstacles.npy'  - An array of shape (3,3) containing co-ordinates \
   forming triangles which form the obstacles. This is saved to Oblist \
   (The obstacles which are within the outerboundary )
-  * 'Origin.npy'     - A 3x1 array for the co-ordinate of the source. \
+  * 'Origin.npy'     - An array of shape (3,) for the co-ordinate of the source. \
   This is saved to Tx  (The location of the source antenna and origin \
   of every ray)
-  * 'OuterBoundary.npy' - An array for 3x3x1 arrays containing \
+  * 'OuterBoundary.npy' - An array of shape (3,3) containing \
   co-ordinates forming triangles which form the obstacles. This is \
   saved to OuterBoundary   (The Obstacles forming the outer boundary of \
   the room )
@@ -72,7 +77,7 @@ def RayTracer():
 
      Oblist=[Oblist,OuterBoundary]
 
-  * 'Directions.npy' - An Nrax3x1 array containing the vectors which \
+  * 'Directions.npy' - An array of shape (Nra,3) containing the vectors which \
   correspond to the initial direction of each ray. This is save to Direc.
 
   A room is initialised with *Oblist* using the :class:`room` \
@@ -135,7 +140,7 @@ def RayTracer():
       os.makedirs('./Mesh/'+plottype)
     filename=str('./Mesh/'+plottype+'/RayPoints'+str(int(Nra[j]))+'Refs'+str(int(Nre))+'m.npy')
     np.save(filename,Rays)
-    # The "Rays" file is Nra+1 x Nre+1 x 4 array containing the
+    # The "Rays" file is and array of shape (Nra+1 ,Nre+1 , 4)  containing the
     # co-ordinate and obstacle number for each reflection point corresponding
     # to each source ray.
 
@@ -149,18 +154,18 @@ def MeshProgram(repeat=0,plottype=str()):
   Parameters for the raytracer are input in :py:mod:`ParameterInput`
   The raytracing parameters defined in this module are saved and then loaded.
 
-  * 'Raytracing.npy' - An array of 4 floats which is saved to \
+  * 'Raytracing.npy' - An array of shape (4,) of floats which is saved to \
   [Nra (number of rays), Nre (number of reflections), \
   h (relative meshwidth), \
   L (room length scale, the longest axis has been rescaled to 1 and this \
   is it's original length)]
-  * 'Obstacles.npy'  - An array for 3x3x1 arrays containing co-ordinates \
+  * 'Obstacles.npy'  - An array of shape (3,3) containing co-ordinates \
   forming triangles which form the obstacles. This is saved to Oblist \
   (The obstacles which are within the outerboundary )
-  * 'Origin.npy'     - A 3x1 array for the co-ordinate of the source. \
+  * 'Origin.npy'     - An array of shape (3,) for the co-ordinate of the source. \
   This is saved to Tx  (The location of the source antenna and origin \
   of every ray)
-  * 'OuterBoundary.npy' - An array for 3x3x1 arrays containing \
+  * 'OuterBoundary.npy' - An array of shape (3,3) containing \
   co-ordinates forming triangles which form the obstacles. This is \
   saved to OuterBoundary   (The Obstacles forming the outer boundary of \
   the room )
@@ -271,7 +276,7 @@ def MeshProgram(repeat=0,plottype=str()):
       pass
     else:
       print('Too many nonzero terms in column')
-    #Mesh,ind=Mesh.__del_doubles__(h,Nob)
+    Mesh,ind=Mesh.__del_doubles__(h,Nob)
     # if Mesh.check_nonzero_col(Nre):
       # pass
     # else:
@@ -304,18 +309,18 @@ def StdProgram(plottype,index=0):
   Parameters for the raytracer are input in :py:mod:`ParameterInput`
   The raytracing parameters defined in this module are saved and then loaded.
 
-  * 'Raytracing.npy' - An array of 4 floats which is saved to \
+  * 'Raytracing.npy' - An array of shape (4,) floats which is saved to \
   [Nra (number of rays), Nre (number of reflections), \
   h (relative meshwidth), \
   L (room length scale, the longest axis has been rescaled to 1 and this \
   is it's original length)]
-  * 'Obstacles.npy'  - An array for 3x3x1 arrays containing co-ordinates \
+  * 'Obstacles.npy'  - An array of shape (3,3) containing co-ordinates \
   forming triangles which form the obstacles. This is saved to Oblist \
   (The obstacles which are within the outerboundary )
-  * 'Origin.npy'     - A 3x1 array for the co-ordinate of the source. \
+  * 'Origin.npy'     - An array of shape (3,) for the co-ordinate of the source. \
   This is saved to Tx  (The location of the source antenna and origin \
   of every ray)
-  * 'OuterBoundary.npy' - An array for 3x3x1 arrays containing \
+  * 'OuterBoundary.npy' - An array of shape (3,3) containing \
   co-ordinates forming triangles which form the obstacles. This is \
   saved to OuterBoundary   (The Obstacles forming the outer boundary of \
   the room )
@@ -450,7 +455,8 @@ def power_grid(repeat=0,plottype=str(),Roomnum=0):
   Loads:
 
   * (*Nra*\ = number of rays, *Nre*\ = number of reflections, \
-  *h*\ = meshwidth, *L*\ = room length scale)=`Paramters/Raytracing.npy`
+  *h*\ = meshwidth, *L*\ = room length scale, *split*\ =number of steps through a mesh element)\
+  =`Paramters/Raytracing.npy`
   * (*Nob*\ =number of obstacles)=`Parameters/Nob.npy`
   * (*Gt*\ =transmitter gains)=`Parameters/TxGains.npy`
   * (*freq*\ = frequency)=`Parameters/frequency.npy`
@@ -468,7 +474,7 @@ def power_grid(repeat=0,plottype=str(),Roomnum=0):
   * Use the function :py:func:`DictionarySparseMatrix.DS.power_compute`
   to compute the power.
 
-  :rtype: Nx \ Ny x Nz numpy array of floats.
+  :rtype: numpy array of shape (Nx,Ny,Nz)
 
   :returns: Grid
 
@@ -561,7 +567,8 @@ def Quality(plottype=str(),Roomnum=0):
   Loads:
 
   * (*Nra*\ = number of rays, *Nre*\ = number of reflections, \
-  *h*\ = meshwidth, *L*\ = room length scale)=`Paramters/Raytracing.npy`
+  *h*\ = meshwidth, *L*\ = room length scale, *split*\ =number of steps through a mesh element)\
+  =`Paramters/Raytracing.npy`
   * (*Nob*\ =number of obstacles)=`Parameters/Nob.npy`
   * (*Gt*\ =transmitter gains)=`Parameters/TxGains.npy`
   * (*freq*\ = frequency)=`Parameters/frequency.npy`
@@ -578,7 +585,7 @@ def Quality(plottype=str(),Roomnum=0):
   * Use the function :py:func:`DictionarySparseMatrix.DS.power_compute`
   to compute the power.
 
-  :rtype: Nx \ Ny x Nz numpy array of floats.
+  :rtype: A numpy array of shape (Nx,Ny,Nz)
 
   :returns: Grid
 
@@ -666,6 +673,7 @@ def plot_grid(plottype=str(),index=0):
   '''
   Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
   Nra        =np.load('Parameters/Nra.npy')
+  cmapopt    =str('plasma')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       Nra=np.array([Nra])
       nra=1
@@ -709,7 +717,7 @@ def plot_grid(plottype=str(),index=0):
       mp.figure(i)
       #
       #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-      mp.imshow(P[:,:,i], cmap='viridis', vmax=ub,vmin=lb)
+      mp.imshow(P[:,:,i], cmap=cmapopt, vmax=ub,vmin=lb)
       mp.colorbar()
       rayfolder=str('./GeneralMethodPowerFigures/'+plottype+'/PowerSlice/Nra'+str(int(Nra[j])))
       if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/PowerSlice'):
@@ -721,7 +729,7 @@ def plot_grid(plottype=str(),index=0):
       mp.savefig(filename)
       mp.clf()
       mp.figure(i)
-      mp.imshow(RadA[:,:,i], cmap='viridis', vmax=rub,vmin=rlb)
+      mp.imshow(RadA[:,:,i], cmap=cmapopt, vmax=rub,vmin=rlb)
       mp.colorbar()
       rayfolder=str('./GeneralMethodPowerFigures/'+plottype+'/RadSlice/Nra'+str(int(Nra[j])))
       if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/RadSlice'):
@@ -733,7 +741,7 @@ def plot_grid(plottype=str(),index=0):
       mp.savefig(filename)
       mp.clf()
       mp.figure(i)
-      mp.imshow(RadB[:,:,i], cmap='viridis', vmax=rub,vmin=rlb)
+      mp.imshow(RadB[:,:,i], cmap=cmapopt, vmax=rub,vmin=rlb)
       mp.colorbar()
       filename=str(rayfolder+'/NoBoxRadBSliceNra'+str(int(Nra[j]))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.jpg')#.eps')
       mp.savefig(filename)
@@ -741,7 +749,7 @@ def plot_grid(plottype=str(),index=0):
   # for i in range(n2):
     # mp.figure(n+i)
     # #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-    # mp.imshow(P2[:,:,i], cmap='viridis',  vmax=ub,vmin=lb)
+    # mp.imshow(P2[:,:,i], cmap=cmapopt,  vmax=ub,vmin=lb)
     # mp.colorbar()
     # filename=str('GeneralMethodPowerFigures/NoBoxPowerSliceNrastd'+str(int(Nra))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
     # mp.savefig(filename)
@@ -749,7 +757,7 @@ def plot_grid(plottype=str(),index=0):
       # for i in range(n3):
         # mp.figure(n2+n+i)
         # #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-        # mp.imshow(Pdiff[:,:,i], cmap='viridis')#, vmax=max(ub2,ub),vmin=min(lb,lb2))
+        # mp.imshow(Pdiff[:,:,i], cmap=cmapopt)#, vmax=max(ub2,ub),vmin=min(lb,lb2))
         # mp.colorbar()
         # filename=str('GeneralMethodPowerFigures/NoBoxPowerDiffSliceNra'+str(int(Nra))+'Nref'+str(int(Nre))+'slice'+str(int(i+1))+'of'+str(int(n))+'.eps')
         # mp.savefig(filename)
@@ -757,7 +765,7 @@ def plot_grid(plottype=str(),index=0):
     for i in range(n):
       mp.figure(2*n+i)
       #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-      mp.imshow(Pdifftil[:,:,i], cmap='viridis', vmax=1,vmin=0)
+      mp.imshow(Pdifftil[:,:,i], cmap=cmapopt, vmax=1,vmin=0)
       mp.colorbar()
       Difffolder=str('./GeneralMethodPowerFigures/'+plottype+'/DiffSlice/Nra'+str(int(Nra[j])))
       if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/DiffSlice'):
@@ -771,7 +779,7 @@ def plot_grid(plottype=str(),index=0):
   for i in range(n):
       mp.figure(n+i)
       #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-      mp.imshow(P3[:,:,i], cmap='viridis',  vmax=ub,vmin=lb)
+      mp.imshow(P3[:,:,i], cmap=cmapopt,  vmax=ub,vmin=lb)
       mp.colorbar()
       truefolder=str('./GeneralMethodPowerFigures/'+plottype+'/TrueSlice')
       if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/TrueSlice'):

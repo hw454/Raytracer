@@ -637,6 +637,11 @@ def PlotDirections(plottype=str()):
     return
 
 def PlotPowerSlice(plottype):
+    '''Plot slices through the environment showing heatmaps of the power.
+    Step through the xx, y, and z axis and plot the power. The error residual,
+    and the distances of the rays.
+    '''
+    cmapopt=str('plasma')
     ##----Retrieve the Raytracing Parameters-----------------------------
     Nra         =np.load('Parameters/Nra.npy')
     if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
@@ -706,7 +711,7 @@ def PlotPowerSlice(plottype):
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='x_axes',
                             slice_index=int(l),
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=Pmax,
                             vmin=Pmin
                         )
@@ -717,7 +722,7 @@ def PlotPowerSlice(plottype):
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,PowerDiff),
                             plane_orientation='x_axes',
                             slice_index=int(l),
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=1,
                             vmin=0
                         )
@@ -728,7 +733,7 @@ def PlotPowerSlice(plottype):
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadA),
                             plane_orientation='x_axes',
                             slice_index=int(l),
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=Radmax,
                             vmin=Radmin
                         )
@@ -739,7 +744,7 @@ def PlotPowerSlice(plottype):
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadB),
                             plane_orientation='x_axes',
                             slice_index=int(l),
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=Radmax,
                             vmin=Radmin
                         )
@@ -751,7 +756,7 @@ def PlotPowerSlice(plottype):
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='y_axes',
                             slice_index=int(l),
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=Pmax,
                             vmin=Pmin
                         )
@@ -762,7 +767,7 @@ def PlotPowerSlice(plottype):
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,PowerDiff),
                             plane_orientation='y_axes',
                             slice_index=int(l),
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=1,
                             vmin=0
                         )
@@ -773,7 +778,7 @@ def PlotPowerSlice(plottype):
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadA),
                             plane_orientation='y_axes',
                             slice_index=int(l),
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=Radmax,
                             vmin=Radmin
                         )
@@ -784,7 +789,7 @@ def PlotPowerSlice(plottype):
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadB),
                             plane_orientation='y_axes',
                             slice_index=int(l),
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=Radmax,
                             vmin=Radmin
                         )
@@ -796,7 +801,7 @@ def PlotPowerSlice(plottype):
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='z_axes',
                             slice_index=int(l),
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=Pmax,
                             vmin=Pmin
                         )
@@ -807,7 +812,7 @@ def PlotPowerSlice(plottype):
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,PowerDiff),
                             plane_orientation='z_axes',
                             slice_index=int(l),
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=1,
                             vmin=0
                         )
@@ -818,7 +823,7 @@ def PlotPowerSlice(plottype):
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadA),
                             plane_orientation='z_axes',
                             slice_index=int(l),
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=Radmax,
                             vmin=Radmin
                         )
@@ -829,7 +834,7 @@ def PlotPowerSlice(plottype):
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadB),
                             plane_orientation='z_axes',
                             slice_index=int(l),
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=Radmax,
                             vmin=Radmin
                         )
@@ -848,7 +853,7 @@ def PlotPowerSlice(plottype):
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='x_axes',
                             slice_index=int(l),
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=Pmax,
                             vmin=Pmin
                         )
@@ -860,7 +865,7 @@ def PlotPowerSlice(plottype):
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='y_axes',
                             slice_index=int(l),
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=Pmax,
                             vmin=Pmin
                         )
@@ -872,7 +877,7 @@ def PlotPowerSlice(plottype):
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='z_axes',
                             slice_index=int(l),
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=Pmax,
                             vmin=Pmin
                         )

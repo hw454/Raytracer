@@ -26,9 +26,7 @@ def makematrix_perfectreflection(index=0):
   # Run the ParameterInput file
   out1=PI.DeclareParameters()
   out2=PI.ObstacleCoefficients()
-  if out1==0 & out2==0: pass
-  else:
-      raise('Error occured in parameter declaration')
+  if not (out1==0 and out2==0): raise('Error occured in parameter declaration')
 
   ##---- Define the room co-ordinates----------------------------------
   # Obstacles are triangles stored as three 3D co-ordinates
@@ -94,7 +92,7 @@ def makematrix_perfectreflection(index=0):
       xhatleng=np.linalg.norm(x-Txhat)
       if Txleng!=0:
         field=DSM.FieldEquation(Txleng,khat,L,lam)*Pol
-        field+=DSM.FieldEquation(xhatleng,khat,L,lam)*Pol
+      field+=DSM.FieldEquation(xhatleng,khat,L,lam)*Pol
       P=(np.absolute(field[0])**2+np.absolute(field[1])**2)
       Mesh[i,j,k]=10*np.log10(P,where=(P!=0))
       RadMeshA[i,j,k]=Txleng
@@ -108,7 +106,7 @@ def makematrix_LOS(index=0):
   # Run the ParameterInput file
   out1=PI.DeclareParameters()
   out2=PI.ObstacleCoefficients()
-  if out1==0 & out2==0: pass
+  if out1==0 and out2==0: pass
   else:
       raise('Error occured in parameter declaration')
 
@@ -127,7 +125,7 @@ def makematrix_LOS(index=0):
 
   ##----Retrieve the environment--------------------------------------
   Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
-  Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
+  Tx            =np.load('Parameters/Origin.npy')/L             # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
   Direc         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
   deltheta      =np.load('Parameters/delangle.npy')
@@ -153,11 +151,11 @@ def makematrix_LOS(index=0):
   Mesh   =np.zeros((Nx,Ny,Nz),dtype=float)
   RadMesh=np.zeros((Nx,Ny,Nz),dtype=float)
 
-  h*=L
   for i,j,k in product(range(Nx),range(Ny),range(Nz)):
       x=Room.coordinate(h,i,j,k)
       Txleng=np.linalg.norm(x-Tx)
-      field=(lam*L/(4*ma.pi*Txleng))*np.exp(1j*khat*Txleng*L)*Pol
+      if Txleng!=0:
+        field=DSM.FieldEquation(Txleng,khat,L,lam)*Pol
       Mesh[i,j,k]=10*np.log10((np.absolute(field[0])**2+np.absolute(field[1])**2))
       RadMesh[i,j,k]=Txleng
   return Mesh,RadMesh
@@ -188,7 +186,7 @@ def makematrix_withreflection(index=0):
 
   ##----Retrieve the environment--------------------------------------
   Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
-  Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
+  Tx            =np.load('Parameters/Origin.npy')/L             # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
   Direc         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
   deltheta      =np.load('Parameters/delangle.npy')
@@ -215,7 +213,6 @@ def makematrix_withreflection(index=0):
   Nx=int(1/(h))
   Ny=int(1/(h))
   Nz=int(1/(h))
-  h*=L
   Mesh    =np.zeros((Nx,Ny,Nz),dtype=float)
   RadMeshA=np.zeros((Nx,Ny,Nz),dtype=float)
   RadMeshB=np.zeros((Nx,Ny,Nz),dtype=float)
@@ -225,7 +222,7 @@ def makematrix_withreflection(index=0):
   n=np.cross(p0-p1,p0-p2)
   n/=np.sqrt(np.dot(n,n))
   # y is the intersection point on surface 0 which is closest to the transmitter.
-  y=(Tx-np.dot((Tx-p0),n)*n)
+  y=(Tx-np.dot((Tx-p0),n)*n/np.dot(n,n))
   # Txhat is the image transmitter location
   Txhat=2*y-Tx
   for i,j,k in product(range(Nx),range(Ny),range(Nz)):
@@ -237,10 +234,11 @@ def makematrix_withreflection(index=0):
       I2=(np.dot(p0-Txhat,n)/(np.dot(d2,n)))*d2+Txhat
       chck=inst.InsideCheck(I2,Tri)
       chck2=inst.InsideCheck(I2,Tri2)
-      #    d/=Txleng
-      #   I=(np.dot(p0-Tx,n)/(np.dot(d,n)))*d+Tx
-      #    chck=max(inst.InsideCheck(I,Tri),inst.InsideCheck(I,Tri2))
-      blah=(np.dot(n,Tx-x)/(Txleng))
+      xhatleng=np.linalg.norm(Txhat-x)
+      if Txleng!=0:
+        blah=(np.dot(n,Tx-x)/(Txleng))
+      else:
+        blah=np.dot(n,Tx-I2)/np.linalg.norm(Tx-I2)
       theta=np.arcsin(blah)
       cthi=np.cos(theta)
       if chck==1:
@@ -251,22 +249,23 @@ def makematrix_withreflection(index=0):
         ctht=np.cos(np.arcsin(np.sin(theta)/refindex[1]))
         S1=cthi*Znobrat[1]
         S2=ctht*Znobrat[1]
-      field=(lam*L/(4*ma.pi*Txleng))*np.exp(1j*khat*Txleng*L)*Pol
-      xhatleng=np.linalg.norm(Txhat-x)
+      if Txleng!=0:
+        field=DSM.FieldEquation(Txleng,khat,L,lam)*Pol
       Refcoef=np.array([[(S1-ctht)/(S1+ctht),.0+0.0j],[.0+0.0j,(cthi-S2)/(cthi+S2)]])
-      field+=(L*lam/(4*ma.pi*(xhatleng)))*np.exp(1j*khat*(xhatleng)*L)*np.matmul(Refcoef,Pol)
+      field+=DSM.FieldEquation(xhatleng,khat,L,lam)*np.matmul(Refcoef,Pol)
       Mesh[i,j,k]=10*np.log10((np.absolute(field[0])**2+np.absolute(field[1])**2))
       RadMeshA[i,j,k]=Txleng
       RadMeshB[i,j,k]=xhatleng
   return Mesh,RadMeshA, RadMeshB
 
 def plot_mesh(Mesh,Meshfolder,Meshname,lb,ub):
+  cmapopt=str('plasma')
   n=Mesh.shape[2]
 
   for i in range(n):
       mp.figure(n+i)
       #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-      mp.imshow(Mesh[:,:,i], cmap='viridis',  vmax=ub,vmin=lb)
+      mp.imshow(Mesh[:,:,i], cmap=cmapopt,  vmax=ub,vmin=lb)
       mp.colorbar()
       if not os.path.exists(Meshfolder):
         os.makedirs(Meshfolder)

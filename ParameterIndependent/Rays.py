@@ -58,12 +58,12 @@ class Ray:
     # Find the intersection with all the walls and check which is the
     #closest. Verify that the intersection is not the current origin.
     if all(p is not None for p in s.points[-1]):
-      # Retreive the Maximum length from the Room
+      # Retrieve the Maximum length from the Room
       leng2=0
       leng=room.maxleng()
       # Initialise the intersection point, obstacle and obstacle number
-      robj=room.obst[0].copy()
-      rcp=s._obst_collision_point_(robj).copy()
+      robj=room.obst[0]
+      rcp=s._obst_collision_point_(robj)
       Nob=1
       # Check the initialised intersection point exists.
       if all(p is None for p in rcp): rNob=0
@@ -78,8 +78,8 @@ class Ray:
           leng2=s._ray_length_(cp)
           if (leng2<leng and leng2>-epsilon) :
             leng=leng2
-            rcp=cp.copy()
-            robj=obj.copy()
+            rcp=cp
+            robj=obj
             rNob=Nob
           Nob+=1
         else:
@@ -88,7 +88,14 @@ class Ray:
     else:
       return np.array([None, None, None]), 0
   def _ray_length_(s,inter):
-    '''The length of the ray upto the intersection '''
+    '''The length of the ray upto the intersection.
+    :param inter: An array of shape (3,) with the co-ordinate of intersection point.
+
+    * Retrieve the previous point from the second to last term in the ray points.
+    * Compute the length between this point and inter.
+
+    :retype float
+    :return: length'''
     o=s.points[-2][0:3]
     ray=np.array([o,inter])
     return lf.length(ray)
@@ -108,6 +115,9 @@ class Ray:
 
     :returns: 1+ns'''
     ns=no_steps(alpha,segleng,dist,delangle,refangle)
+    if ns<(segleng/alpha):
+        errmsg=str('The number of steps along the ray is less than the number needed to reach the intersection')
+        raise ValueError(errmsg)
     return int(1+ns)
   def _number_cones_(s,h,dist,delangle,refangle):
      '''find the number of steps taken along one normal in the cone.
@@ -120,7 +130,15 @@ class Ray:
      Ncon=no_cones(h,dist,delangle,refangle,nref)
      return Ncon
   def _number_cone_steps_(s,h,dist,delangle):
-     '''find the number of steps taken along one normal in the cone'''
+     '''find the number of steps taken along one normal in the cone.
+     :param h: The distance through each mesh element.
+     :param dist: The distance the ray has travelled so far.
+     :param delangle: The angle spacing between two diagnoally neighbouring rays.
+
+     Uses :py:func:`no_cone_steps` to get Nc
+
+     :rtype:int
+     :return:Ns'''
      Nc=no_cone_steps(h,dist,delangle)
      return Nc
   def _normal_mat_(s,Ncones,Nra,d,dist,h):
@@ -244,16 +262,6 @@ class Ray:
     :return: theta
 
     '''
-    nob=0.0            # Initialising to prevent pointing error.
-    nleng=0.0          # Initialising to prevent pointing error.
-    dleng=0.0          # Initialising to prevent pointing error.
-    frac=0.0           # Initialising to prevent pointing error.
-    theta=0.0          # Initialising to prevent pointing error.
-    direc=np.array([]) # Initialising to prevent pointing error.
-    direc=np.array([]) # Initialising to prevent pointing error.
-    obst=np.array([])  # Initialising to prevent pointing error.
-    norm= np.array([]) # Initialising to prevent pointing error.
-    check=0            # Initialising to prevent pointing error.
     nob=s.points[-2][-1]
     direc=s.points[-1][0:3]
     obst=room.obst[int(nob-1)]
@@ -284,7 +292,7 @@ class Ray:
     co-ordinate of the reflected ray. Store this in s.points \
     and return whether the function was successful.
 
-    :rtype: 3x1 numpy array.
+    :rtype: A numpy array of shape (3,)
 
     :return: end=1 if unsuccessful, 0 is successful.
 
@@ -328,7 +336,6 @@ class Ray:
       else:
         errmsg=str('There is a column in the mesh with too many terms, '+str(Nre)+' reflections completed')
         raise ValueError(errmsg)
-    del dist,vec
     return Mesh
   def mesh_power_multiref(s,room,Nre,Mesh,Nra,it,Znobrat,refindex,Antpar,refcoef,deltheta):
     ''' Takes a ray and finds the first Nre reflections within a room.
@@ -436,6 +443,28 @@ class Ray:
     # ------Get the parameters from the ray
     nre=s.points.shape[0]-3         # The reflection number of the current ray
     nob=int(s.points[-3][-1])       # The obstacle number of the last reflection
+    if dist>room.maxleng()*(nre+1):
+      errmsg=str('The distance the ray has travelled is longer than possible')
+      raise ValueError(errmsg)
+    if nre>Nre:
+      errmsg=str('The reflection number is greater than the total number of reflections')
+      raise ValueError(errmsg)
+    elif nre<0:
+      errmsg=str('reflection number can not be negative')
+    elif nre!=calcvec.getnnz():
+      errmsg=str('The reflection number is wrong')
+      raise ValueError(errmsg)
+    if nra>Nra:
+      errmsg=str('The ray number is greater than the total number of rays')
+      raise ValueError(errmsg)
+    elif nra<0:
+      errmsg=str('ray number can not be negative')
+    if nob>Nob:
+      errmsg=str('The obstacle number is greater than the total number of obstacles')
+      raise ValueError(errmsg)
+    elif nob<0:
+      errmsg=str('obstacle number can not be negative')
+
     split=Mesh.split
     # Compute the direction - Since the Ray has reflected but we are
     # storing previous information we want the direction of the ray which
@@ -453,9 +482,9 @@ class Ray:
                                                            # direc goes through it.
     else: raise ValueError('The ray is not going anywhere')# If the direction vector is 0 nothing is happening.
     p0=s.points[-3][0:3]       # Set the initial point to the start of the segment.
-    p1=p0.copy()          # p0 should remain constant and p1 is stepped.
+    p1=p0.copy()               # p0 should remain constant and p1 is stepped.
     i1,j1,k1=room.position(p1,h)                           # Find the indices for position p
-    theta=s._ref_angle_(room)                                           # Compute the reflection angle
+    theta=s._ref_angle_(room)                              # Compute the reflection angle
     segleng=lf.length(np.vstack((p0,s.points[-2][0:3]))) # Length of the ray segment
     # Dist will be increased as the ray is stepped through. But this will go beyond the intersection point.
     # Outdist is the distance the ray has travelled from the source to the intersection point.
@@ -486,6 +515,9 @@ class Ray:
                                             # a new element.
         if i2==i1 and j2==j1 and k2==k1:    # If the indices are equal pass as no new element.
           rep=1
+        elif abs(i2-i1)>1 or abs(j2-j1)>1 or abs(k2-k1)>1:
+          errmsg=str('The ray has stepped further than one mesh element')
+          raise ValueError(errmsg)
         else:
           i1=i2                             # Reset the check indices for the next check.
           j1=j2
@@ -514,31 +546,28 @@ class Ray:
             if Mesh.check_nonzero_col(Nre,Nob,nre,np.array([i1,j1,k1,col])):
               pass
             else:
-              raise Error('The number of nonzero terms at ',np.array([i1,j1,k1,col]),' is incorrect')
+              errmsg=str('The number of nonzero terms at ',np.array([i1,j1,k1,col]),' is incorrect')
+              raise ValueError(errmsg)
           del alcor, distcor
         if Ncon>0:
           Nc=s._number_cone_steps_(alpha,dist,deltheta)           # No. of steps taken to end of the cone.
           # Step along the and store the ray information
           if m1==0:
-            copos2,calcvec,Mesh,Cones=conestepping(col,dist,m1,split,Nc,p1,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh,calcvec,room)
+            copos2,calcvec,Mesh,Cones=conestepping(col,dist,m1,Nc,p1,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh,calcvec,room)
           else:
-            copos2,calcvec,Mesh,Cones=conestepping(col,dist,m1,split,Nc,p1,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh,calcvec,room,Cones,copos2)
+            copos2,calcvec,Mesh,Cones=conestepping(col,dist,m1,Nc,p1,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh,calcvec,room,Cones,copos2)
       else:
         # In this instance stpch==0 and end of ray keep storing cone points but not on the ray.
         if Ncon>0:
           Nc=s._number_cone_steps_(alpha,dist,deltheta)           # No. of cone steps required for this ray step.
         if m1==0:
-          copos2,calcvec,Mesh,Cones=conestepping(col,dist,m1,split,Nc,p1,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh,calcvec,room)
+          copos2,calcvec,Mesh,Cones=conestepping(col,dist,m1,Nc,p1,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh,calcvec,room)
         else:
-          copos2,calcvec,Mesh,Cones=conestepping(col,dist,m1,split,Nc,p1,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh,calcvec,room,Cones,copos2)
+          copos2,calcvec,Mesh,Cones=conestepping(col,dist,m1,Nc,p1,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh,calcvec,room,Cones,copos2)
       # Compute the next point along the ray
       p1+=alpha*direc/split
       dist+=alpha/split
       i2,j2,k2=room.position(p1,h)
-      #FIXME don't stop at the end as the cone needs to be filled
-      #if lf.length(np.array([p1-alpha*direc,s.points[-2][0:3]]))<h/4:
-      #  break
-    del norm, i1,j1,k1,p1,p0,alpha,direc,h,split,nra,Nra,Nre,copos2
     return Mesh,outdist,calcvec
 
   def mesh_power_singleray(s,room,_Grid,dist,RefCoef,Nra,nre,Nre,nra,refindex,Znobrat,khat,L,deltheta):
@@ -868,12 +897,13 @@ def duplicatecheck(copos,copos2,p3,norm,Mesh):
   copos2=copos
   return altcopos,p3out,normout,copos2
 
-def conestepping(col,dist,m1,split,Nc,p1,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh,calcvec,room,Cones=np.array([]),copos2=np.array([])):
+def conestepping(col,dist,m1,Nc,p1,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh,calcvec,room,Cones=np.array([]),copos2=np.array([])):
   '''Step through the lines which form a cone on the ray and store the ray information. Check if the ray is already stored in the mesh and that the number of non-zero terms in a column is correct after storing.
   '''# --- Initialise variables to prevent pointing erros
   Nnorcor=0           # Number of normal vectors in cone after duplicate checking.
   Nob=room.Nob
   Ncon=norm.shape[0]
+  split=Mesh.split
   for m2 in range(0,split*(Nc)):
     p3=np.tile(p1,(Ncon,1))+(m2+1)*alpha*norm/split   # Step along all the normals from the ray point p1.
     if alpha/split>h:                                 # The step size should never be bigger than the meshwidth

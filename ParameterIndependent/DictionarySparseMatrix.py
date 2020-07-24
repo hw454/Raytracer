@@ -1029,8 +1029,6 @@ class DS:
       indM=M.nonzero()                                            # The positions of the nonzero terms which are already stored.
       n2=len(indM[0])                                             # The number of nonzero columns already stored.
       rep=0                                                       # Intialise the repetition variable to 0. It'll become 1 if there's a repeat ray.
-      if ind[0][i]==5 and nre==1 and nob==0 or nob==1:
-        print('Testing statement',l,nob,nre,out[ind[0][i],ind[1][i],ind[2][i]],ind[1][i],ind[2][i])
       for j in range(n2):
         r=indM[0][j]
         c=indM[1][j]
@@ -1038,7 +1036,7 @@ class DS:
         if r!=ind[3][i] and c!=ind[4][i]:
           nobch=nob_fromrow(r,Nob)
           nrech=nre_fromrow(r,Nob)
-          if abs(l2-l)<h*0.25 and nrech==nre and nobch==nob and M[:,c].getnnz==nrech+1:
+          if  nrech==nre and nobch==nob and M[:,c].getnnz==nrech+1:#abs(l2-l)<h/s.split
             rep=1
           else:
             pass
@@ -1098,15 +1096,17 @@ class DS:
       r=indM[0][i]
       c=indM[1][i]
       if M[:,c].getnnz()==n:
-        for j in range(n):
+        j=0
+        for r in M[:,c].nonzero()[0]:
           if r==ind[0][j]:
             l2=abs(M[r,c])
-            if abs(l2-l)<h*0.25 and l2>epsilon:
-              doub=1
+            #if abs(l2-l)<h/s.split and l2>epsilon:
+            doub=1
           else:
             doub=0
-      if doub==1:
-        break
+          j+=1
+        if doub==1:
+          break
     return doub
   def refcoefbyterm_withmul(s,m,refindex,LOS=0,PerfRef=0, ind=-1):
     ''' Using the impedance ratios of the obstacles, \
@@ -1215,11 +1215,11 @@ class DS:
       '''When PerfRef==1 the refindex terms are 'a<=1' in the positions \
       corresponding to reflective surfaces and 0 elsewhere. This is not the real refractive indexes.'''
       for i in range(n):
-        if ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])==0:
+        if ind[3][i]==0 and s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz()==1:
           # LOS ray has hit the cell
           out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
           out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
-        elif ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])!=0:
+        elif ind[3][i]==0 and s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz()!=1:
           # LOS term in a ray segment with reflections
           pass
         else:
@@ -1237,7 +1237,7 @@ class DS:
              pass
     elif LOS==1:
       for i in range(n):
-        if ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])==0:
+        if ind[3][i]==0 and s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz()==1:
           # LOS ray has hit the cell
           out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
           out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
@@ -1247,12 +1247,13 @@ class DS:
     return out1,out2
 
   def togrid(s,ind):
-    ''' Compute the matrix norm at each grid point and return a \
-    3d numpy array.
+    ''' Compute the matrix norm at each grid point and return a numpy array.
+    If there is only one term at each grid point then this converts the
+    DSM which is a dictionary of sparse matrices with one term to a numpy array.
 
     :meta private:
 
-    :rtype: Nx x Ny x Nz numpy array
+    :rtype: A numpy array of shape (Nx,Ny,Nz)
 
     :return: Grid
 
@@ -1491,8 +1492,6 @@ class DS:
         k=FieldEquation(s[x,y,z,a,b],khat,L,lam)
         out1[x,y,z]+=k*Com1[x,y,z,a,b]
         out2[x,y,z]+=k*Com2[x,y,z,a,b]
-        del x,y,z,a,b,k
-    del Ni
     return out1,out2
   def dict_row_vec_multiply(s,vec,ind=-1):
     """ Multiply every row of the DSM s elementwise with the
@@ -2101,6 +2100,12 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,Per
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
     AngDSM.save_dict(angfile)
   Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,LOS,PerfRef,ind)
+  if LOS==1:
+    for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
+      if Comper[x,y,z].getnnz()>1 or Compar[x,y,z].getnnz()>1:
+        errmsg=str('Checking LOS case but more than one term is in the reflection matrix')
+        raise ValueError(errmsg)
+  print(Comper,Compar)
   rfile=str('./Mesh/rad'+str(int(Nra))+'Refs'+str(int(Nre))+'Ns'+str(int(Ns))+'.npy')
   radfile = Path(rfile)
   Nob=int((Mesh.shape[0]-1)/Nre)
