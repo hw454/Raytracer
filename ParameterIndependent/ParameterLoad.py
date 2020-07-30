@@ -40,67 +40,161 @@ def DeclareParameters(SN):
   SimParstr  ='SimulationParameters'
   Direcstr   ='Directions'
   Obststr    ='Obstacles'
+  OutBstr    ='OuterBoundary'
+  NTriObstr  ='NTriObst'
+  NTriOutstr ='NTriOut'
   Angspace   =InBook[AngSpacestr]
   SimPar     =InBook[SimParstr]
   Direc      =InBook[Direcstr]
   Obst       =InBook[Obststr]
+  OutB       =InBook[OutBstr]
+  NTriObSh   =InBook[NTriObstr]
+  NTriOutSh  =InBook[NTriOutstr]
 
   deltheta=np.array([])
-  nrays=Angspace.max_row
+  nrays=Angspace.max_row-1
   SimPar.cell(row=12,column=3).value=nrays
-  InBook.save(filename=SN)
 
-  for j in range(nrays-1):
+  for j in range(nrays):
     deltheta=np.append(deltheta,Angspace.cell(row=j+2,column=1).value)
     #np.pi*np.array([1/3])#,1/5,1/7,1/8,1/9,1/12,1/14,1/16,1/18,1/19,1/20,1/22,1/25,1/36])
-  nrays=len(deltheta)
-  Nra=np.ones((1,nrays),dtype=int)
-  Nra=Nra[0]
-  Nre=2            # Number of reflections
-  Ns=5             # Number of steps on longest axis.
-  split=4          # Number of steps through each mesh square
-  l1=2.0           # Interior obstacle scale
-  l2=3.0           # Outer Boundary length scale
-  InnerOb=0        # Indicator of whether the inner obstacles should be used
+  Nra=np.ones(nrays,dtype=int)
+  Nre=SimPar.cell(row=2,column=3).value            # Number of reflections
+  Ns=SimPar.cell(row=3,column=3).value              # Number of steps on longest axis.
+  split=SimPar.cell(row=4,column=3).value           # Number of steps through each mesh square
+  l1=SimPar.cell(row=5,column=3).value            # Interior obstacle scale
+  l2=SimPar.cell(row=6,column=3).value            # Outer Boundary length scale
+  InnerOb=SimPar.cell(row=7,column=3).value         # Indicator of whether the inner obstacles should be used
   NtriOut=np.array([])# This will be the number of triangles forming each plane surface in the outer boundary
   NtriOb=np.array([]) # This will be the number of triangles forming each plane surface in the obstacle list
-  ## Obstacles are all triangles in 3D.
-  xmi=0.5
-  xma=1.0
-  ymi=0.5
-  yma=1.0
-  zmi=0.0
-  zma=0.5
-  Oblist=BoxBuild(xmi,xma,ymi,yma,zmi,zma)
-  # In a box all surfaces are formed of two triangles
-  Nbox=2*np.ones(6)
-  NtriOb=np.append(NtriOb,Nbox)
+
+  Nbox=Obst.max_row-1
+  Oblist=np.array([])
+  for j in range(Nbox):
+    ## Obstacles are all triangles in 3D.
+    Box=Obst.cell(row=j+2,column=3).value
+    Tri=Obst.cell(row=j+2,column=4).value
+    if Box:
+        xmi=Obst.cell(row=j+2,column=5).value
+        xma=Obst.cell(row=j+2,column=6).value
+        ymi=Obst.cell(row=j+2,column=7).value
+        yma=Obst.cell(row=j+2,column=8).value
+        zmi=Obst.cell(row=j+2,column=9).value
+        zma=Obst.cell(row=j+2,column=10).value
+        if j==0:
+          Oblist=BoxBuild(xmi,xma,ymi,yma,zmi,zma)
+        else:
+          Oblist=np.vstack((Oblist,BoxBuild(xmi,xma,ymi,yma,zmi,zma)))
+        # In a box all surfaces are formed of two triangles
+        NTribox=2*np.ones(6)
+        NtriOb=np.append(NtriOb,NTribox)
+    elif Tri:
+        p0=np.ones(3)
+        p1=np.ones(3)
+        p2=np.ones(3)
+        p0[0]=Obst.cell(row=j+2,column=10).value
+        p0[1]=Obst.cell(row=j+2,column=11).value
+        p0[2]=Obst.cell(row=j+2,column=12).value
+        p1[0]=Obst.cell(row=j+2,column=13).value
+        p2[1]=Obst.cell(row=j+2,column=15).value
+        p1[2]=Obst.cell(row=j+2,column=16).value
+        p2[0]=Obst.cell(row=j+2,column=17).value
+        p2[1]=Obst.cell(row=j+2,column=18).value
+        p2[2]=Obst.cell(row=j+2,column=19).value
+        Tri=np.array([p0,p1,p2])
+        if j==1:
+          Oblist=Tri
+        else:
+          Oblist=np.vstack((Oblist,Tri))
+        # In a box all surfaces are formed of two triangles
+        NtriOb=np.append(NtriOb,1)
+  for j in range(len(NtriOb)):
+    NTriObSh.cell(row=j+1,column=1).value=NtriOb[j]
 
   #- Outer Boundary -
   # 3D co-ordinates forming a closed boundary.
-  xmi=0.0
-  xma=1.0
-  ymi=0.0
-  yma=1.0
-  zmi=0.0
-  zma=1.0
-  OuterBoundary=BoxBuild(xmi,xma,ymi,yma,zmi,zma)
-  # In a box all surfaces are formed of two triangles
-  Nbox=2*np.ones(6)
-  NtriOut=np.append(NtriOut,Nbox)
+  Nbox=OutB.max_row-1
+  OuterBoundary=np.array([])
+  for j in range(Nbox):
+    ## Obstacles are all triangles in 3D.
+    Box=OutB.cell(row=j+2,column=3).value
+    Tri=OutB.cell(row=j+2,column=4).value
+    if Box:
+        xmi=OutB.cell(row=j+2,column=2).value
+        xma=OutB.cell(row=j+2,column=3).value
+        ymi=OutB.cell(row=j+2,column=4).value
+        yma=OutB.cell(row=j+2,column=5).value
+        zmi=OutB.cell(row=j+2,column=2).value
+        zma=OutB.cell(row=j+2,column=2).value
+        Bound=BoxBuild(xmi,xma,ymi,yma,zmi,zma)
+        if j==0:
+          OuterBoundary=Bound
+        else:
+          OuterBoundary=np.vstack((OuterBoundary,Bound))
+        # In a box all surfaces are formed of two triangles
+        NTribox=2*np.ones(6)
+        NtriOut=np.append(NtriOut,NTribox)
+    elif Tri:
+        p0=np.ones(3)
+        p1=np.ones(3)
+        p2=np.ones(3)
+        p0[0]=OutB.cell(row=j+2,column=10).value
+        p0[1]=OutB.cell(row=j+2,column=11).value
+        p0[2]=OutB.cell(row=j+2,column=12).value
+        p1[0]=OutB.cell(row=j+2,column=13).value
+        p2[1]=OutB.cell(row=j+2,column=15).value
+        p1[2]=OutB.cell(row=j+2,column=16).value
+        p2[0]=OutB.cell(row=j+2,column=17).value
+        p2[1]=OutB.cell(row=j+2,column=18).value
+        p2[2]=OutB.cell(row=j+2,column=19).value
+        Tri=np.array([p0,p1,p2])
+        if j==0:
+          OuterBoundary=Tri
+        else:
+          OuterBoundary=np.vstack((OuterBoundary,Tri))
+        # In a box all surfaces are formed of two triangles
+        NtriOut=np.append(NtriOut,1)
+  for j in range(len(NtriOut)):
+    NTriOutSh.cell(row=j+1,column=1).value=NtriOut[j]
 
   # -Router location -co-ordinate of three real numbers
-  Tx=np.array([0.5,0.5,0.5])*l2
+  Tx=np.array([SimPar['D8'].value,SimPar['E8'].value,SimPar['F8'].value])
 
-  runplottype= str('PerfectRefCentre')
+  Nout =np.sum(NtriOut)
+  Nobst=np.sum(NtriOb)
+  Nob  =int(Nout+InnerOb*Nobst)
+  ObCooStr="ObstacleCoords"
+  InBook.create_sheet(ObCooStr)
+  ObstCoor=InBook[ObCooStr]
+  for j in range(Nob):
+    if j<Nout:
+      Obstr='OuterBoundar%d'%j
+      ObstCoor.cell(3*j+1,column=1).value=Obstr
+      ObstCoor.cell(3*j+1,column=2).value=OuterBoundary[j,0,0]
+      ObstCoor.cell(3*j+1,column=3).value=OuterBoundary[j,0,1]
+      ObstCoor.cell(3*j+1,column=4).value=OuterBoundary[j,0,2]
+      ObstCoor.cell(3*j+2,column=2).value=OuterBoundary[j,1,0]
+      ObstCoor.cell(3*j+2,column=3).value=OuterBoundary[j,1,1]
+      ObstCoor.cell(3*j+2,column=4).value=OuterBoundary[j,1,2]
+      ObstCoor.cell(3*j+3,column=2).value=OuterBoundary[j,2,0]
+      ObstCoor.cell(3*j+3,column=3).value=OuterBoundary[j,2,1]
+      ObstCoor.cell(3*j+3,column=4).value=OuterBoundary[j,2,2]
+    if Nout<=j<Nout+Nobst:
+      Obstr='Obstacle%d'%j
+      ObstCoor.cell(3*j+1,column=1).value=Obstr
+      ObstCoor.cell(3*j+1,column=2).value=Oblist[j-Nout,0,0]
+      ObstCoor.cell(3*j+1,column=3).value=Oblist[j-Nout,0,1]
+      ObstCoor.cell(3*j+1,column=4).value=Oblist[j-Nout,0,2]
+      ObstCoor.cell(3*j+2,column=2).value=Oblist[j-Nout,1,0]
+      ObstCoor.cell(3*j+2,column=3).value=Oblist[j-Nout,1,1]
+      ObstCoor.cell(3*j+2,column=4).value=Oblist[j-Nout,1,2]
+      ObstCoor.cell(3*j+3,column=2).value=Oblist[j-Nout,2,0]
+      ObstCoor.cell(3*j+3,column=3).value=Oblist[j-Nout,2,1]
+      ObstCoor.cell(3*j+3,column=4).value=Oblist[j-Nout,2,2]
+  runplottype=SimPar.cell(row=14,column=3).value
 
-  LOS=0     # LOS=1 for LOS propagation, LOS=0 for reflected propagation
-  PerfRef=1 # Perfect reflection has no loss and ignores angles.
-
-  # CONSTRUCT THE ARRAYS FOR STORING OBSTACLES
-  Oblist=(1.0/l1)*Oblist
-
-  OuterBoundary=l2*OuterBoundary
+  LOS=SimPar.cell(row=10,column=3).value    # LOS=1 for LOS propagation, LOS=0 for reflected propagation
+  PerfRef=SimPar.cell(row=11,column=3).value # Perfect reflection has no loss and ignores angles.
 
   # -------------------------------------------------------------------
   # CALCULATED PARAMETERS TO SAVE
@@ -108,18 +202,19 @@ def DeclareParameters(SN):
 
   # CALCULATE RELATIVE MESHWIDTH
   roomlengthscale=abs(np.amax(OuterBoundary)-np.amin(OuterBoundary)) # SCALE WITHIN THE UNIT CO-ORDINATES.
+  SimPar.cell(row=6,column=3).value=roomlengthscale
   #OuterBoundary=OuterBoundary/roomlengthscale
   #Oblist=Oblist/roomlengthscale
   h=1.0/Ns
+  SimPar.cell(row=13,column=3).value=h
 
   if not os.path.exists('./Parameters'):
     os.makedirs('./Parameters')
-
   # CALCULATE ANGLE SPACING
   for j in range(0,nrays):
     xysteps       =int(ma.ceil(abs(2.0*np.pi/deltheta[j])))
     theta1        =np.linspace(0.0,2*np.pi,num=int(xysteps), endpoint=False) # Create an array of all the angles
-    deltheta[j]=theta1[1]-theta1[0]
+    deltheta[j]   =theta1[1]-theta1[0]
     zsteps        =int(ma.ceil(abs(np.pi/(deltheta[j]))))
     Nra[j]=2
     Nraout=np.array([])
@@ -154,23 +249,17 @@ def DeclareParameters(SN):
       directions[1:-1]=np.c_[coords,np.zeros((Nra[j]-2,1))]
       directions[0] =np.array([0.0,0.0, 1.0,0.0])
       directions[-1]=np.array([0.0,0.0,-1.0,0.0])
-      directionname=str('Parameters/Directions'+str(int(j))+'.npy')
+      directionname='Parameters/Directions%d.npy'%j
       np.save(directionname,directions)
+    Angspace.cell(row=j+2,column=2).value=Nra[j]
+    for i in range(int(Nra[j])):
+      DirecStr='Directions%d'%(Nra[j])
+      InBook.create_sheet(DirecStr)
+      DirecSh=InBook[DirecStr]
+      DirecSh.cell(row=i+1,column=1).value=directions[i,0]
+      DirecSh.cell(row=i+1,column=2).value=directions[i,1]
+      DirecSh.cell(row=i+1,column=3).value=directions[i,2]
 
-  # # For comparing vector code to loop version
-  # directions2=np.zeros((zsteps*xysteps+2,4))
-  # for phi in range(0,zsteps):
-    # c=np.cos(theta2[phi])
-    # s=np.sin(theta2[phi])
-    # for the in range(0,xysteps):
-        # x=np.cos(theta1[the])*s
-        # y=np.sin(theta1[the])*s
-        # z=c
-        # j=phi*xysteps+the+1
-        # directions2[j]=np.array([x,y,z,0.0])
-  # directions2[0] =np.array([0.0,0.0, 1.0,0.0])
-  # directions2[-1]=np.array([0.0,0.0,-1.0,0.0])
-  # print(np.sum(directions-directions2))
 
   # COMBINE THE RAY-LAUNCHER PARAMETERS INTO ONE ARRAY
   RTPar=np.array([Nre,h,roomlengthscale,split])
@@ -185,6 +274,10 @@ def DeclareParameters(SN):
   np.save('Parameters/Raytracing.npy',RTPar)
   np.save('Parameters/Nra.npy',Nraout)
   np.save('Parameters/delangle.npy',deltheta)
+  if InnerOb:
+    Oblist=np.concatenate((OuterBoundary,Oblist))
+  else:
+    Oblist=OuterBoundary
   np.save('Parameters/Obstacles.npy',Oblist)
   np.save('Parameters/NtriOb.npy',NtriOb)
   np.save('Parameters/InnerOb.npy',InnerOb)
@@ -201,9 +294,10 @@ def DeclareParameters(SN):
   #print('------------------------------------------------')
   #print('Geometrical parameters saved')
   #print('------------------------------------------------')
+  InBook.save(filename=SN)
   return 0
 
-def ObstacleCoefficients(index=0):
+def ObstacleCoefficients(SN,index=0):
   ''' Input the paramters for obstacles and the antenna. To ensure \
   arrays are of the right length for compatibility for the \
   ray-launcher retrieve the ray-launching parameters in \
@@ -284,13 +378,26 @@ def ObstacleCoefficients(index=0):
   # -------------------------------------------------------------------
   # RETRIEVE RAY LAUNCHER PARAMETERS FOR ARRAY LENGTHS-----------------
   # -------------------------------------------------------------------
+  InBook     =wb.load_workbook(filename=SN,data_only=True)
+  AngSpacestr='AngleSpacing'
+  SimParstr  ='SimulationParameters'
+  Direcstr   ='Directions'
+  Obststr    ='Obstacles'
+  OutBstr    ='OuterBoundary'
+  NTriObstr  ='NTriObst'
+  NTriOutstr ='NTriOut'
+  Angspace   =InBook[AngSpacestr]
+  SimPar     =InBook[SimParstr]
+  Direc      =InBook[Direcstr]
+  Obst       =InBook[Obststr]
+  OutB       =InBook[OutBstr]
+  NTriObSh   =InBook[NTriObstr]
+  NTriOutSh  =InBook[NTriOutstr]
   if not os.path.exists('./Parameters/'):
     os.makedirs('./Parameters/')
   RTPar         =np.load('Parameters/Raytracing.npy')
-  Nre,h,L,split       =RTPar
+  Nre,h,L,split =RTPar
   Oblist        =np.load('Parameters/Obstacles.npy')
-  OuterBoundary =np.load('Parameters/OuterBoundary.npy')
-  Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)
   Nra           =np.load('Parameters/Nra.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       nra=np.array([Nra])
