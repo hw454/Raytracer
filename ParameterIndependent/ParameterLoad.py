@@ -48,6 +48,8 @@ def DeclareParameters(SN):
   deltheta=np.array([])
   nrays=Angspace.max_row
   SimPar.cell(row=12,column=3).value=nrays
+  InBook.save(filename=SN)
+
   for j in range(nrays-1):
     deltheta=np.append(deltheta,Angspace.cell(row=j+2,column=1).value)
     #np.pi*np.array([1/3])#,1/5,1/7,1/8,1/9,1/12,1/14,1/16,1/18,1/19,1/20,1/22,1/25,1/36])
