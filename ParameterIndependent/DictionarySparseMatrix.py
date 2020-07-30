@@ -47,6 +47,7 @@ from six.moves import cPickle as pkl
 from pathlib import Path
 import timeit
 import os
+import logging
 #from collections import defaultdict
 
 epsilon=sys.float_info.epsilon
@@ -949,7 +950,6 @@ class DS:
           if check==0:
             indicesSec=np.array([ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]])
             indout=np.vstack((indout,indicesSec))
-            del indicesSec
           else:
             check=0
             indout=np.array([ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]])
@@ -966,7 +966,7 @@ class DS:
       #if check==-1:
       #  indout=np.array([])
     return out,RadA,RadB,indout
-  def __del_doubles__(s,h,Nob,ind=-1):
+  def __del_doubles__(s,h,Nob,ind=-1,Ntri=-1):
     ''' Return the same DS as input but with double counted rays removed.
     Also output the onzero indices of this DSM.
 
@@ -997,6 +997,8 @@ class DS:
     :return: out,indout
 
     '''
+    if isinstance(Ntri,type(-1)):
+      Ntri=np.ones(Nob)
     out=DS(s.Nx,s.Nz,s.Nz,s.shape[0],s.shape[1])  # Initialise the mesh which will be output.
     # Find the nonzero indices, If ind is -1 then it is of default input
     # and needs to be found.
@@ -1018,46 +1020,51 @@ class DS:
     n=len(ind[0])                              # The number of non-zero terms
     check=-1                                   # This term is in case no non-zero indices are found
     indout=np.array([])
-    for i in range(0,n):
-      nob=nob_fromrow(ind[3][i],Nob)                              # The obstacle number of the last obstacle the considered ray hit
-      nre=nre_fromrow(ind[3][i],Nob)                              # The number of reflections the ray segment had.
-      if s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz()!=nre+1:
-        # we want to check the terms in a full column so use the reflection number of the last nonzero term.
-        continue
-      l=abs(s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]) # The length of the ray in the column being checked
-      M=out[ind[0][i],ind[1][i],ind[2][i]]                        # The rays which have already been stored
-      indM=M.nonzero()                                            # The positions of the nonzero terms which are already stored.
-      n2=len(indM[0])                                             # The number of nonzero columns already stored.
-      rep=0                                                       # Intialise the repetition variable to 0. It'll become 1 if there's a repeat ray.
-      for j in range(n2):
-        r=indM[0][j]
-        c=indM[1][j]
-        l2=abs(M[r,c])
-        if r!=ind[3][i] and c!=ind[4][i]:
-          nobch=nob_fromrow(r,Nob)
-          nrech=nre_fromrow(r,Nob)
-          if  nrech==nre and nobch==nob and M[:,c].getnnz==nrech+1:#abs(l2-l)<h/s.split
-            rep=1
-          else:
-            pass
-      if rep==0:
-        for x in s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].nonzero()[0]:
-          out[ind[0][i],ind[1][i],ind[2][i],x,ind[4][i]]=s[ind[0][i],ind[1][i],ind[2][i],x,ind[4][i]]
+    x2=-1
+    y2=-1
+    z2=-1
+    j2=-1
+    for l in range(0,n):
+      x,y,z,i,j=ind[:,l]
+      #Only want to do work if this is a new column
+      if x!=x2 or y!=y2 or z!=z2 or j!=j2:
+        x2=x
+        y2=y
+        z2=z
+        j2=j
+        vec=s[x,y,z][:,j]
+        vecnz=s[x,y,z][:,j].nonzero()[0]
+        vecnz=Correct_ObNumbers(vecnz,Ntri)
+        vecnnz=s[x,y,z][:,j].getnnz()
+        M=out[x,y,z]                        # The rays which have already been stored
+        indM=M.nonzero()                    # The positions of the nonzero terms which are already stored.
+        n2=M[0].getnnz()                    # The number of nonzero columns already stored.
+        rep=False                           # Intialise the repetition variable to false. It'll become true if there's a repeat ray.
+        c=-1
+        for l in range(n2):
+          if indM[1][l]==c:
+            continue
+          c=indM[1][l]
+          indMrow=M[:,c].nonzero()[0]
+          indMrow=Correct_ObNumbers(indMrow,Ntri)
+          rep=np.array_equal(indMrow,vecnz)
+          if rep:
+            break
+        if not rep:
+          out[x,y,z][:,j]=s[x,y,z][:,j]
+          xvec=np.tile(x,(vecnnz,1))
+          yvec=np.tile(y,(vecnnz,1))
+          zvec=np.tile(z,(vecnnz,1))
+          jvec=np.tile(j,(vecnnz,1))
+          vecnz=vecnz.reshape(vecnnz,1)
+          indicesSec=np.hstack((xvec,yvec,zvec,vecnz,jvec))
           if check==0:
-            indicesSec=np.array([ind[0][i],ind[1][i],ind[2][i],x,ind[4][i]])
             indout=np.vstack((indout,indicesSec))
-            del indicesSec
           else:
             check=0
-            indout=np.array([ind[0][i],ind[1][i],ind[2][i],x,ind[4][i]])
-      if ind[0][i]==3 and ind[1][i]==3 and ind[2][i]==3:
-        nob=nob_fromrow(ind[3][i],Nob)
-        nre=nre_fromrow(ind[3][i],Nob)
-        #print(s[ind[0][i],ind[1][i],ind[2][i]])
-        #print(s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]])
-        #print(s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz())
+            indout=indicesSec
     return out,indout
-  def doubles__inMat__(s,h,vec,Nob,po):
+  def doubles__inMat__(s,h,vec,Nob,po,Ntri=-1):
     ''' Check whether the input ray (vec) has already been counted in
     the DSM.
 
@@ -1069,7 +1076,7 @@ class DS:
 
     :param Nob: The number of obstacles.
 
-    :param ind: The x,y,z position of the SM to check.
+    :param po:The x,y,z position of the SM to check.
 
       * Go through the nonzero columns and put the absolute value of the \
       first term in the corresponding column in out[x,y,z]
@@ -1081,34 +1088,28 @@ class DS:
     :return: out
 
     '''
-    ind=vec.nonzero()
-    l=abs(vec[0,0])
-    n=vec.getnnz()
+    if isinstance(Ntri,type(-1)):
+      Ntri=np.ones(Nob)
+    ind=vec.nonzero()[0]   # The positions of the nonzero terms in the vector looking to be stored
+    ind=Correct_ObNumbers(ind,Ntri)
+    n=vec.getnnz()         # How many terms there are in the vector
     if n==0: raise ValueError('There are no nonzero terms in the ray vector')
-    M=s[po[0],po[1],po[2]]
-    indM=M.nonzero()
-    n2=len(indM[0])
-    c=-1
-    doub=0
+    M=s[po[0],po[1],po[2]] # The matrix currently stored in the same (x,y,z) position
+    indM=M.nonzero()       # The positions of the non-zero terms already stored in that matrix
+    indM
+    n2=len(indM[0])        # The number of nonzero columns in that matrix
+    c=-1                   # Initialise the new column check
     for i in range(n2):
-      if indM[1][i]==c:
+      if indM[1][i]==c:      # If the column hasn't changed go to the next term in the loop
         continue
-      r=indM[0][i]
-      c=indM[1][i]
-      if M[:,c].getnnz()==n:
-        j=0
-        for r in M[:,c].nonzero()[0]:
-          if r==ind[0][j]:
-            l2=abs(M[r,c])
-            #if abs(l2-l)<h/s.split and l2>epsilon:
-            doub=1
-          else:
-            doub=0
-          j+=1
-        if doub==1:
-          break
-    return doub
-  def refcoefbyterm_withmul(s,m,refindex,LOS=0,PerfRef=0, ind=-1):
+      c=indM[1][i]           # If the column has changed then reset the column check
+      rownz=M[:,c].nonzero()[0]
+      rownz=Correct_ObNumbers(rownz,Ntri)
+      doub=np.array_equal(rownz,ind)
+      if doub:
+        return True
+    return False
+  def refcoefbyterm_withmul(s,m,refindex,LOS=0,PerfRef=0, ind=-1,Nob=12):
     ''' Using the impedance ratios of the obstacles, \
     refractive index of obstacles, the wavelength and the
     length scaling the unit mesh the reflection coefficents for each ray
@@ -1171,78 +1172,103 @@ class DS:
     out1=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
     out2=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])
     n=len(ind[0])
+    j2=-1
+    x2=-1
+    y2=-1
+    z2=-1
+    Nre=int((s.shape[0]-1)/Nob)
+    Ns=int(refindex.nonzero()-1/Nre)# Number of reflective surfaces
     if LOS==0 and PerfRef==0:
-      for i in range(n):
-        if ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])==0:
-          # LOS ray has hit the cell
-          out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
-          out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
-        elif ind[3][i]==0 and np.sum(s[ind[0][i],ind[1][i],ind[2][i],1:-1,ind[4][i]])!=0:
-          # LOS term in a rag segment with reflections
-          pass
-        else:
-          # Reflection coefficient for non-LOS rays.
-          theta=s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
-          cthi=np.cos(theta)
-          ctht=np.cos(np.arcsin(np.sin(theta)/refindex[ind[3][i]]))
-          S1=cthi*m[ind[3][i]]
-          S2=ctht*m[ind[3][i]]
-          if abs(cthi)<epsilon and abs(ctht)<epsilon:
-            # Ref coef is very close to 1
-            if abs(m[ind[3][i]])>epsilon:
-              #print(ind[3][i])
-              frac=(m[ind[3][i]]-1)/(m[ind[3][i]]+1)
-              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=frac
-              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=frac
-            else:
-              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=0
-              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=0
-          elif out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]==0:
-            # Store the first reflection term of the ray segment
-            # Compute the Reflection coeficient perpendicular
-            # Rper=(S1-ctht)/(S1+ctht,ind)
-            # to the polarisiation Rper=(Zm/Z0cos(theta_i)-cos(theta_t))/(Zm/Z0cos(theta_i)+cos(theta_t))
-            # Compute the Reflection coeficient parallel
-            # Rpar=(cthi-S2).__truediv__(cthi+S2,ind)
-
-            out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=(S1-ctht)/(S1+ctht)
-            out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=(cthi-S2)/(cthi+S2)
+      for l in range(n):
+        x,y,z,i,j=ind[:,l]
+        x2=x
+        y2=y
+        z2=z
+        j2=j
+        if x!=x2 or y!=y2 or z!=z2 or j!=j2:
+          colnz=s[x,y,z][1:,j].nonzero()
+          if i==0 and s[x,y,z][:,j].getnnz()==1:
+            # LOS ray has hit the cell
+            out1[x,y,z,0,j]=1
+            out2[x,y,z,0,j]=1
           else:
-            # The reflection terms when another term has already been stored
-            out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=(S1-ctht)/(S1+ctht)
-            out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=(cthi-S2)/(cthi+S2)
+            out1[x,y,z,0,j]=1
+            out2[x,y,z,0,j]=1
+            for k in colnz:
+              # Reflection coefficient for non-LOS rays.
+              theta=s[x,y,z,k,j]
+              if -epsilon<theta<np.pi/2+epsilon:
+                  raise ValueError('Reflection angle should be within 0 and pi/2')
+              cthi=np.cos(theta)
+              ctht=np.cos(np.arcsin(np.sin(theta)/refindex[k]))
+              S1=cthi*m[k]
+              S2=ctht*m[k]
+              if abs(cthi)<epsilon and abs(ctht)<epsilon:
+                # Ref coef is very close to 1
+                if abs(m[k])>epsilon:
+                  #print(ind[3][i])
+                  frac=(m[k]-1)/(m[k]+1)
+                  out1[x,y,z,0,j]*=frac
+                  out2[x,y,z,0,j]*=frac
+              else:
+                # Store the first reflection term of the ray segment
+                # Compute the Reflection coeficient perpendicular
+                # Rper=(S1-ctht)/(S1+ctht,ind)
+                # to the polarisiation Rper=(Zm/Z0cos(theta_i)-cos(theta_t))/(Zm/Z0cos(theta_i)+cos(theta_t))
+                # Compute the Reflection coeficient parallel
+                # Rpar=(cthi-S2).__truediv__(cthi+S2,ind)
+                out1[x,y,z,0,j]*=(S1-ctht)/(S1+ctht)
+                out2[x,y,z,0,j]*=(cthi-S2)/(cthi+S2)
+    j2=-1
+    x2=-1
+    y2=-1
+    z2=-1
     if LOS==0 and PerfRef==1:
       '''When PerfRef==1 the refindex terms are 'a<=1' in the positions \
       corresponding to reflective surfaces and 0 elsewhere. This is not the real refractive indexes.'''
-      for i in range(n):
-        if ind[3][i]==0 and s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz()==1:
-          # LOS ray has hit the cell
-          out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
-          out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
-        elif ind[3][i]==0 and s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz()!=1:
-          # LOS term in a ray segment with reflections
-          pass
-        else:
-          # Reflection coefficient for non-LOS rays.
-          if abs(refindex[ind[3][i]])>epsilon:
-            if out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]==0:
-              # Store the first reflection term of the ray segment
-              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=refindex[ind[3][i]]
-              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=refindex[ind[3][i]]
-            else:
-              # The reflection terms when another term has already been stored, Revelant for multiple reflections
-              out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=refindex[ind[3][i]]
-              out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=refindex[ind[3][i]]
-          else:
-             pass
+      for l in range(n):
+        x,y,z,i,j=ind[:,l]
+        colnz=s[x,y,z][:,j].nonzero()[0]
+        if x!=x2 or y!=y2 or z!=z2 or j!=j2:
+          # If you are in a new column then store the product of the \
+          # reflection terms in refindex which have the same position as the non-zero terms in the angles mesh s.
+          out1[x,y,z,0,j]=np.prod(refindex[colnz])
+          out2[x,y,z,0,j]=np.prod(refindex[colnz])
+          x2=x
+          y2=y
+          z2=z
+          j2=j
+          if x==2 and y==2 and z==2:
+            logging.warning('At position(%d,%d,%d,%d)'%(x,y,z,j))
+            logging.warning('Refcoef%d'%out1[x,y,z,0,j])
+        if s[x,y,z][:,j].getnnz()>Nre+1 and np.prod(refindex[colnz])!=0:
+          errmsg='Error at position, (%d,%d,%d,%d)'%(x,y,z,j)
+          logging.error(errmsg)
+          logging.error('The ray has reflected twice but the zero wall is not picked up')
+          errmsg='The angle element is, '+str(s[x,y,z])
+          logging.error(errmsg)
+          errmsg='The refindex terms are, '+str(refindex[colnz])
+          logging.error(errmsg)
+          errmsg='Nonzero rows'+str(colnz)
+          logging.error(errmsg)
+          errmsg='Full refindex'+str(refindex)
+          logging.error(errmsg)
+          exit()
+        if out1[x,y,z][0].getnnz()>Nre*Ns+1:
+          errormsg='More than two rays have hit this mesh element,Position (%d,%d,%d,%d)'%(x,y,z,j)
+          logging.error(errormsg)
+          errormsg='The element matrix'+str(out1[x,y,z])
+          logging.error(errormsg)
+          errormsg='The recent ray'+str(s[x,y,z][:,j])
+          logging.error(errormsg)
+          exit()
     elif LOS==1:
       for i in range(n):
-        if ind[3][i]==0 and s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz()==1:
+        x,y,z,i,j=ind[:,0]
+        if i==0 and s[x,y,z,:,j].getnnz()==1:
           # LOS ray has hit the cell
-          out1[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
-          out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=1
-        else:
-          pass
+          out1[x,y,z,0,j]=1
+          out2[x,y,z,0,j]=1
     else: raise ValueError('Incorrect Value for LOS')
     return out1,out2
 
@@ -1313,7 +1339,10 @@ class DS:
           if nre+1==s[x,y,z][:,b].getnnz():
             pass
           else:
-            print(s[x,y,z],r,b,nre,nob_fromrow(r,Nob),Nob)
+            errmsg=str('Error at position('+str(x)+','+str(y)+','+str(z)+',)')
+            logging.error(errmsg)
+            errmsg=str('The number of nonzero terms in column '+str(b)+'is not nre+1')
+            logging.error(errmsg)
             return False
         else: return False
       return True
@@ -1492,6 +1521,16 @@ class DS:
         k=FieldEquation(s[x,y,z,a,b],khat,L,lam)
         out1[x,y,z]+=k*Com1[x,y,z,a,b]
         out2[x,y,z]+=k*Com2[x,y,z,a,b]
+      if x==2 and y==2 and z==2:
+        logging.warning('This is a WARNING message')
+        logmessage=str('At position'+str(x)+','+str(y)+','+str(z))
+        logging.warning(logmessage)
+        logmessage=str('Value stored in parallel to polarisation'+str(out1[x,y,z]))
+        logging.warning(logmessage)
+        logmessage=str('Value stored in perpendicular to polarisation'+str(out2[x,y,z]))
+        logging.warning(logmessage)
+        logmessage=str('Value on the current ray segment'+str(k))
+        logging.warning(logmessage)
     return out1,out2
   def dict_row_vec_multiply(s,vec,ind=-1):
     """ Multiply every row of the DSM s elementwise with the
@@ -1574,7 +1613,6 @@ class DS:
           # p=x
           # l=y
           # m=z
-    #del p,lm,q,x,y,z,bi,n
     return outDSM
 
   def dict_col_mult_(s,ind=-1):
@@ -1638,7 +1676,6 @@ class DS:
         out[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]=s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
       else:
         out[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
-    del  n
     return out
   def double_dict_col_mult_(s,DSM,ind=-1):
     ''' Multiply all nonzero terms in a column.
@@ -1704,7 +1741,6 @@ class DS:
       else:
         out[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
         out2[ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]]*=DSM[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
-    del  n
     return out,out2
 
   def dict_vec_divideby_DSM(s,vec, ind=-1):
@@ -1796,11 +1832,9 @@ class DS:
           indices=np.array([x,y,z,indicesM[0][0],indicesM[1][0]])
           indicesSec=np.c_[np.tile(np.array([x,y,z]),(NI-1,1)),indicesM[0][1:],indicesM[1][1:]]
           indices=np.vstack((indices,indicesSec))
-          del indicesSec
         else:
           indicesSec=np.c_[np.tile(np.array([x,y,z]),(NI,1)),indicesM[0][0:],indicesM[1][0:]]
           indices=np.vstack((indices,indicesSec))
-          del indicesSec
     if check==-1:
       indices=np.array([])
     return indices
@@ -1940,7 +1974,29 @@ class DS:
 #=======================================================================
 # FUNCTIONS CONNECTED TO DS BUT AREN'T PART OF THE OBJECT
 #=======================================================================
+def Correct_ObNumbers(rvec,Ntri):
+    '''Take in the triangle position and output the position of the first triangle which lies on that surface.
+    :param rvec: The positions in the obstacle list of the triangles
+    :param Ntri: The number of triangles that form each surface.'''
+    n=len(rvec)
+    rvecout=np.zeros(n)
+    Nsur=len(Ntri)
+    count=0
+    for j in range(n):
+      if rvec[j]!=0:
+        for i in range(Nsur):
+          if rvec[j]-Ntri[i]-count>0:
+            count+=Ntri[i]
+          else:
+            rvecout[j]=count+1
+            break
+    return rvecout
 
+def Correct_test():
+    Nob=12
+    Ntri=2*np.ones(int(Nob/2))
+    row=np.arange(12)
+    return Correct_ObNumbers(row,Ntri)
 
 def stopcheck(i,j,k,Nx,Ny,Nz):
     """ Check if the index [i,j,k] is valid.
@@ -2082,7 +2138,6 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,Per
                       # L is the length scale for the dimensions.
   # Check in the nonzero indices have been input or not, if not then find them.
   #print('power start')
-  #(Mesh[3,3,3])
   if isinstance(ind, type(-1)):
     ind=Mesh.nonzero().T
     indout=ind
@@ -2105,7 +2160,14 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,Per
       if Comper[x,y,z].getnnz()>1 or Compar[x,y,z].getnnz()>1:
         errmsg=str('Checking LOS case but more than one term is in the reflection matrix')
         raise ValueError(errmsg)
-  print(Comper,Compar)
+  Nsur=int(np.count_nonzero(refindex-1)/2)# Each planar surface is formed of two triangles
+  if LOS==0:
+    for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
+      if Comper[x,y,z].getnnz()>Nre*Nsur+1 or Compar[x,y,z].getnnz()>Nre*Nsur+1:
+        errmsg='Checking reflection case and more than %d terms is in the reflection matrix'%(Nre+1)
+        print('Position (%d,%d,%d)'%(x,y,z))
+        print('Number of terms in reflection coefficient matrices',Comper[x,y,z].getnnz(),Compar[x,y,z].getnnz())
+        raise ValueError(errmsg)
   rfile=str('./Mesh/rad'+str(int(Nra))+'Refs'+str(int(Nre))+'Ns'+str(int(Ns))+'.npy')
   radfile = Path(rfile)
   Nob=int((Mesh.shape[0]-1)/Nre)
@@ -2188,7 +2250,10 @@ def quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,Per
     indout=ind
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
-  angfile=str('./Mesh/ang'+str(int(Nra))+'Refs'+str(int(Nre))+'Ns'+str(int(Ns))+'.npy')
+  Nra=int(Nra)
+  Nre=int(Nre)
+  Ns=int(Ns)
+  angfile='./Mesh/ang%dRefs%dNs%d.npy'%(Nra,Nre,Ns)
   afile=Path(angfile)
   if afile.is_file():
     AngDSM=load_dict(angfile)
@@ -2196,7 +2261,7 @@ def quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,Per
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
     AngDSM.save_dict(angfile)
   Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,LOS,PerfRef,ind)
-  rfile=str('./Mesh/rad'+str(int(Nra))+'Refs'+str(int(Nre))+'Ns'+str(int(Ns))+'.npy')
+  rfile='./Mesh/rad%dRefs%dNs%d.npy'%(Nra,Nre,Ns)
   radfile = Path(rfile)
   h=1/Mesh.Nx
   Nob=int((Mesh.shape[1]-1)/Nre)
@@ -2381,18 +2446,12 @@ def ref_coef(Mesh,Znobrat,refindex,Nra,Nre,Ns,ind=-1):
   print('----------------------------------------------------------')
   print('Reflection coefficients found, time taken ', t6-t2)
   # print('Time computing costhetat', t5-t4)
-  # del t5
   # print('Time computing cos thetai', t4-t3)
-  # del t4
   # print('Time initialising cthi ctht SIN', t3-t2)
-  #del t3
   print('Time getting angles from mesh', t2-t1)
-  del t2
   print('Time getting nonzero indices', t1-t0)
-  del t1
   print('----------------------------------------------------------')
   print('Total time to compute reflection coefficients from Mesh ', t6-t0)
-  del t6, t0
   print('----------------------------------------------------------')
   return Rper, Rpar, ind
 
@@ -2601,7 +2660,6 @@ def test_14():
   top=complex(0,frequency*mu0)*mur
   bottom=sigma+complex(0,eps0*frequency)*epsr
   Znob =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
-  del top, bottom
   Znob=np.tile(Znob,Nre)                      # The number of rows is Nob*Nre+1. Repeat Nob
   Znob=np.insert(Znob,0,complex(0.0,0.0))     # Use a zero for placement in the LOS row
   #Znob=np.transpose(np.tile(Znob,(Nb,1)))    # Tile the obstacle coefficient number to be the same size as a mesh array.
@@ -2800,12 +2858,5 @@ if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   #job_server = pp.Server()
-  t1=t.time()
-  ctht=test_24()
-  t2=t.time()
-  print(t2-t1)
-  ctht=test_23()
-  t3=t.time()
-  print(t3-t2)
-  print(timeit.timeit("test_23()",setup="from __main__ import test_23"))
-  print(timeit.timeit("test_24()",setup="from __main__ import test_24"))
+  print(Correct_test())
+  exit()

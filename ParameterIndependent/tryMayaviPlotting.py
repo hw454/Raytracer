@@ -196,8 +196,9 @@ def PlotCones(plottype):
 def PlotConesOnSquare(plottype):
     '''Plot the cone calculations.'''
     ConeOn=0 # Plot Cones and Rays if 1
-    Cut=1    # Plot x,y plane cuts
+    Cut=2    # Plot x,y plane cuts
     Vid=0    # Rotate for video
+    cmaptopt=str('plasma')
     ##----Retrieve the Raytracing Parameters-----------------------------
     Nra         =np.load('Parameters/Nra.npy')
     if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
@@ -205,7 +206,7 @@ def PlotConesOnSquare(plottype):
       nra=1
     else:
       nra=len(Nra)
-    Nre,h ,L =np.load('Parameters/Raytracing.npy')
+    Nre,h ,L =np.load('Parameters/Raytracing.npy')[0:3]
     # Take Tx to be 0,0,0
     Tx            =np.load('Parameters/Origin.npy')/L
     delangle      =np.load('Parameters/delangle.npy')
@@ -329,7 +330,7 @@ def PlotConesOnSquare(plottype):
           mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='z_axes',
                             slice_index=int(zsteps-l),
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=Pmax,
                             vmin=Pmin
                         )
@@ -364,7 +365,7 @@ def PlotConesOnSquare(plottype):
            mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='z_axes',
                             slice_index=l,
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=Pmax,
                             vmin=Pmin
                         )
@@ -400,7 +401,7 @@ def PlotConesOnSquare(plottype):
           mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='x_axes',
                             slice_index=l,
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=Pmax,
                             vmin=Pmin
                             )
@@ -437,7 +438,7 @@ def PlotConesOnSquare(plottype):
           mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='y_axes',
                             slice_index=l,
-                            colormap='viridis',
+                            colormap=cmapopt,
                             vmax=Pmax,
                             vmin=Pmin
                         )
@@ -473,17 +474,17 @@ def PlotConesOnSquare(plottype):
       # if Vid==1:
           # mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             # plane_orientation='y_axes', slice_index=0,
-                            # colormap='viridis',
+                            # colormap=cmapopt,
                             # vmax=Pmax, vmin=Pmin
                         # )
           # mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             # plane_orientation='x_axes', slice_index=0,
-                            # colormap='viridis',
+                            # colormap=cmapopt,
                             # vmax=Pmax,vmin=Pmin
                         # )
           # mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             # plane_orientation='z_axes', slice_index=0,
-                            # colormap='viridis',
+                            # colormap=cmapopt,
                             # vmax=Pmax,vmin=Pmin
                         # )
           # try:
@@ -649,7 +650,7 @@ def PlotPowerSlice(plottype):
       nra=1
     else:
       nra=len(Nra)
-    Nre,h ,L =np.load('Parameters/Raytracing.npy')
+    Nre,h ,L =np.load('Parameters/Raytracing.npy')[0:3]
         ##----Retrieve the environment--------------------------------------
     Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
     OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
@@ -987,10 +988,10 @@ if __name__=='__main__':
   plottype= myfile.read()         # read the entire file into a string
   myfile.close()
   #PlotSingleCone(plottype)
-  PlotPowerSlice(plottype)
+  #PlotPowerSlice(plottype)
   #PlotRays(plottype)
   #PlotDirections(plottype)
-  #PlotConesOnSquare(plottype)
+  PlotConesOnSquare(plottype)
   #PlotCones(plottype)
   print('Running  on python version')
   print(sys.version)
