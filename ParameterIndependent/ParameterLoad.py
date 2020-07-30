@@ -6,6 +6,7 @@ import math as ma
 import sys
 import os
 import pickle
+import openpyxl as wb
 
 def DeclareParameters():
   '''All input parameters for the ray-launching method are entered in
@@ -399,8 +400,9 @@ if __name__=='__main__':
   np.set_printoptions(precision=3)
   print('Running  on python version')
   print(sys.version)
-  out=DeclareParameters()
-  out=ObstacleCoefficients()
+  Sheetname='InputSheet.xlsx'
+  out=DeclareParameters(Sheetname)
+  out=ObstacleCoefficients(Sheetname)
 
   exit()
 

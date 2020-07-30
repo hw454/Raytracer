@@ -61,7 +61,7 @@ class room:
   # - s.time is an array with the time the room was created.
   # - s.meshwidth is initialised as zero but is stored once asked for
   # using get_meshwidth.
-  def __init__(s,obst):
+  def __init__(s,obst,Ntri=0):
     s.obst=obst
     RoomP=obst[0]
     for j in range(1,len(obst)):
@@ -69,6 +69,10 @@ class room:
     s.points=RoomP
     # Points is the array of all the co-ordinates which form the surfaces in the room
     s.Nob=len(obst)
+    if isinstance(Ntri,type(0)):
+      s.Ntri=np.ones(s.Nob)
+    else:
+      s.Ntri=Ntri
     # Nob is the number of surfaces forming obstacles in the room.
     s.maxlength=np.zeros(4)
     s.bounds=np.array([np.min(s.points,axis=0),np.max(s.points,axis=0)])
@@ -352,9 +356,11 @@ class room:
       raystart  =ry.Ray(start, Dir)
       Mesh=raystart.mesh_multiref(s,Nre,Mesh,Nra,it,deltheta)
       raylist[it]=raystart.points[0:-2]
+      if not Mesh.check_nonzero_col(Nre,s.Nob):
+        raise ValueError('There is a column with too many terms')
     s.time=t.time()-start_time
     return raylist, Mesh
-  def ray_mesh_power_bounce(s,Tx,Nre,Nra,directions,Grid,Znobrat,refindex,Antpar,Gt,Pol,deltheta):
+  def ray_mesh_power_bounce(s,Tx,Nre,Nra,directions,Grid,Znobrat,refindex,Antpar,Gt,Pol,deltheta,loghandle=str()):
     ''' Traces ray's uniformly emitted from an origin around a room.
 
     :param Tx: the co-ordinate of the transmitter location

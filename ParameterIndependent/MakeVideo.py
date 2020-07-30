@@ -44,7 +44,7 @@ if __name__=='__main__':
         filestart=str('./ConeFigures/'+plottype+'/Cone'+str(Nra[i]))
         filename=str(filestart+'Square')
         img_array,size=CombineImages(img_array,filename,Nslice,size)
-        Nslice=10
+        Nslice=np.load('./Parameters/Ns.npy')
         filename=str(filestart+'FullSquareX')
         img_array,size=CombineImages(img_array,filename,Nslice,size)
         filename=str(filestart+'FullSquareY')

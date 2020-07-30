@@ -93,7 +93,9 @@ def makematrix_perfectreflection(index=0):
       if Txleng!=0:
         field=DSM.FieldEquation(Txleng,khat,L,lam)*Pol
       field+=DSM.FieldEquation(xhatleng,khat,L,lam)*Pol
-      P=(np.absolute(field[0])**2+np.absolute(field[1])**2)
+      if i==2 and j==2 and k==2:
+        print(field)
+      P=np.linalg.norm(field)**2
       Mesh[i,j,k]=10*np.log10(P,where=(P!=0))
       RadMeshA[i,j,k]=Txleng
       RadMeshB[i,j,k]=xhatleng
@@ -285,78 +287,87 @@ if __name__ == '__main__':
     loca=str('Centre')
     RTPar         =np.load('Parameters/Raytracing.npy')
     Nre,h,L       =RTPar[0:3]
-    if not os.path.exists('./Parameters'):
-        os.makedirs('./Parameters')
-        os.makedirs('./Parameters/LOS'+loca)
-        os.makedirs('./Parameters/PerfectRef'+loca)
-        os.makedirs('./Parameters/SingleRef'+loca)
-    if not os.path.exists('./Parameters/LOS'+loca):
-        os.makedirs('./Parameters/LOS'+loca)
-    if not os.path.exists('./Parameters/PerfectRef'+loca):
-        os.makedirs('./Parameters/PerfectRef'+loca)
-    if not os.path.exists('./Parameters/SingleRef'+loca):
-        os.makedirs('./Parameters/SingleRef'+loca)
-    Truename=str('Parameters/LOS'+loca+'/True.npy')
-    TrueRadname=str('Parameters/LOS'+loca+'/TrueRad.npy')
-    TrueQname=str('Parameters/LOS'+loca+'/TrueQ.npy')
+    if not os.path.exists('./Mesh'):
+        os.makedirs('./Mesh/')
+        os.makedirs('./Mesh/True')
+        os.makedirs('./Mesh/True/LOS'+loca)
+        os.makedirs('./Mesh/True/PerfectRef'+loca)
+        os.makedirs('./Mesh/True/SingleRef'+loca)
+    if not os.path.exists('./Mesh/True'):
+        os.makedirs('./Mesh/True')
+        os.makedirs('./Mesh/True/LOS'+loca)
+        os.makedirs('./Mesh/True/PerfectRef'+loca)
+        os.makedirs('./Mesh/True/SingleRef'+loca)
+    if not os.path.exists('./Mesh/True/LOS'+loca):
+        os.makedirs('./Mesh/True/LOS'+loca)
+        os.makedirs('./Mesh/True/PerfectRef'+loca)
+        os.makedirs('./Mesh/True/SingleRef'+loca)
+    if not os.path.exists('./Mesh/True/PerfectRef'+loca):
+        os.makedirs('./Mesh/True/PerfectRef'+loca)
+        os.makedirs('./Mesh/True/SingleRef'+loca)
+    if not os.path.exists('./Mesh/True/SingleRef'+loca):
+        os.makedirs('./Mesh/True/SingleRef'+loca)
+    Truename='Mesh/True/LOS'+loca+'/True.npy'
+    TrueRadname='Mesh/True/LOS'+loca+'/TrueRad.npy'
+    TrueQname='Mesh/True/LOS'+loca+'/TrueQ.npy'
     np.save(Truename,Mesh1)
     np.save(TrueRadname,RadMesh1)
     np.save(TrueQname,Q1)
-    TrueFolder=str('./GeneralMethodPowerFigures/LOS'+loca+'/TrueSlice')
-    TruePlotName=str(TrueFolder+'/NoBoxTrueSliceNref'+str(int(Nre)))
+    TrueFolder='./GeneralMethodPowerFigures/LOS'+loca+'/TrueSlice'
+    TruePlotName=TrueFolder+'/NoBoxTrueSliceNref%d'%Nre
     ub=np.amax(Mesh1)
     lb=np.amin(Mesh1)
     plot_mesh(Mesh1,TrueFolder,TruePlotName,lb,ub)
-    TrueFolder=str('./GeneralMethodPowerFigures/LOS'+loca+'/TrueSlice/Rad')
-    TruePlotName=str(TrueFolder+'/NoBoxTrueSliceNref'+str(int(Nre)))
+    TrueFolder='./GeneralMethodPowerFigures/LOS'+loca+'/TrueSlice/Rad'
+    TruePlotName=TrueFolder+'/NoBoxTrueSliceNref%d'%Nre
     ub=np.amax(RadMesh1)
     lb=np.amin(RadMesh1)
     plot_mesh(RadMesh1,TrueFolder,TruePlotName,lb,ub)
     print('True mesh saved at', Truename)
     print('Quality',Q1)
-    Truename=str('Parameters/PerfectRef'+loca+'/True.npy')
-    TrueRadnameA=str('Parameters/PerfectRef'+loca+'/TrueRadA.npy')
-    TrueRadnameB=str('Parameters/PerfectRef'+loca+'/TrueRadB.npy')
-    TrueQname=str('Parameters/PerfectRef'+loca+'/TrueQ.npy')
+    Truename='Mesh/True/PerfectRef'+loca+'/True.npy'
+    TrueRadnameA='Mesh/True/PerfectRef'+loca+'/TrueRadA.npy'
+    TrueRadnameB='Mesh/True/PerfectRef'+loca+'/TrueRadB.npy'
+    TrueQname='Mesh/True/PerfectRef'+loca+'/TrueQ.npy'
     np.save(Truename,Mesh2)
     np.save(TrueRadnameA,RadMesh2a)
     np.save(TrueRadnameB,RadMesh2b)
     np.save(TrueQname,Q2)
-    TrueFolder=str('./GeneralMethodPowerFigures/PerfectRef'+loca+'/TrueSlice')
-    TruePlotName=str(TrueFolder+'/NoBoxTrueSliceNref'+str(int(Nre)))
+    TrueFolder='./GeneralMethodPowerFigures/PerfectRef'+loca+'/TrueSlice'
+    TruePlotName=TrueFolder+'/NoBoxTrueSliceNref%d'%Nre
     ub=np.amax(Mesh2)
     lb=np.amin(Mesh2)
     plot_mesh(Mesh2,TrueFolder,TruePlotName,lb,ub)
-    TrueFolder=str('./GeneralMethodPowerFigures/PerfectRef'+loca+'/TrueSlice/RadA')
-    TruePlotName=str(TrueFolder+'/NoBoxTrueRadSliceNref'+str(int(Nre)))
+    TrueFolder='./GeneralMethodPowerFigures/PerfectRef'+loca+'/TrueSlice/RadA'
+    TruePlotName=TrueFolder+'/NoBoxTrueRadSliceNref%d'%Nre
     ub=max(np.amax(RadMesh2a),np.amax(RadMesh2b))
     lb=min(np.amin(RadMesh2a),np.amin(RadMesh2b))
     plot_mesh(RadMesh2a,TrueFolder,TruePlotName,lb,ub)
-    TrueFolder=str('./GeneralMethodPowerFigures/PerfectRef'+loca+'/TrueSlice/RadB')
-    TruePlotName=str(TrueFolder+'/NoBoxTrueRadSliceNref'+str(int(Nre)))
+    TrueFolder='./GeneralMethodPowerFigures/PerfectRef'+loca+'/TrueSlice/RadB'
+    TruePlotName=TrueFolder+'/NoBoxTrueRadSliceNref%d'%Nre
     plot_mesh(RadMesh2b,TrueFolder,TruePlotName,lb,ub)
     print('True mesh saved at', Truename)
     print('Quality',Q2)
-    Truename=str('Parameters/SingleRef'+loca+'/True.npy')
-    TrueRadnameA=str('Parameters/SingleRef'+loca+'/TrueRadA.npy')
-    TrueRadnameB=str('Parameters/SingleRef'+loca+'/TrueRadB.npy')
-    TrueQname=str('Parameters/SingleRef'+loca+'/TrueQ.npy')
+    Truename='Mesh/True/SingleRef'+loca+'/True.npy'
+    TrueRadnameA='Mesh/True/SingleRef'+loca+'/TrueRadA.npy'
+    TrueRadnameB='Mesh/True/SingleRef'+loca+'/TrueRadB.npy'
+    TrueQname='Mesh/True/SingleRef'+loca+'/TrueQ.npy'
     np.save(Truename,Mesh3)
     np.save(TrueRadnameA,RadMesh3a)
     np.save(TrueRadnameB,RadMesh3b)
     np.save(TrueQname,Q3)
-    TrueFolder=str('./GeneralMethodPowerFigures/SingleRef'+loca+'/TrueSlice')
-    TruePlotName=str(TrueFolder+'/NoBoxTrueSliceNref'+str(int(Nre)))
+    TrueFolder='./GeneralMethodPowerFigures/SingleRef'+loca+'/TrueSlice'
+    TruePlotName=TrueFolder+'/NoBoxTrueSliceNref%d'%Nre
     ub=np.amax(Mesh3)
     lb=np.amin(Mesh3)
     plot_mesh(Mesh3,TrueFolder,TruePlotName,lb,ub)
-    TrueFolder=str('./GeneralMethodPowerFigures/SingleRef'+loca+'/TrueSlice/RadA')
-    TruePlotName=str(TrueFolder+'/NoBoxTrueRadSliceNref'+str(int(Nre)))
+    TrueFolder='./GeneralMethodPowerFigures/SingleRef'+loca+'/TrueSlice/RadA'
+    TruePlotName=TrueFolder+'/NoBoxTrueRadSliceNref%d'%Nre
     ub=max(np.amax(RadMesh3a),np.amax(RadMesh3b))
     lb=min(np.amin(RadMesh3a),np.amin(RadMesh3b))
     plot_mesh(RadMesh3a,TrueFolder,TruePlotName,lb,ub)
-    TrueFolder=str('./GeneralMethodPowerFigures/SingleRef'+loca+'/TrueSlice/RadB')
-    TruePlotName=str(TrueFolder+'/NoBoxTrueRadSliceNref'+str(int(Nre)))
+    TrueFolder='./GeneralMethodPowerFigures/SingleRef'+loca+'/TrueSlice/RadB'
+    TruePlotName=TrueFolder+'/NoBoxTrueRadSliceNref%d'%Nre
     plot_mesh(RadMesh3b,TrueFolder,TruePlotName,lb,ub)
     print('True mesh saved at', Truename)
     print('Quality',Q3)
