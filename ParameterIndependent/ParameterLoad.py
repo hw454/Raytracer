@@ -8,7 +8,7 @@ import os
 import pickle
 import openpyxl as wb
 
-def DeclareParameters():
+def DeclareParameters(SN):
   '''All input parameters for the ray-launching method are entered in
   this function which will then save them inside a Parameters folder.
 
@@ -35,7 +35,22 @@ def DeclareParameters():
   # -------------------------------------------------------------------
 
   #print('Saving ray-launcher parameters')
-  deltheta=np.pi*np.array([1/3])#,1/5,1/7,1/8,1/9,1/12,1/14,1/16,1/18,1/19,1/20,1/22,1/25,1/36])
+  InBook     =wb.load_workbook(filename=SN,data_only=True)
+  AngSpacestr='AngleSpacing'
+  SimParstr  ='SimulationParameters'
+  Direcstr   ='Directions'
+  Obststr    ='Obstacles'
+  Angspace   =InBook[AngSpacestr]
+  SimPar     =InBook[SimParstr]
+  Direc      =InBook[Direcstr]
+  Obst       =InBook[Obststr]
+
+  deltheta=np.array([])
+  nrays=Angspace.max_row
+  SimPar.cell(row=12,column=3).value=nrays
+  for j in range(nrays-1):
+    deltheta=np.append(deltheta,Angspace.cell(row=j+2,column=1).value)
+    #np.pi*np.array([1/3])#,1/5,1/7,1/8,1/9,1/12,1/14,1/16,1/18,1/19,1/20,1/22,1/25,1/36])
   nrays=len(deltheta)
   Nra=np.ones((1,nrays),dtype=int)
   Nra=Nra[0]
