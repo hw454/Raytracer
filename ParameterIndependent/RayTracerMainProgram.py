@@ -38,7 +38,7 @@ import numpy as np
 import Room  as rom
 import raytracerfunction as rayt
 import sys
-import ParameterInput as PI
+import ParameterLoad as PI
 import DictionarySparseMatrix as DSM
 import time as t
 import matplotlib.pyplot as mp
@@ -46,8 +46,12 @@ import os
 import pickle
 import csv
 import logging
+import pdb
 
 epsilon=sys.float_info.epsilon
+xcheck=1
+ycheck=0
+zcheck=0
 
 def RayTracer():
   ''' Reflect rays and output the points of reflection.
@@ -242,9 +246,9 @@ def MeshProgram(repeat=0,plottype=str()):
 
   ##----Retrieve the environment--------------------------------------
   ##----The lengths are non-dimensionalised---------------------------
-  Oblist        =np.load('Parameters/Obstacles.npy')/L          # The obstacles which are within the outerboundary
-  Tx            =np.load('Parameters/Origin.npy')/L             # The location of the source antenna (origin of every ray)
-  OuterBoundary =np.load('Parameters/OuterBoundary.npy')/L      # The Obstacles forming the outer boundary of the room
+  Oblist        =np.load('Parameters/Obstacles.npy').astype(float)      # The obstacles which are within the outerboundary
+  Tx            =np.load('Parameters/Origin.npy').astype(float)         # The location of the source antenna (origin of every ray)
+  OuterBoundary =np.load('Parameters/OuterBoundary.npy').astype(float)  # The Obstacles forming the outer boundary of the room
   deltheta      =np.load('Parameters/delangle.npy')             # Array of
   NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
   NtriOut       =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
@@ -261,12 +265,10 @@ def MeshProgram(repeat=0,plottype=str()):
   print('Number of obstacles',Nob)
   # This number will be used in further functions so resaving will ensure the correct number is used.
   np.save('Parameters/Nob.npy',Nob)
-
   # -------------Find the number of cells in the x, y and z axis.-------
   Nx=int(Room.maxxleng()/(h))
   Ny=int(Room.maxyleng()/(h))
   Nz=int(Room.maxzleng()/(h))
-
   #--------------Run the ray tracer for each ray number-----------------
   for j in range(0,nra):
     j=int(j)
@@ -287,8 +289,10 @@ def MeshProgram(repeat=0,plottype=str()):
       pass
     else:
       raise ValueError('Too many nonzero terms in column')
+    logging.info('Before doubles deleted'+str(Mesh[xcheck,ycheck,zcheck]))
     print('Deleting doubles')
     Mesh,ind=Mesh.__del_doubles__(h,Nob,Ntri=Room.Ntri)
+    logging.info('After doubles deleted'+str(Mesh[xcheck,ycheck,zcheck]))
     # if Mesh.check_nonzero_col(Nre):
       # pass
     # else:
@@ -695,7 +699,10 @@ def plot_grid(plottype=str(),index=0):
   '''
   Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
   Nra        =np.load('Parameters/Nra.npy')
-  cmapopt    =str('plasma')
+  myfile = open('Parameters/Heatmapstyle.txt', 'rt') # open lorem.txt for reading text
+  cmapopt= myfile.read()         # read the entire file into a string
+  myfile.close()
+  LOS=np.load('Parameters/LOS.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       Nra=np.array([Nra])
       nra=1
@@ -706,17 +713,18 @@ def plot_grid(plottype=str(),index=0):
     Nre=int(Nre)
     pstr       ='./Mesh/'+plottype+'/Power_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
     RadAstr    ='./Mesh/'+plottype+'/RadA_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
-    RadBstr    ='./Mesh/'+plottype+'/RadB_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
+    if LOS==0:
+      RadBstr    ='./Mesh/'+plottype+'/RadB_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
+      TrueRadBstr='Mesh/True/'+plottype+'/TrueRadB.npy'
+      RadB=np.load(RadBstr)
+      TrueRadB=np.load(TrueRadBstr)
     TrueRadAstr='Mesh/True/'+plottype+'/TrueRadA.npy'
-    TrueRadBstr='Mesh/True/'+plottype+'/TrueRadB.npy'
     pstrstd    ='./Mesh/'+plottype+'/Power_gridstd%dRefs%dm%d.npy'%(Nr,Nre,index)
     truestr    ='Mesh/True/'+plottype+'/True.npy'
     P3  =np.load(truestr)
     P   =np.load(pstr)
     RadA=np.load(RadAstr)
-    RadB=np.load(RadBstr)
     TrueRadA=np.load(TrueRadAstr)
-    TrueRadB=np.load(TrueRadBstr)
     Pdifftil=abs(np.divide(P-P3,P, where=(abs(P)>epsilon)))  # Normalised Difference Mesh
     pdiffstr='./Mesh/'+plottype+'/PowerDiff_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
     np.save(pdiffstr,Pdifftil)
@@ -727,11 +735,12 @@ def plot_grid(plottype=str(),index=0):
     np.save(RadAdiffstr,RadAdifftil)
     err2=np.sum(RadAdifftil)/(P.shape[0]*P.shape[1]*P.shape[2])
     print('Residual GRL to true RadA',err2)
-    RadBdifftil=abs(np.divide(RadB-TrueRadB,RadB, where=(abs(RadB)>epsilon)))  # Normalised Difference Mesh
-    RadBdiffstr='./Mesh/'+plottype+'/PowerDiff_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
-    np.save(RadBdiffstr,RadBdifftil)
-    err2=np.sum(RadBdifftil)/(P.shape[0]*P.shape[1]*P.shape[2])
-    print('Residual GRL to true RadB',err2)
+    if LOS==0:
+      RadBdifftil=abs(np.divide(RadB-TrueRadB,RadB, where=(abs(RadB)>epsilon)))  # Normalised Difference Mesh
+      RadBdiffstr='./Mesh/'+plottype+'/PowerDiff_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
+      np.save(RadBdiffstr,RadBdifftil)
+      err2=np.sum(RadBdifftil)/(P.shape[0]*P.shape[1]*P.shape[2])
+      print('Residual GRL to true RadB',err2)
     #err3=np.sum(Pdiffhat)/(P.shape[0]*P.shape[1]*P.shape[2])
     #print('Residual of std to true',err3)
     n=P.shape[2]
@@ -741,12 +750,16 @@ def plot_grid(plottype=str(),index=0):
     #lb2=np.amin(P2)
     lb3=np.amin(P3)
     lb=min(lb,lb3)
-    rlb=min(np.amin(RadA),np.amin(RadB))
+    if LOS:
+      rlb=np.amin(RadA)
+      rub=np.amax(RadA)
+    else:
+      rlb=min(np.amin(RadA),np.amin(RadB))
+      rub=max(np.amax(RadA),np.amax(RadB))
     ub=np.amax(P)
     #ub2=np.amax(P2)
     ub3=np.amax(P3)
     ub=max(ub,ub3)
-    rub=max(np.amax(RadA),np.amax(RadB))
     if not os.path.exists('./GeneralMethodPowerFigures'):
       os.makedirs('./GeneralMethodPowerFigures')
     if not os.path.exists('./GeneralMethodPowerFigures/'+plottype):
@@ -778,12 +791,13 @@ def plot_grid(plottype=str(),index=0):
       filename=rayfolder+'/NoBoxRadASliceNra%dNref%dslice%dof%d.jpg'%(Nr,Nre,i+1,n)#.eps')
       mp.savefig(filename)
       mp.clf()
-      mp.figure(i)
-      mp.imshow(RadB[:,:,i], cmap=cmapopt, vmax=rub,vmin=rlb)
-      mp.colorbar()
-      filename=rayfolder+'/NoBoxRadBSliceNra%dNref%dslice%dof%d.jpg'%(Nr,Nre,i+1,n)#.eps')
-      mp.savefig(filename)
-      mp.clf()
+      if LOS==0:
+        mp.figure(i)
+        mp.imshow(RadB[:,:,i], cmap=cmapopt, vmax=rub,vmin=rlb)
+        mp.colorbar()
+        filename=rayfolder+'/NoBoxRadBSliceNra%dNref%dslice%dof%d.jpg'%(Nr,Nre,i+1,n)#.eps')
+        mp.savefig(filename)
+        mp.clf()
   # for i in range(n2):
     # mp.figure(n+i)
     # #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
@@ -855,9 +869,14 @@ if __name__=='__main__':
   G_zeros =np.zeros((testnum,nra))
   repeat=1
   logname='RayTracer'+plottype+'.log'
-  logging.basicConfig(filename=logname,filemode='w')
-  FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-  formatter = logging.Formatter(FORMAT)
+  j=1
+  while os.path.exists(logname):
+    logname='RayTracer'+plottype+'%d.log'%j
+    j+=1
+  logging.basicConfig(filename=logname,filemode='w',format="[%(asctime)s %(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s",
+    level=logging.INFO,
+    datefmt='%Y-%m-%d %H:%M:%S')
+  logging.info(sys.version)
   for j in range(0,timetest):
     Roomnum=roomnumstat
     #Timemat[0,0]=Roomnum
