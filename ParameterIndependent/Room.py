@@ -17,7 +17,8 @@ import Rays                 as ry
 import time                 as t
 from itertools import product
 import sys
-
+import logging
+import pdb
 epsilon=sys.float_info.epsilon
 
 class room:
@@ -159,11 +160,11 @@ class room:
     if abs(s.maxlength[a])<epsilon:
       leng=0
       if a==0:
-        p1=s.points[-1]
-        for p2 in s.points:
+        for p1,p2 in product(s.points,s.points):
           leng2=lf.length(np.array([p1,p2]))
           if leng2>leng:
             s.maxlength[a]=leng2
+            leng=leng2
       else:
         s.maxlength[a]=s.bounds[1][a-1]-s.bounds[0][a-1]
       return s.maxlength[a]
@@ -348,7 +349,6 @@ class room:
     # Iterate through the rays find the ray reflections
     # FIXME rays are independent of each other so this is parallelisable
     #j=int(Nra/2)
-    Dir=np.array([]) # Initialising to prevent pointing error.
     start=0 # Initialising to prevent pointing error.
     for it in range(0,Nra):#j,j+3):
       Dir       =directions[it]
@@ -358,6 +358,8 @@ class room:
       raylist[it]=raystart.points[0:-2]
       if not Mesh.check_nonzero_col(Nre,s.Nob):
         raise ValueError('There is a column with too many terms')
+    logging.info('Raypoints')
+    logging.info(str(raylist))
     s.time=t.time()-start_time
     return raylist, Mesh
   def ray_mesh_power_bounce(s,Tx,Nre,Nra,directions,Grid,Znobrat,refindex,Antpar,Gt,Pol,deltheta,loghandle=str()):
