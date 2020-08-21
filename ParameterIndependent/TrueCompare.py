@@ -7,7 +7,7 @@
 #
 #  This program is free software; you can redistribute it and/or modify
 import numpy as np
-import ParameterInput as PI
+import ParameterLoad as PI
 import sys
 import Room as rom
 from itertools import product
@@ -24,8 +24,9 @@ def makematrix_perfectreflection(index=0):
   print('True values for perfect reflection')
   print('-------------------------------')
   # Run the ParameterInput file
-  out1=PI.DeclareParameters()
-  out2=PI.ObstacleCoefficients()
+  SN='InputSheet.xlsx'
+  out1=PI.DeclareParameters(SN)
+  out2=PI.ObstacleCoefficients(SN)
   if not (out1==0 and out2==0): raise('Error occured in parameter declaration')
 
   ##---- Define the room co-ordinates----------------------------------
@@ -44,12 +45,12 @@ def makematrix_perfectreflection(index=0):
   ##----Retrieve the environment--------------------------------------
   ## The main ray tracing code runs within a unit square then the results are scaled at the power evaluation.
   ## this code finds the true power values for the environment in it's true length scale (not unit).
-  Oblist        =np.load('Parameters/Obstacles.npy')        # The obstacles are within a uni square and need to be scaled.
-  Tx            =np.load('Parameters/Origin.npy')/L             # The location of the source antenna (origin of every ray)
+  Oblist        =np.load('Parameters/Obstacles.npy')         # The obstacles are within a uni square and need to be scaled.
+  Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
   Direc         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
   deltheta      =np.load('Parameters/delangle.npy')
-  Oblist        =OuterBoundary/L #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+  Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
 
 
   # Room contains all the obstacles and walls.
@@ -71,7 +72,7 @@ def makematrix_perfectreflection(index=0):
   Nx=int(1/(h))
   Ny=int(1/(h))
   Nz=int(1/(h))
-  h=Room.maxleng()/Ns
+  h=Room.maxxleng()/Ns
   Mesh    =np.zeros((Nx,Ny,Nz),dtype=float)
   RadMeshA=np.zeros((Nx,Ny,Nz),dtype=float)
   RadMeshB=np.zeros((Nx,Ny,Nz),dtype=float)
@@ -90,15 +91,20 @@ def makematrix_perfectreflection(index=0):
       # Find the length from the transmitter to the point
       Txleng=np.linalg.norm(x-Tx)
       xhatleng=np.linalg.norm(x-Txhat)
+      #print(x,Tx,Txhat,xhatleng,Txleng)
       if Txleng!=0:
         field=DSM.FieldEquation(Txleng,khat,L,lam)*Pol
+      else:
+        field=0
       field+=DSM.FieldEquation(xhatleng,khat,L,lam)*Pol
-      if i==2 and j==2 and k==2:
-        print(field)
+      if i==1 and j==0 and k==0:
+        print(Txleng,xhatleng)
+        print(DSM.FieldEquation(Txleng,khat,L,lam)*Pol,DSM.FieldEquation(xhatleng,khat,L,lam)*Pol)
       P=np.linalg.norm(field)**2
       Mesh[i,j,k]=10*np.log10(P,where=(P!=0))
       RadMeshA[i,j,k]=Txleng
       RadMeshB[i,j,k]=xhatleng
+  print(Mesh[1,0,0])
   return Mesh,RadMeshA,RadMeshB
 
 def makematrix_LOS(index=0):
@@ -106,8 +112,9 @@ def makematrix_LOS(index=0):
   print('True values for LOS')
   print('-------------------------------')
   # Run the ParameterInput file
-  out1=PI.DeclareParameters()
-  out2=PI.ObstacleCoefficients()
+  SN='InputSheet.xlsx'
+  out1=PI.DeclareParameters(SN)
+  out2=PI.ObstacleCoefficients(SN)
   if out1==0 and out2==0: pass
   else:
       raise('Error occured in parameter declaration')
@@ -127,7 +134,7 @@ def makematrix_LOS(index=0):
 
   ##----Retrieve the environment--------------------------------------
   Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
-  Tx            =np.load('Parameters/Origin.npy')/L             # The location of the source antenna (origin of every ray)
+  Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
   Direc         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
   deltheta      =np.load('Parameters/delangle.npy')
@@ -167,8 +174,9 @@ def makematrix_withreflection(index=0):
   print('True values for lossy reflection')
   print('-------------------------------')
   # Run the ParameterInput file
-  out1=PI.DeclareParameters()
-  out2=PI.ObstacleCoefficients()
+  SN='InputSheet.xlsx'
+  out1=PI.DeclareParameters(SN)
+  out2=PI.ObstacleCoefficients(SN)
   if out1==0 & out2==0: pass
   else:
       raise('Error occured in parameter declaration')
@@ -218,12 +226,13 @@ def makematrix_withreflection(index=0):
   Mesh    =np.zeros((Nx,Ny,Nz),dtype=float)
   RadMeshA=np.zeros((Nx,Ny,Nz),dtype=float)
   RadMeshB=np.zeros((Nx,Ny,Nz),dtype=float)
-  Tri=Oblist[0]
-  Tri2=Oblist[1]
+  Tri=Oblist[0].astype(float)
+  Tri2=Oblist[1].astype(float)
   p0,p1,p2=Tri
   n=np.cross(p0-p1,p0-p2)
   n/=np.sqrt(np.dot(n,n))
   # y is the intersection point on surface 0 which is closest to the transmitter.
+  Tx=Tx.astype(float)
   y=(Tx-np.dot((Tx-p0),n)*n/np.dot(n,n))
   # Txhat is the image transmitter location
   Txhat=2*y-Tx
@@ -308,7 +317,7 @@ if __name__ == '__main__':
     if not os.path.exists('./Mesh/True/SingleRef'+loca):
         os.makedirs('./Mesh/True/SingleRef'+loca)
     Truename='Mesh/True/LOS'+loca+'/True.npy'
-    TrueRadname='Mesh/True/LOS'+loca+'/TrueRad.npy'
+    TrueRadname='Mesh/True/LOS'+loca+'/TrueRadA.npy'
     TrueQname='Mesh/True/LOS'+loca+'/TrueQ.npy'
     np.save(Truename,Mesh1)
     np.save(TrueRadname,RadMesh1)
@@ -328,6 +337,7 @@ if __name__ == '__main__':
     Truename='Mesh/True/PerfectRef'+loca+'/True.npy'
     TrueRadnameA='Mesh/True/PerfectRef'+loca+'/TrueRadA.npy'
     TrueRadnameB='Mesh/True/PerfectRef'+loca+'/TrueRadB.npy'
+    print(TrueRadnameB)
     TrueQname='Mesh/True/PerfectRef'+loca+'/TrueQ.npy'
     np.save(Truename,Mesh2)
     np.save(TrueRadnameA,RadMesh2a)
