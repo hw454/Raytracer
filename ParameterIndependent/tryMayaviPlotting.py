@@ -27,7 +27,7 @@ def PlotRays(plottype=str()):
       nra=1
     else:
       nra=len(Nra)
-    Nre,h ,L    =np.load('Parameters/Raytracing.npy')
+    Nre,h ,L    =np.load('Parameters/Raytracing.npy')[0:3]
     #Nra=98
     #Nre=5
 
@@ -47,7 +47,6 @@ def PlotRays(plottype=str()):
     #  RoomP=np.concatenate((RoomP,Oblist[j]),axis=0)
     for j in range(1,Nob2):
       RoomP=np.concatenate((RoomP,OuterBoundary[j]),axis=0)
-    RoomP/=L
     mlab.clf()
     mlab.close(all=True)
     for i in range(nra):
@@ -81,8 +80,10 @@ def PlotRays(plottype=str()):
       if not os.path.exists('./ConeFigures/'+plottype):
         os.makedirs('./ConeFigures/'+plottype)
       mlab.savefig('ConeFigures/'+plottype+'/Room'+str(int(Nra[i]))+'.jpg',size=(1000,1000))
-      mlab.clf()
-      mlab.close(all=True)
+      gui = GUI()
+      gui.start_event_loop()
+#mlab.clf()
+ #     mlab.close(all=True)
     return
 
 def PlotCones(plottype):
@@ -592,7 +593,7 @@ def PlotDirections(plottype=str()):
       nra=1
     else:
       nra=len(Nra)
-    Nre,h ,L    =np.load('Parameters/Raytracing.npy')
+    Nre,h ,L    =np.load('Parameters/Raytracing.npy')[0:3]
     # Take Tx to be 0,0,0
     delang     =np.load('Parameters/delangle.npy')
 
@@ -633,8 +634,10 @@ def PlotDirections(plottype=str()):
         mlab.plot3d(x,y,z,color= (0, 1, 1))
       filename=str('ConeFigures/'+plottype+'/Rays'+str(Nra[i])+'.jpg')
       mlab.savefig(filename,size=(1000,1000))
-      mlab.clf()
-      mlab.close(all=True)
+      gui = GUI()
+      gui.start_event_loop()
+      #mlab.clf()
+      #mlab.close(all=True)
     return
 
 def PlotPowerSlice(plottype):
@@ -989,9 +992,9 @@ if __name__=='__main__':
   myfile.close()
   #PlotSingleCone(plottype)
   #PlotPowerSlice(plottype)
-  #PlotRays(plottype)
-  #PlotDirections(plottype)
-  PlotConesOnSquare(plottype)
+  PlotRays(plottype)
+  PlotDirections(plottype)
+  #PlotConesOnSquare(plottype)
   #PlotCones(plottype)
   print('Running  on python version')
   print(sys.version)
