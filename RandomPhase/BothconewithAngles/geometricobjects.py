@@ -122,6 +122,10 @@ class room:
     elif count % 2 ==1:
       return 1
     else: return 2 # This term shouldn't happen
+<<<<<<< HEAD
+=======
+
+>>>>>>> 18ecc2cc0c1f654edbe4508ef89bacd728bb08ac
   def uniform_ray_tracer(s,origin,outsidepoint1,outsidepoint2,n,ave,i,frequency,start,m,Z2,Z1,refindex):
     start_time=t.time()         # Start the time counter
     ''' Traces ray's uniformly emitted from an origin around a room.
@@ -180,12 +184,20 @@ class room:
     mp.figure(i)
     #mp.title('Ray paths')
     s.Plotroom(origin,1.0)
+<<<<<<< HEAD
     mp.savefig('ConeFigures/ConeRays'+str(i)+'.png',bbox_inches='tight')
+=======
+    mp.savefig('../../../../ConeFigures/ConeRays'+str(i)+'.png',bbox_inches='tight')
+>>>>>>> 18ecc2cc0c1f654edbe4508ef89bacd728bb08ac
     mp.figure(i+1)
     s.Plotroom(origin,1/(spacing))
     cbar=mp.colorbar()
     cbar.set_label('Power in dBm', rotation=270)
+<<<<<<< HEAD
     mp.savefig('ConeFigures/ConeNoPhaseHeatmap'+str(i)+'.png',bbox_inches='tight')
+=======
+    mp.savefig('../../../../ConeFigures/ConeNoPhaseHeatmap'+str(i)+'.png',bbox_inches='tight')
+>>>>>>> 18ecc2cc0c1f654edbe4508ef89bacd728bb08ac
     #mp.figure(i+2)
     ##s.Plotroom(origin)
     #cbar=mp.colorbar()
@@ -200,25 +212,45 @@ class room:
     s.Plotroom(origin,1/(spacing))
     cbar=mp.colorbar()
     cbar.set_label('Power in dBm', rotation=270)
+<<<<<<< HEAD
     mp.savefig('ConeFigures/ConeAveragedHeatmapwithPhase'+str(i)+'.png',bbox_inches='tight')
+=======
+    mp.savefig('../../../../ConeFigures/ConeAveragedHeatmapwithPhase'+str(i)+'.png',bbox_inches='tight')
+>>>>>>> 18ecc2cc0c1f654edbe4508ef89bacd728bb08ac
     c0=Mesh0.hist(i+5)
     mp.figure(i+5)
     mp.title('Cumulative frequency of power')
     mp.grid()
+<<<<<<< HEAD
     mp.savefig('ConeFigures/ConeNoPhaseCumsum'+str(i)+'.png', bbox_inches='tight')
     mp.figure(i+6)
     mp.title('Histogram of power')
     mp.grid()
     mp.savefig('ConeFigures/ConeNoPhaseHistogram'+str(i)+'.png',bbox_inches='tight')
+=======
+    mp.savefig('../../../../ConeFigures/ConeNoPhaseCumsum'+str(i)+'.png', bbox_inches='tight')
+    mp.figure(i+6)
+    mp.title('Histogram of power')
+    mp.grid()
+    mp.savefig('../../../../ConeFigures/ConeNoPhaseHistogram'+str(i)+'.png',bbox_inches='tight')
+>>>>>>> 18ecc2cc0c1f654edbe4508ef89bacd728bb08ac
     c1=Mesh1.hist(i+7)
     mp.figure(i+7)
     mp.title('Cumulative frequency of power')
     mp.grid()
+<<<<<<< HEAD
     mp.savefig('ConeFigures/ConeAveragedCumsumwithPhase'+str(i)+'.png', bbox_inches='tight')
     mp.figure(i+8)
     mp.title('Histogram of power')
     mp.grid()
     mp.savefig('ConeFigures/ConeAveragedHistogramwithPhase'+str(i)+'.png',bbox_inches='tight')
+=======
+    mp.savefig('../../../../NewFigures/AveragedCumsumwithPhase'+str(i)+'.png', bbox_inches='tight')
+    mp.figure(i+8)
+    mp.title('Histogram of power')
+    mp.grid()
+    mp.savefig('../../../../ConeFigures/ConeAveragedHistogramwithPhase'+str(i)+'.png',bbox_inches='tight')
+>>>>>>> 18ecc2cc0c1f654edbe4508ef89bacd728bb08ac
     #c2=Mesh2.hist(i+9)
     #mp.figure(i+9)
     #mp.title('Cumulative frequency of field strength')
@@ -247,7 +279,11 @@ class room:
     mp.figure(i+9)
     RefSumDiff=Mesh0.meshdiff(Mesh1)
     mp.title('Residual- No phase change and phase change')
+<<<<<<< HEAD
     mp.savefig('ConeFigures/ConeResidualNoPhasePhase.png',bbox_inches='tight')
+=======
+    mp.savefig('../../../../ConeFigures/ConeResidualNoPhasePhase.png',bbox_inches='tight')
+>>>>>>> 18ecc2cc0c1f654edbe4508ef89bacd728bb08ac
     return i+16,spacing,Mesh1
   #def uniform_ray_tracer_bounded(s,origin,n,i,frequency,start,m,bounds,refloss):
     #''' Traces ray's uniforming emitted from an origin around a room.

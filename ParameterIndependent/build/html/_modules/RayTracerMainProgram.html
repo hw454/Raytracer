@@ -1,0 +1,681 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>RayTracerMainProgram &#8212; DSMRayTracerDoc 0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="DSMRayTracerDoc 0 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for RayTracerMainProgram</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># Updated Hayley Wragg 2019-03-15</span>
+<span class="sd">&#39;&#39;&#39; Code to trace rays around a room. This code uses:</span>
+
+<span class="sd">  * the function :py:func:`RayTracer` to compute the points for \</span>
+<span class="sd">  the ray trajectories.</span>
+<span class="sd">  * the function :py:func:`MeshProgram` to compute the points for \</span>
+<span class="sd">  the ray trajectories and iterate along the rays storing the \</span>
+<span class="sd">  information in a :py:class:`DictionarySparseMatrix.DS` and outputing \</span>
+<span class="sd">  the points and mesh.</span>
+<span class="sd">  * the function :py:func:`power_grid` which loads the last saved \</span>
+<span class="sd">  and loads the antenna and obstacle physical parameters from \</span>
+<span class="sd">  :py:func:`ParameterInput.ObstacleCoefficients`. It uses these and \</span>
+<span class="sd">  the functions :py:func:`RefCoefComputation` which output Rper \</span>
+<span class="sd">  and Rpar the perpendicular and parallel to polarisation reflection \</span>
+<span class="sd">  coefficients, and the function :py:func:`RefCombine` to \</span>
+<span class="sd">  get the loss from reflection for each ray segment entering each grid \</span>
+<span class="sd">  point. This is then combine with the distance of each raysegments \</span>
+<span class="sd">  travel from the mesh and the antenna gains to get the Power in \</span>
+<span class="sd">  decibels.</span>
+
+<span class="sd">  * The ray points from :py:func:`RayTracer` are saved as:</span>
+<span class="sd">    &#39;RayPoints\ **Nra**\ Refs\ **Nre**\ n.npy&#39; with **Nra** replaced by the \</span>
+<span class="sd">    number of rays and **Nre** replaced by the number of reflections.</span>
+<span class="sd">  * The ray points from :py:func:`MeshProgram` are saved as:</span>
+<span class="sd">    &#39;RayMeshPoints\ **Nra**\ Refs\ **Nre**\ n.npy&#39; with **Nra** replaced \</span>
+<span class="sd">    by the \</span>
+<span class="sd">    number of rays and **Nre** replaced by the number of reflections. \</span>
+<span class="sd">    The mesh is saved as &#39;DSM\ **Nra**\ Refs\ **Nre**\ m.npy&#39;.</span>
+
+<span class="sd">  &#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">Room</span>  <span class="k">as</span> <span class="nn">rom</span>
+<span class="kn">import</span> <span class="nn">raytracerfunction</span> <span class="k">as</span> <span class="nn">rayt</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">ParameterInput</span> <span class="k">as</span> <span class="nn">PI</span>
+<span class="kn">import</span> <span class="nn">DictionarySparseMatrix</span> <span class="k">as</span> <span class="nn">DSM</span>
+<span class="kn">import</span> <span class="nn">time</span> <span class="k">as</span> <span class="nn">t</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">mp</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<div class="viewcode-block" id="RayTracer"><a class="viewcode-back" href="../index.html#RayTracerMainProgram.RayTracer">[docs]</a><span class="k">def</span> <span class="nf">RayTracer</span><span class="p">():</span>
+  <span class="sd">&#39;&#39;&#39; Refect rays and output the points of reflection.</span>
+
+<span class="sd">  Parameters for the raytracer are input in \</span>
+<span class="sd">  :py:func:`ParameterInput.DeclareParameters()` The raytracing \</span>
+<span class="sd">  parameters defined in this function are saved and then loaded.</span>
+
+<span class="sd">  * &#39;Raytracing.npy&#39; - An array of 4 floats which is saved to \</span>
+<span class="sd">  [Nra (number of rays), Nre (number of reflections), \</span>
+<span class="sd">  h (relative meshwidth), \</span>
+<span class="sd">  L (room length scale, the longest axis has been rescaled to 1 and this \</span>
+<span class="sd">  is it&#39;s original length)]</span>
+<span class="sd">  * &#39;Obstacles.npy&#39;  - An array for 3x3x1 arrays containing co-ordinates \</span>
+<span class="sd">  forming triangles which form the obstacles. This is saved to Oblist \</span>
+<span class="sd">  (The obstacles which are within the outerboundary )</span>
+<span class="sd">  * &#39;Origin.npy&#39;     - A 3x1 array for the co-ordinate of the source. \</span>
+<span class="sd">  This is saved to Tx  (The location of the source antenna and origin \</span>
+<span class="sd">  of every ray)</span>
+<span class="sd">  * &#39;OuterBoundary.npy&#39; - An array for 3x3x1 arrays containing \</span>
+<span class="sd">  co-ordinates forming triangles which form the obstacles. This is \</span>
+<span class="sd">  saved to OuterBoundary   (The Obstacles forming the outer boundary of \</span>
+<span class="sd">  the room )</span>
+
+<span class="sd">  Put the two arrays of obstacles into one array</span>
+
+<span class="sd">  .. code::</span>
+
+<span class="sd">     Oblist=[Oblist,OuterBoundary]</span>
+
+<span class="sd">  * &#39;Directions.npy&#39; - An Nrax3x1 array containing the vectors which \</span>
+<span class="sd">  correspond to the initial direction of each ray. This is save to Direc.</span>
+
+<span class="sd">  A room is initialised with *Oblist* using the :class:`room` \</span>
+<span class="sd">  class in :py:mod:`Room`.</span>
+
+<span class="sd">  Find the reflection points of the rays using \</span>
+<span class="sd">  :py:func:`room.ray_bounce` function.</span>
+
+<span class="sd">  .. code::</span>
+
+<span class="sd">     Rays, Mesh=Room.ray_bounce(Tx,Nre,Nra,Direc)</span>
+
+<span class="sd">  Save the reflection points in Rays to \</span>
+<span class="sd">  &#39;RayPoints\ **Nra**\ Refs\ **Nre**\ n.npy&#39; making the \</span>
+<span class="sd">  substitution for **Nra** and **Nre** with their parameter values.</span>
+
+<span class="sd">  :return: 0 to mark a successful run</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="c1"># Run the ParameterInput file</span>
+  <span class="n">out</span><span class="o">=</span><span class="n">PI</span><span class="o">.</span><span class="n">DeclareParameters</span><span class="p">()</span>
+
+  <span class="c1">##---- Define the room co-ordinates----------------------------------</span>
+  <span class="c1"># Obstacles are triangles stored as three 3D co-ordinates</span>
+
+  <span class="c1">##----Retrieve the Raytracing Parameters-----------------------------</span>
+  <span class="n">Nra</span><span class="p">,</span><span class="n">Nre</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">L</span>     <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Raytracing.npy&#39;</span><span class="p">)</span>
+  <span class="n">Nre</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Nre</span><span class="p">)</span>
+  <span class="n">Nra</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Nra</span><span class="p">)</span>
+
+  <span class="c1">##----Retrieve the environment--------------------------------------</span>
+  <span class="n">Oblist</span>        <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Obstacles.npy&#39;</span><span class="p">)</span>          <span class="c1"># The obstacles which are within the outerboundary</span>
+  <span class="n">Tx</span>            <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Origin.npy&#39;</span><span class="p">)</span>             <span class="c1"># The location of the source antenna (origin of every ray)</span>
+  <span class="n">OuterBoundary</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/OuterBoundary.npy&#39;</span><span class="p">)</span>      <span class="c1"># The Obstacles forming the outer boundary of the room</span>
+  <span class="n">Direc</span>         <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Directions.npy&#39;</span><span class="p">)</span>         <span class="c1"># Matrix of intial ray directions for Nra rays.</span>
+  <span class="n">Oblist</span>        <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">Oblist</span><span class="p">,</span><span class="n">OuterBoundary</span><span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="c1"># Oblist is the list of all the obstacles in the domain</span>
+  <span class="c1">#Nob           =len(Oblist)                                 # The number of obstacles in the room</span>
+
+  <span class="c1"># Room contains all the obstacles and walls.</span>
+  <span class="n">Room</span><span class="o">=</span><span class="n">rom</span><span class="o">.</span><span class="n">room</span><span class="p">(</span><span class="n">Oblist</span><span class="p">)</span>
+
+  <span class="c1"># Calculate the Ray trajectories</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Starting trajectory calculation&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="n">Rays</span><span class="o">=</span><span class="n">Room</span><span class="o">.</span><span class="n">ray_bounce</span><span class="p">(</span><span class="n">Tx</span><span class="p">,</span> <span class="n">Nre</span><span class="p">,</span> <span class="n">Nra</span><span class="p">,</span> <span class="n">Direc</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Trajectory calculation completed&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Time taken&#39;</span><span class="p">,</span><span class="n">Room</span><span class="o">.</span><span class="n">time</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="n">filename</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;RayPoints&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">Nra</span><span class="p">))</span><span class="o">+</span><span class="s1">&#39;Refs&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">Nre</span><span class="p">))</span><span class="o">+</span><span class="s1">&#39;m.npy&#39;</span><span class="p">)</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="n">Rays</span><span class="p">)</span>
+  <span class="c1"># The &quot;Rays&quot; file is Nra+1 x Nre+1 x 4 array containing the</span>
+  <span class="c1"># co-ordinate and obstacle number for each reflection point corresponding</span>
+  <span class="c1"># to each source ray.</span>
+
+  <span class="k">return</span> <span class="mi">0</span></div>
+
+
+
+<div class="viewcode-block" id="MeshProgram"><a class="viewcode-back" href="../index.html#RayTracerMainProgram.MeshProgram">[docs]</a><span class="k">def</span> <span class="nf">MeshProgram</span><span class="p">():</span>
+  <span class="sd">&#39;&#39;&#39; Refect rays and output the Mesh containing ray information.</span>
+
+<span class="sd">  Parameters for the raytracer are input in :py:mod:`ParameterInput`</span>
+<span class="sd">  The raytracing parameters defined in this module are saved and then loaded.</span>
+
+<span class="sd">  * &#39;Raytracing.npy&#39; - An array of 4 floats which is saved to \</span>
+<span class="sd">  [Nra (number of rays), Nre (number of reflections), \</span>
+<span class="sd">  h (relative meshwidth), \</span>
+<span class="sd">  L (room length scale, the longest axis has been rescaled to 1 and this \</span>
+<span class="sd">  is it&#39;s original length)]</span>
+<span class="sd">  * &#39;Obstacles.npy&#39;  - An array for 3x3x1 arrays containing co-ordinates \</span>
+<span class="sd">  forming triangles which form the obstacles. This is saved to Oblist \</span>
+<span class="sd">  (The obstacles which are within the outerboundary )</span>
+<span class="sd">  * &#39;Origin.npy&#39;     - A 3x1 array for the co-ordinate of the source. \</span>
+<span class="sd">  This is saved to Tx  (The location of the source antenna and origin \</span>
+<span class="sd">  of every ray)</span>
+<span class="sd">  * &#39;OuterBoundary.npy&#39; - An array for 3x3x1 arrays containing \</span>
+<span class="sd">  co-ordinates forming triangles which form the obstacles. This is \</span>
+<span class="sd">  saved to OuterBoundary   (The Obstacles forming the outer boundary of \</span>
+<span class="sd">  the room )</span>
+
+<span class="sd">  Put the two arrays of obstacles into one array</span>
+
+<span class="sd">  .. code::</span>
+
+<span class="sd">     Oblist=[Oblist,OuterBoundary]</span>
+
+<span class="sd">  * &#39;Directions.npy&#39; - An Nrax3x1 array containing the vectors which \</span>
+<span class="sd">  correspond to the initial direction of each ray. This is save to Direc.</span>
+
+<span class="sd">  A room is initialised with *Oblist* using the py:class:`Room.room` \</span>
+<span class="sd">  class in :py:mod:`Room`.</span>
+
+<span class="sd">  The number of obstacles and the number of x, y and z steps is found</span>
+
+<span class="sd">  .. code::</span>
+
+<span class="sd">      Nob=Room.Nob</span>
+<span class="sd">      Nx=int(Room.maxxleng()/h)</span>
+<span class="sd">      Ny=int(Room.maxyleng()/h)</span>
+<span class="sd">      Nz=int(Room.maxzleng()/h)</span>
+
+<span class="sd">  Initialise a `DSM`. \</span>
+<span class="sd">  :py:class:`DictionarySparseMatrix.DS` with the \</span>
+<span class="sd">  number of spaces in the x, y and z axis Nx, Ny, Nz, the number of \</span>
+<span class="sd">  obstacles Nob, the number of reflections Nre and the number of rays Nra.</span>
+
+<span class="sd">  .. code::</span>
+
+<span class="sd">    Mesh=DSM.DS(Nx,Ny,Nz,int(Nob*Nre+1),int((Nre)*(Nra)+1))</span>
+
+<span class="sd">  Find the reflection points of the rays and store the distance and \</span>
+<span class="sd">  reflection angles of the rays in the Mesh. Use the \</span>
+<span class="sd">  py:func:`Room.room.ray_mesh_bounce` function.</span>
+
+<span class="sd">  .. code::</span>
+
+<span class="sd">     Rays, Mesh=Room.ray_mesh_bounce(Tx,int(Nre),int(Nra),Direc,Mesh)</span>
+
+<span class="sd">  Save the reflection points in Rays to \</span>
+<span class="sd">  &#39;RayMeshPoints\ **Nra**\ Refs\ **Nre**\ n.npy&#39; making the \</span>
+<span class="sd">  substitution for **Nra** and **Nre** with their parameter values.</span>
+
+<span class="sd">  :return: Mesh</span>
+
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Building Mesh&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="c1"># Run the ParameterInput file</span>
+  <span class="n">out</span><span class="o">=</span><span class="n">PI</span><span class="o">.</span><span class="n">DeclareParameters</span><span class="p">()</span>
+
+  <span class="c1">##---- Define the room co-ordinates----------------------------------</span>
+  <span class="c1"># Obstacles are triangles stored as three 3D co-ordinates</span>
+
+  <span class="c1">##----Retrieve the Raytracing Parameters-----------------------------</span>
+  <span class="n">Nra</span><span class="p">,</span><span class="n">Nre</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">L</span>    <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Raytracing.npy&#39;</span><span class="p">)</span>
+  <span class="n">Nra</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Nra</span><span class="p">)</span>
+  <span class="n">Nre</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Nre</span><span class="p">)</span>
+
+  <span class="c1">##----Retrieve the environment--------------------------------------</span>
+  <span class="n">Oblist</span>        <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Obstacles.npy&#39;</span><span class="p">)</span>          <span class="c1"># The obstacles which are within the outerboundary</span>
+  <span class="n">Tx</span>            <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Origin.npy&#39;</span><span class="p">)</span>             <span class="c1"># The location of the source antenna (origin of every ray)</span>
+  <span class="n">OuterBoundary</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/OuterBoundary.npy&#39;</span><span class="p">)</span>      <span class="c1"># The Obstacles forming the outer boundary of the room</span>
+  <span class="n">Direc</span>         <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Directions.npy&#39;</span><span class="p">)</span>         <span class="c1"># Matrix of ray directions</span>
+  <span class="n">Oblist</span>        <span class="o">=</span><span class="n">OuterBoundary</span> <span class="c1">#np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain</span>
+
+  <span class="c1"># Room contains all the obstacles and walls.</span>
+  <span class="n">Room</span><span class="o">=</span><span class="n">rom</span><span class="o">.</span><span class="n">room</span><span class="p">(</span><span class="n">Oblist</span><span class="p">)</span>
+  <span class="n">Nob</span><span class="o">=</span><span class="n">Room</span><span class="o">.</span><span class="n">Nob</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/Nob.npy&#39;</span><span class="p">,</span><span class="n">Nob</span><span class="p">)</span>
+
+  <span class="n">Nx</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Room</span><span class="o">.</span><span class="n">maxxleng</span><span class="p">()</span><span class="o">/</span><span class="n">h</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+  <span class="n">Ny</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Room</span><span class="o">.</span><span class="n">maxyleng</span><span class="p">()</span><span class="o">/</span><span class="n">h</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+  <span class="n">Nz</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Room</span><span class="o">.</span><span class="n">maxzleng</span><span class="p">()</span><span class="o">/</span><span class="n">h</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+  <span class="n">Mesh</span><span class="o">=</span><span class="n">DSM</span><span class="o">.</span><span class="n">DS</span><span class="p">(</span><span class="n">Nx</span><span class="p">,</span><span class="n">Ny</span><span class="p">,</span><span class="n">Nz</span><span class="p">,</span><span class="n">Nob</span><span class="o">*</span><span class="n">Nre</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">Nra</span><span class="o">*</span><span class="p">(</span><span class="n">Nre</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mesh built&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Starting the ray bouncing and information storage&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="n">Rays</span><span class="p">,</span> <span class="n">Mesh</span><span class="o">=</span><span class="n">Room</span><span class="o">.</span><span class="n">ray_mesh_bounce</span><span class="p">(</span><span class="n">Tx</span><span class="p">,</span><span class="n">Nre</span><span class="p">,</span><span class="n">Nra</span><span class="p">,</span><span class="n">Direc</span><span class="p">,</span><span class="n">Mesh</span><span class="p">)</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;./Mesh&#39;</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s1">&#39;./Mesh&#39;</span><span class="p">)</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;./Mesh/RayMeshPoints&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">Nra</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;Refs&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">Nre</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;m.npy&#39;</span><span class="p">,</span><span class="n">Rays</span><span class="p">)</span>
+  <span class="n">meshname</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;./Mesh/DSM&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">Nra</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;Refs&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">Nre</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;m.npy&#39;</span><span class="p">)</span>
+  <span class="n">Mesh</span><span class="o">.</span><span class="n">save_dict</span><span class="p">(</span><span class="n">meshname</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Ray-launching complete&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Time taken&#39;</span><span class="p">,</span><span class="n">Room</span><span class="o">.</span><span class="n">time</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">Mesh</span></div>
+
+<div class="viewcode-block" id="StdProgram"><a class="viewcode-back" href="../index.html#RayTracerMainProgram.StdProgram">[docs]</a><span class="k">def</span> <span class="nf">StdProgram</span><span class="p">():</span>
+  <span class="sd">&#39;&#39;&#39; Refect rays and input object information output the power.</span>
+
+<span class="sd">  Parameters for the raytracer are input in :py:mod:`ParameterInput`</span>
+<span class="sd">  The raytracing parameters defined in this module are saved and then loaded.</span>
+
+<span class="sd">  * &#39;Raytracing.npy&#39; - An array of 4 floats which is saved to \</span>
+<span class="sd">  [Nra (number of rays), Nre (number of reflections), \</span>
+<span class="sd">  h (relative meshwidth), \</span>
+<span class="sd">  L (room length scale, the longest axis has been rescaled to 1 and this \</span>
+<span class="sd">  is it&#39;s original length)]</span>
+<span class="sd">  * &#39;Obstacles.npy&#39;  - An array for 3x3x1 arrays containing co-ordinates \</span>
+<span class="sd">  forming triangles which form the obstacles. This is saved to Oblist \</span>
+<span class="sd">  (The obstacles which are within the outerboundary )</span>
+<span class="sd">  * &#39;Origin.npy&#39;     - A 3x1 array for the co-ordinate of the source. \</span>
+<span class="sd">  This is saved to Tx  (The location of the source antenna and origin \</span>
+<span class="sd">  of every ray)</span>
+<span class="sd">  * &#39;OuterBoundary.npy&#39; - An array for 3x3x1 arrays containing \</span>
+<span class="sd">  co-ordinates forming triangles which form the obstacles. This is \</span>
+<span class="sd">  saved to OuterBoundary   (The Obstacles forming the outer boundary of \</span>
+<span class="sd">  the room )</span>
+
+<span class="sd">  Put the two arrays of obstacles into one array</span>
+
+<span class="sd">  .. code::</span>
+
+<span class="sd">     Oblist=[Oblist,OuterBoundary]</span>
+
+<span class="sd">  * &#39;Directions.npy&#39; - An Nrax3x1 array containing the vectors which \</span>
+<span class="sd">  correspond to the initial direction of each ray. This is save to Direc.</span>
+
+<span class="sd">  A room is initialised with *Oblist* using the py:class:`Room.room` \</span>
+<span class="sd">  class in :py:mod:`Room`.</span>
+
+<span class="sd">  The number of obstacles and the number of x, y and z steps is found</span>
+
+<span class="sd">  .. code::</span>
+
+<span class="sd">      Nob=Room.Nob</span>
+<span class="sd">      Nx=int(Room.maxxleng()/h)</span>
+<span class="sd">      Ny=int(Room.maxyleng()/h)</span>
+<span class="sd">      Nz=int(Room.maxzleng()/h)</span>
+
+<span class="sd">  Initialise a `DSM`. \</span>
+<span class="sd">  :py:class:`DictionarySparseMatrix.DS` with the \</span>
+<span class="sd">  number of spaces in the x, y and z axis Nx, Ny, Nz, the number of \</span>
+<span class="sd">  obstacles Nob, the number of reflections Nre and the number of rays Nra.</span>
+
+<span class="sd">  .. code::</span>
+
+<span class="sd">    Mesh=DSM.DS(Nx,Ny,Nz,int(Nob*Nre+1),int((Nre)*(Nra)+1))</span>
+
+<span class="sd">  Find the reflection points of the rays and store the power Use the \</span>
+<span class="sd">  py:func:`Room.room.ray_mesh_bounce` function.</span>
+
+<span class="sd">  .. code::</span>
+
+<span class="sd">     Rays, Mesh=Room.ray_mesh_power_bounce(Tx,int(Nre),int(Nra),Direc,Mesh)</span>
+
+<span class="sd">  Save the reflection points in Rays to \</span>
+<span class="sd">  &#39;RayMeshPoints\ **Nra**\ Refs\ **Nre**\ n.npy&#39; making the \</span>
+<span class="sd">  substitution for **Nra** and **Nre** with their parameter values.</span>
+
+<span class="sd">  :return: Mesh</span>
+
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Building Mesh&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="c1"># Run the ParameterInput file</span>
+  <span class="n">out1</span><span class="o">=</span><span class="n">PI</span><span class="o">.</span><span class="n">DeclareParameters</span><span class="p">()</span>
+  <span class="n">out2</span><span class="o">=</span><span class="n">PI</span><span class="o">.</span><span class="n">ObstacleCoefficients</span><span class="p">()</span>
+  <span class="k">if</span> <span class="n">out1</span><span class="o">==</span><span class="mi">0</span> <span class="o">&amp;</span> <span class="n">out2</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> <span class="k">pass</span>
+  <span class="k">else</span><span class="p">:</span>
+      <span class="k">raise</span><span class="p">(</span><span class="s1">&#39;Error occured in parameter declaration&#39;</span><span class="p">)</span>
+
+  <span class="c1">##---- Define the room co-ordinates----------------------------------</span>
+  <span class="c1"># Obstacles are triangles stored as three 3D co-ordinates</span>
+
+  <span class="c1">##----Retrieve the Raytracing Parameters-----------------------------</span>
+  <span class="n">Nra</span><span class="p">,</span><span class="n">Nre</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">L</span>    <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Raytracing.npy&#39;</span><span class="p">)</span>
+  <span class="n">Nra</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Nra</span><span class="p">)</span>
+  <span class="n">Nre</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Nre</span><span class="p">)</span>
+
+  <span class="c1">##----Retrieve the environment--------------------------------------</span>
+  <span class="n">Oblist</span>        <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Obstacles.npy&#39;</span><span class="p">)</span>          <span class="c1"># The obstacles which are within the outerboundary</span>
+  <span class="n">Tx</span>            <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Origin.npy&#39;</span><span class="p">)</span>             <span class="c1"># The location of the source antenna (origin of every ray)</span>
+  <span class="n">OuterBoundary</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/OuterBoundary.npy&#39;</span><span class="p">)</span>      <span class="c1"># The Obstacles forming the outer boundary of the room</span>
+  <span class="n">Direc</span>         <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Directions.npy&#39;</span><span class="p">)</span>         <span class="c1"># Matrix of ray directions</span>
+  <span class="n">Oblist</span>        <span class="o">=</span><span class="n">OuterBoundary</span> <span class="c1">#np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain</span>
+
+  <span class="c1"># Room contains all the obstacles and walls.</span>
+  <span class="n">Room</span><span class="o">=</span><span class="n">rom</span><span class="o">.</span><span class="n">room</span><span class="p">(</span><span class="n">Oblist</span><span class="p">)</span>
+  <span class="n">Nob</span><span class="o">=</span><span class="n">Room</span><span class="o">.</span><span class="n">Nob</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Parameters/Nob.npy&#39;</span><span class="p">,</span><span class="n">Nob</span><span class="p">)</span>
+
+  <span class="c1">##----Retrieve the antenna parameters--------------------------------------</span>
+  <span class="n">Gt</span>            <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/TxGains&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.npy&#39;</span><span class="p">)</span>
+  <span class="n">freq</span>          <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/frequency&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.npy&#39;</span><span class="p">)</span>
+  <span class="n">Freespace</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Freespace&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.npy&#39;</span><span class="p">)</span>
+  <span class="n">c</span>             <span class="o">=</span><span class="n">Freespace</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+  <span class="n">khat</span>          <span class="o">=</span><span class="n">freq</span><span class="o">*</span><span class="n">L</span><span class="o">/</span><span class="n">c</span>
+  <span class="n">lam</span>           <span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">c</span><span class="p">)</span><span class="o">/</span><span class="n">freq</span>
+  <span class="n">Antpar</span>        <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">khat</span><span class="p">,</span><span class="n">lam</span><span class="p">,</span><span class="n">L</span><span class="p">])</span>
+
+  <span class="c1">##----Retrieve the Obstacle Parameters--------------------------------------</span>
+  <span class="n">Znobrat</span>      <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Znobrat.npy&#39;</span><span class="p">)</span>
+  <span class="n">refindex</span>     <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/refindex.npy&#39;</span><span class="p">)</span>
+
+  <span class="n">Nx</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Room</span><span class="o">.</span><span class="n">maxxleng</span><span class="p">()</span><span class="o">/</span><span class="n">h</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+  <span class="n">Ny</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Room</span><span class="o">.</span><span class="n">maxyleng</span><span class="p">()</span><span class="o">/</span><span class="n">h</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+  <span class="n">Nz</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Room</span><span class="o">.</span><span class="n">maxzleng</span><span class="p">()</span><span class="o">/</span><span class="n">h</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+  <span class="n">Mesh</span><span class="o">=</span><span class="n">DSM</span><span class="o">.</span><span class="n">DS</span><span class="p">(</span><span class="n">Nx</span><span class="p">,</span><span class="n">Ny</span><span class="p">,</span><span class="n">Nz</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mesh built&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Starting the ray bouncing and information storage&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="n">Rays</span><span class="p">,</span> <span class="n">Mesh</span><span class="o">=</span><span class="n">Room</span><span class="o">.</span><span class="n">ray_mesh_power_bounce</span><span class="p">(</span><span class="n">Tx</span><span class="p">,</span><span class="n">Nre</span><span class="p">,</span><span class="n">Nra</span><span class="p">,</span><span class="n">Direc</span><span class="p">,</span><span class="n">Mesh</span><span class="p">,</span><span class="n">Znobrat</span><span class="p">,</span><span class="n">refindex</span><span class="p">,</span><span class="n">Antpar</span><span class="p">,</span><span class="n">Gt</span><span class="p">)</span>
+  <span class="c1"># if not os.path.exists(&#39;./Mesh&#39;):</span>
+    <span class="c1"># os.makedirs(&#39;./Mesh&#39;)</span>
+  <span class="c1"># np.save(&#39;./Mesh/RayPowerMeshPoints&#39;+str(Nra)+&#39;Refs&#39;+str(Nre)+&#39;m.npy&#39;,Rays)</span>
+  <span class="c1"># meshname=str(&#39;./Mesh/DSM&#39;+str(Nra)+&#39;Refs&#39;+str(Nre)+&#39;m.npy&#39;)</span>
+  <span class="c1"># Mesh.save_dict(meshname)</span>
+  <span class="c1"># print(&#39;-------------------------------&#39;)</span>
+  <span class="c1"># print(&#39;Ray-launching complete&#39;)</span>
+  <span class="c1"># print(&#39;Time taken&#39;,Room.time)</span>
+  <span class="c1"># print(&#39;-------------------------------&#39;)</span>
+  <span class="k">return</span> <span class="n">Mesh</span></div>
+
+<div class="viewcode-block" id="power_grid"><a class="viewcode-back" href="../index.html#RayTracerMainProgram.power_grid">[docs]</a><span class="k">def</span> <span class="nf">power_grid</span><span class="p">(</span><span class="n">Roomnum</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39; Calculate the field on a grid using enviroment parameters and the \</span>
+<span class="sd">  ray Mesh.</span>
+
+<span class="sd">  Loads:</span>
+
+<span class="sd">  * (*Nra*\ = number of rays, *Nre*\ = number of reflections, \</span>
+<span class="sd">  *h*\ = meshwidth, *L*\ = room length scale)=`Paramters/Raytracing.npy`</span>
+<span class="sd">  * (*Nob*\ =number of obstacles)=`Parameters/Nob.npy`</span>
+<span class="sd">  * (*Gt*\ =transmitter gains)=`Parameters/TxGains.npy`</span>
+<span class="sd">  * (*freq*\ = frequency)=`Parameters/frequency.npy`</span>
+<span class="sd">  * (*Freespace*\ = permittivity, permeabilty \</span>
+<span class="sd">  and spead of light)=`Parameters/Freespace.npy`</span>
+<span class="sd">  * (*Znobrat*\ = Znob/Z0, the ratio of the impedance of obstacles and \</span>
+<span class="sd">  the impedance in freespace.) = `Parameters/Znobrat.npy`</span>
+<span class="sd">  * (*refindex*\ = the refractive index of the obstacles)=\</span>
+<span class="sd">  Paramerters/refindex.npy`</span>
+<span class="sd">  * (*Mesh*)=`DSM\ **Nra**\ Refs\ **Nre**\ m.npy`</span>
+
+<span class="sd">  Method:</span>
+<span class="sd">  * Initialise Grid using the number of x, y, and z steps in *Mesh*.</span>
+<span class="sd">  * Use the function :py:func:`DictionarySparseMatrix.DS.power_compute`</span>
+<span class="sd">  to compute the power.</span>
+
+<span class="sd">  :rtype: Nx \ Ny x Nz numpy array of floats.</span>
+
+<span class="sd">  :returns: Grid</span>
+
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="c1">##----Retrieve the Raytracing Parameters-----------------------------</span>
+  <span class="n">Nra</span><span class="p">,</span><span class="n">Nre</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">L</span>    <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Raytracing.npy&#39;</span><span class="p">)</span>
+  <span class="n">Nra</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Nra</span><span class="p">)</span>
+  <span class="n">Nre</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">Nre</span><span class="p">)</span>
+  <span class="c1">#Roomnum        =int(input(&#39;How many combinations of room values do you want to test?&#39;))</span>
+  <span class="n">Nob</span>            <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Nob.npy&#39;</span><span class="p">)</span>
+
+  <span class="c1">##----Retrieve the Mesh--------------------------------------</span>
+  <span class="n">meshname</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;./Mesh/DSM&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">Nra</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;Refs&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">Nre</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;m.npy&#39;</span><span class="p">)</span>
+  <span class="n">Mesh</span><span class="o">=</span> <span class="n">DSM</span><span class="o">.</span><span class="n">load_dict</span><span class="p">(</span><span class="n">meshname</span><span class="p">)</span>
+
+  <span class="c1">##----Initialise Grid For Power------------------------------------------------------</span>
+  <span class="n">Nx</span><span class="o">=</span><span class="n">Mesh</span><span class="o">.</span><span class="n">Nx</span>
+  <span class="n">Ny</span><span class="o">=</span><span class="n">Mesh</span><span class="o">.</span><span class="n">Ny</span>
+  <span class="n">Nz</span><span class="o">=</span><span class="n">Mesh</span><span class="o">.</span><span class="n">Nz</span>
+  <span class="n">Grid</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Nx</span><span class="p">,</span><span class="n">Ny</span><span class="p">,</span><span class="n">Nz</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+  <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">Roomnum</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">PI</span><span class="o">.</span><span class="n">ObstacleCoefficients</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+    <span class="c1">##----Retrieve the antenna parameters--------------------------------------</span>
+    <span class="n">Gt</span>            <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/TxGains&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.npy&#39;</span><span class="p">)</span>
+    <span class="n">freq</span>          <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/frequency&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.npy&#39;</span><span class="p">)</span>
+    <span class="n">Freespace</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Freespace&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.npy&#39;</span><span class="p">)</span>
+    <span class="c1">##----Retrieve the Obstacle Parameters--------------------------------------</span>
+    <span class="n">Znobrat</span>      <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Znobrat.npy&#39;</span><span class="p">)</span>
+    <span class="n">refindex</span>     <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/refindex.npy&#39;</span><span class="p">)</span>
+    <span class="c1"># Make the refindex, impedance and gains vectors the right length to</span>
+    <span class="c1"># match the matrices.</span>
+    <span class="n">Znobrat</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">Znobrat</span><span class="p">,</span><span class="n">Nre</span><span class="p">)</span>                    <span class="c1"># The number of rows is Nob*Nre+1. Repeat Nob</span>
+    <span class="n">Znobrat</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">Znobrat</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="nb">complex</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">))</span>     <span class="c1"># Use a zero for placement in the LOS row</span>
+    <span class="n">refindex</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">refindex</span><span class="p">,</span><span class="n">Nre</span><span class="p">)</span>
+    <span class="n">refindex</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">refindex</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">+</span><span class="mi">0</span><span class="n">j</span><span class="p">)</span>
+    <span class="n">Gt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">Gt</span><span class="p">,(</span><span class="n">Nre</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="c1"># Calculate the necessry parameters for the power calculation.</span>
+    <span class="n">c</span>             <span class="o">=</span><span class="n">Freespace</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">khat</span>          <span class="o">=</span><span class="n">freq</span><span class="o">*</span><span class="n">L</span><span class="o">/</span><span class="n">c</span>
+    <span class="n">lam</span>           <span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">c</span><span class="p">)</span><span class="o">/</span><span class="n">freq</span>
+    <span class="n">Antpar</span>        <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">khat</span><span class="p">,</span><span class="n">lam</span><span class="p">,</span><span class="n">L</span><span class="p">])</span>
+
+    <span class="n">Grid</span><span class="o">=</span><span class="n">DSM</span><span class="o">.</span><span class="n">power_compute</span><span class="p">(</span><span class="n">Mesh</span><span class="p">,</span><span class="n">Grid</span><span class="p">,</span><span class="n">Znobrat</span><span class="p">,</span><span class="n">refindex</span><span class="p">,</span><span class="n">Antpar</span><span class="p">,</span><span class="n">Gt</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;./Mesh&#39;</span><span class="p">):</span>
+      <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s1">&#39;./Mesh&#39;</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;./Mesh/Power_grid&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">Nra</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;Refs&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">Nre</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;m&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.npy&#39;</span><span class="p">,</span><span class="n">Grid</span><span class="p">)</span> <span class="c1">#.compressed())</span>
+  <span class="k">return</span> <span class="n">Grid</span></div>
+
+
+<div class="viewcode-block" id="RefCoefComputation"><a class="viewcode-back" href="../index.html#RayTracerMainProgram.RefCoefComputation">[docs]</a><span class="k">def</span> <span class="nf">RefCoefComputation</span><span class="p">(</span><span class="n">Mesh</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39; Compute the mesh of reflection coefficients.</span>
+
+<span class="sd">  :param Mesh: The DS mesh which contains the angles and distances rays \</span>
+<span class="sd">  have travelled.</span>
+
+<span class="sd">  Load the physical parameters using</span>
+<span class="sd">  :py:func:`ParameterInput.ObstacleCoefficients`</span>
+
+<span class="sd">  * Znobrat - is the vector of characteristic impedances for obstacles \</span>
+<span class="sd">  divided by the characteristic impedance of air.</span>
+<span class="sd">  * refindex - if the vector of refractive indexes for the obstacles.</span>
+
+<span class="sd">  Compute the Reflection coefficients (RefCoefper,Refcoefpar) using: \</span>
+<span class="sd">  :py:func:`DictionarySparseMatrix.ref_coef`</span>
+
+<span class="sd">  :rtype: (:py:class:`DictionarySparseMatrix.DS` (Nx,Ny,Nz,na,nb)\</span>
+<span class="sd">    , :py:class:`DictionarySparseMatrix.DS` (Nx,Ny,Nz,na,nb))</span>
+
+<span class="sd">  :returns: (RefCoefper,Refcoefpar)</span>
+
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">out</span><span class="o">=</span><span class="n">PI</span><span class="o">.</span><span class="n">ObstacleCoefficients</span><span class="p">()</span>
+  <span class="n">Znobrat</span>      <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Znobrat.npy&#39;</span><span class="p">)</span>
+  <span class="n">refindex</span>     <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/refindex.npy&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Computing the reflection coeficients&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="n">start</span><span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+  <span class="n">RefCoefPerp</span><span class="p">,</span> <span class="n">RefCoefPar</span><span class="o">=</span><span class="n">DSM</span><span class="o">.</span><span class="n">ref_coef</span><span class="p">(</span><span class="n">Mesh</span><span class="p">,</span><span class="n">Znobrat</span><span class="p">,</span><span class="n">refindex</span><span class="p">)</span>
+  <span class="n">end</span><span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Reflection coeficients found&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Computation time&#39;</span><span class="p">,</span><span class="n">end</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">RefCoefPerp</span><span class="p">,</span> <span class="n">RefCoefPar</span></div>
+
+<div class="viewcode-block" id="RefCombine"><a class="viewcode-back" href="../index.html#RayTracerMainProgram.RefCombine">[docs]</a><span class="k">def</span> <span class="nf">RefCombine</span><span class="p">(</span><span class="n">Rper</span><span class="p">,</span><span class="n">Rpar</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39; Combine reflection coefficients to get the loss from reflection \</span>
+<span class="sd">  coefficient for each ray segment.</span>
+
+<span class="sd">  Take in the DS&#39;s (:py:mod:`DictionarySparseMatrix`. :py:class:`DS`)\</span>
+<span class="sd">  corresponding to the reflection coefficients for all the ray \</span>
+<span class="sd">  interactions (:py:mod:`DictionarySparseMatrix`. :py:func:`ref_coef(Mesh)`).</span>
+
+<span class="sd">  Use the function :py:mod:`DictionarySparseMatrix`. :py:class:`DS`. \</span>
+<span class="sd">  :py:func:`dict_col_mult()` to multiple reflection coefficients in the same column.</span>
+
+<span class="sd">  .. code::</span>
+
+<span class="sd">     Combper=[</span>
+<span class="sd">     [prod(nonzero terms in column 0 in Rper[0,0,0]),</span>
+<span class="sd">     prod(nonzero terms in column 1 in Rper[0,0,0]),</span>
+<span class="sd">     ...,</span>
+<span class="sd">     prod(nonzero terms in column nb in Rper[0,0,0]</span>
+<span class="sd">     ],</span>
+<span class="sd">     ...,</span>
+<span class="sd">     [prod(nonzero terms in column 0 in Rper[Nx-1,Ny-1,Nz-1]),</span>
+<span class="sd">     prod(nonzero terms in column 1 in Rper[Nx-1,Ny-1,Nz-1]),</span>
+<span class="sd">     ...,</span>
+<span class="sd">     prod(nonzero terms in column nb in Rper[Nx-1,Ny-1,Nz-1]</span>
+<span class="sd">     ]</span>
+<span class="sd">     ]</span>
+
+<span class="sd">  .. code::</span>
+
+<span class="sd">     Combpar=[</span>
+<span class="sd">     [prod(nonzero terms in column 0 in Rpar[0,0,0]),</span>
+<span class="sd">     prod(nonzero terms in column 1 in Rpar[0,0,0]),</span>
+<span class="sd">     ...,</span>
+<span class="sd">     prod(nonzero terms in column nb in Rpar[0,0,0]</span>
+<span class="sd">     ],</span>
+<span class="sd">     ...,</span>
+<span class="sd">     [prod(nonzero terms in column 0 in Rpar[Nx-1,Ny-1,Nz-1]),</span>
+<span class="sd">     prod(nonzero terms in column 1 in Rpar[Nx-1,Ny-1,Nz-1]),</span>
+<span class="sd">     ...,</span>
+<span class="sd">     prod(nonzero terms in column nb in Rpar[Nx-1,Ny-1,Nz-1]</span>
+<span class="sd">     ]</span>
+<span class="sd">     ]</span>
+
+<span class="sd">  :param Rper: The mesh corresponding to reflection coefficients \</span>
+<span class="sd">  perpendicular to the polarisation.</span>
+
+<span class="sd">  :param Rpar: The mesh corresponding to reflection coefficients \</span>
+<span class="sd">  parallel to the polarisation.</span>
+
+<span class="sd">  :rtype: (:py:class:`DictionarySparseMatrix.DS` (Nx,Ny,Nz,1,nb), \</span>
+<span class="sd">  :py:class:`DictionarySparseMatrix.DS` (Nx,Ny,Nz,na,nb))</span>
+
+<span class="sd">  :return: Combper, Combpar</span>
+
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">Combper</span><span class="o">=</span><span class="n">Rper</span><span class="o">.</span><span class="n">dict_col_mult</span><span class="p">()</span>
+  <span class="n">Combpar</span><span class="o">=</span><span class="n">Rpar</span><span class="o">.</span><span class="n">dict_col_mult</span><span class="p">()</span>
+  <span class="k">return</span> <span class="n">Combper</span><span class="p">,</span> <span class="n">Combpar</span></div>
+
+<div class="viewcode-block" id="plot_grid"><a class="viewcode-back" href="../index.html#RayTracerMainProgram.plot_grid">[docs]</a><span class="k">def</span> <span class="nf">plot_grid</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39; Plots slices of a 3D power grid.</span>
+
+<span class="sd">  Loads `Power_grid.npy` and for each z step plots a heatmap of the \</span>
+<span class="sd">  values at the (x,y) position.</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">Nra</span><span class="p">,</span><span class="n">Nre</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">L</span>    <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;Parameters/Raytracing.npy&#39;</span><span class="p">)</span>
+  <span class="n">pstr</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;./Mesh/Power_grid&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">Nra</span><span class="p">))</span><span class="o">+</span><span class="s1">&#39;Refs&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">Nre</span><span class="p">))</span><span class="o">+</span><span class="s1">&#39;m&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.npy&#39;</span><span class="p">)</span>
+  <span class="n">P</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">pstr</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="n">P</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+  <span class="n">n</span><span class="o">=</span><span class="n">P</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+  <span class="n">lb</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+  <span class="n">ub</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;./GeneralMethodPowerFigures&#39;</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s1">&#39;./GeneralMethodPowerFigures&#39;</span><span class="p">)</span>
+  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">mp</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="c1">#extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]</span>
+    <span class="n">mp</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">P</span><span class="p">[:,:,</span><span class="n">i</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
+    <span class="n">mp</span><span class="o">.</span><span class="n">colorbar</span><span class="p">()</span>
+    <span class="n">filename</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;GeneralMethodPowerFigures/WithBoxPowerSlice&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">))</span><span class="o">+</span><span class="s1">&#39;Nra&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">Nra</span><span class="p">))</span><span class="o">+</span><span class="s1">&#39;n&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">))</span><span class="o">+</span><span class="s1">&#39;Nref&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">Nre</span><span class="p">))</span><span class="o">+</span><span class="s1">&#39;.eps&#39;</span><span class="p">)</span>
+    <span class="n">mp</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+  <span class="c1">#mp.show()</span>
+  <span class="k">return</span></div>
+
+<span class="k">if</span> <span class="n">__name__</span><span class="o">==</span><span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Running  on python version&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+  <span class="c1">#out=RayTracer() # To compute just the rays with no storage uncomment this line.</span>
+  <span class="n">Roomnum</span><span class="o">=</span><span class="mi">0</span>
+  <span class="n">testnum</span><span class="o">=</span><span class="mi">5</span>
+  <span class="n">Timemat</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">testnum</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+  <span class="k">for</span> <span class="n">Roomnum</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">testnum</span><span class="p">):</span>
+    <span class="n">start</span><span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">Mesh</span><span class="o">=</span><span class="n">MeshProgram</span><span class="p">()</span> <span class="c1"># Shoot the rays and store the information</span>
+    <span class="n">Grid</span><span class="o">=</span><span class="n">power_grid</span><span class="p">(</span><span class="n">Roomnum</span><span class="p">)</span>  <span class="c1"># Use the ray information to compute the power</span>
+    <span class="c1"># plot_grid()        # Plot the power in slices.</span>
+    <span class="n">end</span><span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">Timemat</span><span class="p">[</span><span class="n">Roomnum</span><span class="p">]</span><span class="o">=</span><span class="n">end</span><span class="o">-</span><span class="n">start</span>
+    <span class="n">Roomnum</span><span class="o">+=</span><span class="mi">1</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Time to complete program&#39;</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="n">Timemat</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------------&#39;</span><span class="p">)</span>
+  <span class="n">exit</span><span class="p">()</span>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Hayley.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

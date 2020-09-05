@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 Run times for first source location 4.03382492, 0.00000000Run times for second source location 4.30986190Run times for second source location 0.00000000
+=======
+Run times for first source location 8.30323005, 0.00000000Run times for second source location 8.03089905Run times for second source location 0.00000000
+>>>>>>> 18ecc2cc0c1f654edbe4508ef89bacd728bb08ac

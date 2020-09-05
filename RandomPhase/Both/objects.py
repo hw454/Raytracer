@@ -140,9 +140,36 @@ class room:
     #s.Plotroom(origin)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnRefRays'+str(i)+'.png',bbox_inches='tight')
     mp.figure(i+1)
+<<<<<<< HEAD
     #s.Plotroom(origin)
     cbar=mp.colorbar()
     cbar.set_label('Field strength in dBm', rotation=270)
+=======
+<<<<<<< HEAD
+    s.Plotroom(origin)
+<<<<<<< HEAD
+    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/NoRNDHeatmap'+str(i)+'.png',bbox_inches='tight')
+    mp.colorbar()
+    mp.figure(i+2)
+    s.Plotroom(origin)
+    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnRefHeatmap'+str(i)+'.png',bbox_inches='tight')
+    mp.colorbar()
+    mp.figure(i+3)
+    s.Plotroom(origin)
+    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnSumHeatmap'+str(i)+'.png',bbox_inches='tight')
+    mp.colorbar()
+    mp.figure(i+4)
+    s.Plotroom(origin)
+    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnBothHeatmap'+str(i)+'.png',bbox_inches='tight')
+    mp.colorbar()
+=======
+    mp.colorbar()
+=======
+    #s.Plotroom(origin)
+    cbar=mp.colorbar()
+    cbar.set_label('Field strength in dBm', rotation=270)
+>>>>>>> 097a4320055eda2d34be3a8cad2ac105b2cd5f2c
+>>>>>>> 18ecc2cc0c1f654edbe4508ef89bacd728bb08ac
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/NoRNDHeatmap'+str(i)+'.png',bbox_inches='tight')
     mp.figure(i+2)
     #s.Plotroom(origin)
@@ -155,11 +182,25 @@ class room:
     cbar.set_label('Field strength in dBm', rotation=270)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnSumHeatmap'+str(i)+'.png',bbox_inches='tight')
     mp.figure(i+4)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+    s.Plotroom(origin)
+    mp.colorbar()
+    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnBothHeatmap'+str(i)+'.png',bbox_inches='tight')
+>>>>>>> 54642260ddcd300433333a9faa27811ee514139a
+    Mesh0.hist(i+5)
+=======
+>>>>>>> 18ecc2cc0c1f654edbe4508ef89bacd728bb08ac
     #s.Plotroom(origin)
     cbar=mp.colorbar()
     cbar.set_label('Field strength in dBm', rotation=270)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/AveragedOnBothHeatmap'+str(i)+'.png',bbox_inches='tight')
     c0=Mesh0.hist(i+5)
+<<<<<<< HEAD
+=======
+>>>>>>> 097a4320055eda2d34be3a8cad2ac105b2cd5f2c
+>>>>>>> 18ecc2cc0c1f654edbe4508ef89bacd728bb08ac
     mp.figure(i+5)
     mp.title('Complmentary cumulative frequency of field strength')
     mp.grid()
@@ -254,10 +295,27 @@ class room:
     mp.figure(i)
     mp.title('Ray paths')
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnRefRays.png',bbox_inches='tight')
+<<<<<<< HEAD
     mp.figure(i+16)
     #s.Plotroom(origin)
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/temproom'+str(i)+'.png',bbox_inches='tight')
     #s.Plotroom(origin)
+=======
+<<<<<<< HEAD
+    mp.figure(i+3)
+    s.Plotroom(origin)
+    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/OnReftemproom.png',bbox_inches='tight')
+=======
+    mp.figure(i+16)
+    #s.Plotroom(origin)
+    mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/temproom'+str(i)+'.png',bbox_inches='tight')
+<<<<<<< HEAD
+>>>>>>> 54642260ddcd300433333a9faa27811ee514139a
+    s.Plotroom(origin)
+=======
+    #s.Plotroom(origin)
+>>>>>>> 097a4320055eda2d34be3a8cad2ac105b2cd5f2c
+>>>>>>> 18ecc2cc0c1f654edbe4508ef89bacd728bb08ac
     mp.figure(i+1)
     #s.Plotroom(origin)
     cbar=mp.colorbar()
@@ -322,7 +380,23 @@ class room:
     RefSumDiff=Mesh0.meshdiff(Mesh3)
     mp.title('Residual- No phase change and phase change')
     mp.savefig('../../../../ImagesOfSignalStrength/FiguresNew/RandomPhase/ResidualNoPhasePhasebounded.png',bbox_inches='tight')
+<<<<<<< HEAD
     return i+16, spacing,Mesh3
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+    return i+15
+=======
+    return i+16
+>>>>>>> 54642260ddcd300433333a9faa27811ee514139a
+=======
+    return i+16, spacing
+>>>>>>> 2daab18382259efbd40af26db1fd9bff3ad1653f
+=======
+    return i+16, spacing,Mesh3
+>>>>>>> 097a4320055eda2d34be3a8cad2ac105b2cd5f2c
+>>>>>>> 18ecc2cc0c1f654edbe4508ef89bacd728bb08ac
 
 class Ray:
   ''' represents a ray by a collection of line segments followed by

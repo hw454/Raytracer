@@ -1,0 +1,19 @@
+Running  on python version
+3.5.6 |Anaconda, Inc.| (default, Aug 26 2018, 21:41:56) 
+[GCC 7.3.0]
+-------------------------------
+Building Mesh
+-------------------------------
+Saving ray-launcher parameters
+Number of requested rays  26
+Number of reflections  3
+Mesh spacing  0.05
+Origin of raytracer  [0.75  0.75  0.125]
+------------------------------------------------
+Geometrical parameters saved
+------------------------------------------------
+-------------------------------
+Mesh built
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------

@@ -103,8 +103,13 @@ if __name__=='__main__':
   Room.add_inside_objects(box)
   Room.add_inside_objects(sofa)
   # Declare variable to store theta n and n
+<<<<<<< HEAD
   thetaNa=np.zeros(l,2)
   thetaNb=np.zeros(l,2)
+=======
+  thetaNa=np.zeros((l,2))
+  thetaNb=np.zeros((l,2))
+>>>>>>> 18ecc2cc0c1f654edbe4508ef89bacd728bb08ac
   for j in range(1,l):
       print('number of rays', n)
       #Attempt at spreading the initial signal strength. This is actually accounted for in C_lambda streg=stregstart/n

@@ -62,7 +62,11 @@ if __name__=='__main__':
   #m=int(math.ceil(np.log(powerstreg/bounds[0])/np.log(1/measuredref)))     # number of reflections observed
   m=10                       # number of reflections observed
   #n=10                      # number of rays emitted from source
+<<<<<<< HEAD
   l=10                       # number of n's
+=======
+  l=5                        # number of n's
+>>>>>>> 18ecc2cc0c1f654edbe4508ef89bacd728bb08ac
   n=10                       # Initial number of rays will be 2*n
   ave=5                      # number of runs to average over
   origin=(5,1)               # source of the signal
@@ -166,7 +170,11 @@ if __name__=='__main__':
       f.write("%.8f, %.8f, %.8f, %.8f \n" % (x,y,z,k))
       f.close()
       mp.title('Residual- for %s rays and %s rays' %(n/2,n))
+<<<<<<< HEAD
       mp.savefig('ConeFigures/ConeResidualbn'+str(n/2)+'and2n'+str(n)+'.png',bbox_inches='tight')
+=======
+      mp.savefig('../../../../ConeFigures/ConeResidualbn'+str(n/2)+'and2n'+str(n)+'.png',bbox_inches='tight')
+>>>>>>> 18ecc2cc0c1f654edbe4508ef89bacd728bb08ac
       f=open(filename,"a+")
       for x in Room.time:
         f.write("Run times for second source location %.8f" % x)
@@ -174,12 +182,21 @@ if __name__=='__main__':
       #f.write("Estimated P value" % y)
   mp.figure(i+2)
   mp.plot(thetaNa[0:-1][0],thetaNa[0:-1][1])
+<<<<<<< HEAD
   mp.title('Difference in Log(phi)_(0,0) for n, 2n rays, against n')
   mp.savefig('ConeFigures/thetaNagainstNloc1.png')
   mp.figure(i+3)
   mp.plot(thetaNa[0:-1][0],thetaNa[0:-1][1])
   mp.title('Difference in Log(phi)_(0,0) for n, 2n rays, against n')
   mp.savefig('ConeFigures/thetaNagainstNloc2.png')
+=======
+  mp.title('Difference in Log Field_(0,0) for n rays and 2n rays against n')
+  mp.savefig('../../../../ConeFigures/thetaNagainstNloc1.png')
+  mp.figure(i+3)
+  mp.plot(thetaNa[0:-1][0],thetaNa[0:-1][1])
+  mp.title('Difference in Log Field_(0,0) for n rays and 2n rays against n')
+  mp.savefig('../../../../ConeFigures/thetaNagainstNloc2.png')
+>>>>>>> 18ecc2cc0c1f654edbe4508ef89bacd728bb08ac
   #mp.show()
   # TEST err=rtest.ray_tracer_test(Room, origin)
   # TEST PRINT print('error after rtest on room', err)

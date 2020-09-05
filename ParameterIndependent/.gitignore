@@ -1,0 +1,15 @@
+*.pyc
+*.npy
+*.jpg
+*.png
+*.aux
+*.toc
+*.txt
+*.pyc
+*.orig
+testDS
+*BACKUP
+*BASE
+*LOCAL
+*REMOTE
+*.tar.gz
