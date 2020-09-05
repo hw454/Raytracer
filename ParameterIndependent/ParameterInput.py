@@ -2,19 +2,16 @@
 # Hayley Wragg 2019-03-20
 ''' The code saves the values for the parameters in a ray tracer '''
 import numpy as np
+import math as ma
 import sys
 import os
+import pickle
 
 def DeclareParameters():
   '''All input parameters for the ray-launching method are entered in
   this function which will then save them inside a Parameters folder.
 
-  * Nra - Number of rays
-
-    .. note::
-
-       Due to need of integer steps the input number of rays can not
-       always be used if everything is equally spaced.
+  * deltheta- The array of angle spacings.
 
   * Nre - Number of reflections
   * Ns - Number of steps to split longest axis.
@@ -36,13 +33,19 @@ def DeclareParameters():
   # INPUT PARAMETERS FOR RAY LAUNCHER----------------------------------
   # -------------------------------------------------------------------
 
-  print('Saving ray-launcher parameters')
-  Nra=200.0 # Number of rays
-  Nre=5 # Number of reflections
-  Ns=8   # Number of steps on longest axis.
-  l1=2.0   # Interior obstacle scale
-  l2=3.0   # Outer Boundary length scale
-
+  #print('Saving ray-launcher parameters')
+  deltheta=np.pi*np.array([1/3])#,1/5,1/7,1/8,1/9,1/12,1/14,1/16,1/18,1/19,1/20,1/22,1/25,1/36])
+  nrays=len(deltheta)
+  Nra=np.ones((1,nrays),dtype=int)
+  Nra=Nra[0]
+  Nre=2            # Number of reflections
+  Ns=5             # Number of steps on longest axis.
+  split=4          # Number of steps through each mesh square
+  l1=2.0           # Interior obstacle scale
+  l2=3.0           # Outer Boundary length scale
+  InnerOb=0        # Indicator of whether the inner obstacles should be used
+  NtriOut=np.array([])# This will be the number of triangles forming each plane surface in the outer boundary
+  NtriOb=np.array([]) # This will be the number of triangles forming each plane surface in the obstacle list
   ## Obstacles are all triangles in 3D.
   xmi=0.5
   xma=1.0
@@ -51,6 +54,9 @@ def DeclareParameters():
   zmi=0.0
   zma=0.5
   Oblist=BoxBuild(xmi,xma,ymi,yma,zmi,zma)
+  # In a box all surfaces are formed of two triangles
+  Nbox=2*np.ones(6)
+  NtriOb=np.append(NtriOb,Nbox)
 
   #- Outer Boundary -
   # 3D co-ordinates forming a closed boundary.
@@ -61,9 +67,17 @@ def DeclareParameters():
   zmi=0.0
   zma=1.0
   OuterBoundary=BoxBuild(xmi,xma,ymi,yma,zmi,zma)
+  # In a box all surfaces are formed of two triangles
+  Nbox=2*np.ones(6)
+  NtriOut=np.append(NtriOut,Nbox)
 
   # -Router location -co-ordinate of three real numbers
-  Tx=np.array([0.75,0.75,0.125])*l2
+  Tx=np.array([0.5,0.5,0.5])*l2
+
+  runplottype= str('PerfectRefCentre')
+
+  LOS=0     # LOS=1 for LOS propagation, LOS=0 for reflected propagation
+  PerfRef=1 # Perfect reflection has no loss and ignores angles.
 
   # CONSTRUCT THE ARRAYS FOR STORING OBSTACLES
   Oblist=(1.0/l1)*Oblist
@@ -80,48 +94,95 @@ def DeclareParameters():
   #Oblist=Oblist/roomlengthscale
   h=1.0/Ns
 
+  if not os.path.exists('./Parameters'):
+    os.makedirs('./Parameters')
+
   # CALCULATE ANGLE SPACING
-  deltheta      =(np.sqrt(2.0*Nra-3)-1)*(np.pi/(Nra-2)) # Calculate angle spacing
-  xysteps       =int(2.0*np.pi/deltheta)
-  zsteps        =int((np.pi/deltheta)-1)
-  Nra           =(xysteps)*zsteps+2
-  # ^^ Due to need of integer steps the input number of rays can not
-  # always be used if everything is equally spaced ^^
-  theta1        =deltheta*np.arange(0,xysteps)
-  theta2        =deltheta*np.arange(1,zsteps+1)
-  xydirecs      =np.transpose(np.vstack((np.cos(theta1),np.sin(theta1))))
-  z             =np.tensordot(np.cos(theta2),np.ones(xysteps),axes=0).ravel()
+  for j in range(0,nrays):
+    xysteps       =int(ma.ceil(abs(2.0*np.pi/deltheta[j])))
+    theta1        =np.linspace(0.0,2*np.pi,num=int(xysteps), endpoint=False) # Create an array of all the angles
+    deltheta[j]=theta1[1]-theta1[0]
+    zsteps        =int(ma.ceil(abs(np.pi/(deltheta[j]))))
+    Nra[j]=2
+    Nraout=np.array([])
+    start=0
+    for k in range(-int(zsteps/2),int(zsteps/2)+1):
+      mid=(np.cos(deltheta[j])-np.sin(k*deltheta[j])**2)/(np.cos(deltheta[j]*k)**2)
+      if abs(mid)>1:
+        pass
+      else:
+        bot=ma.acos(mid)
+        xyk=int(2*np.pi/bot)
+        if xyk<=1:
+          break
+        Nra[j]+=xyk
+        theta1        =np.linspace(0.0,2*np.pi,num=int(xyk), endpoint=False) # Create an array of all the angles
+        co=np.cos(k*deltheta[j])
+        si=np.sin(k*deltheta[j])
+        updirecs     =np.c_[co*np.cos(theta1),co*np.sin(theta1),si*np.ones((xyk,1))]
+        #downdirecs   =np.c_[co*np.cos(theta1),co*np.sin(theta1),-si*np.ones((xyk,1))]
+        if start==0:
+          coords=updirecs
+          start=1
+        else:
+          #coords  =np.r_[coords,downdirecs]
+          coords  =np.r_[updirecs,coords]
+    if len(coords)<=1:
+      Nraout=Nra[j+1:]
+      pass
+    else:
+      Nraout=Nra
+      directions=np.zeros((Nra[j],4))
+      directions[1:-1]=np.c_[coords,np.zeros((Nra[j]-2,1))]
+      directions[0] =np.array([0.0,0.0, 1.0,0.0])
+      directions[-1]=np.array([0.0,0.0,-1.0,0.0])
+      directionname=str('Parameters/Directions'+str(int(j))+'.npy')
+      np.save(directionname,directions)
+
+  # # For comparing vector code to loop version
+  # directions2=np.zeros((zsteps*xysteps+2,4))
+  # for phi in range(0,zsteps):
+    # c=np.cos(theta2[phi])
+    # s=np.sin(theta2[phi])
+    # for the in range(0,xysteps):
+        # x=np.cos(theta1[the])*s
+        # y=np.sin(theta1[the])*s
+        # z=c
+        # j=phi*xysteps+the+1
+        # directions2[j]=np.array([x,y,z,0.0])
+  # directions2[0] =np.array([0.0,0.0, 1.0,0.0])
+  # directions2[-1]=np.array([0.0,0.0,-1.0,0.0])
+  # print(np.sum(directions-directions2))
 
   # COMBINE THE RAY-LAUNCHER PARAMETERS INTO ONE ARRAY
-  RTPar=np.array([Nra,Nre,h,roomlengthscale])
+  RTPar=np.array([Nre,h,roomlengthscale,split])
 
-  # FORM THE ARRAY OF INITIAL RAY DIRECTIONS
-  directions    =np.zeros((Nra,4))
-
-  sinalpha=np.tile(np.sin(theta2),xysteps)
-  coords  =np.c_[np.tile(xydirecs,(zsteps,1))*sinalpha[:,np.newaxis],z.T]
-  directions[1:-1]=np.c_[coords,np.zeros((Nra-2,1))]
-  directions[0] =np.array([0.0,0.0, 1.0,0.0])
-  directions[-1]=np.array([0.0,0.0,-1.0,0.0])
-
-  print('Number of requested rays ', Nra)
-  print('Number of reflections ', Nre)
-  print('Mesh spacing ', h)
-  print('Origin of raytracer ', Tx)
+  print('Number of rays ', Nraout,'Number of reflections ', Nre,'Mesh spacing ', h)
+  print('Angle spacing ', deltheta)
+  #print('Origin of raytracer ', Tx)
 
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS IN A FOLDER TITLED `Parameters`
   # --------------------------------------------------------------------
-  if not os.path.exists('./Parameters'):
-    os.makedirs('./Parameters')
   np.save('Parameters/Raytracing.npy',RTPar)
-  np.save('Parameters/Directions.npy',directions)
+  np.save('Parameters/Nra.npy',Nraout)
+  np.save('Parameters/delangle.npy',deltheta)
   np.save('Parameters/Obstacles.npy',Oblist)
+  np.save('Parameters/NtriOb.npy',NtriOb)
+  np.save('Parameters/InnerOb.npy',InnerOb)
   np.save('Parameters/OuterBoundary.npy',OuterBoundary)
+  np.save('Parameters/NtriOut.npy',NtriOut)
+  np.save('Parameters/Ns.npy',Ns)
   np.save('Parameters/Origin.npy',Tx)
-  print('------------------------------------------------')
-  print('Geometrical parameters saved')
-  print('------------------------------------------------')
+  np.save('Parameters/LOS.npy',LOS)
+  np.save('Parameters/PerfRef.npy',PerfRef)
+
+  text_file = open('Parameters/runplottype.txt', 'w')
+  n = text_file.write(runplottype)
+  text_file.close()
+  #print('------------------------------------------------')
+  #print('Geometrical parameters saved')
+  #print('------------------------------------------------')
   return 0
 
 def ObstacleCoefficients(index=0):
@@ -200,7 +261,7 @@ def ObstacleCoefficients(index=0):
   :return: 0 if successfully completed.
 
   '''
-  print('Saving the physical parameters for obstacles and antenna')
+  #print('Saving the physical parameters for obstacles and antenna')
 
   # -------------------------------------------------------------------
   # RETRIEVE RAY LAUNCHER PARAMETERS FOR ARRAY LENGTHS-----------------
@@ -208,11 +269,16 @@ def ObstacleCoefficients(index=0):
   if not os.path.exists('./Parameters/'):
     os.makedirs('./Parameters/')
   RTPar         =np.load('Parameters/Raytracing.npy')
+  Nre,h,L,split       =RTPar
   Oblist        =np.load('Parameters/Obstacles.npy')
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')
   Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)
-  Nra=int(RTPar[0])                           # Number of rays
-  Nre=int(RTPar[1])                           # Number of reflections
+  Nra           =np.load('Parameters/Nra.npy')
+  if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
+      nra=np.array([Nra])
+  else:
+      nra=len(Nra)
+  Nre=int(RTPar[0])                           # Number of reflections
   Nob=np.load('Parameters/Nob.npy')          # The Number of obstacle.
 
   # -------------------------------------------------------------------
@@ -226,8 +292,14 @@ def ObstacleCoefficients(index=0):
   # ANTENNA PARAMETERS
   #-----------------------------------------------------------------------
   # Gains of the rays
-  Gt=np.ones((Nra,1),dtype=np.complex128)
+  for j in range(0,nra):
+    Gt=np.ones((Nra[j],1),dtype=np.complex128)
+    gainname=str('Parameters/Tx'+str(Nra[j])+'Gains'+str(index)+'.npy')
+    np.save(gainname, Gt)
   frequency=2*np.pi*2.79E+08                   # 2.79 GHz #FIXME make this a table and choose a frequency option
+  khat          =frequency*L/c                 # Non-dimensional wave number
+  lam           =(2*np.pi)/khat                # Non-dimensional wavelength
+  Antpar        =np.array([khat,lam,L])
   Pol      =np.array([1.0,0.0])
 
   # OBSTACLE CONTSTANTS
@@ -253,34 +325,30 @@ def ObstacleCoefficients(index=0):
   top=complex(0,frequency*mu0)*mur
   bottom=sigma+complex(0,eps0*frequency)*epsr
   Znob =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
+  #Znobrat=np.ones((Nob,1),dtype=np.complex128)
   Znobrat=Znob/Z0
-  refindex=np.sqrt(np.multiply(mur,epsr))     # Refractive index of the obstacles
+  #refindex=np.ones((Nob,1),dtype=np.complex128)
+  refindex=np.zeros((Nob,1),dtype=np.complex128)          # Perfect Relection
+  refindex[0]=1 #np.sqrt(np.multiply(mur[0],epsr[0]))     # Refractive index of the obstacles
+  refindex[1]=1
   # CLEAR THE TERMS JUST FOR CALCULATION
   del top, bottom,Znob
-
-
-  # PRINT THE PARAMETERS
-  print('Permittivity of free space ', mu0)
-  print('Permeability of free space ', eps0)
-  print('Characteristic Impedence ', Z0)
-  print('Speed of light ', c)
-  print('Number of obstacles',Nob)
-  print('Relative Impedance of the obstacles ', Znobrat.T)
-  print('Refractive index of the obstacles ', refindex.T)
-  print('Polarisation of antenna', Pol)
 
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS
   # --------------------------------------------------------------------
-  np.save('Parameters/TxGains'+str(index)+'.npy', Gt)
   np.save('Parameters/Freespace'+str(index)+'.npy',Freespace)
   np.save('Parameters/frequency'+str(index)+'.npy',frequency)
-  np.save('Parameters/Znobrat'+str(index)+'.npy',Znobrat)
-  np.save('Parameters/refindex'+str(index)+'.npy',refindex)
+  np.save('Parameters/lam'+str(index)+'.npy',lam)
+  np.save('Parameters/khat'+str(index)+'.npy',khat)
+  np.save('Parameters/Antpar'+str(index)+'.npy',Antpar)
+  np.save('Parameters/Znobrat'+str(index)+'.npy',Znobrat[:,0])
+  np.save('Parameters/refindex'+str(index)+'.npy',refindex[:,0])
   np.save('Parameters/Pol'+str(index)+'.npy',Pol)
-  print('------------------------------------------------')
-  print('Material parameters saved')
-  print('------------------------------------------------')
+  #print('------------------------------------------------')
+  #print('Material parameters saved')
+  #print('------------------------------------------------')
+  del Freespace, frequency,lam,khat, Antpar, Znobrat,refindex,Pol,index
   return 0
 
 def BoxBuild(xmi,xma,ymi,yma,zmi,zma):

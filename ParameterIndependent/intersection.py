@@ -8,6 +8,7 @@ from numpy import linalg as la
 import matplotlib.pyplot as mp
 import linefunctions as lf
 import HayleysPlotting as hp
+import logging
 import sys
 import itertools
 import math as ma
@@ -56,10 +57,11 @@ def InsideCheck(Point,triangle):
   TriMat=np.array([T0,T1,T2]).T
   coefs=np.linalg.solve(TriMat,Point)
   # If all the coefficients are bigger than 0 and less than 1 then the point is inside the triangle
-  if (np.sum(coefs)<=(1+epsilon)) and (np.sum(coefs)>=(1-epsilon)) and all(c>=-epsilon for c in coefs):
+  if (abs(np.sum(coefs))<=(1+epsilon)) and all(c>=-epsilon for c in coefs):
       return 1
   else:
       return 0
+
 def intersection(line,triangle):
     ''' find the intersection of a line and a plane. The line is
     represented as a point and a direction and the plane is three points which lie on the plane.'''
@@ -86,9 +88,12 @@ def intersection(line,triangle):
           if lam<epsilon:
             # The intersection point is in the opposite direction to the ray
             # print('negative direction',lam)
-            return [None, None,None]
+            # Not just negative considered as there may be an epsilon difference to the point itself.
+            return np.array([ma.nan,ma.nan,ma.nan])
+          elif abs(np.inner(direc,norm))<epsilon:
+            lam=np.inner(direc,p0-l0)
           else:
-            # Computer the intersection point with the plane
+            # Compute the intersection point with the plane
             inter=l0+lam*direc
             check=InsideCheck(inter,triangle)
             if check:
@@ -97,16 +102,16 @@ def intersection(line,triangle):
             else:
               # The point is outside the triangle
               # print('outside surface')
-              return [None,None,None]
+              return np.array([ma.nan,ma.nan,ma.nan])
         elif (parcheck<=epsilon and parcheck>=-epsilon):
           #FIXME deal with diffraction here.
           # print('parallel to surface', parcheck)
           # The line is contained in the plane or parallel right output
-          return [None,None,None]
+          return np.array([ma.nan,ma.nan,ma.nan])
         else:
             print('Before error, direction ',direc,' Normal ',norm,' Parallel check ',parcheck)
             raise Error('neither intersect or parallel to plane')
-        return [None, None, None]
+        return np.array([ma.nan,ma.nan,ma.nan])
     else:
       print("Triangle: ", triangle)
       raise Error("Triangle neither exists or doesn't exist")

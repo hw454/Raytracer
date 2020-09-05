@@ -10,11 +10,11 @@ Welcome to DSMRayTracerDoc's documentation!
    :maxdepth: 2
 
    RayTracerMainProgram
-   ParameterInput
-   Rays
-   Room
-   DictionarySparseMatrix
-   reflection
+   ../ParameterInput
+   ../Rays
+   ../Room
+   ../DictionarySparseMatrix
+   ../reflection
 
 Main Program
 ============

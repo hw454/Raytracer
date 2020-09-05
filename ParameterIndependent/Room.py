@@ -17,7 +17,8 @@ import Rays                 as ry
 import time                 as t
 from itertools import product
 import sys
-
+import logging
+import pdb
 epsilon=sys.float_info.epsilon
 
 class room:
@@ -61,7 +62,7 @@ class room:
   # - s.time is an array with the time the room was created.
   # - s.meshwidth is initialised as zero but is stored once asked for
   # using get_meshwidth.
-  def __init__(s,obst):
+  def __init__(s,obst,Ntri=0):
     s.obst=obst
     RoomP=obst[0]
     for j in range(1,len(obst)):
@@ -69,8 +70,12 @@ class room:
     s.points=RoomP
     # Points is the array of all the co-ordinates which form the surfaces in the room
     s.Nob=len(obst)
+    if isinstance(Ntri,type(0)):
+      s.Ntri=np.ones(s.Nob)
+    else:
+      s.Ntri=Ntri
     # Nob is the number of surfaces forming obstacles in the room.
-    s.maxlength=np.zeros((4,1))
+    s.maxlength=np.zeros(4)
     s.bounds=np.array([np.min(s.points,axis=0),np.max(s.points,axis=0)])
     s.inside_points=np.array([])
     # The inside points line within obstacles and are used to detect if a ray is inside or outside.
@@ -155,11 +160,11 @@ class room:
     if abs(s.maxlength[a])<epsilon:
       leng=0
       if a==0:
-        p1=s.points[-1]
-        for p2 in s.points:
+        for p1,p2 in product(s.points,s.points):
           leng2=lf.length(np.array([p1,p2]))
           if leng2>leng:
             s.maxlength[a]=leng2
+            leng=leng2
       else:
         s.maxlength[a]=s.bounds[1][a-1]-s.bounds[0][a-1]
       return s.maxlength[a]
@@ -278,6 +283,7 @@ class room:
     elif n>1:
       Addarray=np.tile(s.bounds[0]+h*np.array([0.5,0.5,0.5]),(n,1))
       coord=np.array((h*np.c_[i,j,k]+Addarray),dtype=float)
+      #coord=coord.T
       return coord
     else:
       raise ValueError("Neither point nor array of points")
@@ -303,7 +309,7 @@ class room:
  # \par When complete the time in s.time() is assigned to the time taken
  # to complete the function.
  # @return raylist, Mesh
-  def ray_mesh_bounce(s,Tx,Nre,Nra,directions,Mesh):
+  def ray_mesh_bounce(s,Tx,Nre,Nra,directions,Mesh,deltheta):
     ''' Traces ray's uniformly emitted from an origin around a room.
 
     :param Tx: the co-ordinate of the transmitter location
@@ -342,28 +348,22 @@ class room:
     directions    =r*directions
     # Iterate through the rays find the ray reflections
     # FIXME rays are independent of each other so this is parallelisable
-    #FIXME Find out whether the ray points are correct.
-    #j=int(3*Nra/4)
-    for it in range(0,Nra):#j,j+1):
+    #j=int(Nra/2)
+    start=0 # Initialising to prevent pointing error.
+    for it in range(0,Nra):#j,j+3):
       Dir       =directions[it]
       start     =np.append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
-      Mesh=raystart.mesh_multiref(s,Nre,Mesh,Nra,it)
+      Mesh=raystart.mesh_multiref(s,Nre,Mesh,Nra,it,deltheta)
       raylist[it]=raystart.points[0:-2]
+    if not Mesh.check_nonzero_col(Nre,s.Nob):
+      logging.error('There is a column with too many terms')
+      raise ValueError('There is a column with too many terms')
+    #logging.info('Raypoints')
+    #logging.info(str(raylist))
     s.time=t.time()-start_time
     return raylist, Mesh
- ## ray_bounceTraces ray's uniformly emitted from an origin around a room.
- # @param Nra Number of rays
- # @param Nre number of reflections Nre
- # @param directions A Nra*3 array of the initial directions for each ray.
- # .
- # \par The multiref function is used to find the Nre reflections for
- # the Nra rays with the obstacles s.obst.
- # @return An array of the ray points.
- # \f$
- # raylist=[[p00,p01,...,p0Nre],[p10,...,p1Nre],...,[pNra0,...,pNraNre]]
- #  \f$
-  def ray_mesh_power_bounce(s,Tx,Nre,Nra,directions,Grid,Znobrat,refindex,Antpar,Gt,Pol):
+  def ray_mesh_power_bounce(s,Tx,Nre,Nra,directions,Grid,Znobrat,refindex,Antpar,Gt,Pol,deltheta,loghandle=str()):
     ''' Traces ray's uniformly emitted from an origin around a room.
 
     :param Tx: the co-ordinate of the transmitter location
@@ -405,33 +405,21 @@ class room:
     # FIXME rays are independent of each other so this is parallelisable
     #FIXME Find out whether the ray points are correct.
     #j=int(3*Nra/4)
-    for it in range(0,Nra):#j,j+1):
+    for it in range(3,4):#j,j+2):
       Dir       =directions[it]
       start     =np.append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
       Polin=(np.sqrt(Gt[it])*lam/(L*4*ma.pi))*Pol
-      Grid=raystart.mesh_power_multiref(s,Nre,Grid,Nra,it,Znobrat,refindex,Antpar,Polin)
+      Grid=raystart.mesh_power_multiref(s,Nre,Grid,Nra,it,Znobrat,refindex,Antpar,Polin,deltheta)
       raylist[it]=raystart.points[0:-2]
     Nx=Grid.shape[0]
     Ny=Grid.shape[1]
     Nz=Grid.shape[2]
-    #print(Grid)
     P=np.zeros((Nx,Ny,Nz),dtype=np.longdouble)
-    P=np.power(np.absolute(Grid[:,:,:,0])+np.absolute(Grid[:,:,:,1]),2)
+    P=np.power(np.absolute(Grid[:,:,:,0])+np.absolute(Grid[:,:,:,1]),1)
     P=10*np.log10(P,where=(P!=0))
     s.time=t.time()-start_time
     return raylist, P
- ## ray_bounceTraces ray's uniformly emitted from an origin around a room.
- # @param Nra Number of rays
- # @param Nre number of reflections Nre
- # @param directions A Nra*3 array of the initial directions for each ray.
- # .
- # \par The multiref function is used to find the Nre reflections for
- # the Nra rays with the obstacles s.obst.
- # @return An array of the ray points.
- # \f$
- # raylist=[[p00,p01,...,p0Nre],[p10,...,p1Nre],...,[pNra0,...,pNraNre]]
- #  \f$
   def ray_bounce(s,Tx,Nre,Nra,directions):
     ''' Trace ray's uniformly emitted from an origin around a room.
 
