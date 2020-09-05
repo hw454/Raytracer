@@ -356,10 +356,11 @@ class room:
       raystart  =ry.Ray(start, Dir)
       Mesh=raystart.mesh_multiref(s,Nre,Mesh,Nra,it,deltheta)
       raylist[it]=raystart.points[0:-2]
-      if not Mesh.check_nonzero_col(Nre,s.Nob):
-        raise ValueError('There is a column with too many terms')
-    logging.info('Raypoints')
-    logging.info(str(raylist))
+    if not Mesh.check_nonzero_col(Nre,s.Nob):
+      logging.error('There is a column with too many terms')
+      raise ValueError('There is a column with too many terms')
+    #logging.info('Raypoints')
+    #logging.info(str(raylist))
     s.time=t.time()-start_time
     return raylist, Mesh
   def ray_mesh_power_bounce(s,Tx,Nre,Nra,directions,Grid,Znobrat,refindex,Antpar,Gt,Pol,deltheta,loghandle=str()):
