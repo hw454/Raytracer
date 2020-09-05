@@ -5,9 +5,9 @@
 
 import numpy as np
 from numpy import linalg as la
-import matplotlib.pyplot as mp
+#import matplotlib.pyplot as mp
 import linefunctions as lf
-import HayleysPlotting as hp
+#import HayleysPlotting as hp
 import logging
 import sys
 import itertools

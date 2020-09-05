@@ -54,7 +54,7 @@ def DeclareParameters(SN):
   deltheta=np.array([])
   nrays=Angspace.max_row-1
   SimPar.cell(row=12,column=3).value=nrays
-  nrays=6
+
 
   for j in range(nrays):
     deltheta=np.append(deltheta,Angspace.cell(row=j+2,column=1).value)
@@ -286,6 +286,7 @@ def DeclareParameters(SN):
   np.save('Parameters/InnerOb.npy',InnerOb)
   np.save('Parameters/OuterBoundary.npy',OuterBoundary)
   np.save('Parameters/NtriOut.npy',NtriOut)
+  np.save('Parameters/Nob.npy',Nob)  
   np.save('Parameters/Ns.npy',Ns)
   np.save('Parameters/Origin.npy',Tx)
   np.save('Parameters/LOS.npy',LOS)

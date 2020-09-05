@@ -1,0 +1,16 @@
+Running on host node-sw-108
+Will run command: python3 ParameterIndependent/RayTracerMainProgram.py
+Starting job...
+
+########################################################################
+----------------------! Balena Job Details !----------------------------
+
+JobID          : 3213864
+No. of nodes   : 1
+No. of CPUs    : 16
+Timelimit      : 03:00:00
+Elapsed time   : 00:00:00
+Nodelist       : node-sw-108
+
+########################################################################
+

@@ -41,7 +41,7 @@ import sys
 import ParameterLoad as PI
 import DictionarySparseMatrix as DSM
 import time as t
-import matplotlib.pyplot as mp
+import matplotlib as mp #.pyplot as mp
 import os
 import pickle
 import csv
@@ -895,7 +895,7 @@ if __name__=='__main__':
   Timemat[0,5]/=(testnum)
   Timemat/=(timetest)
   Reserr/=(timetest)
-  plot_grid(plottype,Roomnum)        # Plot the power in slices.
+  #plot_grid(plottype,Roomnum)        # Plot the power in slices.
   print('-------------------------------')
   print('Time to complete program') # Roomnum, ray time, average power time, total time, total time averaged by room
   print(Timemat)
@@ -928,17 +928,17 @@ if __name__=='__main__':
   for j in range(testnum):
     qualityname=('./Quality/'+plottype+'/QualityNrays'+str(int(nra))+'Refs'+str(int(Nre))+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
     np.save(qualityname,Qmat[j,:])
-    mp.figure(2*j)
-    mp.plot(Nra,Qmat[j,:])
-    mp.plot(Nra,Qtruemat[j,:])
-    filename=str('Quality/'+plottype+'/Quality'+str(int(Nra[0]))+'to'+str(int(Nra[-1]))+'Nref'+str(int(Nre))+'.jpg')#.eps').
-    mp.savefig(filename)
+    #mp.figure(2*j)
+    #mp.plot(Nra,Qmat[j,:])
+    #mp.plot(Nra,Qtruemat[j,:])
+    #filename=str('Quality/'+plottype+'/Quality'+str(int(Nra[0]))+'to'+str(int(Nra[-1]))+'Nref'+str(int(Nre))+'.jpg')#.eps').
+    #mp.savefig(filename)
     errorname=('./Errors/'+plottype+'/ErrorsNrays'+str(int(nra))+'Refs'+str(int(Nre))+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
-    np.save(qualityname,Reserr[j,:])
-    mp.figure(2*j+1)
-    mp.plot(Nra,Reserr[j,:])
-    filename=str('./Errors/'+plottype+'/Residual'+str(int(Nra[0]))+'to'+str(int(Nra[-1]))+'Nref'+str(int(Nre))+'.jpg')#.eps').
-    mp.savefig(filename)
+    np.save(errorname,Reserr[j,:])
+    #mp.figure(2*j+1)
+    #mp.plot(Nra,Reserr[j,:])
+    #filename=str('./Errors/'+plottype+'/Residual'+str(int(Nra[0]))+'to'+str(int(Nra[-1]))+'Nref'+str(int(Nre))+'.jpg')#.eps').
+   # mp.savefig(filename)
   np.save(timename,Timemat)
   np.save('roomnumstat.npy',roomnumstat)
   np.save('Roomnum.npy',Roomnum)

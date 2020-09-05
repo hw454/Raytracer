@@ -10,7 +10,7 @@ from math import atan2,hypot,sqrt,copysign
 from numpy import linalg as la
 import numpy as np
 #import matplotlib.pyplot as mp
-import HayleysPlotting as hp
+#import HayleysPlotting as hp
 import intersection as inter
 import linefunctions as lf
 #from mayavi.core.api import Engine
