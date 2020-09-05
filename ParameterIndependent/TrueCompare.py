@@ -196,7 +196,7 @@ def makematrix_withreflection(index=0):
 
   ##----Retrieve the environment--------------------------------------
   Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
-  Tx            =np.load('Parameters/Origin.npy')/L             # The location of the source antenna (origin of every ray)
+  Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
   Direc         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
   deltheta      =np.load('Parameters/delangle.npy')
@@ -293,7 +293,7 @@ if __name__ == '__main__':
     Q2=DSM.QualityFromPower(Mesh2)
     Mesh3,RadMesh3a,RadMesh3b=makematrix_withreflection()
     Q3=DSM.QualityFromPower(Mesh3)
-    loca=str('Centre')
+    loca=str('OffCentre')
     RTPar         =np.load('Parameters/Raytracing.npy')
     Nre,h,L       =RTPar[0:3]
     if not os.path.exists('./Mesh'):
