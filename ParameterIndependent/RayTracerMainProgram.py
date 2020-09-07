@@ -787,17 +787,9 @@ if __name__=='__main__':
   for j in range(testnum):
     qualityname=('./Quality/'+plottype+'/QualityNrays'+str(int(nra))+'Refs'+str(int(Nre))+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
     np.save(qualityname,Qmat[j,:])
-    #mp.figure(2*j)
-    #mp.plot(Nra,Qmat[j,:])
-    #mp.plot(Nra,Qtruemat[j,:])
-    #filename=str('Quality/'+plottype+'/Quality'+str(int(Nra[0]))+'to'+str(int(Nra[-1]))+'Nref'+str(int(Nre))+'.jpg')#.eps').
-    #mp.savefig(filename)
++plottype+'/Quality'+str(int(Nra[0]))+'to'+str(int(Nra[-1]))+'Nref'+str(int(Nre))+'.jpg')#.eps').
     errorname=('./Errors/'+plottype+'/ErrorsNrays'+str(int(nra))+'Refs'+str(int(Nre))+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
     np.save(errorname,Reserr[j,:])
-    #mp.figure(2*j+1)
-    #mp.plot(Nra,Reserr[j,:])
-    #filename=str('./Errors/'+plottype+'/Residual'+str(int(Nra[0]))+'to'+str(int(Nra[-1]))+'Nref'+str(int(Nre))+'.jpg')#.eps').
-   # mp.savefig(filename)
   np.save(timename,Timemat)
   np.save('roomnumstat.npy',roomnumstat)
   np.save('Roomnum.npy',Roomnum)
