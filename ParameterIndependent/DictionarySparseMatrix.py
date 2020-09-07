@@ -42,7 +42,10 @@ from itertools import product
 import math
 import sys
 import time as t
-#import matplotlib.pyplot as mp
+
+
+
+
 from six.moves import cPickle as pkl
 from pathlib import Path
 import timeit
@@ -60,6 +63,7 @@ zcheck=0
 #----------------------------------------------------------------------
 # dk is dictionary key, smk is sparse matrix key, SM is a sparse matrix
 # DS or DSM is a DS object which is a dictionary of sparse matrices.
+dbg=0
 
 class DS:
   ''' The DS class is a dictionary of sparse matrices.
@@ -932,18 +936,16 @@ class DS:
       if s[x,y,z,:,b].getnnz()==nre+1:
           if s[x,y,z,:,b].getnnz()==1:
             RadA[x,y,z]=l
-            if l>np.sqrt(3):
-              logging.error('Position (%d,%d,%d,%d,%d)'%(x,y,z,a,b))
-              logging.error('Ray segment'+str(s[x,y,z,:,b]))
-              logging.error('Distance of ray %f'%l)
-              raise ValueError('LOS rad is too long',l)
+            assert l<np.sqrt(3)
+              #logging.error('Position (%d,%d,%d,%d,%d)'%(x,y,z,a,b))
+              #logging.error('Ray segment'+str(s[x,y,z,:,b]))
+              #logging.error('Distance of ray %f'%l)
+              #raise ValueError('LOS rad is too long',l)
           elif nob==0 and nre==1 or nob==1 and nre==1:
             #print(ind[3][i],nob,nre,Nob,l)
             RadB[x,y,z]=l
-            if l>2.0*np.sqrt(3):
-              raise ValueError('Reflection rad is too long',l)
-      if x==xcheck and y==ycheck and z==zcheck :
-        logging.info('At position (%d,%d,%d,%d,%d). The distance of the ray segment is%f'%(x,y,z,0,b,l))
+            assert l<2.0*np.sqrt(3)
+              #raise ValueError('Reflection rad is too long',l)
       if M[0,b]==0:
           out[x,y,z,0,b]=l
           if check==0:
@@ -1014,15 +1016,11 @@ class DS:
     for l in range(0,n):
       x,y,z,i,j=ind[:,l]
       #Only want to do work if this is a new column
-      #if x==0 and y==3 and z==2 and j==:
-      #    logging.info('The column is in list but not checked')
       if x!=x2 or y!=y2 or z!=z2 or j!=j2:
         x2=x
         y2=y
         z2=z
         j2=j
-        if x==0 and y==3 and z==2  :
-          logging.info('The column %d is checked'%j)
         vec=s[x,y,z][:,j]
         vecnz=s[x,y,z][:,j].nonzero()[0]
         vecnz=Correct_ObNumbers(vecnz,Ntri)
@@ -1041,12 +1039,6 @@ class DS:
           rep=np.array_equal(indMrow,vecnz)
           if rep:
             break
-        if x==0 and y==3 and z==2  :
-          logging.info('rep'+str(rep))
-          logging.info('vecnz'+str(vecnz))
-          logging.info('vec'+str(vec))
-          logging.info('indM'+str(indM))
-          logging.info('M[:,c]'+str(M[:,c]))
         if not rep:
           out[x,y,z][:,j]=s[x,y,z][:,j]
           xvec=np.tile(x,(vecnnz,1))
@@ -1091,7 +1083,7 @@ class DS:
     ind=vec.nonzero()[0]   # The positions of the nonzero terms in the vector looking to be stored
     ind=Correct_ObNumbers(ind,Ntri)
     n=vec.getnnz()         # How many terms there are in the vector
-    if n==0: raise ValueError('There are no nonzero terms in the ray vector')
+    assert n!=0 #: raise ValueError('There are no nonzero terms in the ray vector')
     M=s[po[0],po[1],po[2]] # The matrix currently stored in the same (x,y,z) position
     indM=M.nonzero()       # The positions of the non-zero terms already stored in that matrix
     indM
@@ -1198,10 +1190,10 @@ class DS:
               # The zero angle case is dealt with separately because otherwise it's not seen.
               if 4-epsilon<=theta<=4+epsilon:
                 theta=0
-              if not -epsilon<theta<np.pi/2+epsilon:
-                errmsg='Reflection angle should be within 0 and pi/2 %f, epsilon %f'%(theta,epsilon)
-                logging.error(errmsg)
-                raise ValueError(errmsg)
+              assert -epsilon<theta<np.pi/2+epsilon
+                #errmsg='Reflection angle should be within 0 and pi/2 %f, epsilon %f'%(theta,epsilon)
+                #logging.error(errmsg)
+                #raise ValueError(errmsg)
               cthi=np.cos(theta)
               ctht=np.cos(np.arcsin(np.sin(theta)/refindex[k]))
               S1=cthi*m[k]
@@ -1221,29 +1213,31 @@ class DS:
                 # Rpar=(cthi-S2).__truediv__(cthi+S2,ind)
                 out1[x,y,z,0,j]*=(S1-ctht)/(S1+ctht)
                 out2[x,y,z,0,j]*=(cthi-S2)/(cthi+S2)
-              if s[x,y,z][:,j].getnnz()>Nre+1 and np.prod(refindex[colnz])!=0:
-                errmsg='Error at position, (%d,%d,%d,%d)'%(x,y,z,j)
-                logging.error(errmsg)
-                logging.error('The ray has reflected twice but the zero wall is not picked up')
-                errmsg='The angle element is, '+str(s[x,y,z])
-                logging.error(errmsg)
-                errmsg='The refindex terms are, '+str(refindex[colnz])
-                logging.error(errmsg)
-                errmsg='Nonzero rows'+str(colnz)
-                logging.error(errmsg)
-                errmsg='Full refindex'+str(refindex)
-                logging.error(errmsg)
-                exit()
-              if out1[x,y,z][0].getnnz()>Nre*Ns+1:
-                logging.error('Error at position (%d,%d,%d,%d,%d)'%(x,y,z,0,j))
-                logging.error('Too many rays have hit this mesh element,Position (%d,%d,%d,%d)'%(x,y,z,j))
-                errormsg='The element matrix'+str(out1[x,y,z])
-                logging.error(errormsg)
-                errormsg='The input ray matrix'+str(s[x,y,z])
-                logging.error(errormsg)
-                logging.error('col nonzero terms'+str(colnz))
-                logging.error('refindex terms'+str(refindex[colnz]))
-                exit()
+              if dbg:
+                # This testing statement is only if there is just one reflective wall.
+                # if s[x,y,z][:,j].getnnz()>Nre+1 and np.prod(refindex[colnz])!=0:
+                # errmsg='Error at position, (%d,%d,%d,%d)'%(x,y,z,j)
+                # logging.error(errmsg)
+                # logging.error('The ray has reflected twice but the zero wall is not picked up')
+                # errmsg='The angle element is, '+str(s[x,y,z])
+                # logging.error(errmsg)
+                # errmsg='The refindex terms are, '+str(refindex[colnz])
+                # logging.error(errmsg)
+                # errmsg='Nonzero rows'+str(colnz)
+                # logging.error(errmsg)
+                # errmsg='Full refindex'+str(refindex)
+                # logging.error(errmsg)
+                # exit()
+                assert  out1[x,y,z][0].getnnz()<Nre*Ns+1
+                # logging.error('Error at position (%d,%d,%d,%d,%d)'%(x,y,z,0,j))
+                # logging.error('Too many rays have hit this mesh element,Position (%d,%d,%d,%d)'%(x,y,z,j))
+                # errormsg='The element matrix'+str(out1[x,y,z])
+                # logging.error(errormsg)
+                # errormsg='The input ray matrix'+str(s[x,y,z])
+                # logging.error(errormsg)
+                # # logging.error('col nonzero terms'+str(colnz))
+                # logging.error('refindex terms'+str(refindex[colnz]))
+                #exit()
     elif LOS==0 and PerfRef==1:
       '''When PerfRef==1 the refindex terms are 'a<=1' in the positions \
       corresponding to reflective surfaces and 0 elsewhere. This is not the real refractive indexes.'''
@@ -1261,29 +1255,29 @@ class DS:
           y2=y
           z2=z
           j2=j
-        if s[x,y,z][:,j].getnnz()>Nre+1 and np.prod(refindex[colnz])!=0:
-          errmsg='Error at position, (%d,%d,%d,%d)'%(x,y,z,j)
-          logging.error(errmsg)
-          logging.error('The ray has reflected twice but the zero wall is not picked up')
-          errmsg='The angle element is, '+str(s[x,y,z])
-          logging.error(errmsg)
-          errmsg='The refindex terms are, '+str(refindex[colnz])
-          logging.error(errmsg)
-          errmsg='Nonzero rows'+str(colnz)
-          logging.error(errmsg)
-          errmsg='Full refindex'+str(refindex)
-          logging.error(errmsg)
-          exit()
-        if out1[x,y,z][0].getnnz()>Nre*Ns+1:
-          logging.error('Error at position (%d,%d,%d,%d,%d)'%(x,y,z,0,j))
-          logging.error('Too many rays have hit this mesh element,Position (%d,%d,%d,%d)'%(x,y,z,j))
-          errormsg='The element matrix'+str(out1[x,y,z])
-          logging.error(errormsg)
-          errormsg='The input ray matrix'+str(s[x,y,z])
-          logging.error(errormsg)
-          logging.error('col nonzero terms'+str(colnz))
-          logging.error('refindex terms'+str(refindex[colnz]))
-          exit()
+        # if s[x,y,z][:,j].getnnz()>Nre+1 and np.prod(refindex[colnz])!=0:
+          # errmsg='Error at position, (%d,%d,%d,%d)'%(x,y,z,j)
+          # logging.error(errmsg)
+          # logging.error('The ray has reflected twice but the zero wall is not picked up')
+          # errmsg='The angle element is, '+str(s[x,y,z])
+          # logging.error(errmsg)
+          # errmsg='The refindex terms are, '+str(refindex[colnz])
+          # logging.error(errmsg)
+          # errmsg='Nonzero rows'+str(colnz)
+          # logging.error(errmsg)
+          # errmsg='Full refindex'+str(refindex)
+          # logging.error(errmsg)
+          # exit()
+        assert out1[x,y,z][0].getnnz()<Nre*Ns+1
+          # logging.error('Error at position (%d,%d,%d,%d,%d)'%(x,y,z,0,j))
+          # logging.error('Too many rays have hit this mesh element,Position (%d,%d,%d,%d)'%(x,y,z,j))
+          # errormsg='The element matrix'+str(out1[x,y,z])
+          # logging.error(errormsg)
+          # errormsg='The input ray matrix'+str(s[x,y,z])
+          # logging.error(errormsg)
+          # logging.error('col nonzero terms'+str(colnz))
+          # logging.error('refindex terms'+str(refindex[colnz]))
+          # exit()
     elif LOS==1:
       for l in range(n):
         x,y,z,i,j=ind[:,l]
@@ -1358,9 +1352,7 @@ class DS:
           indch=s[x,y,z][:,b].nonzero()
           r=indch[0][-1]
           nre=nre_fromrow(r,Nob)
-          if nre+1==s[x,y,z][:,b].getnnz():
-            pass
-          else:
+          if nre+1!=s[x,y,z][:,b].getnnz():
             errmsg='Error at position(%d,%d,%d)'%(x,y,z)
             logging.error(errmsg)
             errmsg='The number of nonzero terms in column %d is %d not nre+1'%(s[x,y,z][:,b].getnnz(),b)
@@ -1978,10 +1970,10 @@ class DS:
 # FUNCTIONS CONNECTED TO DS BUT AREN'T PART OF THE OBJECT
 #=======================================================================
 def Watts_to_db(P):
-  return 10*np.log10(P)
+  return 10*np.log10(P,where=(P!=0))
 
 def db_to_Watts(P):
-  return 10**(P*0.1)
+  return 10**(P*0.1,where=(P!=0))
 
 def Correct_ObNumbers(rvec,Ntri):
     '''Take in the triangle position and output the position of the first triangle which lies on that surface.

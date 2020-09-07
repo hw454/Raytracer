@@ -51,6 +51,10 @@ def DeclareParameters(SN):
   NTriObSh   =InBook[NTriObstr]
   NTriOutSh  =InBook[NTriOutstr]
 
+  testnum    =SimPar.cell(row=16,column=3).value
+  roomnumstat=SimPar.cell(row=17,column=3).value
+  timetest   =SimPar.cell(row=18,column=3).value
+
   deltheta=np.array([])
   nrays=Angspace.max_row-1
   SimPar.cell(row=12,column=3).value=nrays
@@ -274,6 +278,9 @@ def DeclareParameters(SN):
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS IN A FOLDER TITLED `Parameters`
   # --------------------------------------------------------------------
+  np.save('Parameters/testnum.npy',testnum)
+  np.save('Parameters/roomnumstat.npy',roomnumstat)
+  np.save('Parameters/timetest.npy',timetest)
   np.save('Parameters/Raytracing.npy',RTPar)
   np.save('Parameters/Nra.npy',Nraout)
   np.save('Parameters/delangle.npy',deltheta)
@@ -288,6 +295,7 @@ def DeclareParameters(SN):
   np.save('Parameters/NtriOut.npy',NtriOut)
   np.save('Parameters/Nob.npy',Nob)  
   np.save('Parameters/Ns.npy',Ns)
+  np.save('Parameters/Nob.npy',Nob)
   np.save('Parameters/Origin.npy',Tx)
   np.save('Parameters/LOS.npy',LOS)
   np.save('Parameters/PerfRef.npy',PerfRef)

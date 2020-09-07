@@ -8,8 +8,6 @@ import numpy                as np
 import reflection           as ref
 import intersection         as ins
 import linefunctions        as lf
-#import HayleysPlotting      as hp
-#import matplotlib.pyplot    as mp
 import math                 as ma
 import numpy.linalg         as lin
 import random               as rnd
@@ -356,9 +354,9 @@ class room:
       raystart  =ry.Ray(start, Dir)
       Mesh=raystart.mesh_multiref(s,Nre,Mesh,Nra,it,deltheta)
       raylist[it]=raystart.points[0:-2]
-    if not Mesh.check_nonzero_col(Nre,s.Nob):
-      logging.error('There is a column with too many terms')
-      raise ValueError('There is a column with too many terms')
+    assert Mesh.check_nonzero_col(Nre,s.Nob)
+      #logging.error('There is a column with too many terms')
+      #raise ValueError('There is a column with too many terms')
     #logging.info('Raypoints')
     #logging.info(str(raylist))
     s.time=t.time()-start_time
@@ -396,28 +394,25 @@ class room:
 
     '''
     start_time    =t.time()         # Start the time counter
-    r             =s.maxleng()
     raylist       =np.zeros([Nra+1, Nre+1,4]) # Careful empty will assign random numbers and must therefore get filled.
-    directions    =r*directions
     lam           =Antpar[1]
     L             =Antpar[2]
     # Iterate through the rays find the ray reflections
     # FIXME rays are independent of each other so this is parallelisable
     #FIXME Find out whether the ray points are correct.
     #j=int(3*Nra/4)
-    for it in range(3,4):#j,j+2):
+    for it in range(Nra):
       Dir       =directions[it]
       start     =np.append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
-      Polin=(np.sqrt(Gt[it])*lam/(L*4*ma.pi))*Pol
-      Grid=raystart.mesh_power_multiref(s,Nre,Grid,Nra,it,Znobrat,refindex,Antpar,Polin,deltheta)
+      Grid=raystart.mesh_power_multiref(s,Nre,Grid,Nra,it,Znobrat,refindex,Antpar,Pol,deltheta)
       raylist[it]=raystart.points[0:-2]
     Nx=Grid.shape[0]
     Ny=Grid.shape[1]
     Nz=Grid.shape[2]
     P=np.zeros((Nx,Ny,Nz),dtype=np.longdouble)
-    P=np.power(np.absolute(Grid[:,:,:,0])+np.absolute(Grid[:,:,:,1]),1)
-    P=10*np.log10(P,where=(P!=0))
+    P=np.absolute(Grid[:,:,:,0])**2+np.absolute(Grid[:,:,:,1])**2
+    P=DSM.Watts_to_db(P)
     s.time=t.time()-start_time
     return raylist, P
   def ray_bounce(s,Tx,Nre,Nra,directions):
