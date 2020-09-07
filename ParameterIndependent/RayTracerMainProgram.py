@@ -705,7 +705,7 @@ if __name__=='__main__':
   Sheetname='InputSheet.xlsx'
   out=PI.DeclareParameters(Sheetname)
   #out=RayTracer() # To compute just the rays with no storage uncomment this line.
-  timetest    =np.load('Parameters/timetest.npy')
+  timetest   =np.load('Parameters/timetest.npy')
   testnum    =np.load('Parameters/testnum.npy')
   roomnumstat=np.load('Parameters/roomnumstat.npy')
   Nra =np.load('Parameters/Nra.npy')
