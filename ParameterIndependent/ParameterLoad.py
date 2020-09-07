@@ -293,7 +293,7 @@ def DeclareParameters(SN):
   np.save('Parameters/InnerOb.npy',InnerOb)
   np.save('Parameters/OuterBoundary.npy',OuterBoundary)
   np.save('Parameters/NtriOut.npy',NtriOut)
-  np.save('Parameters/Nob.npy',Nob)  
+  np.save('Parameters/Nob.npy',Nob)
   np.save('Parameters/Ns.npy',Ns)
   np.save('Parameters/Nob.npy',Nob)
   np.save('Parameters/Origin.npy',Tx)

@@ -744,8 +744,8 @@ class Ray:
           _Grid[i1,j1,k1,0]=0#RefCoef[0]*DSM.FieldEquation(rtil,khat,L,lam)
           _Grid[i1,j1,k1,1]=0#RefCoef[1]*DSM.FieldEquation(rtil,khat,L,lam)
         else:
-          _Grid[i1,j1,k1,0]+==RefCoef[0]*DSM.FieldEquation(rtil,khat,L,lam)
-          _Grid[i1,j1,k1,1]+==RefCoef[1]*DSM.FieldEquation(rtil,khat,L,lam)
+          _Grid[i1,j1,k1,0]+=RefCoef[0]*DSM.FieldEquation(rtil,khat,L,lam)
+          _Grid[i1,j1,k1,1]+=RefCoef[1]*DSM.FieldEquation(rtil,khat,L,lam)
         Nc=s._number_cone_steps_(deldist,dist,Nra,deltheta)           # No. of cone steps required for this ray step.
         for m2 in range(1,Nc):
           p3=np.tile(p1,(Nnor,1))+0.25*m2*alpha*norm        # Step along all the normals from the ray point p1.
