@@ -1973,7 +1973,7 @@ def Watts_to_db(P):
   return 10*np.log10(P,where=(P!=0))
 
 def db_to_Watts(P):
-  return 10**(P*0.1,where=(P!=0))
+  return 10**(0.1*np.where(P!=0))
 
 def Correct_ObNumbers(rvec,Ntri):
     '''Take in the triangle position and output the position of the first triangle which lies on that surface.
