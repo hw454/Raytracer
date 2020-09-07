@@ -4,7 +4,6 @@
 ''' Module Containing simple functions for lines '''
 
 import numpy as np
-import matplotlib.pyplot as mp
 
 
 def Direction(line):

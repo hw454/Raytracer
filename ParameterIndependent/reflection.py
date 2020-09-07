@@ -9,15 +9,8 @@
 from math import atan2,hypot,sqrt,copysign
 from numpy import linalg as la
 import numpy as np
-#import matplotlib.pyplot as mp
-import HayleysPlotting as hp
 import intersection as inter
 import linefunctions as lf
-#from mayavi.core.api import Engine
-#from mayavi.sources.vtk_file_reader import VTKFileReader
-#from mayavi.modules.surface import Surface
-#from mayavi import mlab
-#from pyface.api import GUI
 import sys
 import math as ma
 
