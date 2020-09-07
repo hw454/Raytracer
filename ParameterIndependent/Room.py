@@ -8,8 +8,6 @@ import numpy                as np
 import reflection           as ref
 import intersection         as ins
 import linefunctions        as lf
-#import HayleysPlotting      as hp
-#import matplotlib.pyplot    as mp
 import math                 as ma
 import numpy.linalg         as lin
 import random               as rnd
