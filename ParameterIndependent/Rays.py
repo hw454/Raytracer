@@ -24,6 +24,8 @@ xcheck=1
 ycheck=0
 zcheck=0
 
+dbg=0
+
 class Ray:
   ''' A ray is a representation of the the trajectory of a reflecting \
   line and its reflections.
@@ -122,10 +124,10 @@ class Ray:
 
     :returns: 1+ns'''
     ns=no_steps(alpha,segleng,dist,delangle,refangle)
-    if ns<(segleng/alpha):
-        errmsg=str('The number of steps along the ray is less than the number needed to reach the intersection')
-        logging.error(errmsg)
-        raise ValueError(errmsg)
+    assert ns>(segleng/alpha)
+        #errmsg=str('The number of steps along the ray is less than the number needed to reach the intersection')
+        #logging.error(errmsg)
+        #raise ValueError(errmsg)
     return int(1+ns)
   def _number_cones_(s,h,dist,delangle,refangle):
      '''find the number of steps taken along one normal in the cone.
@@ -461,21 +463,22 @@ class Ray:
     nob=int(s.points[-3][-1])       # The obstacle number of the last reflection
 
     #-------Sanity checks
-    if dist>room.maxleng()*(nre+1):
-      errmsg='The distance the ray has travelled is longer than possible %f distance, %f total possible'%(dist,room.maxleng()*(nre+1))
-      logging.error(errmsg)
-      raise ValueError(errmsg)
-    if nre!=calcvec.getnnz() or nre<0 or nre>Nre:
-      errmsg='The reflection number is wrong, reflection number %d, number of  nonzero terms in vec %d'%(nre,calcvec.getnnz())
-      logging.error(errmsg)
-      raise ValueError(errmsg)
-    if nra>Nra or nra<0:
-      errmsg='The ray number is invalid, total possible %d, this ray number %nra'%(Nra,nra)
-      raise ValueError(errmsg)
-    if nob>Nob or nob<0:
-      errmsg='The obstacle number is invalid, number of obstacles %d, obstacle number %d'%(Nob,nob)
-      logging.error(errmsg)
-      raise ValueError(errmsg)
+    if dbg:
+      assert dist<room.maxleng()*(nre+1)
+      #errmsg='The distance the ray has travelled is longer than possible %f distance, %f total possible'%(dist,room.maxleng()*(nre+1))
+      #logging.error(errmsg)
+      #raise ValueError(errmsg)
+      assert nre==calcvec.getnnz() and nre>0 and nre<Nre
+      #errmsg='The reflection number is wrong, reflection number %d, number of  nonzero terms in vec %d'%(nre,calcvec.getnnz())
+      #logging.error(errmsg)
+      #raise ValueError(errmsg)
+      assert nra<Nra and nra>0
+      #errmsg='The ray number is invalid, total possible %d, this ray number %nra'%(Nra,nra)
+      #raise ValueError(errmsg)
+      assert nob<Nob and nob>0
+      #errmsg='The obstacle number is invalid, number of obstacles %d, obstacle number %d'%(Nob,nob)
+      #logging.error(errmsg)
+      #raise ValueError(errmsg)
 
     # Compute the direction - Since the Ray has reflected but we are
     # storing previous information we want the direction of the ray which
@@ -510,13 +513,14 @@ class Ray:
     # Compute a matrix with rows corresponding to normals for the cone.
 
     #-----More sanity checks
-    if outdist<0 or outdist<dist or outdist<segleng:
-        raise ValueError('The ray distance has the wrong value')
-    if not isinstance(Ns,type(1))or Ns<0:
-        raise ValueError('Number of steps should be a non negative integer')
-    if not isinstance(Ncon,type(1))or Ncon<0:
-        raise ValueError('Number of cone steps should be a non negative integer')
-
+    tdb=t.time()
+    if dbg:
+      assert outdist>0 and outdist>dist and outdist>=segleng
+        #raise ValueError('The ray distance has the wrong value')
+      assert isinstance(Ns,type(1))or Ns<0
+        #raise ValueError('Number of steps should be a non negative integer')
+      assert isinstance(Ncon,type(1))or Ncon<0
+        #raise ValueError('Number of cone steps should be a non negative integer')
     ts8=t.time()
     logging.info('Time doing initial checks and assignment in singleray %f'%(ts8-ts0))
 
@@ -536,24 +540,25 @@ class Ray:
       doubcheck=Mesh.doubles__inMat__(h,calcvec,Nob,(i1,j1,k1),room.Ntri) # Check if the ray has already been stored
       # Recalculate distance to be for the centre point
       distcor=centre_dist(direc,p1,p2,dist,room,col,h,nre,nob)
-      if abs(distcor-dist)>np.sqrt(3)*h:
-       raise ValueError('The corrected distance on the ray is more than a mesh width from the ray point distance')
+      if dbg:
+        assert not abs(distcor-dist)>np.sqrt(3)*h
       #If the distance is 0 then the point is at the transmitter and the power is not well defined.
       if not doubcheck and abs(distcor)>epsilon:
         # Find the positions of the nonzero terms in calcvec and check the number of terms is valid.
         assert Mesh[i1,j1,k1].shape[0]==calcvec.shape[0]
         Mesh[i1,j1,k1][:,col]=distcor*calcvec
         # #---More Sanity checks
-        if calcvec.getnnz()!=nre+1:
-          raise ValueError('incorrect vec length, the number of nonzero terms in the iteration vector should be the number of reflections plus 1')
-        if not Mesh.check_nonzero_col(Nre,Nob,nre,np.array([i1,j1,k1,col])):
-          errmsg='The number of nonzero terms at(%d,%d,%d,:,%d) is incorrect'%(i1,j1,k1,col)
-          logging.error(errmsg)
-          raise ValueError(errmsg)
-        if Mesh[i1,j1,k1][0].getnnz()>(Nre*Nob+1):
-          errormsg='The number of rays %d which have entered the element is more than possible'%Mesh[i1,j1,k1][0].getnnz()
-          logging.error(errormsg)
-          raise ValueError(errormsg)
+        if dbg:
+          assert calcvec.getnnz()==nre+1
+          #raise ValueError('incorrect vec length, the number of nonzero terms in the iteration vector should be the number of reflections plus 1')
+          assert Mesh.check_nonzero_col(Nre,Nob,nre,np.array([i1,j1,k1,col]))
+          #errmsg='The number of nonzero terms at(%d,%d,%d,:,%d) is incorrect'%(i1,j1,k1,col)
+          #logging.error(errmsg)
+          #raise ValueError(errmsg)
+          assert not Mesh[i1,j1,k1][0].getnnz()>(Nre*Nob+1)
+          #errormsg='The number of rays %d which have entered the element is more than possible'%Mesh[i1,j1,k1][0].getnnz()
+          #logging.error(errormsg)
+          #raise ValueError(errormsg)
     # After the point on the ray is stored step along the cone and store the points on there
     if Ncon>0:
       Nc=s._number_cone_steps_(alpha,dist,deltheta)           # No. of cone steps required for this ray step.
@@ -563,16 +568,15 @@ class Ray:
     dist+=alpha*np.linalg.norm(direc)/split
     i2,j2,k2=room.position(p1,h)
     #---Iterate along the ray
-    ts1=t.time()
-    logging.info('time to ray loop %f'%(ts1-ts0))
     for m1 in range(1,split*(Ns+1)):  # Step through the ray
       # check that each iteration is moving into a new element
+      if dbg:
+        assert abs(i2-i1)<2 and abs(j2-j1)<2 and abs(k2-k1)<2
+        #errmsg='The ray has stepped further than one mesh element, first position (%d,%d,%d), second position (%d,%d,%d)'%(i1,j1,k1,i2,j2,k2)
+        #logging.error(errmsg)
+        #raise ValueError(errmsg)
       if i2==i1 and j2==j1 and k2==k1:    # If the indices are equal pass as no new element.
         rep=1
-      elif abs(i2-i1)>1 or abs(j2-j1)>1 or abs(k2-k1)>1:
-        errmsg='The ray has stepped further than one mesh element, first position (%d,%d,%d), second position (%d,%d,%d)'%(i1,j1,k1,i2,j2,k2)
-        logging.error(errmsg)
-        raise ValueError(errmsg)
       else:
         i1=i2                             # Reset the check indices for the next check.
         j1=j2
@@ -581,10 +585,7 @@ class Ray:
         stpch=Mesh.stopcheck(i1,j1,k1)   # stopcheck finds 1 if the term is in the environment and 0 if not
       if stpch:
         p2=room.coordinate(h,i1,j1,k1)    # Calculate the co-ordinate of the center of the element the ray hit
-        ts2=t.time()
         doubcheck=Mesh.doubles__inMat__(h,calcvec,Nob,(i1,j1,k1),room.Ntri) # Check if the ray has already been stored
-        ts3=t.time()
-        logging.info('time doing double check %f'%(ts3-ts2))
         #distcor=centre_dist(direc,p1,p2,dist,room,col,h,nre,nob)
         if rep==0 and not doubcheck:
           # Recalculate distance to be for the centre point
@@ -594,26 +595,21 @@ class Ray:
             # Find the positions of the nonzero terms in calcvec and check the number of terms is valid.
             Mesh[i1,j1,k1][:,col]=distcor*calcvec
             # #----More sanity checks
-            ts6=t.time()
-            if calcvec.getnnz()!=nre+1:
-              errormsg='incorrect number of terms %d in calcvec, after nre=%d, no. of terms should be nre+1'%(calcvec.getnnz(),nre)
-              logging.error(errormsg)
-              raise ValueError(errormsg)
-            if not Mesh.check_nonzero_col(Nre,Nob,nre,(i1,j1,k1,col)):
-              errmsg='The number of nonzero terms at (%d,%d,%d,:,%d) is incorrect'%(i1,j1,k1,col)
-              raise ValueError(errmsg)
-            if Mesh[i1,j1,k1][0].getnnz()>(Nre*Nob+1):
-              errmsg='The number of rays which have entered the element is more than possible'
-              raise ValueError(errmsg)
-            ts7=t.time()
-            logging.info('Time doing sanity checks on column numbers %f'%(ts7-ts6))
+            if dbg:
+              assert not calcvec.getnnz()!=nre+1
+                #errormsg='incorrect number of terms %d in calcvec, after nre=%d, no. of terms should be nre+1'%(calcvec.getnnz(),nre)
+                #logging.error(errormsg)
+                #raise ValueError(errormsg)
+              assert Mesh.check_nonzero_col(Nre,Nob,nre,(i1,j1,k1,col))
+                #errmsg='The number of nonzero terms at (%d,%d,%d,:,%d) is incorrect'%(i1,j1,k1,col)
+                #raise ValueError(errmsg)
+              assert not Mesh[i1,j1,k1][0].getnnz()>(Nre*Nob+1)
+                #errmsg='The number of rays which have entered the element is more than possible'
+                #raise ValueError(errmsg)
       if Ncon>0:
         # In this instance stpch==0 and end of ray keep storing cone points but not on the ray.
         Nc=s._number_cone_steps_(alpha,dist,deltheta)           # No. of cone steps required for this ray step.
-        ts4=t.time()
         copos2,Mesh,Cones=conestepping(col,dist,m1,Nc,p1,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh,calcvec,room,Cones,copos2)
-        ts5=t.time()
-        logging.info('Time doing conestepping %f'%(ts5-ts4))
       # Compute the next point along the ray
       p1+=alpha*direc/split
       dist+=alpha/split
@@ -745,14 +741,14 @@ class Ray:
         alcor=np.dot((p2-p1),direc)
         rtil=np.sqrt((dist+alcor)**2+np.dot(p2-p1-alcor*direc,p2-p1-alcor*direc))
         if rtil==0:
-          _Grid[i1,j1,k1,0]=np.exp(1j*khat*rtil*(L**2))*RefCoef[0]
-          _Grid[i1,j1,k1,1]=np.exp(1j*khat*rtil*(L**2))*RefCoef[1]
+          _Grid[i1,j1,k1,0]=0#RefCoef[0]*DSM.FieldEquation(rtil,khat,L,lam)
+          _Grid[i1,j1,k1,1]=0#RefCoef[1]*DSM.FieldEquation(rtil,khat,L,lam)
         else:
-          _Grid[i1,j1,k1,0]+=(1.0/(rtil))*np.exp(1j*khat*rtil*(L**2))*RefCoef[0]
-          _Grid[i1,j1,k1,1]+=(1.0/(rtil))*np.exp(1j*khat*rtil*(L**2))*RefCoef[1]
+          _Grid[i1,j1,k1,0]+==RefCoef[0]*DSM.FieldEquation(rtil,khat,L,lam)
+          _Grid[i1,j1,k1,1]+==RefCoef[1]*DSM.FieldEquation(rtil,khat,L,lam)
         Nc=s._number_cone_steps_(deldist,dist,Nra,deltheta)           # No. of cone steps required for this ray step.
         for m2 in range(1,Nc):
-          p3=np.tile(p1,(Nnor,1))+0.25*m2*alpha*norm             # Step along all the normals from the ray point p1.
+          p3=np.tile(p1,(Nnor,1))+0.25*m2*alpha*norm        # Step along all the normals from the ray point p1.
           copos=room.position(p3,h)                         # Find the indices corresponding to the cone points.
           #print("before",copos,m2,alpha,nre,nra)
           start,copos,p3,norm2=DSM.stopchecklist(copos,p3,norm,Nx,Ny,Nz) # Check if the point is valid.
@@ -1017,7 +1013,7 @@ def conestepping(col,dist,m1,Nc,p1,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh,calcv
   for c in calcvec.nonzero()[0]:
     if calcvec.getnnz()==nre+1:
       nob=DSM.nob_fromrow(c,Nob)
-  #if alpha/split>h:                                 # The step size should never be bigger than the meshwidth
+  assert alpha/split<h                                 # The step size should never be bigger than the meshwidth
    # errmsg='The step size %f along the ray should not be bigger than the mesh width %f'%(alpha/split,h)
   #  logging.error(errmsg)
    # raise ValueError(errmsg)
@@ -1056,32 +1052,32 @@ def conestepping(col,dist,m1,Nc,p1,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh,calcv
       r2=centre_dist(direc,p1,coords,dist,room,col,h,nre,nob)
       if Nnorcor==1:
         x,y,z=altcopos
-        if not Mesh.doubles__inMat__(h,calcvec,Nob,(x,y,z),room.Ntri) and abs(r2)>epsilon:
+        if abs(r2)>epsilon and not Mesh.doubles__inMat__(h,calcvec,Nob,(x,y,z),room.Ntri):
           errmsg1='The number of nonzero terms at '
           errmsg2='(%d,%d,%d) col %d is not %d'%(x,y,z,col,nre+1)
           errmsg=errmsg1+errmsg2
           Mesh[x,y,z][:,col]=r2*calcvec[:,0]
-          if not Mesh.check_nonzero_col(Nre,Nob,nre,(altcopos[0],altcopos[1],altcopos[2],col)):
+          assert Mesh.check_nonzero_col(Nre,Nob,nre,(altcopos[0],altcopos[1],altcopos[2],col))
             #Check that the number of terms stored
-            logging.error(errmsg)
-            raise ValueError(errmsg)
+            #logging.error(errmsg)
+            #raise ValueError(errmsg)
         continue
       for j in range(0,Nnorcor):
         x,y,z=altcopos[j]
         if not Mesh.doubles__inMat__(h,calcvec,Nob,(x,y,z),room.Ntri)and abs(r2[j])>epsilon:
           # If the ray is already accounted for in this mesh square then step to the next point.
           errmsg='Number of cone positions (%d,%d,%d) not the same as number of distances, %d'%(altcopos[j,0],altcopos[j,1],altcopos[j,2],r2[j])
-          if altcopos.shape[0]!=r2.shape[0]:
-            raise ValueError(errmsg)
+          assert altcopos.shape[0]==r2.shape[0]
+            #raise ValueError(errmsg)
           assert Mesh[x,y,z].shape[0]==calcvec.shape[0]
           Mesh[x,y,z][:,col]=r2[j]*calcvec[:,0]
           errmsg1='The number of nonzero terms at '
           errmsg2='(%d,%d,%d) col %d is not %d'%(altcopos[j][0],altcopos[j][1],altcopos[j][2],col,nre+1)
           errmsg=errmsg1+errmsg2
-          if not Mesh.check_nonzero_col(Nre,Nob,nre,np.array([altcopos[j,0],altcopos[j,1],altcopos[j,2],col])):
+          assert Mesh.check_nonzero_col(Nre,Nob,nre,np.array([altcopos[j,0],altcopos[j,1],altcopos[j,2],col]))
             # Check that the correct number of terms have been stored in the mesh column
-            logging.error(errmsg)
-            raise ValueError(errmsg)
+            #logging.error(errmsg)
+            #raise ValueError(errmsg)
     tc2=t.time()
     logging.info('Time storing cone positions %f'%(tc2-tc1))
   return copos2,Mesh,Cones
