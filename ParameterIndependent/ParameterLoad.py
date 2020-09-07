@@ -54,7 +54,6 @@ def DeclareParameters(SN):
   deltheta=np.array([])
   nrays=Angspace.max_row-1
   SimPar.cell(row=12,column=3).value=nrays
-  nrays=6
 
   for j in range(nrays):
     deltheta=np.append(deltheta,Angspace.cell(row=j+2,column=1).value)
