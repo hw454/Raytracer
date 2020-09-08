@@ -1973,7 +1973,10 @@ def Watts_to_db(P):
   return 10*np.log10(P,where=(P!=0))
 
 def db_to_Watts(P):
-  return 10**(0.1*np.where(P!=0))
+  nz=np.nonzero(P)
+  out=np.zeros(P.shape)
+  out[nz]=10**(0.1*P[nz])
+  return out
 
 def Correct_ObNumbers(rvec,Ntri):
     '''Take in the triangle position and output the position of the first triangle which lies on that surface.
@@ -2194,6 +2197,8 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,Per
     if LOS==0:
       RadBstr    ='./Mesh/'+plottype+'/RadB_grid%dRefs%dm%d.npy'%(Nra,Nre,0)
       RadB=np.load(RadBstr)
+    else:
+      RadB=np.zeros(RadMesh.shape)
     RadA=np.load(RadAstr)
     #RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nob,ind)#
     ind=RadMesh.nonzero()
