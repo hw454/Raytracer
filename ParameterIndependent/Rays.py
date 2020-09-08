@@ -346,10 +346,10 @@ class Ray:
       end=s.reflect_calc(room)
       if abs(end)<epsilon:
           Mesh,dist,vec=s.mesh_singleray(room,Mesh,dist,vec,Nra,Nre,nra,deltheta)
-      else: pass
-    if not Mesh.check_nonzero_col(Nre,room.Nob):
-        errmsg='There is a column in the mesh with too many terms, %d reflections completed'%Nre
-        raise ValueError(errmsg)
+      #else: pass
+    assert Mesh.check_nonzero_col(Nre,room.Nob)
+        #errmsg='There is a column in the mesh with too many terms, %d reflections completed'%Nre
+        #raise ValueError(errmsg)
     return Mesh
   def mesh_power_multiref(s,room,Nre,Mesh,Nra,it,Znobrat,refindex,Antpar,refcoef,deltheta):
     ''' Takes a ray and finds the first Nre reflections within a room.
@@ -541,7 +541,7 @@ class Ray:
       # Recalculate distance to be for the centre point
       distcor=centre_dist(direc,p1,p2,dist,room,col,h,nre,nob)
       if dbg:
-        assert not abs(distcor-dist)>np.sqrt(3)*h
+        assert abs(distcor-dist)<np.sqrt(3)*h
       #If the distance is 0 then the point is at the transmitter and the power is not well defined.
       if not doubcheck and abs(distcor)>epsilon:
         # Find the positions of the nonzero terms in calcvec and check the number of terms is valid.
@@ -555,7 +555,7 @@ class Ray:
           #errmsg='The number of nonzero terms at(%d,%d,%d,:,%d) is incorrect'%(i1,j1,k1,col)
           #logging.error(errmsg)
           #raise ValueError(errmsg)
-          assert not Mesh[i1,j1,k1][0].getnnz()>(Nre*Nob+1)
+          assert Mesh[i1,j1,k1][0].getnnz()<(Nre*Nob+1)
           #errormsg='The number of rays %d which have entered the element is more than possible'%Mesh[i1,j1,k1][0].getnnz()
           #logging.error(errormsg)
           #raise ValueError(errormsg)
@@ -596,14 +596,14 @@ class Ray:
             Mesh[i1,j1,k1][:,col]=distcor*calcvec
             # #----More sanity checks
             if dbg:
-              assert not calcvec.getnnz()!=nre+1
+              assert calcvec.getnnz()==nre+1
                 #errormsg='incorrect number of terms %d in calcvec, after nre=%d, no. of terms should be nre+1'%(calcvec.getnnz(),nre)
                 #logging.error(errormsg)
                 #raise ValueError(errormsg)
               assert Mesh.check_nonzero_col(Nre,Nob,nre,(i1,j1,k1,col))
                 #errmsg='The number of nonzero terms at (%d,%d,%d,:,%d) is incorrect'%(i1,j1,k1,col)
                 #raise ValueError(errmsg)
-              assert not Mesh[i1,j1,k1][0].getnnz()>(Nre*Nob+1)
+              assert Mesh[i1,j1,k1][0].getnnz()<(Nre*Nob+1)
                 #errmsg='The number of rays which have entered the element is more than possible'
                 #raise ValueError(errmsg)
       if Ncon>0:
