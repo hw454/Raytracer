@@ -152,6 +152,30 @@ def plot_grid(plottype=str(),testnum=1,roomnumstat=0):
     Roomnum*=2
   return
 
+def plot_residual(plottype,testnum,roomnumstat):
+  for j in range(testnum):
+    errorname='./Errors/'+plottype+'/ErrorsNrays%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,roomnumstat+(j-1)*2)
+    Res=np.load(errorname)
+    mp.figure(j+1)
+    mp.plot(Nra,Res)
+    filename='./Errors/'+plottype+'/Residual%dto%dNref%d.jpg'%(Nra[0],Nra[-1],Nre)
+    mp.savefig(filename)
+  return
+
+def plot_quality(plottype,testnum,roomnumstat):
+  truestr='Mesh/True/'+plottype+'/True.npy'
+  P3=np.load(truestr)
+  Q2=DSM.QualityFromPower(P3)
+  for j in range(testnum):
+    qualityname='./Quality/'+plottype+'/QualityNrays%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,roomnumstat+(j-1)*2)
+    Qu=np.load(qualityname)
+    mp.figure(j+1)
+    mp.plot(Nra,Qu)
+    mp.plot(Nra,Q2)
+    filename='./Quality/'+plottype+'/Quality%dto%dNref%d.jpg'%(Nra[0],Nra[-1],Nre)
+    mp.savefig(filename)
+  return
+
 if __name__=='__main__':
   Sheetname='InputSheet.xlsx'
   out=PI.DeclareParameters(Sheetname)
@@ -164,4 +188,5 @@ if __name__=='__main__':
   testnum    =SimPar.cell(row=16,column=3).value
   roomnumstat=SimPar.cell(row=17,column=3).value
   plot_grid(plottype,testnum,roomnumstat)        # Plot the power in slices.
+  plot_residual(plottype,testnum,roomnumstat)
   exit()
