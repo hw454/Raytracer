@@ -226,10 +226,6 @@ def MeshProgram(SN,repeat=0,plottype=str()):
   #print('-------------------------------')
   # Run the ParameterInput file, if this is a repeat run then we know
   # the parameters are already saved so this does not need to be run again.
-  if repeat==1:
-    pass
-  else:
-    out=PI.DeclareParameters(SN)
 
 
   ##----Retrieve the Raytracing Parameters-----------------------------
@@ -284,10 +280,7 @@ def MeshProgram(SN,repeat=0,plottype=str()):
     The rays are reflected Nre times in directions Direc from Tx then
     the information about their paths is stored in Mesh.'''
     Rays, Mesh=Room.ray_mesh_bounce(Tx,Nre,Nra[j],Direc,Mesh,deltheta[j])
-    if Mesh.check_nonzero_col(Nre,Nob):
-      pass
-    else:
-      raise ValueError('Too many nonzero terms in column')
+    assert Mesh.check_nonzero_col(Nre,Nob)
     #logging.info('Before doubles deleted'+str(Mesh[xcheck,ycheck,zcheck]))
     #print('Deleting doubles')
     Mesh,ind=Mesh.__del_doubles__(h,Nob,Ntri=Room.Ntri)
@@ -390,7 +383,6 @@ def StdProgram(plottype,index=0):
   print('Building Mesh')
   print('-------------------------------')
   # Run the ParameterInput file
-  out1=PI.DeclareParameters()
   out2=PI.ObstacleCoefficients()
   if out1==0 & out2==0: pass
   else:
@@ -799,19 +791,10 @@ if __name__=='__main__':
     os.makedirs('./Errors/'+plottype)
 
   for j in range(testnum):
-    qualityname=('./Quality/'+plottype+'/QualityNrays'+str(int(nra))+'Refs'+str(int(Nre))+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
+    qualityname='./Quality/'+plottype+'/QualityNrays%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,roomnumstat+(j-1)*2)
     np.save(qualityname,Qmat[j,:])
-    #mp.figure(2*j)
-    #mp.plot(Nra,Qmat[j,:])
-    #mp.plot(Nra,Qtruemat[j,:])
-    #filename=str('Quality/'+plottype+'/Quality'+str(int(Nra[0]))+'to'+str(int(Nra[-1]))+'Nref'+str(int(Nre))+'.jpg')#.eps').
-    #mp.savefig(filename)
-    errorname=('./Errors/'+plottype+'/ErrorsNrays'+str(int(nra))+'Refs'+str(int(Nre))+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
+    errorname='./Errors/'+plottype+'/ErrorsNrays%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,roomnumstat+(j-1)*2)
     np.save(errorname,Reserr[j,:])
-    #mp.figure(2*j+1)
-    #mp.plot(Nra,Reserr[j,:])
-    #filename=str('./Errors/'+plottype+'/Residual'+str(int(Nra[0]))+'to'+str(int(Nra[-1]))+'Nref'+str(int(Nre))+'.jpg')#.eps').
-   # mp.savefig(filename)
   np.save(timename,Timemat)
   np.save('roomnumstat.npy',roomnumstat)
   np.save('Roomnum.npy',Roomnum)
