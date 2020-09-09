@@ -936,7 +936,7 @@ class DS:
       if s[x,y,z,:,b].getnnz()==nre+1:
           if s[x,y,z,:,b].getnnz()==1:
             RadA[x,y,z]=l
-            assert l<np.sqrt(3)
+            assert l<=np.sqrt(3)
               #logging.error('Position (%d,%d,%d,%d,%d)'%(x,y,z,a,b))
               #logging.error('Ray segment'+str(s[x,y,z,:,b]))
               #logging.error('Distance of ray %f'%l)
@@ -944,7 +944,7 @@ class DS:
           elif nob==0 and nre==1 or nob==1 and nre==1:
             #print(ind[3][i],nob,nre,Nob,l)
             RadB[x,y,z]=l
-            assert l<2.0*np.sqrt(3)
+            assert l<=2.0*np.sqrt(3)
               #raise ValueError('Reflection rad is too long',l)
       if M[0,b]==0:
           out[x,y,z,0,b]=l
@@ -1214,21 +1214,7 @@ class DS:
                 out1[x,y,z,0,j]*=(S1-ctht)/(S1+ctht)
                 out2[x,y,z,0,j]*=(cthi-S2)/(cthi+S2)
               if dbg:
-                # This testing statement is only if there is just one reflective wall.
-                # if s[x,y,z][:,j].getnnz()>Nre+1 and np.prod(refindex[colnz])!=0:
-                # errmsg='Error at position, (%d,%d,%d,%d)'%(x,y,z,j)
-                # logging.error(errmsg)
-                # logging.error('The ray has reflected twice but the zero wall is not picked up')
-                # errmsg='The angle element is, '+str(s[x,y,z])
-                # logging.error(errmsg)
-                # errmsg='The refindex terms are, '+str(refindex[colnz])
-                # logging.error(errmsg)
-                # errmsg='Nonzero rows'+str(colnz)
-                # logging.error(errmsg)
-                # errmsg='Full refindex'+str(refindex)
-                # logging.error(errmsg)
-                # exit()
-                assert  out1[x,y,z][0].getnnz()<Nre*Ns+1
+                assert  out1[x,y,z][0].getnnz()<=Nre*Ns+1
                 # logging.error('Error at position (%d,%d,%d,%d,%d)'%(x,y,z,0,j))
                 # logging.error('Too many rays have hit this mesh element,Position (%d,%d,%d,%d)'%(x,y,z,j))
                 # errormsg='The element matrix'+str(out1[x,y,z])
@@ -1268,7 +1254,7 @@ class DS:
           # errmsg='Full refindex'+str(refindex)
           # logging.error(errmsg)
           # exit()
-        assert out1[x,y,z][0].getnnz()<Nre*Ns+1
+        assert out1[x,y,z][0].getnnz()<=Nre*Ns+1
           # logging.error('Error at position (%d,%d,%d,%d,%d)'%(x,y,z,0,j))
           # logging.error('Too many rays have hit this mesh element,Position (%d,%d,%d,%d)'%(x,y,z,j))
           # errormsg='The element matrix'+str(out1[x,y,z])

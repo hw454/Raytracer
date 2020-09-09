@@ -2,7 +2,7 @@
 # Updated Hayley Wragg 2020-06-30
 '''Code to plot heatmaps and error plots for RayTracer numpy files.
 '''
-
+import DictionarySparseMatrix as DSM
 import matplotlib.pyplot as mp
 import ParameterLoad as PI
 import openpyxl as wb
@@ -31,7 +31,6 @@ def plot_grid(plottype=str(),testnum=1,roomnumstat=0):
   Roomnum=roomnumstat
   for i in range(testnum):
     for index in range(0,Roomnum):
-      print('hi',index,Roomnum)
       for j in range(0,nra):
         Nr=int(Nra[j])
         Nre=int(Nre)
@@ -57,14 +56,14 @@ def plot_grid(plottype=str(),testnum=1,roomnumstat=0):
         #RadAdifftil=abs(np.divide(RadA-TrueRadA,RadA, where=(abs(RadA)>epsilon)))  # Normalised Difference Mesh
         #RadAdiffstr='./Mesh/'+plottype+'/RadADiff_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
         #np.save(RadAdiffstr,RadAdifftil)
-        #err2=np.sum(RadAdifftil)/(P.shape[0]*P.shape[1]*P.shape[2])
-        #print('Residual GRL to true RadA',err2)
+        #errrad=np.sum(RadAdifftil)/(P.shape[0]*P.shape[1]*P.shape[2])
+        #print('Residual GRL to true RadA',errrad)
         if LOS==0:
           RadBdifftil=abs(np.divide(RadB-TrueRadB,RadB, where=(abs(RadB)>epsilon)))  # Normalised Difference Mesh
           RadBdiffstr='./Mesh/'+plottype+'/RadBDiff_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
           np.save(RadBdiffstr,RadBdifftil)
-          err2=np.sum(RadBdifftil)/(P.shape[0]*P.shape[1]*P.shape[2])
-          print('Residual GRL to true RadB',err2)
+          errrad=np.sum(RadBdifftil)/(P.shape[0]*P.shape[1]*P.shape[2])
+          print('Residual GRL to true RadB',errrad)
         #err3=np.sum(Pdiffhat)/(P.shape[0]*P.shape[1]*P.shape[2])
         #print('Residual of std to true',err3)
         #n2=P2.shape[2]
@@ -124,7 +123,7 @@ def plot_grid(plottype=str(),testnum=1,roomnumstat=0):
           for i in range(0,n):
             mp.figure(2*n+i)
             #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-            mp.imshow(Prattil[:,:,i], cmap=cmapopt, vmax=1,vmin=0)
+            mp.imshow(DSM.Watts_to_db(Prattil[:,:,i]), cmap=cmapopt, vmax=1,vmin=0)
             mp.colorbar()
             Difffolder='./GeneralMethodPowerFigures/'+plottype+'/DiffSlice/Nra%d'%Nr
             if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/DiffSlice'):
@@ -153,8 +152,15 @@ def plot_grid(plottype=str(),testnum=1,roomnumstat=0):
   return
 
 def plot_residual(plottype,testnum,roomnumstat):
+  Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
+  Nra        =np.load('Parameters/Nra.npy')
+  if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
+      Nra=np.array([Nra])
+      nra=1
+  else:
+      nra=len(Nra)
   for j in range(testnum):
-    errorname='./Errors/'+plottype+'/ErrorsNrays%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,roomnumstat+(j-1)*2)
+    errorname='./Errors/'+plottype+'/ErrorsNrays%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,roomnumstat+(j)*2)
     Res=np.load(errorname)
     mp.figure(j+1)
     mp.plot(Nra,Res)
@@ -162,12 +168,36 @@ def plot_residual(plottype,testnum,roomnumstat):
     mp.savefig(filename)
   return
 
+def plot_times(plottype,testnum,roomnumstat):
+  Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
+  Nra        =np.load('Parameters/Nra.npy')
+  if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
+      Nra=np.array([Nra])
+      nra=1
+  else:
+      nra=len(Nra)
+  for j in range(testnum):
+    timename='./Times/'+plottype+'/TimesNra%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,roomnumstat+(j)*2)
+    T=np.load(timename)
+    mp.figure(j+1)
+    mp.plot(Nra,T)
+    filename='./Times/'+plottype+'/Times%dto%dNref%d.jpg'%(Nra[0],Nra[-1],Nre)
+    mp.savefig(filename)
+  return
+
 def plot_quality(plottype,testnum,roomnumstat):
+  Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
+  Nra        =np.load('Parameters/Nra.npy')
+  if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
+      Nra=np.array([Nra])
+      nra=1
+  else:
+      nra=len(Nra)
   truestr='Mesh/True/'+plottype+'/True.npy'
   P3=np.load(truestr)
   Q2=DSM.QualityFromPower(P3)
   for j in range(testnum):
-    qualityname='./Quality/'+plottype+'/QualityNrays%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,roomnumstat+(j-1)*2)
+    qualityname='./Quality/'+plottype+'/QualityNrays%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,roomnumstat+(j)*2)
     Qu=np.load(qualityname)
     mp.figure(j+1)
     mp.plot(Nra,Qu)

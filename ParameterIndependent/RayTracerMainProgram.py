@@ -237,7 +237,7 @@ def MeshProgram(SN,repeat=0,plottype=str()):
   else:
       nra=len(Nra)
   Nre=int(Nre)
-  timesmat=np.zeros((nra))
+  timesmat=np.zeros(nra)
 
   ##----Retrieve the environment--------------------------------------
   ##----The lengths are non-dimensionalised---------------------------
@@ -311,7 +311,7 @@ def MeshProgram(SN,repeat=0,plottype=str()):
     print('Ray-launching complete')
     print('Time taken',t1-t0)
     print('-------------------------------')
-  return Mesh
+  return Mesh,timesmat
 
 def StdProgram(plottype,index=0):
   ''' Refect rays and input object information output the power.
@@ -379,15 +379,6 @@ def StdProgram(plottype,index=0):
   :return: Mesh
 
   '''
-  print('-------------------------------')
-  print('Building Mesh')
-  print('-------------------------------')
-  # Run the ParameterInput file
-  out2=PI.ObstacleCoefficients()
-  if out1==0 & out2==0: pass
-  else:
-      raise('Error occured in parameter declaration')
-
   ##---- Define the room co-ordinates----------------------------------
   # Obstacles are triangles stored as three 3D co-ordinates
 
@@ -399,7 +390,7 @@ def StdProgram(plottype,index=0):
       Nra=np.array([Nra])
   else:
       nra=len(Nra)
-  timemat=np.zeros((nra,1))
+  timemat=np.zeros(nra)
   Nre=int(Nre)
 
   ##----Retrieve the environment parameters--------------------------------------
@@ -453,6 +444,7 @@ def StdProgram(plottype,index=0):
   print('Starting the ray bouncing and field storage')
   print('-------------------------------')
   for j in range(0,nra):
+    t0=t.time()
     directionname=str('Parameters/Directions%d.npy'%j)
     Direc=np.load(directionname)
     Nr=int(Nra[j])
@@ -468,11 +460,13 @@ def StdProgram(plottype,index=0):
     np.save(stdraypointname,Rays*L)
     stdGridname='./Mesh/'+plottype+'/Power_gridstd%dRefs%dm%d.npy'%(Nr,Nre,index)
     np.save(stdGridname,Grid)
-  # print('-------------------------------')
-  # print('Ray-launching complete')
-  # print('Time taken',Room.time)
-  # print('-------------------------------')
-  return Grid
+    t1=t.time()
+    timemat[j]=t1-t0
+    print('-------------------------------')
+    print('Ray-launching std complete')
+    print('Time taken',t1-t0)
+    print('-------------------------------')
+  return Grid,timemat
 
 def power_grid(SN,repeat=0,plottype=str(),Roomnum=0):
   ''' Calculate the field on a grid using enviroment parameters and the \
@@ -514,7 +508,7 @@ def power_grid(SN,repeat=0,plottype=str(),Roomnum=0):
       nra=np.array([Nra])
   else:
       nra=len(Nra)
-  timemat=np.zeros((nra,1))
+  timemat=np.zeros(nra)
   Nre=int(Nre)
   Nob            =np.load('Parameters/Nob.npy')
 
@@ -541,9 +535,6 @@ def power_grid(SN,repeat=0,plottype=str(),Roomnum=0):
     t0=t.time()
     #-------If multiple room variations are desired then run for all----
     for index in range(0,Roomnum):
-      print(index,Roomnum)
-      if repeat==0:
-        PI.ObstacleCoefficients(SN,index)
       ##----Retrieve the antenna parameters--------------------------------------
       gainname      ='Parameters/Tx%dGains%d.npy'%(Nr,index)
       Gt            = np.load(gainname)
@@ -587,7 +578,7 @@ def power_grid(SN,repeat=0,plottype=str(),Roomnum=0):
   print('Power from DSM complete')
   print('Time taken',timemat)
   print('-------------------------------')
-  return Grid,G_z
+  return Grid,G_z,timemat
 
 def Residual(plottype=str(),Roomnum=0):
   ''' Compute the residual between the computed mesh and the true mesh summed over x,y,z and averaged
@@ -696,6 +687,7 @@ if __name__=='__main__':
   print(sys.version)
   Sheetname='InputSheet.xlsx'
   out=PI.DeclareParameters(Sheetname)
+  out=PI.ObstacleCoefficients(Sheetname)
   #out=RayTracer() # To compute just the rays with no storage uncomment this line.
   timetest   =np.load('Parameters/timetest.npy')
   testnum    =np.load('Parameters/testnum.npy')
@@ -704,16 +696,18 @@ if __name__=='__main__':
   myfile = open('Parameters/runplottype.txt', 'rt') # open lorem.txt for reading text
   plottype= myfile.read()         # read the entire file into a string
   myfile.close()
-  Timemat=np.zeros((testnum,6))
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       Nra=np.array([Nra])
       nra=1
   else:
       nra=len(Nra)
+  Nre,h,L     =np.load('Parameters/Raytracing.npy')[0:3]
+
   Qmat   =np.zeros((testnum,nra))
   Qtruemat=np.zeros((testnum,nra))
   G_zeros =np.zeros((testnum,nra)) # Number of nonzero terms
   Reserr  =np.zeros((testnum,nra))
+  Timemat =np.zeros((testnum,nra,8))
   repeat=1
   logname='RayTracer'+plottype+'.log'
   j=1
@@ -724,63 +718,6 @@ if __name__=='__main__':
     level=logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S')
   logging.info(sys.version)
-  for j in range(0,timetest):
-    Roomnum=roomnumstat
-    #Timemat[0,0]=Roomnum
-    for count in range(0,testnum):
-      start=t.time()
-      Mesh1=MeshProgram(Sheetname,repeat,plottype) # Shoot the rays and store the information
-      #('In main',Mesh1[3,3,3])
-      mid=t.time()
-      Grid,G_z=power_grid(Sheetname,repeat,plottype,Roomnum)  # Use the ray information to compute the power
-      repeat=1
-      G_zeros[count,:]=G_z
-      Q,Q2=Quality(Sheetname,repeat,plottype,Roomnum)
-      Qmat[count,:]=Q
-      Qtruemat[count,:]=Q2
-      end=t.time()
-      Reserr[count,:]+=Residual(plottype,Roomnum)/Roomnum
-      Timemat[count,0]+=Roomnum
-      Timemat[count,1]+=mid-start
-      Timemat[count,2]+=(end-mid)/(Roomnum)
-      if count !=0:
-        Timemat[0,2]+=(end-mid)/(Roomnum)
-      Timemat[count,3]+=end-start
-      start=t.time()
-      for i in range(0,Roomnum):
-        Mesh2=StdProgram(i) # Shoot the rays and store the information
-      end=t.time()
-      Timemat[count,4]+=end-start
-      Timemat[count,5]+=(end-start)/(Roomnum)
-      #if count !=0:
-      #  Timemat[0,5]+=(end-start)/(Roomnum)
-      Roomnum*=2 #FIXME      to increase roomnumber
-
-      #del Mesh1, Grid
-  Timemat[0,2]/=(testnum)
-  Timemat[0,5]/=(testnum)
-  Timemat/=(timetest)
-  Reserr/=(timetest)
-  print('-------------------------------')
-  print('Time to complete program') # Roomnum, ray time, average power time, total time, total time averaged by room
-  print(Timemat)
-  print('-------------------------------')
-  print('-------------------------------')
-  print('Residual to the True calculation')
-  print(Reserr)
-  print('-------------------------------')
-  Nra         =np.load('Parameters/Nra.npy')
-  if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
-      nra=1
-  else:
-      nra=len(Nra)
-  Nre,h,L     =np.load('Parameters/Raytracing.npy')[0:3]
-  if not os.path.exists('./Times'):
-    os.makedirs('./Times')
-  if not os.path.exists('./Times/'+plottype):
-    os.makedirs('./Times/'+plottype)
-  timename='./Times/'+plottype+'/TimesNra%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,Roomnum)
-
   if not os.path.exists('./Quality'):
     os.makedirs('./Quality')
   if not os.path.exists('./Quality/'+plottype):
@@ -789,11 +726,63 @@ if __name__=='__main__':
     os.makedirs('./Errors')
   if not os.path.exists('./Errors/'+plottype):
     os.makedirs('./Errors/'+plottype)
+  if not os.path.exists('./Times'):
+    os.makedirs('./Times')
+  if not os.path.exists('./Times/'+plottype):
+    os.makedirs('./Times/'+plottype)
+  for j in range(0,timetest):
+    Roomnum=(2*j+1)*roomnumstat
+    #Timemat[0,0]=Roomnum
+    for count in range(0,testnum):
+      start=t.time()
+      Mesh1,timemesh=MeshProgram(Sheetname,repeat,plottype) # Shoot the rays and store the information
+      print(Mesh1[0,0,0])
+      mid=t.time()
+      Grid,G_z,timep=power_grid(Sheetname,repeat,plottype,Roomnum)  # Use the ray information to compute the power
+      repeat=1
+      G_zeros[count,:]=G_z
+      Q,Q2=Quality(Sheetname,repeat,plottype,Roomnum)
+      Qmat[count,:]=Q
+      Qtruemat[count,:]=Q2
+      end=t.time()
+      Reserr[count,:]+=Residual(plottype,Roomnum)/Roomnum
+      Timemat[count,:,0]+=Roomnum
+      Timemat[count,:,1]+=timemesh
+      Timemat[count,:,2]+=timep/(Roomnum)
+      if count !=0:
+        Timemat[0,:,2]+=timep/(Roomnum)
+      Timemat[count,:,3]+=timep
+      Timemat[count,:,4]+=timep+timemesh
+      Timemat[count,:,5]+=(timep+timemesh)/(Roomnum)
+      #for i in range(0,Roomnum):
+      #  Mesh2,timestd=StdProgram(i) # Shoot the rays and store the information
+      #Timemat[count:,6]=timestd
+      #Timemat[count,:,7]=timestd/Roomnum
+      #if count !=0:
+      #  Timemat[0,5]+=(end-start)/(Roomnum)
+      #Roomnum*=2 #FIXME      to increase roomnumber
+
+      #del Mesh1, Grid
+  Timemat[:,:,2]/=(testnum)
+  Timemat[:,:,5]/=(testnum)
+  Timemat/=(timetest)
+  Reserr/=(timetest)
+  print('-------------------------------')
+  print('Time to complete program') # Roomnum, ray time, average power time,total power time,
+  #total time, total time averaged by room, std total time, std total time averaged per room.
+  print(Timemat)
+  print('-------------------------------')
+  print('-------------------------------')
+  print('Residual to the True calculation')
+  print(Reserr)
+  print('-------------------------------')
 
   for j in range(testnum):
-    qualityname='./Quality/'+plottype+'/QualityNrays%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,roomnumstat+(j-1)*2)
+    timename='./Times/'+plottype+'/TimesNra%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,roomnumstat+(j)*2)
+    np.save(timename,Timemat[j,:,4])
+    qualityname='./Quality/'+plottype+'/QualityNrays%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,roomnumstat+(j)*2)
     np.save(qualityname,Qmat[j,:])
-    errorname='./Errors/'+plottype+'/ErrorsNrays%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,roomnumstat+(j-1)*2)
+    errorname='./Errors/'+plottype+'/ErrorsNrays%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,roomnumstat+(j)*2)
     np.save(errorname,Reserr[j,:])
   np.save(timename,Timemat)
   np.save('roomnumstat.npy',roomnumstat)
