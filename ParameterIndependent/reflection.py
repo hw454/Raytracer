@@ -27,23 +27,21 @@ def try_reflect_ray(ray,triangle):
   trdist=-ray[1] # Make the intersection the origin
   direc=lf.Direction(ray)
   # Translate the points before the reflection
-  ray[0]+=trdist
-  ray[1]+=trdist
+  ray+=trdist
   edge1=triangle[0]-triangle[1]
   edge2=triangle[0]-triangle[2]
   edge3=triangle[2]-triangle[1]
   normedge=np.cross(edge1,edge2)
-  normedge=normedge/la.norm(normedge)
+  normleng=la.norm(normedge)
+  normedge=normedge/normleng
   # Find the image of the ray in the edge
   # The image point is the point if the ray was to continue going through the surface
-  Image=ray[1]+direc
-  normcoef=np.dot(Image-ray[1],normedge)/np.dot(normedge,normedge)
+  normcoef=direc@normedge/normleng
   normedge=normcoef*normedge
   # Find the reflection using the Image
-  ReflPt=Image-2*normedge
+  ReflPt=ray[1]+direc-2*normedge
   #Translate Back
-  ray[0]-=trdist
-  ray[1]-=trdist
+  ray-=trdist
   normedge-=trdist
   ReflPt-=trdist
   return np.array([ray[1], ReflPt])
