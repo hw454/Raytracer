@@ -68,6 +68,10 @@ class room:
     s.points=RoomP
     # Points is the array of all the co-ordinates which form the surfaces in the room
     s.Nob=len(obst)
+    s.norms=np.zeros((s.Nob,3))
+    for j in range(s.Nob):
+      s.norms[j]=np.cross(s.obst[j][0]-s.obst[j][1],s.obst[j][0]-s.obst[j][2])
+      s.norms[j]/=np.linalg.norm(s.norms[j])
     if isinstance(Ntri,type(0)):
       s.Ntri=np.ones(s.Nob)
     else:
@@ -115,6 +119,9 @@ class room:
   def __set_obst__(s,obst0):
     s.obst+=(obst0,)
     s.points+=obst0
+    s.Nob+=1
+    s.norms=np.append(s.norms,np.cross(obst0[0]-obst0[1],obst0[0]-obst0[2]))
+    s.norms[-1]/=np.linalg.norm(s.norms[1])
     return
   ##  Add the point p to the list of inside points for the room.
   # @param p=[x,y,z]
