@@ -560,9 +560,9 @@ def power_grid(SN,repeat=0,plottype=str(),Roomnum=0):
       lam           =Antpar[1]
       L             =Antpar[2]
       if index==0:
-        Grid,RadA,RadB,ind=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,LOS,PerfRef)
+        Grid,RadA,RadB,ind=DSM.power_compute(plottype,Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,LOS,PerfRef)
       else:
-        Grid,RadA,RadB,ind=DSM.power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,LOS,PerfRef,ind)
+        Grid,RadA,RadB,ind=DSM.power_compute(plottype,Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,LOS,PerfRef,ind)
       if not os.path.exists('./Mesh'):
         os.makedirs('./Mesh')
         os.makedirs('./Mesh/'+plottype)
@@ -600,7 +600,7 @@ def Residual(plottype=str(),Roomnum=0):
       Nr=int(Nra[j])
       Nre=int(Nre)
       pstr       ='./Mesh/'+plottype+'/Power_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
-      truestr    ='Mesh/True/'+plottype+'/True.npy'
+      truestr    ='./Mesh/True/'+plottype+'/True.npy'
       Pt   =np.load(truestr)
       Pthat=DSM.db_to_Watts(Pt)
       P    =np.load(pstr)
@@ -736,7 +736,6 @@ if __name__=='__main__':
     for count in range(0,testnum):
       start=t.time()
       Mesh1,timemesh=MeshProgram(Sheetname,repeat,plottype) # Shoot the rays and store the information
-      print(Mesh1[0,0,0])
       mid=t.time()
       Grid,G_z,timep=power_grid(Sheetname,repeat,plottype,Roomnum)  # Use the ray information to compute the power
       repeat=1

@@ -52,6 +52,10 @@ def plot_grid(plottype=str(),testnum=1,roomnumstat=0):
         TrueRadAstr='Mesh/True/'+plottype+'/TrueRadA.npy'
         RadA=np.load(RadAstr)
         TrueRadA=np.load(TrueRadAstr)
+        Thetastr='Mesh/'+plottype+'/AngNpy.npy'
+        ThetaMesh=np.load(Thetastr).astype(float)
+        ThetaTruestr='Mesh/True/'+plottype+'/AngMesh.npy'
+        ThetaTrueMesh=np.load(ThetaTruestr)
         #Pdifftil=abs(np.divide(P-P3,P, where=(abs(P)>epsilon)))  # Normalised Difference Mesh
         #RadAdifftil=abs(np.divide(RadA-TrueRadA,RadA, where=(abs(RadA)>epsilon)))  # Normalised Difference Mesh
         #RadAdiffstr='./Mesh/'+plottype+'/RadADiff_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
@@ -80,7 +84,6 @@ def plot_grid(plottype=str(),testnum=1,roomnumstat=0):
         else:
           rlb=min(np.amin(RadA),np.amin(RadB))
           rub=max(np.amax(RadA),np.amax(RadB))
-        #ub2=np.amax(P2)
         ub3=np.amax(P3)
         ub=max(ub,ub3)
         if not os.path.exists('./GeneralMethodPowerFigures'):
@@ -89,7 +92,6 @@ def plot_grid(plottype=str(),testnum=1,roomnumstat=0):
           os.makedirs('./GeneralMethodPowerFigures/'+plottype)
         for i in range(0,n):
           mp.figure(i)
-          #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
           mp.imshow(P[:,:,i], cmap=cmapopt, vmax=ub,vmin=lb)
           mp.colorbar()
           rayfolder='./GeneralMethodPowerFigures/'+plottype+'/PowerSlice/Nra%d'%Nr
@@ -99,6 +101,34 @@ def plot_grid(plottype=str(),testnum=1,roomnumstat=0):
           elif not os.path.exists(rayfolder):
             os.makedirs(rayfolder)
           filename=rayfolder+'/NoBoxPowerSliceNra%dNref%dslice%dof%d.jpg'%(Nr,Nre,i+1,n)#.eps')
+          mp.savefig(filename)
+          mp.clf()
+          lb=np.amin(ThetaMesh)
+          ub=np.amax(ThetaMesh)
+          mp.figure(i)
+          mp.imshow(ThetaMesh[:,:,i], cmap=cmapopt, vmax=ub,vmin=lb)
+          mp.colorbar()
+          rayfolder='./GeneralMethodPowerFigures/'+plottype+'/ThetaSlice/Nra%d'%Nr
+          if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/ThetaSlice'):
+            os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/ThetaSlice')
+            os.makedirs(rayfolder)
+          elif not os.path.exists(rayfolder):
+            os.makedirs(rayfolder)
+          filename=rayfolder+'/NoBoxThetaSliceNra%dNref%dslice%dof%d.jpg'%(Nr,Nre,i+1,n)#.eps')
+          mp.savefig(filename)
+          mp.clf()
+          lb=np.amin(ThetaMesh-ThetaTrueMesh)
+          ub=np.amax(ThetaMesh-ThetaTrueMesh)
+          mp.figure(i)
+          mp.imshow(ThetaMesh[:,:,i]-ThetaTrueMesh[:,:,i], cmap=cmapopt, vmax=ub,vmin=lb)
+          mp.colorbar()
+          rayfolder='./GeneralMethodPowerFigures/'+plottype+'/ThetaDiffSlice/Nra%d'%Nr
+          if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/ThetaDiffSlice'):
+            os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/ThetaDiffSlice')
+            os.makedirs(rayfolder)
+          elif not os.path.exists(rayfolder):
+            os.makedirs(rayfolder)
+          filename=rayfolder+'/NoBoxDiffThetaSliceNra%dNref%dslice%dof%d.jpg'%(Nr,Nre,i+1,n)#.eps')
           mp.savefig(filename)
           mp.clf()
           mp.figure(i)
@@ -123,7 +153,7 @@ def plot_grid(plottype=str(),testnum=1,roomnumstat=0):
           for i in range(0,n):
             mp.figure(2*n+i)
             #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-            mp.imshow(DSM.Watts_to_db(Prattil[:,:,i]), cmap=cmapopt, vmax=1,vmin=0)
+            mp.imshow(DSM.Watts_to_db(Prattil[:,:,i]), cmap=cmapopt, vmax=np.amax(Prattil),vmin=np.amin(Prattil))
             mp.colorbar()
             Difffolder='./GeneralMethodPowerFigures/'+plottype+'/DiffSlice/Nra%d'%Nr
             if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/DiffSlice'):
@@ -215,8 +245,8 @@ if __name__=='__main__':
   InBook     =wb.load_workbook(filename=Sheetname,data_only=True)
   SimParstr  ='SimulationParameters'
   SimPar     =InBook[SimParstr]
-  testnum    =SimPar.cell(row=16,column=3).value
-  roomnumstat=SimPar.cell(row=17,column=3).value
+  testnum    =SimPar.cell(row=17,column=3).value
+  roomnumstat=SimPar.cell(row=18,column=3).value
   plot_grid(plottype,testnum,roomnumstat)        # Plot the power in slices.
   plot_residual(plottype,testnum,roomnumstat)
   exit()
