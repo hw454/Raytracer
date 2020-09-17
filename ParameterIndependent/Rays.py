@@ -548,9 +548,8 @@ class Ray:
     outdist=dist+segleng
 
     # The normal which defines the plane the obstacle hit was in.
-    Tri=room.obst[nob-1]
-    roomnorm=np.cross(Tri[0]-Tri[1],Tri[1]-Tri[2])
-    roomnorm/=np.linalg.norm(roomnorm)
+    #Tri=room.obst[nob-1]
+    roomnorm=room.norms[nob-1]
 
     # Compute the number of steps that'll be taken along the ray to ensure the edges of the cone reach the intersection obstacle
     Ns=s._number_steps_(alpha,segleng,outdist,deltheta,theta)
@@ -573,10 +572,7 @@ class Ray:
     # Add the reflection angle to the vector of  ray history.
     if nre==0:                                               # Before reflection use a 1 so that the distance is still stored
       calcvec[0]=np.exp(1j*np.pi*0.5)                        # The first row corresponds to line of sight terms
-      prevdirec=np.array([0,0,0])
     else:
-      prevdirec=lf.Direction(np.array([s.points[-4][0:3],s.points[-3][0:3]]))
-      prevdirec/=np.linalg.norm(prevdirec) # Normalise direc
       calcvec[row]=np.exp(1j*theta) # After the first reflection all reflection angles continue to be stored in calcvec.
     # Initialise the check terms
     rep=0                               # Indicates if the point is the same as the previous
@@ -610,7 +606,7 @@ class Ray:
     # After the point on the ray is stored step along the cone and store the points on there
     if Ncon>0:
       Nc=s._number_cone_steps_(alpha,dist,deltheta)           # No. of cone steps required for this ray step.
-      copos2,Mesh,Cones=conestepping(col,olddist,dist,0,Nc,p1,roomnorm,norm,alpha,h,nra,Nra,nre,Nre,direc,direc,Mesh,calcvec,room)
+      copos2,Mesh,Cones=conestepping(col,olddist,dist,0,Nc,p1,roomnorm,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh,calcvec,room)
     # Compute the next point along the ray
     p1+=alpha*direc/split
     dist+=alpha*np.linalg.norm(direc)/split
@@ -671,7 +667,7 @@ class Ray:
       if Ncon>0:
         # In this instance stpch==0 and end of ray keep storing cone points but not on the ray.
         Nc=s._number_cone_steps_(alpha,dist,deltheta)           # No. of cone steps required for this ray step.
-        copos2,Mesh,Cones=conestepping(col,olddist,dist,m1,Nc,p1,roomnorm,norm,alpha,h,nra,Nra,nre,Nre,direc,direc,Mesh,calcvec,room,Cones,copos2)
+        copos2,Mesh,Cones=conestepping(col,olddist,dist,m1,Nc,p1,roomnorm,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh,calcvec,room,Cones,copos2)
       # Compute the next point along the ray
       p1+=alpha*direc/split
       dist+=alpha/split
@@ -748,7 +744,7 @@ class Ray:
     # storing previous information we want the direction of the ray which
     # hit the object not the outgoing ray.
     direc=lf.Direction(np.array([s.points[-3][0:3],s.points[-2][0:3]]))
-    direc/=np.sqrt(np.dot(direc,direc))
+    direc/=np.linalg.norm(direc)
     if abs(direc.any()-0.0)>epsilon:                       # Before computing the dist travelled through a mesh cube
                                                            # check the direction isn't 0.
       alpha=h/max(abs(direc))                              # Find which boundary of a unit cube gets hit first when
@@ -1100,7 +1096,7 @@ def duplicatecheck(copos,copos2,p3,norm,Mesh):
   copos2=copos
   return altcopos,p3out,normout,copos2
 
-def conestepping(col,olddist,dist,m1,Nc,p1,roomnorm,norm,alpha,h,nra,Nra,nre,Nre,prevdirec,direc,Mesh,calcvec,room,Cones=np.array([]),copos2=np.array([])):
+def conestepping(col,olddist,dist,m1,Nc,p1,roomnorm,norm,alpha,h,nra,Nra,nre,Nre,direc,Mesh,calcvec,room,Cones=np.array([]),copos2=np.array([])):
   '''Step through the lines which form a cone on the ray and store the ray information. Check if the ray is already stored in the mesh and that the number of non-zero terms in a column is correct after storing.
   '''
   Nob=room.Nob
@@ -1149,7 +1145,7 @@ def conestepping(col,olddist,dist,m1,Nc,p1,roomnorm,norm,alpha,h,nra,Nra,nre,Nre
         if not Mesh.doubles__inMat__(h,calcvec,Nob,(x,y,z),room.Ntri) and abs(r2)>epsilon:
           Mesh[x,y,z][:,col]=r2*calcvec[:,0].copy()
           if row>0 and anglechange:
-            phi=angle_correct(dist,prevdirec,roomnorm,coords,p1)
+            phi=angle_correct(dist,direc,roomnorm,coords,p1)
             Mesh[x,y,z][row,col]=r2*np.exp(1j*phi)
           continue
           if dbg:
@@ -1193,7 +1189,7 @@ def conestepping(col,olddist,dist,m1,Nc,p1,roomnorm,norm,alpha,h,nra,Nra,nre,Nre
             assert Mesh[x,y,z].shape[0]==calcvec.shape[0]
             Mesh[x,y,z][:,col]=r2[j]*calcvec[:,0].copy()
             if row>0 and anglechange:
-              phi=angle_correct(dist,prevdirec,roomnorm,coords[j],p1)
+              phi=angle_correct(dist,direc,roomnorm,coords[j],p1)
               Mesh[x,y,z][row,col]=r2[j]*np.exp(1j*phi)
             errmsg1='The number of nonzero terms at '
             errmsg2='(%d,%d,%d) col %d is not %d'%(altcopos[j][0],altcopos[j][1],altcopos[j][2],col,nre+1)
