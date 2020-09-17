@@ -100,8 +100,8 @@ def makematrix_perfectreflection(index=0):
       if i==1 and j==0 and k==0:
         print(Txleng,xhatleng)
         print(DSM.FieldEquation(Txleng,khat,L,lam)*Pol,DSM.FieldEquation(xhatleng,khat,L,lam)*Pol)
-      P=np.linalg.norm(field)**2
-      Mesh[i,j,k]=10*np.log10(P,where=(P!=0))
+      P=(np.absolute(field[0])**2+np.absolute(field[1])**2)
+      Mesh[i,j,k]=DSM.Watts_to_db(P)
       RadMeshA[i,j,k]=Txleng
       RadMeshB[i,j,k]=xhatleng
   print(Mesh[1,0,0])
@@ -165,7 +165,8 @@ def makematrix_LOS(index=0):
       Txleng=np.linalg.norm(x-Tx)
       if Txleng!=0:
         field=DSM.FieldEquation(Txleng,khat,L,lam)*Pol
-      Mesh[i,j,k]=10*np.log10((np.absolute(field[0])**2+np.absolute(field[1])**2))
+      P=(np.absolute(field[0])**2+np.absolute(field[1])**2)
+      Mesh[i,j,k]=DSM.Watts_to_db(P)
       RadMesh[i,j,k]=Txleng
   return Mesh,RadMesh
 
@@ -197,6 +198,7 @@ def makematrix_withreflection(index=0):
   ##----Retrieve the environment--------------------------------------
   Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
   Tx            =np.load('Parameters/Origin.npy')             # The location of the source antenna (origin of every ray)
+  print('Transmitter',Tx)
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
   Direc         =np.load('Parameters/Directions.npy')         # Matrix of ray directions
   deltheta      =np.load('Parameters/delangle.npy')
@@ -226,11 +228,13 @@ def makematrix_withreflection(index=0):
   Mesh    =np.zeros((Nx,Ny,Nz),dtype=float)
   RadMeshA=np.zeros((Nx,Ny,Nz),dtype=float)
   RadMeshB=np.zeros((Nx,Ny,Nz),dtype=float)
+  ThetaMesh=np.zeros((Nx,Ny,Nz),dtype=float)
   Tri=Oblist[0].astype(float)
   Tri2=Oblist[1].astype(float)
   p0,p1,p2=Tri
-  n=np.cross(p0-p1,p0-p2)
+  n=np.cross(p0-p1,p2-p1)
   n/=np.sqrt(np.dot(n,n))
+  nleng=np.linalg.norm(n)
   # y is the intersection point on surface 0 which is closest to the transmitter.
   Tx=Tx.astype(float)
   y=(Tx-np.dot((Tx-p0),n)*n/np.dot(n,n))
@@ -246,11 +250,11 @@ def makematrix_withreflection(index=0):
       chck=inst.InsideCheck(I2,Tri)
       chck2=inst.InsideCheck(I2,Tri2)
       xhatleng=np.linalg.norm(Txhat-x)
-      if Txleng!=0:
-        blah=(np.dot(n,Tx-x)/(Txleng))
-      else:
-        blah=np.dot(n,Tx-I2)/np.linalg.norm(Tx-I2)
-      theta=np.arcsin(blah)
+      d2leng=np.linalg.norm(d2)
+      frac=np.dot(d2,n)/(nleng*d2leng)
+      theta=np.arccos(frac)
+      if theta>np.pi/2:
+        theta=np.pi-theta
       cthi=np.cos(theta)
       if chck==1:
         ctht=np.cos(np.arcsin(np.sin(theta)/refindex[0]))
@@ -262,12 +266,18 @@ def makematrix_withreflection(index=0):
         S2=ctht*Znobrat[1]
       if Txleng!=0:
         field=DSM.FieldEquation(Txleng,khat,L,lam)*Pol
+      else:
+        field=np.array([0+0j,0+0j])
+      if i==0 and j==0 and k==2:
+        print(theta,d,n,np.dot(d,n)/(nleng*Txleng),np.arccos(np.dot(d,n)/(nleng*Txleng)))
       Refcoef=np.array([[(S1-ctht)/(S1+ctht),.0+0.0j],[.0+0.0j,(cthi-S2)/(cthi+S2)]])
       field+=DSM.FieldEquation(xhatleng,khat,L,lam)*np.matmul(Refcoef,Pol)
-      Mesh[i,j,k]=10*np.log10((np.absolute(field[0])**2+np.absolute(field[1])**2))
+      P=np.absolute(field[0])**2+np.absolute(field[1])**2
+      Mesh[i,j,k]=DSM.Watts_to_db(P)
       RadMeshA[i,j,k]=Txleng
       RadMeshB[i,j,k]=xhatleng
-  return Mesh,RadMeshA, RadMeshB
+      ThetaMesh[i,j,k]=theta
+  return Mesh,RadMeshA, RadMeshB,ThetaMesh
 
 def plot_mesh(Mesh,Meshfolder,Meshname,lb,ub):
   cmapopt=str('plasma')
@@ -291,7 +301,7 @@ if __name__ == '__main__':
     Q1=DSM.QualityFromPower(Mesh1)
     Mesh2,RadMesh2a,RadMesh2b=makematrix_perfectreflection()
     Q2=DSM.QualityFromPower(Mesh2)
-    Mesh3,RadMesh3a,RadMesh3b=makematrix_withreflection()
+    Mesh3,RadMesh3a,RadMesh3b,ThetaMesh=makematrix_withreflection()
     Q3=DSM.QualityFromPower(Mesh3)
     loca=str('OffCentre')
     RTPar         =np.load('Parameters/Raytracing.npy')
@@ -316,9 +326,9 @@ if __name__ == '__main__':
         os.makedirs('./Mesh/True/SingleRef'+loca)
     if not os.path.exists('./Mesh/True/SingleRef'+loca):
         os.makedirs('./Mesh/True/SingleRef'+loca)
-    Truename='Mesh/True/LOS'+loca+'/True.npy'
-    TrueRadname='Mesh/True/LOS'+loca+'/TrueRadA.npy'
-    TrueQname='Mesh/True/LOS'+loca+'/TrueQ.npy'
+    Truename='./Mesh/True/LOS'+loca+'/True.npy'
+    TrueRadname='./Mesh/True/LOS'+loca+'/TrueRadA.npy'
+    TrueQname='./Mesh/True/LOS'+loca+'/TrueQ.npy'
     np.save(Truename,Mesh1)
     np.save(TrueRadname,RadMesh1)
     np.save(TrueQname,Q1)
@@ -334,11 +344,11 @@ if __name__ == '__main__':
     plot_mesh(RadMesh1,TrueFolder,TruePlotName,lb,ub)
     print('True mesh saved at', Truename)
     print('Quality',Q1)
-    Truename='Mesh/True/PerfectRef'+loca+'/True.npy'
-    TrueRadnameA='Mesh/True/PerfectRef'+loca+'/TrueRadA.npy'
-    TrueRadnameB='Mesh/True/PerfectRef'+loca+'/TrueRadB.npy'
+    Truename='./Mesh/True/PerfectRef'+loca+'/True.npy'
+    TrueRadnameA='./Mesh/True/PerfectRef'+loca+'/TrueRadA.npy'
+    TrueRadnameB='./Mesh/True/PerfectRef'+loca+'/TrueRadB.npy'
     print(TrueRadnameB)
-    TrueQname='Mesh/True/PerfectRef'+loca+'/TrueQ.npy'
+    TrueQname='./Mesh/True/PerfectRef'+loca+'/TrueQ.npy'
     np.save(Truename,Mesh2)
     np.save(TrueRadnameA,RadMesh2a)
     np.save(TrueRadnameB,RadMesh2b)
@@ -359,13 +369,15 @@ if __name__ == '__main__':
     print('True mesh saved at', Truename)
     print('Quality',Q2)
     Truename='Mesh/True/SingleRef'+loca+'/True.npy'
-    TrueRadnameA='Mesh/True/SingleRef'+loca+'/TrueRadA.npy'
-    TrueRadnameB='Mesh/True/SingleRef'+loca+'/TrueRadB.npy'
-    TrueQname='Mesh/True/SingleRef'+loca+'/TrueQ.npy'
+    TrueRadnameA='./Mesh/True/SingleRef'+loca+'/TrueRadA.npy'
+    TrueRadnameB='./Mesh/True/SingleRef'+loca+'/TrueRadB.npy'
+    TrueQname='./Mesh/True/SingleRef'+loca+'/TrueQ.npy'
+    TrueThetaname='./Mesh/True/SingleRef'+loca+'/AngMesh.npy'
     np.save(Truename,Mesh3)
     np.save(TrueRadnameA,RadMesh3a)
     np.save(TrueRadnameB,RadMesh3b)
     np.save(TrueQname,Q3)
+    np.save(TrueThetaname,ThetaMesh)
     TrueFolder='./GeneralMethodPowerFigures/SingleRef'+loca+'/TrueSlice'
     TruePlotName=TrueFolder+'/NoBoxTrueSliceNref%d'%Nre
     ub=np.amax(Mesh3)
@@ -379,6 +391,12 @@ if __name__ == '__main__':
     TrueFolder='./GeneralMethodPowerFigures/SingleRef'+loca+'/TrueSlice/RadB'
     TruePlotName=TrueFolder+'/NoBoxTrueRadSliceNref%d'%Nre
     plot_mesh(RadMesh3b,TrueFolder,TruePlotName,lb,ub)
+    ub=max(np.amax(ThetaMesh),np.amax(ThetaMesh))
+    lb=min(np.amin(ThetaMesh),np.amin(ThetaMesh))
+    plot_mesh(ThetaMesh,TrueFolder,TruePlotName,lb,ub)
+    TrueFolder='./GeneralMethodPowerFigures/SingleRef'+loca+'/TrueSlice/ThetaMesh'
+    TruePlotName=TrueFolder+'/NoBoxTrueThetaSliceNref%d'%Nre
+    plot_mesh(ThetaMesh,TrueFolder,TruePlotName,lb,ub)
     print('True mesh saved at', Truename)
     print('Quality',Q3)
     #sys.exit(main(sys.argv))
