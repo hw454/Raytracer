@@ -55,10 +55,7 @@ def InsideCheck(Point,triangle):
   TriMat=np.array([T0,T1,T2]).T
   coefs=np.linalg.solve(TriMat,Point)
   # If all the coefficients are bigger than 0 and less than 1 then the point is inside the triangle
-  if (abs(np.sum(coefs))<=(1+epsilon)) and all(c>=-epsilon for c in coefs):
-      return 1
-  else:
-      return 0
+  return abs(np.sum(coefs))-1<=epsilon and all(c>=-epsilon for c in coefs)
 
 def intersection(line,triangle):
     ''' find the intersection of a line and a plane. The line is
@@ -79,37 +76,36 @@ def intersection(line,triangle):
         direc   =line[1]
         p0      =triangle[0]
         l0      =line[0]
-        parcheck=np.inner(direc,norm)
-        if (parcheck>epsilon or parcheck<-epsilon):
+        dot=direc@norm
+        if abs(dot)<=epsilon:
+          return np.array([ma.nan,ma.nan,ma.nan])
+        elif abs(dot)>epsilon:
           # The line is not parallel with the plane and there is therefore an intersection.
-          lam=np.inner(p0-l0,norm)/np.inner(direc,norm)
+          lam=((p0-l0)@norm)/dot
           if lam<epsilon:
             # The intersection point is in the opposite direction to the ray
             # print('negative direction',lam)
             # Not just negative considered as there may be an epsilon difference to the point itself.
             return np.array([ma.nan,ma.nan,ma.nan])
-          elif abs(np.inner(direc,norm))<epsilon:
-            lam=np.inner(direc,p0-l0)
           else:
             # Compute the intersection point with the plane
             inter=l0+lam*direc
-            check=InsideCheck(inter,triangle)
-            if check:
+            if InsideCheck(inter,triangle):
               # The point is inside the triangle
               return inter
             else:
               # The point is outside the triangle
               # print('outside surface')
               return np.array([ma.nan,ma.nan,ma.nan])
-        elif (parcheck<=epsilon and parcheck>=-epsilon):
+        #elif (parcheck<=epsilon and parcheck>=-epsilon):
           #FIXME deal with diffraction here.
           # print('parallel to surface', parcheck)
           # The line is contained in the plane or parallel right output
-          return np.array([ma.nan,ma.nan,ma.nan])
+        #  return np.array([ma.nan,ma.nan,ma.nan])
         else:
-            print('Before error, direction ',direc,' Normal ',norm,' Parallel check ',parcheck)
-            raise Error('neither intersect or parallel to plane')
-        return np.array([ma.nan,ma.nan,ma.nan])
+          print('Before error, direction ',direc,' Normal ',norm,' Parallel check ',parcheck)
+          logging.error('neither intersect or parallel to plane')
+          return np.array([ma.nan,ma.nan,ma.nan])
     else:
       print("Triangle: ", triangle)
       raise Error("Triangle neither exists or doesn't exist")

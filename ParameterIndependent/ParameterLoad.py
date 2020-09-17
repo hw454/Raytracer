@@ -51,9 +51,9 @@ def DeclareParameters(SN):
   NTriObSh   =InBook[NTriObstr]
   NTriOutSh  =InBook[NTriOutstr]
 
-  testnum    =SimPar.cell(row=16,column=3).value
-  roomnumstat=SimPar.cell(row=17,column=3).value
-  timetest   =SimPar.cell(row=18,column=3).value
+  testnum    =SimPar.cell(row=17,column=3).value
+  roomnumstat=SimPar.cell(row=18,column=3).value
+  timetest   =SimPar.cell(row=19,column=3).value
 
   deltheta=np.array([])
   nrays=Angspace.max_row-1
@@ -172,8 +172,11 @@ def DeclareParameters(SN):
   Nobst=int(np.sum(NtriOb))
   Nob  =int(Nout+InnerOb*Nobst)
   ObCooStr="ObstacleCoords"
-  InBook.create_sheet(ObCooStr)
-  ObstCoor=InBook[ObCooStr]
+  try:
+    ObstCoor=InBook[ObCooStr]
+  except KeyError:
+    InBook.create_sheet(ObCooStr)
+    ObstCoor=InBook[ObCooStr]
   for j in range(Nob):
     if j+1<Nout:
       Obstr='OuterBoundar%d'%j
@@ -199,8 +202,8 @@ def DeclareParameters(SN):
       ObstCoor.cell(row=3*j+3,column=2).value=Oblist[j-Nout,2,0]
       ObstCoor.cell(row=3*j+3,column=3).value=Oblist[j-Nout,2,1]
       ObstCoor.cell(row=3*j+3,column=4).value=Oblist[j-Nout,2,2]
-  runplottype=SimPar.cell(row=14,column=3).value
-  Heatmappattern=SimPar.cell(row=15,column=3).value
+  runplottype=SimPar.cell(row=15,column=3).value
+  Heatmappattern=SimPar.cell(row=16,column=3).value
 
   LOS=SimPar.cell(row=10,column=3).value    # LOS=1 for LOS propagation, LOS=0 for reflected propagation
   PerfRef=SimPar.cell(row=11,column=3).value # Perfect reflection has no loss and ignores angles.
@@ -214,7 +217,7 @@ def DeclareParameters(SN):
   #OuterBoundary=OuterBoundary/roomlengthscale
   #Oblist=Oblist/roomlengthscale
   h=1.0/Ns
-  SimPar.cell(row=13,column=3).value=h
+  SimPar.cell(row=14,column=3).value=h
 
   if not os.path.exists('./Parameters'):
     os.makedirs('./Parameters')
@@ -261,8 +264,11 @@ def DeclareParameters(SN):
       np.save(directionname,directions)
     Angspace.cell(row=j+2,column=2).value=Nra[j]
     DirecStr='Directions%d'%(Nra[j])
-    InBook.create_sheet(DirecStr)
-    DirecSh=InBook[DirecStr]
+    try:
+      DirecSh=InBook[DirecStr]
+    except KeyError:
+      InBook.create_sheet(DirecStr)
+      DirecSh=InBook[DirecStr]
     for i in range(int(Nra[j])):
       DirecSh.cell(row=i+1,column=1).value=directions[i,0]
       DirecSh.cell(row=i+1,column=2).value=directions[i,1]
@@ -416,7 +422,8 @@ def ObstacleCoefficients(SN,index=0):
   else:
       nra=len(Nra)
   Nre=int(RTPar[0])                           # Number of reflections
-  Nob=np.load('Parameters/Nob.npy')          # The Number of obstacle.
+  Nob=np.load('Parameters/Nob.npy')           # The Number of obstacle.
+  Nrs =SimPar.cell(row=13,column=3).value
 
   # -------------------------------------------------------------------
   # INPUT PARAMETERS FOR POWER CALCULATIONS----------------------------
@@ -472,7 +479,7 @@ def ObstacleCoefficients(SN,index=0):
   ObstPar.cell(row=2,column=6).value=str(refindex[-1])
   for j in range(0,Ns):
     if j+1<=NOut:
-      for i in range(int(NtriOut[j]*(Obst.cell(row=j+2,column=3).value*6+Obst.cell(row=j+2,column=4).value))):
+      for i in range(1,int(NtriOut[j]*(Obst.cell(row=j+2,column=3).value*6+Obst.cell(row=j+2,column=4).value))):
         mur   =np.append(mur,complex(ObstPar.cell(row=j+2,column=2).value))
         epsr  =np.append(epsr ,complex(ObstPar.cell(row=j+2,column=3).value))
         sigma =np.append(sigma,complex(ObstPar.cell(row=j+2,column=4).value))
@@ -481,7 +488,10 @@ def ObstacleCoefficients(SN,index=0):
         Znob =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
         Znobrat=np.append(Znobrat,Znob/Z0)
         ObstPar.cell(row=j+2,column=5).value=str(Znob/Z0)
-        refindex=np.append(refindex,mur[-1]*epsr[-1])
+        if i > Nrs*np.sum(NtriOut[:(Nrs-1)])+1:
+          refindex=np.append(refindex,0+0j)
+        else:
+          refindex=np.append(refindex,mur[-1]*epsr[-1])
         ObstPar.cell(row=2,column=6).value=str(refindex[-1])
     if NOut+Nobst+1>j+1>NOut:
       for i in range(int(NtriOb[j]*(Obst.cell(row=j-NOut+2,column=3).value*6+Obst.cell(row=j-NOut+2,column=4).value))):
@@ -493,9 +503,11 @@ def ObstacleCoefficients(SN,index=0):
         Znob   =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
         Znobrat=np.append(Znobrat,Znob/Z0)
         ObstPar.cell(row=j+2,column=5).value=str(Znob/Z0)
-        refindex=np.append(refindex,mur[-1]*epsr[-1])
+        if i>Nrs*np.sum(NtriOut[:(Nrs-1)]):
+          refindex=np.append(refindex,0+0j)
+        else:
+          refindex=np.append(refindex,mur[-1]*epsr[-1])
         ObstPar.cell(row=2,column=6).value=str(refindex[-1])
-
   # CALCULATE OBSTACLE PARAMETERS
   PerfRef=SimPar.cell(row=11,column=3).value
   if PerfRef:

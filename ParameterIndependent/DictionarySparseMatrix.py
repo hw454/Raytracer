@@ -51,15 +51,15 @@ import pdb
 #from collections import defaultdict
 
 epsilon=sys.float_info.epsilon
-xcheck=1
-ycheck=0
-zcheck=0
 #----------------------------------------------------------------------
 # NOTATION IN COMMENTS
 #----------------------------------------------------------------------
 # dk is dictionary key, smk is sparse matrix key, SM is a sparse matrix
 # DS or DSM is a DS object which is a dictionary of sparse matrices.
-dbg=0
+dbg=1
+xcheck=1
+ycheck=0
+zcheck=0
 
 class DS:
   ''' The DS class is a dictionary of sparse matrices.
@@ -922,7 +922,7 @@ class DS:
     n=len(ind[0])
     check=-1
     for i in range(0,n):
-      x,y,z,a,b=ind[:,i]
+      x,y,z,a,b=ind[0,i],ind[1,i],ind[2,i],ind[3,i],ind[4,i]
       l=abs(s[x,y,z,a,b])
       M=out[x,y,z]
       indM=M.nonzero()
@@ -930,28 +930,43 @@ class DS:
       nob=nob_fromrow(a,Nob)
       nre=nre_fromrow(a,Nob)
       if s[x,y,z,:,b].getnnz()==nre+1:
+        if dbg:
           if s[x,y,z,:,b].getnnz()==1:
             RadA[x,y,z]=l
-            assert l<=np.sqrt(3)
-              #logging.error('Position (%d,%d,%d,%d,%d)'%(x,y,z,a,b))
-              #logging.error('Ray segment'+str(s[x,y,z,:,b]))
-              #logging.error('Distance of ray %f'%l)
-              #raise ValueError('LOS rad is too long',l)
+            if l>np.sqrt(3):
+              logging.error('Position (%d,%d,%d,%d,%d)'%(x,y,z,a,b))
+              logging.error('Ray segment'+str(s[x,y,z,:,b]))
+              logging.error('Distance of ray %f'%l)
+              raise ValueError('LOS rad is too long',l)
           elif nob==0 and nre==1 or nob==1 and nre==1:
             #print(ind[3][i],nob,nre,Nob,l)
             RadB[x,y,z]=l
-            assert l<=2.0*np.sqrt(3)
-              #raise ValueError('Reflection rad is too long',l)
-      if M[0,b]==0:
+            if l>2.0*np.sqrt(3):
+              raise ValueError('Reflection rad is too long',l)
+          if x==xcheck and y==ycheck and z==zcheck :
+            logging.info('At position (%d,%d,%d,%d,%d). The distance of the ray segment is%f'%(x,y,z,0,b,l))
+        if M[0,b]==0:
           out[x,y,z,0,b]=l
           if check==0:
-            indicesSec=np.array([x,y,z,0,b])
+            indicesSec=np.array([ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]])
             indout=np.vstack((indout,indicesSec))
           else:
             check=0
-            indout=np.array([x,y,z,0,b])
+            indout=np.array([ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]])
+        #if ind[0][i]==3 and ind[1][i]==3 and ind[2][i]==3:
+        #nob=(ind[3][i]-1)%Nob
+        #nre=int(((ind[3][i]-nob-1)/Nob)+1)
+        # print('------------------------------------------------------')
+        # print('Get rad')
+        # print('nre',nre,'nob',nob,'terms',s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz(),s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]])
+        # print(s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]])
+        # print('RadA',RadA[ind[0][i],ind[1][i],ind[2][i]])
+        # print('RadB',RadB[ind[0][i],ind[1][i],ind[2][i]])
+        # print('------------------------------------------------------')
+      #if check==-1:
+      #  indout=np.array([])
     return out,RadA,RadB,indout
-  def __del_doubles__(s,h,Nob,Ntri=-1,ind=-1):
+  def __del_doubles__(s,h,Nob,ind=-1,Ntri=-1):
     ''' Return the same DS as input but with double counted rays removed.
     Also output the onzero indices of this DSM.
 
@@ -961,11 +976,11 @@ class DS:
 
     :param Nob: The number of obstacles.
 
-    :param Ntri: The number of triangle objects which form each planar surface. Defaults to -1 to check f it's inputted.
-
     :param ind: The array of indices for non-zero terms. Defaults to -1 for a check to get it computed.
 
       * Initialise out=DS(Nx,Ny,Nz,1,s.shape[1])
+
+      * Initialise RadA and RadB as 0 Nx x Ny x Nz arrays. Containing the LOS radius and the distances after reflection.
 
       * Go through all the nonzero x,y,z grid points.
 
@@ -1049,7 +1064,6 @@ class DS:
             check=0
             indout=indicesSec
     return out,indout
-
   def doubles__inMat__(s,h,vec,Nob,po,Ntri=-1):
     ''' Check whether the input ray (vec) has already been counted in
     the DSM.
@@ -1082,7 +1096,6 @@ class DS:
     assert n!=0 #: raise ValueError('There are no nonzero terms in the ray vector')
     M=s[po[0],po[1],po[2]] # The matrix currently stored in the same (x,y,z) position
     indM=M.nonzero()       # The positions of the non-zero terms already stored in that matrix
-    indM
     n2=len(indM[0])        # The number of nonzero columns in that matrix
     c=-1                   # Initialise the new column check
     for i in range(n2):
@@ -1091,8 +1104,7 @@ class DS:
       c=indM[1][i]           # If the column has changed then reset the column check
       rownz=M[:,c].nonzero()[0]
       rownz=Correct_ObNumbers(rownz,Ntri)
-      doub=np.array_equal(rownz,ind)
-      if doub:
+      if np.array_equal(rownz,ind):
         return True
     return False
   def refcoefbyterm_withmul(s,m,refindex,LOS=0,PerfRef=0, ind=-1,Nob=12):
@@ -1163,116 +1175,126 @@ class DS:
     y2=-1
     z2=-1
     Nre=int((s.shape[0]-1)/Nob)
-    Ns=int((np.count_nonzero(refindex)-1)/Nre)# Number of reflective surfaces (where each triangle is a surface)
+    Ns=int(np.count_nonzero(refindex)-1/Nre)# Number of reflective surfaces
     if LOS==0 and PerfRef==0:
       for l in range(n):
         x,y,z,i,j=ind[:,l]
-        x2=x
-        y2=y
-        z2=z
-        j2=j
         if x!=x2 or y!=y2 or z!=z2 or j!=j2:
-          colnz=s[x,y,z][1:,j].nonzero()
-          if i==0 and s[x,y,z][:,j].getnnz()==1:
-            # LOS ray has hit the cell
-            out1[x,y,z,0,j]=1
-            out2[x,y,z,0,j]=1
-          else:
-            out1[x,y,z,0,j]=1
-            out2[x,y,z,0,j]=1
+          x2=x
+          y2=y
+          z2=z
+          j2=j
+          out1[x,y,z][0,j]=1
+          out2[x,y,z][0,j]=1
+          if i!=0 or s[x,y,z][:,j].getnnz()!=1:
+            colnz=s[x,y,z][1:,j].nonzero()[0]
             for k in colnz:
               # Reflection coefficient for non-LOS rays.
-              theta=s[x,y,z,k,j]
-              # The zero angle case is dealt with separately because otherwise it's not seen.
-              if 4-epsilon<=theta<=4+epsilon:
-                theta=0
-              if not -epsilon<theta<np.pi/2+epsilon:
-                errmsg='Reflection angle should be within 0 and pi/2 %f, epsilon %f'%(theta,epsilon)
-                logging.error(errmsg)
-                raise ValueError(errmsg)
-              cthi=np.cos(theta)
-              ctht=np.cos(np.arcsin(np.sin(theta)/refindex[k]))
-              S1=cthi*m[k]
-              S2=ctht*m[k]
-              if abs(cthi)<epsilon and abs(ctht)<epsilon:
-                # Ref coef is very close to 1
-                if abs(m[k])>epsilon:
-                  #print(ind[3][i])
-                  frac=(m[k]-1)/(m[k]+1)
-                  out1[x,y,z,0,j]*=frac
-                  out2[x,y,z,0,j]*=frac
+              #pdb.set_trace()
+              if abs(refindex[k+1])<epsilon:
+                out1[x,y,z][0,j]=0
+                out2[x,y,z][0,j]=0
               else:
-                # Store the first reflection term of the ray segment
-                # Compute the Reflection coeficient perpendicular
-                # Rper=(S1-ctht)/(S1+ctht,ind)
-                # to the polarisiation Rper=(Zm/Z0cos(theta_i)-cos(theta_t))/(Zm/Z0cos(theta_i)+cos(theta_t))
-                # Compute the Reflection coeficient parallel
-                # Rpar=(cthi-S2).__truediv__(cthi+S2,ind)
-                out1[x,y,z,0,j]*=(S1-ctht)/(S1+ctht)
-                out2[x,y,z,0,j]*=(cthi-S2)/(cthi+S2)
-              if s[x,y,z][:,j].getnnz()>Nre+1 and np.prod(refindex[colnz])!=0:
-                errmsg='Error at position, (%d,%d,%d,%d)'%(x,y,z,j)
-                logging.error(errmsg)
-                logging.error('The ray has reflected twice but the zero wall is not picked up')
-                errmsg='The angle element is, '+str(s[x,y,z])
-                logging.error(errmsg)
-                errmsg='The refindex terms are, '+str(refindex[colnz])
-                logging.error(errmsg)
-                errmsg='Nonzero rows'+str(colnz)
-                logging.error(errmsg)
-                errmsg='Full refindex'+str(refindex)
-                logging.error(errmsg)
-                exit()
-              if out1[x,y,z][0].getnnz()>Nre*Ns+1:
-                logging.error('Error at position (%d,%d,%d,%d,%d)'%(x,y,z,0,j))
-                logging.error('Too many rays have hit this mesh element,Position (%d,%d,%d,%d)'%(x,y,z,j))
-                errormsg='The element matrix'+str(out1[x,y,z])
-                logging.error(errormsg)
-                errormsg='The input ray matrix'+str(s[x,y,z])
-                logging.error(errormsg)
-                logging.error('col nonzero terms'+str(colnz))
-                logging.error('refindex terms'+str(refindex[colnz]))
-                exit()
+                theta=s[x,y,z][k+1,j]
+                # The zero angle case is dealt with separately because otherwise it's not seen.
+                if 4-epsilon<=theta<=4+epsilon:
+                  theta=0.0
+                if dbg:
+                  assert -epsilon<theta<np.pi/2+epsilon
+                    #errmsg='Reflection angle should be within 0 and pi/2 %f, epsilon %f'%(theta,epsilon)
+                    #logging.error(errmsg)
+                    #raise ValueError(errmsg)
+                #pdb.set_trace()
+                cthi=np.cos(theta)
+                ctht=np.cos(np.arcsin(np.sin(theta)/refindex[k+1]))
+                ctht=np.sqrt(1-(np.sin(theta)/refindex[k+1])**2)
+                #if dbg:
+                #  pdb.set_trace()
+                #pdb.set_trace()
+                S1=cthi*m[k+1]
+                S2=ctht*m[k+1]
+                if abs(cthi)<epsilon and abs(ctht)<epsilon:
+                  # Ref coef is very close to 1
+                  if abs(m[k+1])>epsilon:
+                    #print(ind[3][i])
+                    frac=(m[k+1]-1)/(m[k+1]+1)
+                    out1[x,y,z][0,j]*=frac
+                    out2[x,y,z][0,j]*=frac
+                else:
+                  # Store the first reflection term of the ray segment
+                  # Compute the Reflection coeficient perpendicular
+                  # Rper=(S1-ctht)/(S1+ctht,ind)
+                  # to the polarisiation Rper=(Zm/Z0cos(theta_i)-cos(theta_t))/(Zm/Z0cos(theta_i)+cos(theta_t))
+                  # Compute the Reflection coeficient parallel
+                  # Rpar=(cthi-S2).__truediv__(cthi+S2,ind)
+                  out1[x,y,z,0,j]*=(S1-ctht)/(S1+ctht)
+                  out2[x,y,z,0,j]*=(cthi-S2)/(cthi+S2)
+                if s[x,y,z][:,j].getnnz()>Nre+1 and np.prod(refindex[colnz])!=0:
+                  errmsg='Error at position, (%d,%d,%d,%d)'%(x,y,z,j)
+                  logging.error(errmsg)
+                  logging.error('The ray has reflected twice but the zero wall is not picked up')
+                  errmsg='The angle element is, '+str(s[x,y,z])
+                  logging.error(errmsg)
+                  errmsg='The refindex terms are, '+str(refindex[colnz])
+                  logging.error(errmsg)
+                  errmsg='Nonzero rows'+str(colnz)
+                  logging.error(errmsg)
+                  errmsg='Full refindex'+str(refindex)
+                  logging.error(errmsg)
+                  exit()
+                if out1[x,y,z][0].getnnz()>Nre*Ns+1:
+                  logging.error('Error at position (%d,%d,%d,%d,%d)'%(x,y,z,0,j))
+                  logging.error('Too many rays have hit this mesh element,Position (%d,%d,%d,%d)'%(x,y,z,j))
+                  errormsg='The element matrix'+str(out1[x,y,z])
+                  logging.error(errormsg)
+                  errormsg='The input ray matrix'+str(s[x,y,z])
+                  logging.error(errormsg)
+                  logging.error('col nonzero terms'+str(colnz))
+                  logging.error('refindex terms'+str(refindex[colnz]))
+                  exit()
     elif LOS==0 and PerfRef==1:
       '''When PerfRef==1 the refindex terms are 'a<=1' in the positions \
       corresponding to reflective surfaces and 0 elsewhere. This is not the real refractive indexes.'''
       for l in range(n):
         x,y,z,i,j=ind[:,l]
         colnz=s[x,y,z][:,j].nonzero()[0]
-        if not len(colnz) and x!=x2 or not len(colnz) and y!=y2 or not len(colnz) and z!=z2 or j!=j2:
+        if x!=x2 or y!=y2 or z!=z2 or j!=j2:
           # If you are in a new column then store the product of the \
           # reflection terms in refindex which have the same position as the non-zero terms in the angles mesh s.
-          refcoef=0
-          refcoef=np.prod(refindex[colnz])
-          out1[x,y,z,0,j]=refcoef
-          out2[x,y,z,0,j]=refcoef
+          out1[x,y,z,0,j]=np.prod(refindex[colnz])
+          out2[x,y,z,0,j]=np.prod(refindex[colnz])
           x2=x
           y2=y
           z2=z
           j2=j
-        if s[x,y,z][:,j].getnnz()>Nre+1 and np.prod(refindex[colnz])!=0:
-          errmsg='Error at position, (%d,%d,%d,%d)'%(x,y,z,j)
-          logging.error(errmsg)
-          logging.error('The ray has reflected twice but the zero wall is not picked up')
-          errmsg='The angle element is, '+str(s[x,y,z])
-          logging.error(errmsg)
-          errmsg='The refindex terms are, '+str(refindex[colnz])
-          logging.error(errmsg)
-          errmsg='Nonzero rows'+str(colnz)
-          logging.error(errmsg)
-          errmsg='Full refindex'+str(refindex)
-          logging.error(errmsg)
-          exit()
-        if out1[x,y,z][0].getnnz()>Nre*Ns+1:
-          logging.error('Error at position (%d,%d,%d,%d,%d)'%(x,y,z,0,j))
-          logging.error('Too many rays have hit this mesh element,Position (%d,%d,%d,%d)'%(x,y,z,j))
-          errormsg='The element matrix'+str(out1[x,y,z])
-          logging.error(errormsg)
-          errormsg='The input ray matrix'+str(s[x,y,z])
-          logging.error(errormsg)
-          logging.error('col nonzero terms'+str(colnz))
-          logging.error('refindex terms'+str(refindex[colnz]))
-          exit()
+          if dbg:
+            if x==xcheck and y==ycheck and z==zcheck  :
+              logging.info('At position(%d,%d,%d,%d)'%(x,y,z,j))
+              logging.info('Refcoef%f+%fj'%(out1[x,y,z,0,j].real,out1[x,y,z,0,j].imag))
+              logging.info('Refindex'+str(refindex[colnz])+' '+str(colnz))
+              logging.info('Angles'+str(s[x,y,z][:,j]))
+        if dbg:
+          if s[x,y,z][:,j].getnnz()>Nre+1 and np.prod(refindex[colnz])!=0:
+            errmsg='Error at position, (%d,%d,%d,%d)'%(x,y,z,j)
+            logging.error(errmsg)
+            logging.error('The ray has reflected twice but the zero wall is not picked up')
+            errmsg='The angle element is, '+str(s[x,y,z])
+            logging.error(errmsg)
+            errmsg='The refindex terms are, '+str(refindex[colnz])
+            logging.error(errmsg)
+            errmsg='Nonzero rows'+str(colnz)
+            logging.error(errmsg)
+            errmsg='Full refindex'+str(refindex)
+            logging.error(errmsg)
+            exit()
+          if out1[x,y,z][0].getnnz()>Nre*Ns+1:
+            errormsg='More than two rays have hit this mesh element,Position (%d,%d,%d,%d)'%(x,y,z,j)
+            logging.error(errormsg)
+            errormsg='The element matrix'+str(out1[x,y,z])
+            logging.error(errormsg)
+            errormsg='The recent ray'+str(s[x,y,z][:,j])
+            logging.error(errormsg)
+            exit()
           if x==xcheck and y==ycheck and z==zcheck  :
             logging.info('At position(%d,%d,%d,%d)'%(x,y,z,j))
             logging.info('Refcoef%f+%fj'%(out1[x,y,z,0,j].real,out1[x,y,z,0,j].imag))
@@ -1283,12 +1305,14 @@ class DS:
         x,y,z,i,j=ind[:,l]
         if i==0 and s[x,y,z,:,j].getnnz()==1:
           # LOS ray has hit the cell
+          #if j==22:
+              #pdb.set_trace()
           out1[x,y,z,0,j]=1
           out2[x,y,z,0,j]=1
     else: raise ValueError('Incorrect Value for LOS')
     return out1,out2
 
-  def togrid(s,ind):
+  def togrid(s,ind=-1):
     ''' Compute the matrix norm at each grid point and return a numpy array.
     If there is only one term at each grid point then this converts the
     DSM which is a dictionary of sparse matrices with one term to a numpy array.
@@ -1314,13 +1338,8 @@ class DS:
       else:
         ind=s.nonzero().T
     n=len(ind[0])
-    x,y,z=-1,-1,-1
     for i in range(0,n):
-      if x==ind[0][i] and y==ind[1][i] and z==ind[2][i]:
-        pass
-      else:
-        Grid[ind[0][i],ind[1][i],ind[2][i]]=s[ind[0][i],ind[1][i],ind[2][i]].sum()
-        x,y,z=ind[0][i],ind[1][i],ind[2][i]
+      Grid[ind[0][i],ind[1][i],ind[2][i]]+=s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
     return Grid
   def check_nonzero_col(s,Nre=1,Nob=1,nre=-1,ind=-1):
     ''' Check the number of non-zero terms in a column of a SM in s is \
@@ -1492,10 +1511,11 @@ class DS:
         ind=s.nonzero().T
     n=len(ind[0])
     for j in range(0,n):
-      ang=np.angle(s[ind[0,j],ind[1,j],ind[2,j],ind[3,j],ind[4,j]])
-      if abs(ang)<epsilon:
-        ang=4
-      AngDSM[ind[0,j],ind[1,j],ind[2,j],ind[3,j],ind[4,j]]=ang
+      x,y,z,a,b=ind[0,j],ind[1,j],ind[2,j],ind[3,j],ind[4,j]
+      #pdb.set_trace()
+      AngDSM[x,y,z][a,b]=np.angle(s[x,y,z][a,b])
+      if abs(np.angle(s[x,y,z][a,b]))<epsilon:
+        AngDSM[x,y,z][a,b]=4
     return AngDSM
   def gain_phase_rad_ref_mul_add(s,Com1,Com2,G,khat,L,lam,ind=-1):
     """ Multiply all terms of s elementwise with Com1/Rad and each row by Gt.
@@ -1538,33 +1558,16 @@ class DS:
         k=FieldEquation(s[x,y,z,a,b],khat,L,lam)
         out1[x,y,z]+=k*Com1[x,y,z,a,b]
         out2[x,y,z]+=k*Com2[x,y,z,a,b]
-      if x==xcheck and y==ycheck and z==zcheck :
-        logmessage='At position (%d,%d,%d,%d,%d)'%(x,y,z,a,b)
-        logging.info(logmessage)
-        logmessage='Value stored in parallel to polarisation'+str(out1[x,y,z])
-        logging.info(logmessage)
-        logging.info('Reflection coefficient in parallel %f+%fj'%(Com1[x,y,z,a,b].real,Com1[x,y,z,a,b].imag))
-        logmessage='Value stored in perpendicular to polarisation'+str(out2[x,y,z])
-        logging.info(logmessage)
-        logging.info('Reflection coefficient in perpendicular %f+%fj'%(Com1[x,y,z,a,b].real,Com1[x,y,z,a,b].imag))
-        logmessage='Value on the current ray segment'+str(k)
-        logging.info(logmessage)
-        logging.info('Distance of ray, khat, L, lam %f %f %f %f'%(s[x,y,z,a,b],khat,L,lam))
-        if b==5:
-          t=0.04213128+0.02194598j
-          u=k-t
-          logging.info('Difference to true %f +%fj'%(u.real,u.imag))
-          pdb.set_trace()
-        elif b==35:
-          t=0.01258889-0.0359477j
-          u=k-t
-          logging.info('Difference to true %f +%fj'%(u.real,u.imag))
-          pdb.set_trace()
-        elif b==41:
-          t=0.01258889-0.0359477j
-          u=k-t
-          logging.info('Difference to true %f +%fj'%(u.real,u.imag))
-          pdb.set_trace()
+      if x==2 and y==2 and z==2:
+        logging.warning('This is a WARNING message')
+        logmessage=str('At position'+str(x)+','+str(y)+','+str(z))
+        logging.warning(logmessage)
+        logmessage=str('Value stored in parallel to polarisation'+str(out1[x,y,z]))
+        logging.warning(logmessage)
+        logmessage=str('Value stored in perpendicular to polarisation'+str(out2[x,y,z]))
+        logging.warning(logmessage)
+        logmessage=str('Value on the current ray segment'+str(k))
+        logging.warning(logmessage)
     return out1,out2
   def dict_row_vec_multiply(s,vec,ind=-1):
     """ Multiply every row of the DSM s elementwise with the
@@ -2039,12 +2042,7 @@ def Correct_test():
     Nob=12
     Ntri=2*np.ones(int(Nob/2))
     row=np.arange(12)
-    Correct_ObNumbers(row,Ntri)
-    row=np.array([0,1])
-    print(Correct_ObNumbers(row,Ntri))
-    row=np.array([0,2])
-    print(Correct_ObNumbers(row,Ntri))
-    return
+    return Correct_ObNumbers(row,Ntri)
 
 def stopcheck(i,j,k,Nx,Ny,Nz):
     """ Check if the index [i,j,k] is valid.
@@ -2132,7 +2130,7 @@ def stopchecklist(ps,p3,n,Nx,Ny,Nz):
       j+=1
     return start, newps, newp3, newn
 
-def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,PerfRef=0,ind=-1):
+def power_compute(plottype,Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,PerfRef=0,ind=-1):
   ''' Compute the field from a Mesh of ray information and the physical \
   parameters.
 
@@ -2190,64 +2188,83 @@ def power_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,Per
     ind=Mesh.nonzero().T
     indout=ind
   else:
-    ind=Mesh.nonzero().T
+    ind=ind.T
     indout=ind
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
-  logging.info('Mesh power func'+str(Mesh[xcheck,ycheck,zcheck]))
   # Check if the reflections angles are saved, if not then find them.
-  angfile=str('./Mesh/ang'+str(int(Nra))+'Refs'+str(int(Nre))+'Ns'+str(int(Ns))+'.npy')
+  angfile='./Mesh/ang%dRefs%dNs%d.npy'%(Nra,Nre,Ns)
   afile=Path(angfile)
   if afile.is_file():
+    #AngDSM=load_dict(angfile)
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
     AngDSM.save_dict(angfile)
-    #AngDSM=load_dict(angfile)
   else:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
     AngDSM.save_dict(angfile)
-  ind=Mesh.nonzero()
-  logging.info('Ang matrix'+str(AngDSM[xcheck,ycheck,zcheck]))
   Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,LOS,PerfRef,ind)
-  if LOS==1:
+  if dbg:
+    AngNpy=DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])
     for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
-      if Comper[x,y,z].getnnz()>1 or Compar[x,y,z].getnnz()>1:
-        errmsg=str('Checking LOS case but more than one term is in the reflection matrix')
-        raise ValueError(errmsg)
-  Nsur=int(np.count_nonzero(refindex-1)/2)# Each planar surface is formed of two triangles
-  if LOS==0:
-    for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
-      if Comper[x,y,z].getnnz()>Nre*Nsur+1 or Compar[x,y,z].getnnz()>Nre*Nsur+1:
-        errmsg='Checking reflection case and more than %d terms is in the reflection matrix'%(Nre+1)
-        print('Position (%d,%d,%d)'%(x,y,z))
-        print('Number of terms in reflection coefficient matrices',Comper[x,y,z].getnnz(),Compar[x,y,z].getnnz())
-        raise ValueError(errmsg)
-  rfile=str('./Mesh/rad'+str(int(Nra))+'Refs'+str(int(Nre))+'Ns'+str(int(Ns))+'.npy')
+      #AngNpy[x,y,z]=AngDSM[x,y,z].multiply(Comper[x,y,z])
+      n=Comper[x,y,z].getnnz()
+      inp=Comper[x,y,z].nonzero()
+      for l in range(n):
+        b=inp[1][l]
+        a=AngDSM[x,y,z][:,b].nonzero()[0][-1]
+        if abs(Comper[x,y,z][a,b]-1)<epsilon:
+          AngNpy[x,y,z][a,b]=0
+        else:
+          AngNpy[x,y,z][a,b]=AngDSM[x,y,z][a,b]
+    Theta=AngNpy.togrid()
+    np.save('Mesh/'+plottype+'/AngNpy.npy',Theta)
+    pdb.set_trace()
+    if LOS==1:
+      for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
+        if Comper[x,y,z].getnnz()>1 or Compar[x,y,z].getnnz()>1:
+          errmsg='Checking LOS case but more than one term is in the reflection matrix'
+          logging.info('Position (%d,%d,%d), number of nonzero terms per %d, par %d'%(x,y,z,Comper[x,y,z].getnnz(),Compar[x,y,z].getnnz()))
+          logging.error('Comper '+str(Comper[x,y,z])+' Compar  '+str(Compar[x,y,z]))
+          raise ValueError(errmsg)
+    Nsur=int(np.count_nonzero(refindex-1)/2)# Each planar surface is formed of two triangles
+    if LOS==0:
+      for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
+        if Comper[x,y,z].getnnz()>Nre*Nsur+1 or Compar[x,y,z].getnnz()>Nre*Nsur+1:
+          errmsg='Checking reflection case and more than %d terms is in the reflection matrix'%(Nre+1)
+          print('Position (%d,%d,%d)'%(x,y,z))
+          print('Number of terms in reflection coefficient matrices',Comper[x,y,z].getnnz(),Compar[x,y,z].getnnz())
+          raise ValueError(errmsg)
+  rfile='./Mesh/rad%dRefs%dNs%d.npy'%(Nra,Nre,Ns)
   radfile = Path(rfile)
   Nob=int((Mesh.shape[0]-1)/Nre)
   h=1/Mesh.Nx
   #print('before rad')
   #print(Mesh[3,3,3])
-  if radfile.is_file():
-    RadMesh=load_dict(rfile)
-    RadAstr    ='./Mesh/'+plottype+'/RadA_grid%dRefs%dm%d.npy'%(Nra,Nre,0)
-    if LOS==0:
-      RadBstr    ='./Mesh/'+plottype+'/RadB_grid%dRefs%dm%d.npy'%(Nra,Nre,0)
-      RadB=np.load(RadBstr)
-    else:
-      RadB=np.zeros(RadMesh.shape)
+  RadAstr    ='./Mesh/'+plottype+'/RadA_grid%dRefs%dm%d.npy'%(Nra,Nre,0)
+  RadBstr    ='./Mesh/'+plottype+'/RadB_grid%dRefs%dm%d.npy'%(Nra,Nre,0)
+  if radfile.is_file() and Path(RadAstr).is_file() and Path(RadBstr).is_file():
     RadA=np.load(RadAstr)
-    #RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nob,ind)#
+    RadB=np.load(RadBstr)
+    RadMesh=load_dict(rfile)
     ind=RadMesh.nonzero()
   else:
     RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nob,ind)
+    RadMesh.save_dict(rfile)
+    np.save(RadAstr,RadA)
+    np.save(RadBstr,RadB)
     RadMesh.save_dict(rfile)
   t4=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)
   P=np.zeros((Mesh.Nx,Mesh.Ny,Mesh.Nz),dtype=np.longdouble)
   P=np.absolute(Gridpe*Pol[0])**2+np.absolute(Gridpa*Pol[1])**2
-  P=10*np.log10(P,where=(P!=0))
-  logging.info('Position (%d,%d,%d)'%(xcheck,ycheck,zcheck))
-  logging.info('Power %f'%P[xcheck,ycheck,zcheck])
+  #P=10*np.log10(P,where=(P!=0))
+  P=Watts_to_db(P)
+  if dbg:
+    TrGrid=np.load('./Mesh/True/'+plottype+'/True.npy')
+    for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
+      if abs(TrGrid[x,y,z]-P[x,y,z])>10**4*epsilon:
+        pdb.set_trace()
+        #pass
   # print('----------------------------------------------------------')
   # print('Total time to find power', t10-t0)
   # print('----------------------------------------------------------')
@@ -2338,7 +2355,7 @@ def quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,Per
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)
   P=np.zeros((Mesh.Nx,Mesh.Ny,Mesh.Nz),dtype=np.longdouble)
   P=np.absolute(Gridpe*Pol[0])**2+np.absolute(Gridpa*Pol[1])**2
-  P=10*np.log10(P,where=(P!=0))
+  P=Watts_to_db(P)
   Q=QualityFromPower(P)
   return Q,ind
 
@@ -2369,8 +2386,6 @@ def FieldEquation(r,khat,L,lam):
   :rtype: Array with dimensions of Pol
   :return: :math:`(lam/(4*ma.pi*r))*np.exp(1j*khat*r*(L**2))*Pol`
   '''
-  #print((lam/(4*math.pi*r)))
-  #print(np.exp(1j*khat*r*(L**2)))
   return (lam/(4*math.pi*r))*np.exp(1j*khat*r*(L**2))
 
 def QualityFromPower(P):
