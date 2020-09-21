@@ -91,6 +91,7 @@ def plot_grid(plottype=str(),testnum=1,roomnumstat=0):
         if not os.path.exists('./GeneralMethodPowerFigures/'+plottype):
           os.makedirs('./GeneralMethodPowerFigures/'+plottype)
         for i in range(0,n):
+          mp.clf()
           mp.figure(i)
           mp.imshow(P[:,:,i], cmap=cmapopt, vmax=ub,vmin=lb)
           mp.colorbar()
@@ -103,81 +104,83 @@ def plot_grid(plottype=str(),testnum=1,roomnumstat=0):
           filename=rayfolder+'/NoBoxPowerSliceNra%dNref%dslice%dof%d.jpg'%(Nr,Nre,i+1,n)#.eps')
           mp.savefig(filename)
           mp.clf()
-          lb=np.amin(ThetaMesh)
-          ub=np.amax(ThetaMesh)
-          mp.figure(i)
-          mp.imshow(ThetaMesh[:,:,i], cmap=cmapopt, vmax=ub,vmin=lb)
-          mp.colorbar()
-          rayfolder='./GeneralMethodPowerFigures/'+plottype+'/ThetaSlice/Nra%d'%Nr
-          if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/ThetaSlice'):
-            os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/ThetaSlice')
-            os.makedirs(rayfolder)
-          elif not os.path.exists(rayfolder):
-            os.makedirs(rayfolder)
-          filename=rayfolder+'/NoBoxThetaSliceNra%dNref%dslice%dof%d.jpg'%(Nr,Nre,i+1,n)#.eps')
-          mp.savefig(filename)
-          mp.clf()
-          lb=np.amin(ThetaMesh-ThetaTrueMesh)
-          ub=np.amax(ThetaMesh-ThetaTrueMesh)
-          mp.figure(i)
-          mp.imshow(ThetaMesh[:,:,i]-ThetaTrueMesh[:,:,i], cmap=cmapopt, vmax=ub,vmin=lb)
-          mp.colorbar()
-          rayfolder='./GeneralMethodPowerFigures/'+plottype+'/ThetaDiffSlice/Nra%d'%Nr
-          if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/ThetaDiffSlice'):
-            os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/ThetaDiffSlice')
-            os.makedirs(rayfolder)
-          elif not os.path.exists(rayfolder):
-            os.makedirs(rayfolder)
-          filename=rayfolder+'/NoBoxDiffThetaSliceNra%dNref%dslice%dof%d.jpg'%(Nr,Nre,i+1,n)#.eps')
-          mp.savefig(filename)
-          mp.clf()
-          mp.figure(i)
-          mp.imshow(RadA[:,:,i], cmap=cmapopt, vmax=rub,vmin=rlb)
-          mp.colorbar()
-          rayfolder='./GeneralMethodPowerFigures/'+plottype+'/RadSlice/Nra%d'%Nr
-          if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/RadSlice'):
-            os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/RadSlice')
-            os.makedirs(rayfolder)
-          elif not os.path.exists(rayfolder):
-            os.makedirs(rayfolder)
-          filename=rayfolder+'/NoBoxRadASliceNra%dNref%dslice%dof%d.jpg'%(Nr,Nre,i+1,n)#.eps')
-          mp.savefig(filename)
-          mp.clf()
-          if LOS==0:
-            mp.figure(i)
-            mp.imshow(RadB[:,:,i], cmap=cmapopt, vmax=rub,vmin=rlb)
-            mp.colorbar()
-            filename=rayfolder+'/NoBoxRadBSliceNra%dNref%dslice%dof%d.jpg'%(Nr,Nre,i+1,n)#.eps')
-            mp.savefig(filename)
-            mp.clf()
-          for i in range(0,n):
-            mp.figure(2*n+i)
-            #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-            mp.imshow(DSM.Watts_to_db(Prattil[:,:,i]), cmap=cmapopt, vmax=np.amax(Prattil),vmin=np.amin(Prattil))
-            mp.colorbar()
-            Difffolder='./GeneralMethodPowerFigures/'+plottype+'/DiffSlice/Nra%d'%Nr
-            if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/DiffSlice'):
-              os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/DiffSlice')
-              os.makedirs(Difffolder)
-            elif not os.path.exists(Difffolder):
-              os.makedirs(Difffolder)
-            filename=Difffolder+'/NoBoxPowerDifftilSliceNra%dNref%dslice%dof%d.jpg'%(Nr,Nre,i+1,n)#.eps')
-            mp.savefig(filename)
-            mp.clf()
-        for i in range(n):
-          mp.figure(n+i)
-          #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
-          mp.imshow(P3[:,:,i], cmap=cmapopt,  vmax=ub,vmin=lb)
-          mp.colorbar()
-          truefolder='./GeneralMethodPowerFigures/'+plottype+'/TrueSlice'
-          if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/TrueSlice'):
-            os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/TrueSlice')
-            os.makedirs(truefolder)
-          elif not os.path.exists(truefolder):
-            os.makedirs(truefolder)
-          filename=truefolder+'/NoBoxTrueSliceNref%dslice%dof%d.jpg'%(Nre,i+1,n)#.eps')
-          mp.savefig(filename)
-          mp.clf()
+          # lb=np.amin(ThetaMesh)
+          # ub=np.amax(ThetaMesh)
+          # mp.figure(i)
+          # mp.imshow(ThetaMesh[:,:,i], cmap=cmapopt, vmax=ub,vmin=lb)
+          # mp.colorbar()
+          # rayfolder='./GeneralMethodPowerFigures/'+plottype+'/ThetaSlice/Nra%d'%Nr
+          # if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/ThetaSlice'):
+            # os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/ThetaSlice')
+            # os.makedirs(rayfolder)
+          # elif not os.path.exists(rayfolder):
+            # os.makedirs(rayfolder)
+          # filename=rayfolder+'/NoBoxThetaSliceNra%dNref%dslice%dof%d.jpg'%(Nr,Nre,i+1,n)#.eps')
+          # mp.savefig(filename)
+          # mp.clf()
+          # lb=np.amin(ThetaMesh-ThetaTrueMesh)
+          # ub=np.amax(ThetaMesh-ThetaTrueMesh)
+          # mp.figure(i)
+          # mp.imshow(ThetaMesh[:,:,i]-ThetaTrueMesh[:,:,i], cmap=cmapopt, vmax=ub,vmin=lb)
+          # mp.colorbar()
+          # rayfolder='./GeneralMethodPowerFigures/'+plottype+'/ThetaDiffSlice/Nra%d'%Nr
+          # if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/ThetaDiffSlice'):
+            # os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/ThetaDiffSlice')
+            # os.makedirs(rayfolder)
+          # elif not os.path.exists(rayfolder):
+            # os.makedirs(rayfolder)
+          # filename=rayfolder+'/NoBoxDiffThetaSliceNra%dNref%dslice%dof%d.jpg'%(Nr,Nre,i+1,n)#.eps')
+          # mp.savefig(filename)
+          # mp.clf()
+          # mp.figure(i)
+          # mp.imshow(RadA[:,:,i], cmap=cmapopt, vmax=rub,vmin=rlb)
+          # mp.colorbar()
+          # rayfolder='./GeneralMethodPowerFigures/'+plottype+'/RadSlice/Nra%d'%Nr
+          # if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/RadSlice'):
+            # os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/RadSlice')
+            # os.makedirs(rayfolder)
+          # elif not os.path.exists(rayfolder):
+            # os.makedirs(rayfolder)
+          # filename=rayfolder+'/NoBoxRadASliceNra%dNref%dslice%dof%d.jpg'%(Nr,Nre,i+1,n)#.eps')
+          # mp.savefig(filename)
+          # mp.clf()
+          # if LOS==0:
+            # mp.figure(i)
+            # mp.imshow(RadB[:,:,i], cmap=cmapopt, vmax=rub,vmin=rlb)
+            # mp.colorbar()
+            # filename=rayfolder+'/NoBoxRadBSliceNra%dNref%dslice%dof%d.jpg'%(Nr,Nre,i+1,n)#.eps')
+            # mp.savefig(filename)
+            # mp.clf()
+          # for i in range(0,n):
+            # mp.figure(2*n+i)
+            # #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
+            # mp.imshow(DSM.Watts_to_db(Prattil[:,:,i]), cmap=cmapopt, vmax=np.amax(Prattil),vmin=np.amin(Prattil))
+            # mp.colorbar()
+            # Difffolder='./GeneralMethodPowerFigures/'+plottype+'/DiffSlice/Nra%d'%Nr
+            # if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/DiffSlice'):
+              # os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/DiffSlice')
+              # os.makedirs(Difffolder)
+            # elif not os.path.exists(Difffolder):
+              # os.makedirs(Difffolder)
+            # filename=Difffolder+'/NoBoxPowerDifftilSliceNra%dNref%dslice%dof%d.jpg'%(Nr,Nre,i+1,n)#.eps')
+            # mp.savefig(filename)
+            # mp.clf()
+        # for i in range(n):
+          # mp.figure(n+i)
+          # ub=np.amin(P3)
+          # lb=np.amax(P3)
+          # #extent = [s.__xmin__(), s.__xmax__(), s.__ymin__(),s.__ymax__()]
+          # mp.imshow(P3[:,:,i], cmap=cmapopt,  vmax=ub,vmin=lb)
+          # mp.colorbar()
+          # truefolder='./GeneralMethodPowerFigures/'+plottype+'/TrueSlice'
+          # if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/TrueSlice'):
+            # os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/TrueSlice')
+            # os.makedirs(truefolder)
+          # elif not os.path.exists(truefolder):
+            # os.makedirs(truefolder)
+          # filename=truefolder+'/NoBoxTrueSliceNref%dslice%dof%d.jpg'%(Nre,i+1,n)#.eps')
+          # mp.savefig(filename)
+          # mp.clf()
     Roomnum*=2
   return
 

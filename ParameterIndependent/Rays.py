@@ -21,7 +21,7 @@ import logging
 import pdb
 epsilon=sys.float_info.epsilon
 
-dbg=1
+dbg=0
 anglechange=1
 xcheck=1
 ycheck=0
