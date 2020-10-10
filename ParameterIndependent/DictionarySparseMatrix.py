@@ -57,9 +57,10 @@ epsilon=sys.float_info.epsilon
 # dk is dictionary key, smk is sparse matrix key, SM is a sparse matrix
 # DS or DSM is a DS object which is a dictionary of sparse matrices.
 dbg=1
-xcheck=1
+xcheck=0
 ycheck=0
 zcheck=0
+newvar=1
 
 class DS:
   ''' The DS class is a dictionary of sparse matrices.
@@ -877,7 +878,7 @@ class DS:
           elif s[x1,y1,z1,a1,b1]!=s[x2,y2,z2,a2,b2]: return False
           else: pass
     return True
-  def __get_rad__(s,h,Nob,ind=-1):
+  def __get_rad__(s,h,Nob,ind=-1,plottype=str(),Nra=0,Nre=0):
     ''' Return a DS corresponding to the distances stored in the mesh.
 
     :param h:   Mesh width
@@ -908,7 +909,7 @@ class DS:
     '''
     out=DS(s.Nx,s.Ny,s.Nz,1,s.shape[1],float)
     RadA=np.zeros((s.Nx,s.Ny,s.Nz),dtype=float)
-    RadB=np.zeros((s.Nx,s.Ny,s.Nz),dtype=float)
+    RadSi=np.zeros((Nob,s.Nx,s.Ny,s.Nz),dtype=float)
     # Find the nonzero indices. There's no need to retrieve distances on 0 terms.
     if isinstance(ind, type(-1)):
       ind=s.nonzero().T
@@ -930,20 +931,20 @@ class DS:
       nob=nob_fromrow(a,Nob)
       nre=nre_fromrow(a,Nob)
       if s[x,y,z,:,b].getnnz()==nre+1:
-        if dbg:
+        for j in range(0,Nob,2):
           if s[x,y,z,:,b].getnnz()==1:
             RadA[x,y,z]=l
-            if l>np.sqrt(3):
+            if dbg and l>np.sqrt(3):
               logging.error('Position (%d,%d,%d,%d,%d)'%(x,y,z,a,b))
               logging.error('Ray segment'+str(s[x,y,z,:,b]))
               logging.error('Distance of ray %f'%l)
               raise ValueError('LOS rad is too long',l)
-          elif nob==0 and nre==1 or nob==1 and nre==1:
-            #print(ind[3][i],nob,nre,Nob,l)
-            RadB[x,y,z]=l
-            if l>2.0*np.sqrt(3):
-              raise ValueError('Reflection rad is too long',l)
-          if x==xcheck and y==ycheck and z==zcheck :
+          elif nob==j and nre==1 or nob==j+1 and nre==1:
+            #Assuming each surface is two triangles #FIXME
+            RadSi[j,x,y,z]=l
+            #if dbg and l>2.0*np.sqrt(3):
+            #  raise ValueError('Reflection rad is too long',l)
+          if dbg and x==xcheck and y==ycheck and z==zcheck :
             logging.info('At position (%d,%d,%d,%d,%d). The distance of the ray segment is%f'%(x,y,z,0,b,l))
         if M[0,b]==0:
           out[x,y,z,0,b]=l
@@ -953,19 +954,12 @@ class DS:
           else:
             check=0
             indout=np.array([ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]])
-        #if ind[0][i]==3 and ind[1][i]==3 and ind[2][i]==3:
-        #nob=(ind[3][i]-1)%Nob
-        #nre=int(((ind[3][i]-nob-1)/Nob)+1)
-        # print('------------------------------------------------------')
-        # print('Get rad')
-        # print('nre',nre,'nob',nob,'terms',s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]].getnnz(),s[ind[0][i],ind[1][i],ind[2][i],:,ind[4][i]])
-        # print(s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]])
-        # print('RadA',RadA[ind[0][i],ind[1][i],ind[2][i]])
-        # print('RadB',RadB[ind[0][i],ind[1][i],ind[2][i]])
-        # print('------------------------------------------------------')
-      #if check==-1:
-      #  indout=np.array([])
-    return out,RadA,RadB,indout
+    RadAstr    ='./Mesh/'+plottype+'/RadA_grid%dRefs%dm%d.npy'%(Nra,Nre,0)
+    np.save(RadAstr,RadA)
+    for j in range(0,Nob,2):
+      RadSistr='./Mesh/'+plottype+'/RadS%d_grid%dRefs%dm%d.npy'%(j,Nra,Nre,0)
+      np.save(RadSistr,RadSi[j])
+    return out,indout
   def __del_doubles__(s,h,Nob,ind=-1,Ntri=-1):
     ''' Return the same DS as input but with double counted rays removed.
     Also output the onzero indices of this DSM.
@@ -999,7 +993,7 @@ class DS:
     '''
     if isinstance(Ntri,type(-1)):
       Ntri=np.ones(Nob)
-    out=DS(s.Nx,s.Nz,s.Nz,s.shape[0],s.shape[1])  # Initialise the mesh which will be output.
+    out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])  # Initialise the mesh which will be output.
     # Find the nonzero indices, If ind is -1 then it is of default input
     # and needs to be found.
     # If ind[0] has length 5 and ind.T[0] does not have length five then
@@ -1009,15 +1003,15 @@ class DS:
     # Otherwise there are both 5 and it's not possible to tell if they
     # are the right way up so the co-ordinates need to be found again.
     if isinstance(ind, type(-1)):
-      ind=s.nonzero().T
+      ind=s.nonzero()
     else:
       if len(ind[0])==5 and len(ind.T[0]!=5):
-        ind=ind.T
+        pass #ind=ind
       elif len(ind[0])!=5 and len(ind.T[0]==5):
-        pass
+        ind=ind.T
       else:
-        ind=s.nonzero().T
-    n=len(ind[0])                              # The number of non-zero terms
+        ind=s.nonzero()
+    n=ind.shape[0]                             # The number of non-zero terms
     check=-1                                   # This term is in case no non-zero indices are found
     indout=np.array([])
     x2=-1
@@ -1025,7 +1019,7 @@ class DS:
     z2=-1
     j2=-1
     for l in range(0,n):
-      x,y,z,i,j=ind[:,l]
+      x,y,z,i,j=ind[l]
       #Only want to do work if this is a new column
       if x!=x2 or y!=y2 or z!=z2 or j!=j2:
         x2=x
@@ -2195,13 +2189,15 @@ def power_compute(plottype,Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
   # Check if the reflections angles are saved, if not then find them.
   angfile='./Mesh/ang%dRefs%dNs%d.npy'%(Nra,Nre,Ns)
   afile=Path(angfile)
-  if afile.is_file():
-    #AngDSM=load_dict(angfile)
+  if newvar:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
     AngDSM.save_dict(angfile)
   else:
-    AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
-    AngDSM.save_dict(angfile)
+    if afile.is_file():
+      AngDSM=load_dict(angfile)
+    else:
+      AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
+      AngDSM.save_dict(angfile)
   Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,LOS,PerfRef,ind)
   if dbg:
     AngNpy=DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])
@@ -2216,9 +2212,6 @@ def power_compute(plottype,Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
           AngNpy[x,y,z][a,b]=0
         else:
           AngNpy[x,y,z][a,b]=AngDSM[x,y,z][a,b]
-    Theta=AngNpy.togrid()
-    np.save('Mesh/'+plottype+'/AngNpy.npy',Theta)
-    pdb.set_trace()
     if LOS==1:
       for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
         if Comper[x,y,z].getnnz()>1 or Compar[x,y,z].getnnz()>1:
@@ -2226,49 +2219,50 @@ def power_compute(plottype,Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
           logging.info('Position (%d,%d,%d), number of nonzero terms per %d, par %d'%(x,y,z,Comper[x,y,z].getnnz(),Compar[x,y,z].getnnz()))
           logging.error('Comper '+str(Comper[x,y,z])+' Compar  '+str(Compar[x,y,z]))
           raise ValueError(errmsg)
-    Nsur=int(np.count_nonzero(refindex-1)/2)# Each planar surface is formed of two triangles
+    Nsur=int((np.count_nonzero(refindex)-1)/2)# Each planar surface is formed of two triangles
     if LOS==0:
       for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
-        if Comper[x,y,z].getnnz()>Nre*Nsur+1 or Compar[x,y,z].getnnz()>Nre*Nsur+1:
-          errmsg='Checking reflection case and more than %d terms is in the reflection matrix'%(Nre+1)
+        if Comper[x,y,z].getnnz()>(Nsur**(Nre+1)-1)/(Nsur-1) or Compar[x,y,z].getnnz()>(Nsur**(Nre+1)-1)/(Nsur-1):
+          pdb.set_trace()
+          errmsg='Checking reflection case and more than %d terms is in the reflection matrix'%((Nsur**(Nre+1)-1)/(Nsur-1))
           print('Position (%d,%d,%d)'%(x,y,z))
           print('Number of terms in reflection coefficient matrices',Comper[x,y,z].getnnz(),Compar[x,y,z].getnnz())
           raise ValueError(errmsg)
+  if not LOS:
+    Theta=AngNpy.togrid()
+    np.save('Mesh/'+plottype+'/AngNpy.npy',Theta)
   rfile='./Mesh/rad%dRefs%dNs%d.npy'%(Nra,Nre,Ns)
   radfile = Path(rfile)
   Nob=int((Mesh.shape[0]-1)/Nre)
   h=1/Mesh.Nx
   #print('before rad')
   #print(Mesh[3,3,3])
-  RadAstr    ='./Mesh/'+plottype+'/RadA_grid%dRefs%dm%d.npy'%(Nra,Nre,0)
-  RadBstr    ='./Mesh/'+plottype+'/RadB_grid%dRefs%dm%d.npy'%(Nra,Nre,0)
-  if radfile.is_file() and Path(RadAstr).is_file() and Path(RadBstr).is_file():
-    RadA=np.load(RadAstr)
-    RadB=np.load(RadBstr)
-    RadMesh=load_dict(rfile)
-    ind=RadMesh.nonzero()
+  if newvar:
+    RadMesh,ind=Mesh.__get_rad__(h,Nob,ind,plottype,Nra,Nre)
+    RadMesh.save_dict(rfile)
   else:
-    RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nob,ind)
-    RadMesh.save_dict(rfile)
-    np.save(RadAstr,RadA)
-    np.save(RadBstr,RadB)
-    RadMesh.save_dict(rfile)
+    if radfile.is_file() and Path(RadAstr).is_file() and Path(RadBstr).is_file():
+      RadMesh=load_dict(rfile)
+      ind=RadMesh.nonzero()
+    else:
+      RadMesh,ind=Mesh.__get_rad__(h,Nob,ind,plottype,Nra,Nre)
+      RadMesh.save_dict(rfile)
   t4=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)
   P=np.zeros((Mesh.Nx,Mesh.Ny,Mesh.Nz),dtype=np.longdouble)
   P=np.absolute(Gridpe*Pol[0])**2+np.absolute(Gridpa*Pol[1])**2
   #P=10*np.log10(P,where=(P!=0))
   P=Watts_to_db(P)
-  if dbg:
-    TrGrid=np.load('./Mesh/True/'+plottype+'/True.npy')
-    for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
-      if abs(TrGrid[x,y,z]-P[x,y,z])>10**4*epsilon:
-        pdb.set_trace()
-        #pass
+  # if dbg:
+    # TrGrid=np.load('./Mesh/True/'+plottype+'/True.npy')
+    # for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
+      # if abs(TrGrid[x,y,z]-P[x,y,z])>10**4*epsilon:
+        # pdb.set_trace()
+        # #pass
   # print('----------------------------------------------------------')
   # print('Total time to find power', t10-t0)
   # print('----------------------------------------------------------')
-  return P,RadA,RadB,indout
+  return P,indout
 
 
 def quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,PerfRef,ind=-1):
@@ -2345,12 +2339,16 @@ def quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,Per
   radfile = Path(rfile)
   h=1/Mesh.Nx
   Nob=int((Mesh.shape[1]-1)/Nre)
-  if radfile.is_file():
-    RadMesh=load_dict(rfile)
-    ind=RadMesh.nonzero()
-  else:
-    RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nob,ind)
+  if newvar:
+    RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nob,ind, plottype,Nra,Nre)
     RadMesh.save_dict(rfile)
+  else:
+    if radfile.is_file():
+      RadMesh=load_dict(rfile)
+      ind=RadMesh.nonzero()
+    else:
+      RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nob,ind, plottype,Nra,Nre)
+      RadMesh.save_dict(rfile)
   t4=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)
   P=np.zeros((Mesh.Nx,Mesh.Ny,Mesh.Nz),dtype=np.longdouble)
