@@ -313,7 +313,7 @@ def MeshProgram(SN,repeat=0,plottype=str()):
     print('Ray-launching complete')
     print('Time taken',t1-t0)
     print('-------------------------------')
-  return Mesh,timesmat
+  return Mesh,timesmat,Room
 
 def StdProgram(plottype,index=0):
   ''' Refect rays and input object information output the power.
@@ -470,7 +470,7 @@ def StdProgram(plottype,index=0):
     print('-------------------------------')
   return Grid,timemat
 
-def power_grid(SN,repeat=0,plottype=str(),Roomnum=0):
+def power_grid(SN,room,repeat=0,plottype=str(),Roomnum=0):
   ''' Calculate the field on a grid using enviroment parameters and the \
   ray Mesh.
 
@@ -560,9 +560,9 @@ def power_grid(SN,repeat=0,plottype=str(),Roomnum=0):
       lam           =Antpar[1]
       L             =Antpar[2]
       if index==0:
-        Grid,ind=DSM.power_compute(plottype,Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,LOS,PerfRef)
+        Grid,ind=DSM.power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,LOS,PerfRef)
       else:
-        Grid,ind=DSM.power_compute(plottype,Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,LOS,PerfRef,ind)
+        Grid,ind=DSM.power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,LOS,PerfRef,ind)
       if not os.path.exists('./Mesh'):
         os.makedirs('./Mesh')
         os.makedirs('./Mesh/'+plottype)
@@ -735,9 +735,9 @@ if __name__=='__main__':
     #Timemat[0,0]=Roomnum
     for count in range(0,testnum):
       start=t.time()
-      Mesh1,timemesh=MeshProgram(Sheetname,repeat,plottype) # Shoot the rays and store the information
+      Mesh1,timemesh,Room=MeshProgram(Sheetname,repeat,plottype) # Shoot the rays and store the information
       mid=t.time()
-      Grid,G_z,timep=power_grid(Sheetname,repeat,plottype,Roomnum)  # Use the ray information to compute the power
+      Grid,G_z,timep=power_grid(Sheetname,Room,repeat,plottype,Roomnum)  # Use the ray information to compute the power
       repeat=1
       G_zeros[count,:]=G_z
       Q=Quality(Sheetname,repeat,plottype,Roomnum)

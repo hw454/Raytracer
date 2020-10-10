@@ -878,7 +878,7 @@ class DS:
           elif s[x1,y1,z1,a1,b1]!=s[x2,y2,z2,a2,b2]: return False
           else: pass
     return True
-  def __get_rad__(s,h,Nob,ind=-1,plottype=str(),Nra=0,Nre=0):
+  def __get_rad__(s,h,Nob,Ntri,ind=-1,plottype=str(),Nra=0,Nre=0):
     ''' Return a DS corresponding to the distances stored in the mesh.
 
     :param h:   Mesh width
@@ -931,21 +931,22 @@ class DS:
       nob=nob_fromrow(a,Nob)
       nre=nre_fromrow(a,Nob)
       if s[x,y,z,:,b].getnnz()==nre+1:
-        for j in range(0,Nob,2):
-          if s[x,y,z,:,b].getnnz()==1:
-            RadA[x,y,z]=l
-            if dbg and l>np.sqrt(3):
-              logging.error('Position (%d,%d,%d,%d,%d)'%(x,y,z,a,b))
-              logging.error('Ray segment'+str(s[x,y,z,:,b]))
-              logging.error('Distance of ray %f'%l)
-              raise ValueError('LOS rad is too long',l)
-          elif nob==j and nre==1 or nob==j+1 and nre==1:
+        count=0
+        for nt in Ntri:
+          if nob-nt-count<=0:
+            nobcor=count
+            break
+          else:
+            count+=nt
+        if s[x,y,z,:,b].getnnz()==1:
+          RadA[x,y,z]=l
+        elif nre==1:
             #Assuming each surface is two triangles #FIXME
-            RadSi[j,x,y,z]=l
+            RadSi[nobcor,x,y,z]=l
             #if dbg and l>2.0*np.sqrt(3):
             #  raise ValueError('Reflection rad is too long',l)
-          if dbg and x==xcheck and y==ycheck and z==zcheck :
-            logging.info('At position (%d,%d,%d,%d,%d). The distance of the ray segment is%f'%(x,y,z,0,b,l))
+        if dbg and x==xcheck and y==ycheck and z==zcheck :
+          logging.info('At position (%d,%d,%d,%d,%d). The distance of the ray segment is%f'%(x,y,z,0,b,l))
         if M[0,b]==0:
           out[x,y,z,0,b]=l
           if check==0:
@@ -2124,7 +2125,7 @@ def stopchecklist(ps,p3,n,Nx,Ny,Nz):
       j+=1
     return start, newps, newp3, newn
 
-def power_compute(plottype,Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,PerfRef=0,ind=-1):
+def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,PerfRef=0,ind=-1):
   ''' Compute the field from a Mesh of ray information and the physical \
   parameters.
 
@@ -2233,19 +2234,19 @@ def power_compute(plottype,Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
     np.save('Mesh/'+plottype+'/AngNpy.npy',Theta)
   rfile='./Mesh/rad%dRefs%dNs%d.npy'%(Nra,Nre,Ns)
   radfile = Path(rfile)
-  Nob=int((Mesh.shape[0]-1)/Nre)
-  h=1/Mesh.Nx
+  Nob=room.Nob
+  h=room.get_meshwidth(Mesh)
   #print('before rad')
   #print(Mesh[3,3,3])
   if newvar:
-    RadMesh,ind=Mesh.__get_rad__(h,Nob,ind,plottype,Nra,Nre)
+    RadMesh,ind=Mesh.__get_rad__(h,Nob,room.Ntri,ind,plottype,Nra,Nre)
     RadMesh.save_dict(rfile)
   else:
     if radfile.is_file() and Path(RadAstr).is_file() and Path(RadBstr).is_file():
       RadMesh=load_dict(rfile)
       ind=RadMesh.nonzero()
     else:
-      RadMesh,ind=Mesh.__get_rad__(h,Nob,ind,plottype,Nra,Nre)
+      RadMesh,ind=Mesh.__get_rad__(h,Nob,room.Ntri,ind,plottype,Nra,Nre)
       RadMesh.save_dict(rfile)
   t4=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)
