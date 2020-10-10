@@ -84,7 +84,7 @@ class Ray:
           continue
         elif all(not ma.isnan(c) for c in cp):
           leng2=s._ray_length_(cp)
-          if (leng2<=leng and leng2>-epsilon) :
+          if -epsilon<leng2<=leng:
             leng=leng2
             rcp=cp
             robj=obj
@@ -93,41 +93,41 @@ class Ray:
           continue
         else:
           raise Exception("Collision point is a mixture of None's and not None's")
-      if any(ma.isnan(c) for c in rcp):
-        logging.info('The intersection point was found to be NaN complete loop again with log')
-        leng2=0
-        leng=room.maxleng()+epsilon
-        # Initialise the intersection point, obstacle and obstacle number
-        robj=room.obst[0]
-        rcp=s._obst_collision_point_(robj)
-        logging.info('Initial cp'+str(rcp))
-        Nob=1
-        # Check the initialised intersection point exists.
-        if all(ma.isnan(p) for p in rcp): rNob=0
-        else: rNob=Nob
-        for obj in room.obst:
-          cp=s._obst_collision_point_(obj)
-          if any(ma.isnan(c) for c in cp):
-            # There was no collision point with this obstacle
-            logging.info('No collision point for obstacle number %d'%Nob)
-            logging.info('Intersection'+str(ins.intersection(s._get_travellingray_(),obj)))
-            logging.info('Obstacle should be'+str(room.obst[Nob-1]))
-            Nob+=1
-            continue
-          elif all(not ma.isnan(c) for c in cp):
-            leng2=s._ray_length_(cp)
-            if (leng2<=leng and leng2>-epsilon) :
-              leng=leng2
-              rcp=cp
-              robj=obj
-              rNob=Nob
-            logging.info('Length of last ray %f, length of stored ray %f'%(leng2,leng))
-            logging.info('Last collision point'+str(cp))
-            logging.info('Last obstacle number %d'%Nob)
-            Nob+=1
-            continue
-          else:
-            raise Exception("Collision point is a mixture of None's and not None's")
+      # if any(ma.isnan(c) for c in rcp):
+        # logging.info('The intersection point was found to be NaN complete loop again with log')
+        # leng2=0
+        # leng=room.maxleng()+epsilon
+        # # Initialise the intersection point, obstacle and obstacle number
+        # robj=room.obst[0]
+        # rcp=s._obst_collision_point_(robj)
+        # logging.info('Initial cp'+str(rcp))
+        # Nob=1
+        # # Check the initialised intersection point exists.
+        # if all(ma.isnan(p) for p in rcp): rNob=0
+        # else: rNob=Nob
+        # for obj in room.obst:
+          # cp=s._obst_collision_point_(obj)
+          # if any(ma.isnan(c) for c in cp):
+            # # There was no collision point with this obstacle
+            # logging.info('No collision point for obstacle number %d'%Nob)
+            # logging.info('Intersection'+str(ins.intersection(s._get_travellingray_(),obj)))
+            # logging.info('Obstacle should be'+str(room.obst[Nob-1]))
+            # Nob+=1
+            # continue
+          # elif all(not ma.isnan(c) for c in cp):
+            # leng2=s._ray_length_(cp)
+            # if -epsilon<leng2<=leng:
+              # leng=leng2
+              # rcp=cp
+              # robj=obj
+              # rNob=Nob
+            # logging.info('Length of last ray %f, length of stored ray %f'%(leng2,leng))
+            # logging.info('Last collision point'+str(cp))
+            # logging.info('Last obstacle number %d'%Nob)
+            # Nob+=1
+            # continue
+          # else:
+            # raise Exception("Collision point is a mixture of None's and not None's")
       return rcp, rNob
     else:
       logging.info('The previous point was not found'+str(s.points))
@@ -580,12 +580,13 @@ class Ray:
     if stpch:
       p2=room.coordinate(h,i1,j1,k1)    # Calculate the co-ordinate of the center of the element the ray hit
       doubcheck=Mesh.doubles__inMat__(h,calcvec,Nob,(i1,j1,k1),room.Ntri) # Check if the ray has already been stored
+      interiorcheck=room.check_innerpoint(p2)
       # Recalculate distance to be for the centre point
       distcor=centre_dist(direc,p1,p2,dist,room,col,h,nre,nob)
       if abs(distcor-dist)>np.sqrt(3)*h:
         raise ValueError('The corrected distance on the ray is more than a mesh width from the ray point distance')
       # If the distance is 0 then the point is at the centre and the power is not well defined.
-      if not doubcheck and abs(distcor)>epsilon:
+      if not doubcheck and not interiorcheck and abs(distcor)>epsilon:
         # Find the positions of the nonzero terms in calcvec and check the number of terms is valid.
         #calind=calcvec.nonzero()
         assert Mesh[i1,j1,k1].shape[0]==calcvec.shape[0]
@@ -630,6 +631,7 @@ class Ray:
         p2=room.coordinate(h,i1,j1,k1)                     # Calculate the co-ordinate of the center
                                                            # of the element the ray hit
         doubcheck=Mesh.doubles__inMat__(h,calcvec,Nob,(i1,j1,k1),room.Ntri) # Check if the ray has already been stored
+        interiorcheck=room.check_innerpoint(p2)
         #print(rep,doubcheck,i1,j1,k1)
         distcor=centre_dist(direc,p1,p2,dist,room,col,h,nre,nob)
         if i1==xcheck and j1==ycheck and k1==zcheck:
@@ -641,7 +643,7 @@ class Ray:
               logging.info('Calcvec'+str(calcvec))
               logging.info('Room triangles'+str(room.Ntri))
               logging.warning('distance%f for ray with distance %f at position (%d,%d,%d,%d,%d) reflection number %d'%(distcor,dist,i1,j1,k1,row,col,nre))
-        if rep==0 and not doubcheck:
+        if rep==0 and not doubcheck and not interiorcheck:
           # Recalculate distance to be for the centre point
           distcor=centre_dist(direc,p1,p2,dist,room,col,h,nre,nob)
 
@@ -661,7 +663,10 @@ class Ray:
             if not Mesh.check_nonzero_col(Nre,Nob,nre,(i1,j1,k1,col)):
               errmsg='The number of nonzero terms at (%d,%d,%d,%d) is incorrect'%(i1,j1,k1,col)
               raise ValueError(errmsg)
-            if Mesh[i1,j1,k1][0].getnnz()>(Nre*Nob+1):
+            if Mesh[i1,j1,k1][0].getnnz()>((Nob**(Nre+1)-1)/(Nob-1)):
+              pdb.set_trace()
+              logging.info('position (%d,%d,%d)'%(i1,j1,k1))
+              logging.info(str(Mesh[i1,j1,k1]))
               errmsg='The number of rays which have entered the element is more than possible'
               raise ValueError(errmsg)
       if Ncon>0:
@@ -1142,7 +1147,8 @@ def conestepping(col,olddist,dist,m1,Nc,p1,roomnorm,norm,alpha,h,nra,Nra,nre,Nre
       r2=centre_dist(direc,p1,coords,dist,room,col,h,nre,nob)
       if Nnorcor==1:
         x,y,z=altcopos
-        if not Mesh.doubles__inMat__(h,calcvec,Nob,(x,y,z),room.Ntri) and abs(r2)>epsilon:
+        intercheck=room.check_innerpoint(coords)
+        if not Mesh.doubles__inMat__(h,calcvec,Nob,(x,y,z),room.Ntri) and not intercheck and abs(r2)>epsilon:
           Mesh[x,y,z][:,col]=r2*calcvec[:,0].copy()
           if row>0 and anglechange:
             phi=angle_correct(dist,direc,roomnorm,coords,p1)
@@ -1171,17 +1177,19 @@ def conestepping(col,olddist,dist,m1,Nc,p1,roomnorm,norm,alpha,h,nra,Nra,nre,Nre
       else:
         for j in range(0,Nnorcor):
           x,y,z=altcopos[j]
-          if x==xcheck and y==ycheck and z==zcheck:
-            logging.info('Double status'+str(Mesh.doubles__inMat__(h,calcvec,Nob,(x,y,z),room.Ntri)))
-            logging.info('Meshwidth %f, Obstacle number %d'%(h,nob))
-            logging.info('Calcvec'+str(calcvec))
-            logging.info('Room triangles'+str(room.Ntri))
-            logging.info('Index position (%d,%d,%d,%d,%d)'%(x,y,z,0,col))
-            logging.warning('distance%f for ray with distance %f at position (%d,%d,%d,%d,%d) reflection number %d'%(r2[j],dist,x,y,z,0,col,nre))
-            logging.info('vec stored at (%d,%d,%d,%d,%d)'%(x,y,z,0,col))
-            logging.info('Number of nonzero %d'%calcvec.getnnz())
-            logging.info('stored vec is'+str(Mesh[x,y,z][:,col]))
-          if not Mesh.doubles__inMat__(h,calcvec,Nob,(x,y,z),room.Ntri)and abs(r2[j])>epsilon:
+          intercheck=room.check_innerpoint(coords[j])
+          if dbg:
+            if x==xcheck and y==ycheck and z==zcheck:
+              logging.info('Double status'+str(Mesh.doubles__inMat__(h,calcvec,Nob,(x,y,z),room.Ntri)))
+              logging.info('Meshwidth %f, Obstacle number %d'%(h,nob))
+              logging.info('Calcvec'+str(calcvec))
+              logging.info('Room triangles'+str(room.Ntri))
+              logging.info('Index position (%d,%d,%d,%d,%d)'%(x,y,z,0,col))
+              logging.warning('distance%f for ray with distance %f at position (%d,%d,%d,%d,%d) reflection number %d'%(r2[j],dist,x,y,z,0,col,nre))
+              logging.info('vec stored at (%d,%d,%d,%d,%d)'%(x,y,z,0,col))
+              logging.info('Number of nonzero %d'%calcvec.getnnz())
+              logging.info('stored vec is'+str(Mesh[x,y,z][:,col]))
+          if not Mesh.doubles__inMat__(h,calcvec,Nob,(x,y,z),room.Ntri) and not intercheck and abs(r2[j])>epsilon:
             # If the ray is already accounted for in this mesh square then step to the next point.
             errmsg='Number of cone positions (%d,%d,%d) not the same as number of distances, %d'%(altcopos[j,0],altcopos[j,1],altcopos[j,2],r2[j])
             if altcopos.shape[0]!=r2.shape[0]:

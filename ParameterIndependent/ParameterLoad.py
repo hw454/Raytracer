@@ -38,14 +38,12 @@ def DeclareParameters(SN):
   InBook     =wb.load_workbook(filename=SN,data_only=True)
   AngSpacestr='AngleSpacing'
   SimParstr  ='SimulationParameters'
-  Direcstr   ='Directions'
   Obststr    ='Obstacles'
   OutBstr    ='OuterBoundary'
   NTriObstr  ='NTriObst'
   NTriOutstr ='NTriOut'
   Angspace   =InBook[AngSpacestr]
   SimPar     =InBook[SimParstr]
-  Direc      =InBook[Direcstr]
   Obst       =InBook[Obststr]
   OutB       =InBook[OutBstr]
   NTriObSh   =InBook[NTriObstr]
@@ -54,10 +52,12 @@ def DeclareParameters(SN):
   testnum    =SimPar.cell(row=17,column=3).value
   roomnumstat=SimPar.cell(row=18,column=3).value
   timetest   =SimPar.cell(row=19,column=3).value
+  ResOn      =SimPar.cell(row=20,column=3).value
+  MaxInter   =SimPar.cell(row=21,column=3).value
 
   deltheta=np.array([])
   nrays=Angspace.max_row-1
-  #nrays=8
+  nrays=6
   SimPar.cell(row=12,column=3).value=nrays
 
 
@@ -205,14 +205,14 @@ def DeclareParameters(SN):
   runplottype=SimPar.cell(row=15,column=3).value
   Heatmappattern=SimPar.cell(row=16,column=3).value
 
-  LOS=SimPar.cell(row=10,column=3).value    # LOS=1 for LOS propagation, LOS=0 for reflected propagation
+  LOS=SimPar.cell(row=10,column=3).value     # LOS=1 for LOS propagation, LOS=0 for reflected propagation
   PerfRef=SimPar.cell(row=11,column=3).value # Perfect reflection has no loss and ignores angles.
 
   # -------------------------------------------------------------------
   # CALCULATED PARAMETERS TO SAVE
   # -------------------------------------------------------------------
   # CALCULATE RELATIVE MESHWIDTH
-  roomlengthscale=l2*abs(np.amax(OuterBoundary)-np.amin(OuterBoundary)) # SCALE WITHIN THE UNIT CO-ORDINATES.
+  roomlengthscale                  =l2*abs(np.amax(OuterBoundary)-np.amin(OuterBoundary)) # SCALE WITHIN THE UNIT CO-ORDINATES.
   SimPar.cell(row=6,column=3).value=roomlengthscale
   #OuterBoundary=OuterBoundary/roomlengthscale
   #Oblist=Oblist/roomlengthscale
@@ -239,15 +239,15 @@ def DeclareParameters(SN):
         xyk=int(2*np.pi/bot)
         if xyk<=1:
           break
-        Nra[j]+=xyk
-        theta1        =np.linspace(0.0,2*np.pi,num=int(xyk), endpoint=False) # Create an array of all the angles
-        co=np.cos(k*deltheta[j])
-        si=np.sin(k*deltheta[j])
-        updirecs     =np.c_[co*np.cos(theta1),co*np.sin(theta1),si*np.ones((xyk,1))]
+        Nra[j]    +=xyk
+        theta1    =np.linspace(0.0,2*np.pi,num=int(xyk), endpoint=False) # Create an array of all the angles
+        co        =np.cos(k*deltheta[j])
+        si        =np.sin(k*deltheta[j])
+        updirecs  =np.c_[co*np.cos(theta1),co*np.sin(theta1),si*np.ones((xyk,1))]
         #downdirecs   =np.c_[co*np.cos(theta1),co*np.sin(theta1),-si*np.ones((xyk,1))]
         if start==0:
           coords=updirecs
-          start=1
+          start =1
         else:
           #coords  =np.r_[coords,downdirecs]
           coords  =np.r_[updirecs,coords]
@@ -273,7 +273,7 @@ def DeclareParameters(SN):
       DirecSh.cell(row=i+1,column=1).value=directions[i,0]
       DirecSh.cell(row=i+1,column=2).value=directions[i,1]
       DirecSh.cell(row=i+1,column=3).value=directions[i,2]
-
+    np.savetxt('Parameters/'+DirecStr+'.csv', directions, delimiter=',', fmt='%f')
 
   # COMBINE THE RAY-LAUNCHER PARAMETERS INTO ONE ARRAY
   RTPar=np.array([Nre,h,roomlengthscale,split])
@@ -285,6 +285,8 @@ def DeclareParameters(SN):
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS IN A FOLDER TITLED `Parameters`
   # --------------------------------------------------------------------
+  np.save('Parameters/ResOn.npy',ResOn)
+  np.save('Parameters/MaxInter.npy',MaxInter)
   np.save('Parameters/testnum.npy',testnum)
   np.save('Parameters/roomnumstat.npy',roomnumstat)
   np.save('Parameters/timetest.npy',timetest)
@@ -492,7 +494,6 @@ def ObstacleCoefficients(SN,index=0):
           refindex=np.append(refindex,0+0j)
         else:
           refindex=np.append(refindex,mur[-1]*epsr[-1])
-        ObstPar.cell(row=2,column=6).value=str(refindex[-1])
     if NOut+Nobst+1>j+1>NOut:
       for i in range(int(NtriOb[j]*(Obst.cell(row=j-NOut+2,column=3).value*6+Obst.cell(row=j-NOut+2,column=4).value))):
         mur   =np.append(mur  ,complex(ObstPar.cell(row=j+2,column=2).value))
