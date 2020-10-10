@@ -36,23 +36,32 @@ def PlotRays(plottype=str()):
 
     ##----Retrieve the environment--------------------------------------
     Oblist        =np.load('Parameters/Obstacles.npy')
-    Tx            =np.load('Parameters/Origin.npy')/L
+    Tx            =np.load('Parameters/Origin.npy')
     Nob           =len(Oblist)
     OuterBoundary =np.load('Parameters/OuterBoundary.npy')
     Nob2          =len(OuterBoundary)
     Room          =np.concatenate((Oblist,OuterBoundary),axis=0)
     Oblist        =Room
     RoomP=OuterBoundary[0]#Oblist[0]
-    #for j in range(1,Nob):
-    #  RoomP=np.concatenate((RoomP,Oblist[j]),axis=0)
-    for j in range(1,Nob2):
-      RoomP=np.concatenate((RoomP,OuterBoundary[j]),axis=0)
+    for j in range(1,Nob):
+      RoomP=np.concatenate((RoomP,Oblist[j]),axis=0)
+    for j in range(0,RoomP.shape[0],3):
+      x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
+      y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
+      z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
+      mlab.plot3d(x,y,z)
+      if not os.path.exists('./ConeFigures'):
+        os.makedirs('./ConeFigures')
+        os.makedirs('./ConeFigures/'+plottype)
+      if not os.path.exists('./ConeFigures/'+plottype):
+        os.makedirs('./ConeFigures/'+plottype)
+    mlab.savefig('ConeFigures/'+plottype+'/Room.jpg',size=(1000,1000))
     mlab.clf()
     mlab.close(all=True)
     for i in range(nra):
       mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.25)
       ##---Retrieve the Ray points ---------------------------------------
-      data_matrix=np.load('./Mesh/'+plottype+'/RayMeshPoints'+str(int(Nra[i]))+'Refs'+str(int(Nre))+'m.npy')
+      data_matrix=np.load('./Mesh/'+plottype+'/RayMeshPoints%dRefs%dm.npy'%(Nra[i],Nre))
       #data_matrix=data_matrix #print(data_matrix)
       for j in range(0,int(Nra[i])):
         for l in range(0,int(Nre)+1):
@@ -68,21 +77,20 @@ def PlotRays(plottype=str()):
             y=np.append(y,yp)
             z=np.append(z,zp)
         mlab.plot3d(x,y,z,color= (0, 1, 1),opacity=0.5)
-      for k in range(0,int(len(RoomP)/3)):
-        j=k*3
-        x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
-        y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
-        z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
-        mlab.plot3d(x,y,z)
+      for k in range(0,RoomP.shape[0],3):
+        x=np.array([RoomP[k][0],RoomP[k+1][0],RoomP[k+2][0],RoomP[k][0]])
+        y=np.array([RoomP[k][1],RoomP[k+1][1],RoomP[k+2][1],RoomP[k][1]])
+        z=np.array([RoomP[k][2],RoomP[k+1][2],RoomP[k+2][2],RoomP[k][2]])
+        mlab.plot3d(x,y,z,opacity=0.5)
       if not os.path.exists('./ConeFigures'):
         os.makedirs('./ConeFigures')
         os.makedirs('./ConeFigures/'+plottype)
       if not os.path.exists('./ConeFigures/'+plottype):
         os.makedirs('./ConeFigures/'+plottype)
-      mlab.savefig('ConeFigures/'+plottype+'/Room'+str(int(Nra[i]))+'.jpg',size=(1000,1000))
-      gui = GUI()
-      gui.start_event_loop()
-#mlab.clf()
+      mlab.savefig('ConeFigures/'+plottype+'/Room%d.jpg'%Nra[i],size=(1000,1000))
+      #gui = GUI()
+      #gui.start_event_loop()
+      mlab.clf()
  #     mlab.close(all=True)
     return
 
@@ -102,7 +110,7 @@ def PlotCones(plottype):
     mulfac=1
 
     for i in range(0,nra):
-      directionname=str('Parameters/Directions'+str(int(i))+'.npy')
+      directionname='Parameters/Directions%d.npy'%i
       data_matrix   =np.load(directionname)         # Matrix of ray directions
       mlab.points3d(0,0,0,scale_factor=0.1)
       zsteps=int(np.pi/delangle[i])
@@ -145,7 +153,7 @@ def PlotCones(plottype):
         y=np.append(y,[y2])
         z=np.append(z,[z2])
         mlab.plot3d(x,y,z,color= (0, 1, 1))
-      mlab.savefig('ConeFigures/'+plottype+'/Rays'+str(int(Nra[i]))+'.jpg',size=(1000,1000))
+      mlab.savefig('ConeFigures/'+plottype+'/Rays%d.jpg'%Nra[i],size=(1000,1000))
       N=int(zsteps)
       count=0
       for l in range(0,N):
@@ -187,7 +195,7 @@ def PlotCones(plottype):
             zp=np.append(z,[Cones[j][1][2]])
             mlab.plot3d(xp,yp,zp,color= (1,0,1))
             count+=1
-      filename=str('ConeFigures/'+plottype+'/Cone'+str(int(Nra[i]))+'.jpg')
+      filename=str('ConeFigures/'+plottype+'/Cone%d.jpg'%Nra[i])
       mlab.savefig(filename,size=(1000,1000))
       mlab.clf()
       mlab.close(all=True)
@@ -209,7 +217,7 @@ def PlotConesOnSquare(plottype):
       nra=len(Nra)
     Nre,h ,L =np.load('Parameters/Raytracing.npy')[0:3]
     # Take Tx to be 0,0,0
-    Tx            =np.load('Parameters/Origin.npy')/L
+    Tx            =np.load('Parameters/Origin.npy')
     delangle      =np.load('Parameters/delangle.npy')
     ##----Retrieve the environment--------------------------------------
     Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
@@ -252,9 +260,9 @@ def PlotConesOnSquare(plottype):
     # Create Figures for each ray number
     for i in range(0, nra):
       # The intersection Points
-      data_matrix   =np.load('./Mesh/'+plottype+'/RayMeshPoints'+str(int(Nra[i]))+'Refs'+str(int(Nre))+'m.npy')
+      data_matrix   =np.load('./Mesh/'+plottype+'/RayMeshPoints%dRefs%dm.npy'%(Nra[i],Nre))
       # The arrays of Power Values
-      Power=np.load('./Mesh/'+plottype+'/Power_grid'+str(int(Nra[i]))+'Refs'+str(int(Nre))+'m'+str(0)+'.npy')
+      Power=np.load('./Mesh/'+plottype+'/Power_grid%dRefs%dm%d.npy'%(Nra[i],Nre,0))
       Powx,Powy,Powz=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
       Pmin=np.amin(Power)
       Pmax=np.amax(Power)
@@ -634,8 +642,8 @@ def PlotDirections(plottype=str()):
         mlab.plot3d(x,y,z,color= (0, 1, 1))
       filename=str('ConeFigures/'+plottype+'/Rays'+str(Nra[i])+'.jpg')
       mlab.savefig(filename,size=(1000,1000))
-      gui = GUI()
-      gui.start_event_loop()
+      #gui = GUI()
+      #gui.start_event_loop()
       #mlab.clf()
       #mlab.close(all=True)
     return
@@ -645,9 +653,13 @@ def PlotPowerSlice(plottype):
     Step through the xx, y, and z axis and plot the power. The error residual,
     and the distances of the rays.
     '''
-    cmapopt=str('plasma')
+    myfile = open('Parameters/Heatmapstyle.txt', 'rt') # open lorem.txt for reading text
+    cmapopt= myfile.read()         # read the entire file into a string
+    myfile.close()
     ##----Retrieve the Raytracing Parameters-----------------------------
     Nra         =np.load('Parameters/Nra.npy')
+    Nob         =np.load('Parameters/Nob.npy')
+    Tx          =np.load('Parameters/Origin.npy')
     if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       Nra=np.array([Nra])
       nra=1
@@ -657,7 +669,7 @@ def PlotPowerSlice(plottype):
         ##----Retrieve the environment--------------------------------------
     Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
     OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
-    Oblist        =OuterBoundary/L #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+    #Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
 
     # Room contains all the obstacles and walls.
     Room=rom.room(Oblist)
@@ -692,18 +704,21 @@ def PlotPowerSlice(plottype):
           cubep=xyz
       else:
           cubep=np.vstack((cubep,xyz))
-    TrueGrid=np.load('Parameters/'+plottype+'/True.npy')
+    #TrueGrid=np.load('Parameters/'+plottype+'/True.npy')
+    RoomP=OuterBoundary[0]#Oblist[0]
+    for j in range(1,Nob):
+      RoomP=np.concatenate((RoomP,Oblist[j]),axis=0)
     for i in range(0,nra):
-      Power=np.load('./Mesh/'+plottype+'/Power_grid'+str(int(Nra[i]))+'Refs'+str(int(Nre))+'m'+str(0)+'.npy')
-      #PowerDiff=abs(np.divide(Power-TrueGrid,TrueGrid, where=(abs(Power)>epsilon)))
-      PowerDiff=np.load('./Mesh/'+plottype+'/PowerDiff_grid'+str(int(Nra[i]))+'Refs'+str(int(Nre))+'m'+str(0)+'.npy')
-      RadA=np.load('./Mesh/'+plottype+'/RadA_grid'+str(int(Nra[i]))+'Refs'+str(int(Nre))+'m'+str(0)+'.npy')
-      RadB=np.load('./Mesh/'+plottype+'/RadB_grid'+str(int(Nra[i]))+'Refs'+str(int(Nre))+'m'+str(0)+'.npy')
+      Power=np.load('./Mesh/'+plottype+'/Power_grid%dRefs%dm%d.npy'%(Nra[i],Nre,0))
+      RadA=np.load('./Mesh/'+plottype+'/RadA_grid%dRefs%dm%d.npy'%(Nra[i],Nre,0))
+      RadS=np.zeros((Nob,Nx,Ny,Nz))
+      for j in range(0,Nob,2):
+        RadS[j]=np.load('./Mesh/'+plottype+'/RadS%d_grid%dRefs%dm%d.npy'%(j,Nra[i],Nre,0))
       Powx,Powy,Powz=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
       Pmin=np.amin(Power)
       Pmax=np.amax(Power)
-      Radmax=max(np.amax(RadA),np.amax(RadB))
-      Radmin=min(np.amin(RadA),np.amin(RadB))
+      Radmax=max(np.amax(RadA),np.amax(RadS))
+      Radmin=min(np.amin(RadA),np.amin(RadS))
       x,y,z=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
       mlab.volume_slice(x,y,z,Power, plane_orientation='x_axes', slice_index=10)
       #mlab.outline()
@@ -711,6 +726,12 @@ def PlotPowerSlice(plottype):
       mlab.clf()
       mlab.figure()
       for l in range(0,Nx):
+        mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
+        for j in range(0,RoomP.shape[0],3):
+          x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
+          y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
+          z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
+          mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
         mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='x_axes',
@@ -719,43 +740,51 @@ def PlotPowerSlice(plottype):
                             vmax=Pmax,
                             vmin=Pmin
                         )
-        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'PowersliceX'+str(int(l))+'.jpg')
+        filename='ConeFigures/'+plottype+'/Cone%dPowersliceX%d.jpg'%(Nra[i],l)
         mlab.savefig(filename,size=(1000,1000))
         mlab.clf()
+        mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
+        for j in range(0,RoomP.shape[0],3):
+          x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
+          y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
+          z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
+          mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
         mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,PowerDiff),
+        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadA),
                             plane_orientation='x_axes',
                             slice_index=int(l),
                             colormap=cmapopt,
                             vmax=1,
                             vmin=0
                         )
-        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'PowerDiffsliceX'+str(int(l))+'.jpg')
+        filename='ConeFigures/'+plottype+'/Cone%dRadAX%d.jpg'%(Nra[i],l)
         mlab.savefig(filename,size=(1000,1000))
         mlab.clf()
-        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadA),
+        mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
+        for j in range(0,Nob,2):
+          for k in range(0,RoomP.shape[0],3):
+            x=np.array([RoomP[k][0],RoomP[k+1][0],RoomP[k+2][0],RoomP[k][0]])
+            y=np.array([RoomP[k][1],RoomP[k+1][1],RoomP[k+2][1],RoomP[k][1]])
+            z=np.array([RoomP[k][2],RoomP[k+1][2],RoomP[k+2][2],RoomP[k][2]])
+            mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
+          mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
+          mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadS[j]),
                             plane_orientation='x_axes',
                             slice_index=int(l),
                             colormap=cmapopt,
                             vmax=Radmax,
                             vmin=Radmin
                         )
-        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'RadAX'+str(int(l))+'.jpg')
-        mlab.savefig(filename,size=(1000,1000))
-        mlab.clf()
-        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadB),
-                            plane_orientation='x_axes',
-                            slice_index=int(l),
-                            colormap=cmapopt,
-                            vmax=Radmax,
-                            vmin=Radmin
-                        )
-        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'RadBX'+str(int(l))+'.jpg')
-        mlab.savefig(filename,size=(1000,1000))
-        mlab.clf()
+          filename='ConeFigures/'+plottype+'/Cone%dRadS%dX%d.jpg'%(Nra[i],j,l)
+          mlab.savefig(filename,size=(1000,1000))
+          mlab.clf()
       for l in range(0,Ny):
+        mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
+        for j in range(0,RoomP.shape[0],3):
+          x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
+          y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
+          z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
+          mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
         mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='y_axes',
@@ -764,43 +793,52 @@ def PlotPowerSlice(plottype):
                             vmax=Pmax,
                             vmin=Pmin
                         )
-        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'PowersliceY'+str(int(l))+'.jpg')
+        filename='ConeFigures/'+plottype+'/Cone%dPowersliceY%d.jpg'%(Nra[i],l)
         mlab.savefig(filename,size=(1000,1000))
         mlab.clf()
+        mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
+        for j in range(0,RoomP.shape[0],3):
+          x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
+          y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
+          z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
+          mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
         mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,PowerDiff),
+        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadA),
                             plane_orientation='y_axes',
                             slice_index=int(l),
                             colormap=cmapopt,
                             vmax=1,
                             vmin=0
                         )
-        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'PowerDiffsliceY'+str(int(l))+'.jpg')
+        filename='ConeFigures/'+plottype+'/Cone%dRadAY%d.jpg'%(Nra[i],l)
         mlab.savefig(filename,size=(1000,1000))
         mlab.clf()
-        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadA),
+        for j in range(0,Nob,2):
+          mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
+          for k in range(0,RoomP.shape[0],3):
+            x=np.array([RoomP[k][0],RoomP[k+1][0],RoomP[k+2][0],RoomP[k][0]])
+            y=np.array([RoomP[k][1],RoomP[k+1][1],RoomP[k+2][1],RoomP[k][1]])
+            z=np.array([RoomP[k][2],RoomP[k+1][2],RoomP[k+2][2],RoomP[k][2]])
+            mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
+          mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
+          mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadS[j]),
                             plane_orientation='y_axes',
                             slice_index=int(l),
                             colormap=cmapopt,
                             vmax=Radmax,
                             vmin=Radmin
                         )
-        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'RadAY'+str(int(l))+'.jpg')
-        mlab.savefig(filename,size=(1000,1000))
-        mlab.clf()
-        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadB),
-                            plane_orientation='y_axes',
-                            slice_index=int(l),
-                            colormap=cmapopt,
-                            vmax=Radmax,
-                            vmin=Radmin
-                        )
-        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'RadBY'+str(int(l))+'.jpg')
-        mlab.savefig(filename,size=(1000,1000))
-        mlab.clf()
+          filename='ConeFigures/'+plottype+'/Cone%dRadS%dY%d.jpg'%(Nra[i],j,l)
+          mlab.savefig(filename,size=(1000,1000))
+          mlab.clf()
       for l in range(0,Nz):
+        mlab.clf()
+        mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
+        for j in range(0,RoomP.shape[0],3):
+          x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
+          y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
+          z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
+          mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
         mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='z_axes',
@@ -809,20 +847,15 @@ def PlotPowerSlice(plottype):
                             vmax=Pmax,
                             vmin=Pmin
                         )
-        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'PowersliceZ'+str(int(l))+'.jpg')
+        filename='ConeFigures/'+plottype+'/Cone%dPowersliceZ%d.jpg'%(Nra[i],l)
         mlab.savefig(filename,size=(1000,1000))
         mlab.clf()
-        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,PowerDiff),
-                            plane_orientation='z_axes',
-                            slice_index=int(l),
-                            colormap=cmapopt,
-                            vmax=1,
-                            vmin=0
-                        )
-        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'PowerDiffsliceZ'+str(int(l))+'.jpg')
-        mlab.savefig(filename,size=(1000,1000))
-        mlab.clf()
+        mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
+        for j in range(0,RoomP.shape[0],3):
+          x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
+          y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
+          z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
+          mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
         mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
         mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadA),
                             plane_orientation='z_axes',
@@ -831,64 +864,27 @@ def PlotPowerSlice(plottype):
                             vmax=Radmax,
                             vmin=Radmin
                         )
-        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'RadAZ'+str(int(l))+'.jpg')
+        filename='ConeFigures/'+plottype+'/Cone%dRadAZ%d.jpg'%(Nra[i],l)
         mlab.savefig(filename,size=(1000,1000))
         mlab.clf()
-        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadB),
+        for j in range(0,Nob,2):
+          mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
+          for k in range(0,RoomP.shape[0],3):
+            x=np.array([RoomP[k][0],RoomP[k+1][0],RoomP[k+2][0],RoomP[k][0]])
+            y=np.array([RoomP[k][1],RoomP[k+1][1],RoomP[k+2][1],RoomP[k][1]])
+            z=np.array([RoomP[k][2],RoomP[k+1][2],RoomP[k+2][2],RoomP[k][2]])
+            mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
+          mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
+          mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadS[j]),
                             plane_orientation='z_axes',
                             slice_index=int(l),
                             colormap=cmapopt,
                             vmax=Radmax,
                             vmin=Radmin
                         )
-        filename=str('ConeFigures/'+plottype+'/Cone'+str(Nra[i])+'RadBZ'+str(int(l))+'.jpg')
-        mlab.savefig(filename,size=(1000,1000))
-    Power=TrueGrid# np.load('./Parameters/'+plottype+'/True.npy')
-    Powx,Powy,Powz=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
-    Pmin=np.amin(Power)
-    Pmax=np.amax(Power)
-    x,y,z=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
-    mlab.volume_slice(x,y,z,Power, plane_orientation='x_axes', slice_index=10)
-    mlab.clf()
-    mlab.figure()
-    for l in range(0,Nx):
-        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
-                            plane_orientation='x_axes',
-                            slice_index=int(l),
-                            colormap=cmapopt,
-                            vmax=Pmax,
-                            vmin=Pmin
-                        )
-        filename=str('ConeFigures/'+plottype+'/TruesliceX'+str(int(l))+'.jpg')
-        mlab.savefig(filename,size=(1000,1000))
-        mlab.clf()
-    for l in range(0,Ny):
-        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
-                            plane_orientation='y_axes',
-                            slice_index=int(l),
-                            colormap=cmapopt,
-                            vmax=Pmax,
-                            vmin=Pmin
-                        )
-        filename=str('ConeFigures/'+plottype+'/TruesliceY'+str(int(l))+'.jpg')
-        mlab.savefig(filename,size=(1000,1000))
-        mlab.clf()
-    for l in range(0,Nz):
-        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
-                            plane_orientation='z_axes',
-                            slice_index=int(l),
-                            colormap=cmapopt,
-                            vmax=Pmax,
-                            vmin=Pmin
-                        )
-        filename=str('ConeFigures/'+plottype+'/TruesliceZ'+str(int(l))+'.jpg')
-        mlab.savefig(filename,size=(1000,1000))
-        mlab.clf()
-
+          filename='ConeFigures/'+plottype+'/Cone%dRadS%dZ%d.jpg'%(Nra[i],j,l)
+          mlab.savefig(filename,size=(1000,1000))
+          mlab.clf()
     return Power
 
 def PlotSingleCone(plottype):
@@ -991,7 +987,7 @@ if __name__=='__main__':
   plottype= myfile.read()         # read the entire file into a string
   myfile.close()
   #PlotSingleCone(plottype)
-  #PlotPowerSlice(plottype)
+  PlotPowerSlice(plottype)
   PlotRays(plottype)
   PlotDirections(plottype)
   #PlotConesOnSquare(plottype)
