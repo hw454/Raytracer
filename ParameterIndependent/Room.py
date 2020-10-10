@@ -149,6 +149,13 @@ class room:
   # If the maxlength[a] hasn't been found yet find it by comparing the
   # length between points in s.points.
   # @return s.maxlength[a]
+  def check_innerpoint(s,p):
+    '''Check if the point p is one of the interior points of the room.
+    Return True is interior False if not'''
+    for p2 in s.inside_points:
+      if np.linalg.norm(p2-p)<epsilon:
+        return True
+    return False
   def maxleng(s,a=0):
     ''' Get the maximum length in the room or axis.
 
@@ -465,4 +472,27 @@ class room:
       s.add_obst(obst1)
       s.Nob+=1
     return
+
+def FindInnerPoints(Room,Mesh,Tx):
+    h=Room.get_meshwidth(Mesh)
+    Nx=Mesh.Nx
+    Ny=Mesh.Ny
+    Nz=Mesh.Nz
+    for i,j,k in product(range(Nx),range(Ny),range(Nz)):
+      x,y,z=Room.coordinate(h,i,j,k)
+      p=np.array([x,y,z])
+      direc=p-Tx
+      ray=np.array([Tx,direc])
+      count=0
+      intercheck=np.array([-1,-1,-1])
+      for Tri in Room.obst:
+        inter=ins.intersection(ray,Tri)
+        if not ma.isnan(inter[0]):
+          if np.linalg.norm(inter-Tx)<np.linalg.norm(direc) and not inter.all()==intercheck.all():
+            count+=1
+          intercheck=inter
+      if count%2==1:
+        Room.__set_insidepoint__(p)
+    return 0
+
 
