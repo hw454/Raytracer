@@ -243,17 +243,17 @@ def MeshProgram(SN,repeat=0,plottype=str()):
   ##----The lengths are non-dimensionalised---------------------------
   Oblist        =np.load('Parameters/Obstacles.npy').astype(float)      # The obstacles which are within the outerboundary
   Tx            =np.load('Parameters/Origin.npy').astype(float)         # The location of the source antenna (origin of every ray)
-  OuterBoundary =np.load('Parameters/OuterBoundary.npy').astype(float)  # The Obstacles forming the outer boundary of the room
+  #OuterBoundary =np.load('Parameters/OuterBoundary.npy').astype(float)  # The Obstacles forming the outer boundary of the room
   deltheta      =np.load('Parameters/delangle.npy')             # Array of
-  NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
-  NtriOut       =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
+  #NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
+  Ntri       =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
   InnerOb       =np.load('Parameters/InnerOb.npy')              # Whether the innerobjects should be included or not.
-  if InnerOb:
-    Oblist=np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
-    Ntri=np.append(NtriOb,NtriOut)
-  else:
-    Oblist=OuterBoundary
-    Ntri=NtriOut
+  # if InnerOb:
+    # Oblist=np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+    # Ntri=np.append(NtriOb,NtriOut)
+  # else:
+    # Oblist=OuterBoundary
+    # Ntri=NtriOut
   # Room contains all the obstacles and walls.
   Room=rom.room(Oblist,Ntri)
   Nob=Room.Nob
@@ -265,10 +265,12 @@ def MeshProgram(SN,repeat=0,plottype=str()):
   Ny=int(Room.maxyleng()/(h))
   Nz=int(Room.maxzleng()/(h))
   #--------------Run the ray tracer for each ray number-----------------
+
   for j in range(0,nra):
     j=int(j)
     #------------Initialise the Mesh------------------------------------
     Mesh=DSM.DS(Nx,Ny,Nz,Nob*Nre+1,Nra[j]*(Nre+1),np.complex128,split)
+    rom.FindInnerPoints(Room,Mesh,Tx)
     print('-------------------------------')
     print('Starting the ray bouncing and information storage')
     print('-------------------------------')
@@ -402,12 +404,12 @@ def StdProgram(plottype,index=0):
   NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
   NtriOut       =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
   InnerOb       =np.load('Parameters/InnerOb.npy')              # Whether the innerobjects should be included or not.
-  if InnerOb:
-    Oblist=np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
-    Ntri=np.append(NtriOb,NtriOut)
-  else:
-    Oblist=OuterBoundary
-    Ntri=NtriOut
+  # if InnerOb:
+    # Oblist=np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+    # Ntri=np.append(NtriOb,NtriOut)
+  # else:
+    # Oblist=OuterBoundary
+    # Ntri=NtriOut
 
   # Room contains all the obstacles and walls.
   Room=rom.room(Oblist)
@@ -523,8 +525,6 @@ def power_grid(SN,repeat=0,plottype=str(),Roomnum=0):
     Nr=int(Nra[j])
     meshname='./Mesh/'+plottype+'/DSM%dRefs%dm.npy'%(Nr,Nre)
     Mesh= DSM.load_dict(meshname)
-    #print('power func')
-    #print(Mesh[3,3,3])
 
     ##----Initialise Grid For Power-------------------------------------
     Nx=Mesh.Nx
@@ -560,17 +560,15 @@ def power_grid(SN,repeat=0,plottype=str(),Roomnum=0):
       lam           =Antpar[1]
       L             =Antpar[2]
       if index==0:
-        Grid,RadA,RadB,ind=DSM.power_compute(plottype,Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,LOS,PerfRef)
+        Grid,ind=DSM.power_compute(plottype,Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,LOS,PerfRef)
       else:
-        Grid,RadA,RadB,ind=DSM.power_compute(plottype,Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,LOS,PerfRef,ind)
+        Grid,ind=DSM.power_compute(plottype,Mesh,Grid,Znobrat,refindex,Antpar,Gt,Pol,Nra[j],Nre,Ns,LOS,PerfRef,ind)
       if not os.path.exists('./Mesh'):
         os.makedirs('./Mesh')
         os.makedirs('./Mesh/'+plottype)
       if not os.path.exists('./Mesh/'+plottype):
         os.makedirs('./Mesh/'+plottype)
       np.save('./Mesh/'+plottype+'/Power_grid%dRefs%dm%d.npy'%(Nr,Nre,index),Grid)
-      np.save('./Mesh/'+plottype+'/RadA_grid%dRefs%dm%d.npy'%(Nr,Nre,index),RadA)
-      np.save('./Mesh/'+plottype+'/RadB_grid%dRefs%dm%d.npy'%(Nr,Nre,index),RadB)
       G_z[0,j]=np.count_nonzero((Grid==0))
     t1=t.time()
     timemat[j]=t1-t0
@@ -606,7 +604,7 @@ def Residual(plottype=str(),Roomnum=0):
       P    =np.load(pstr)
       Phat =DSM.db_to_Watts(P)
       rat  =Phat/Pthat
-      err[j]+=DSM.Watts_to_db(np.sum(Phat/Pthat)/(P.shape[0]*P.shape[1]*P.shape[2]))
+      err[j]+=DSM.Watts_to_db(np.sum(rat)/(P.shape[0]*P.shape[1]*P.shape[2]))
       pratstr='./Mesh/'+plottype+'/PowerRat_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
       np.save(pratstr,rat)
       ResStr  ='./Errors/'+plottype+'/Residual%dRefs%dm%d.npy'%(Nr,Nre,index)
@@ -675,10 +673,10 @@ def Quality(SN,repeat=0,plottype=str(),Roomnum=0):
   print('Quality from DSM complete', Qmat)
   print('Time taken',timemat)
   print('-------------------------------')
-  truestr='Mesh/True/'+plottype+'/True.npy'
-  P3=np.load(truestr)
-  Q2=DSM.QualityFromPower(P3)
-  return Qmat, Q2
+  #truestr='Mesh/True/'+plottype+'/True.npy'
+  #P3=np.load(truestr)
+  #Q2=DSM.QualityFromPower(P3)
+  return Qmat #, Q2
 
 
 if __name__=='__main__':
@@ -692,6 +690,7 @@ if __name__=='__main__':
   timetest   =np.load('Parameters/timetest.npy')
   testnum    =np.load('Parameters/testnum.npy')
   roomnumstat=np.load('Parameters/roomnumstat.npy')
+  ResOn      =np.load('Parameters/ResOn.npy')
   Nra =np.load('Parameters/Nra.npy')
   myfile = open('Parameters/runplottype.txt', 'rt') # open lorem.txt for reading text
   plottype= myfile.read()         # read the entire file into a string
@@ -706,7 +705,8 @@ if __name__=='__main__':
   Qmat   =np.zeros((testnum,nra))
   Qtruemat=np.zeros((testnum,nra))
   G_zeros =np.zeros((testnum,nra)) # Number of nonzero terms
-  Reserr  =np.zeros((testnum,nra))
+  if ResOn:
+    Reserr  =np.zeros((testnum,nra))
   Timemat =np.zeros((testnum,nra,8))
   repeat=1
   logname='RayTracer'+plottype+'.log'
@@ -740,11 +740,12 @@ if __name__=='__main__':
       Grid,G_z,timep=power_grid(Sheetname,repeat,plottype,Roomnum)  # Use the ray information to compute the power
       repeat=1
       G_zeros[count,:]=G_z
-      Q,Q2=Quality(Sheetname,repeat,plottype,Roomnum)
+      Q=Quality(Sheetname,repeat,plottype,Roomnum)
       Qmat[count,:]=Q
-      Qtruemat[count,:]=Q2
+      #Qtruemat[count,:]=Q2
       end=t.time()
-      Reserr[count,:]+=Residual(plottype,Roomnum)/Roomnum
+      if ResOn:
+        Reserr[count,:]+=Residual(plottype,Roomnum)/Roomnum
       Timemat[count,:,0]+=Roomnum
       Timemat[count,:,1]+=timemesh
       Timemat[count,:,2]+=timep/(Roomnum)
@@ -765,15 +766,15 @@ if __name__=='__main__':
   Timemat[:,:,2]/=(testnum)
   Timemat[:,:,5]/=(testnum)
   Timemat/=(timetest)
-  Reserr/=(timetest)
+#Reserr/=(timetest)
   print('-------------------------------')
   print('Time to complete program') # Roomnum, ray time, average power time,total power time,
   #total time, total time averaged by room, std total time, std total time averaged per room.
   print(Timemat)
   print('-------------------------------')
   print('-------------------------------')
-  print('Residual to the True calculation')
-  print(Reserr)
+  #print('Residual to the True calculation')
+#print(Reserr)
   print('-------------------------------')
 
   for j in range(testnum):
@@ -781,8 +782,9 @@ if __name__=='__main__':
     np.save(timename,Timemat[j,:,4])
     qualityname='./Quality/'+plottype+'/QualityNrays%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,roomnumstat+(j)*2)
     np.save(qualityname,Qmat[j,:])
-    errorname='./Errors/'+plottype+'/ErrorsNrays%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,roomnumstat+(j)*2)
-    np.save(errorname,Reserr[j,:])
+    if ResOn:
+      errorname='./Errors/'+plottype+'/ErrorsNrays%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,roomnumstat+(j)*2)
+      np.save(errorname,Reserr[j,:])
   np.save(timename,Timemat)
   np.save('roomnumstat.npy',roomnumstat)
   np.save('Roomnum.npy',Roomnum)
