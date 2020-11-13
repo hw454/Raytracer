@@ -56,7 +56,7 @@ epsilon=sys.float_info.epsilon
 #----------------------------------------------------------------------
 # dk is dictionary key, smk is sparse matrix key, SM is a sparse matrix
 # DS or DSM is a DS object which is a dictionary of sparse matrices.
-dbg=1
+dbg=0
 xcheck=0
 ycheck=0
 zcheck=0
@@ -878,7 +878,7 @@ class DS:
           elif s[x1,y1,z1,a1,b1]!=s[x2,y2,z2,a2,b2]: return False
           else: pass
     return True
-  def __get_rad__(s,h,Nob,Ntri,ind=-1,plottype=str(),Nra=0,Nre=0):
+  def __get_rad__(s,h,Nsur,Ntri,ind=-1,plottype=str(),Nra=0,Nre=0):
     ''' Return a DS corresponding to the distances stored in the mesh.
 
     :param h:   Mesh width
@@ -909,7 +909,7 @@ class DS:
     '''
     out=DS(s.Nx,s.Ny,s.Nz,1,s.shape[1],float)
     RadA=np.zeros((s.Nx,s.Ny,s.Nz),dtype=float)
-    RadSi=np.zeros((Nob,s.Nx,s.Ny,s.Nz),dtype=float)
+    RadSi=np.zeros((Nsur,s.Nx,s.Ny,s.Nz),dtype=float)
     # Find the nonzero indices. There's no need to retrieve distances on 0 terms.
     if isinstance(ind, type(-1)):
       ind=s.nonzero().T
@@ -928,21 +928,15 @@ class DS:
       M=out[x,y,z]
       indM=M.nonzero()
       n2=len(indM[0])
-      nob=nob_fromrow(a,Nob)
-      nre=nre_fromrow(a,Nob)
+      nob=nob_fromrow(a,Nsur)
+      nre=nre_fromrow(a,Nsur)
       if s[x,y,z,:,b].getnnz()==nre+1:
         count=0
-        for nt in Ntri:
-          if nob-nt-count<=0:
-            nobcor=count
-            break
-          else:
-            count+=nt
         if s[x,y,z,:,b].getnnz()==1:
           RadA[x,y,z]=l
         elif nre==1:
             #Assuming each surface is two triangles #FIXME
-            RadSi[nobcor,x,y,z]=l
+            RadSi[nob,x,y,z]=l
             #if dbg and l>2.0*np.sqrt(3):
             #  raise ValueError('Reflection rad is too long',l)
         if dbg and x==xcheck and y==ycheck and z==zcheck :
@@ -957,11 +951,11 @@ class DS:
             indout=np.array([ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]])
     RadAstr    ='./Mesh/'+plottype+'/RadA_grid%dRefs%dm%d.npy'%(Nra,Nre,0)
     np.save(RadAstr,RadA)
-    for j in range(0,Nob,2):
+    for j in range(0,Nsur):
       RadSistr='./Mesh/'+plottype+'/RadS%d_grid%dRefs%dm%d.npy'%(j,Nra,Nre,0)
       np.save(RadSistr,RadSi[j])
     return out,indout
-  def __del_doubles__(s,h,Nob,ind=-1,Ntri=-1):
+  def __del_doubles__(s,h,Nsur,ind=-1,Ntri=-1):
     ''' Return the same DS as input but with double counted rays removed.
     Also output the onzero indices of this DSM.
 
@@ -992,8 +986,8 @@ class DS:
     :return: out,indout
 
     '''
-    if isinstance(Ntri,type(-1)):
-      Ntri=np.ones(Nob)
+    #if isinstance(Ntri,type(-1)):
+    #  Ntri=np.ones(Nsur)
     out=DS(s.Nx,s.Ny,s.Nz,s.shape[0],s.shape[1])  # Initialise the mesh which will be output.
     # Find the nonzero indices, If ind is -1 then it is of default input
     # and needs to be found.
@@ -1029,7 +1023,7 @@ class DS:
         j2=j
         vec=s[x,y,z][:,j]
         vecnz=s[x,y,z][:,j].nonzero()[0]
-        vecnz=Correct_ObNumbers(vecnz,Ntri)
+        #vecnz=Correct_ObNumbers(vecnz,Ntri)
         vecnnz=s[x,y,z][:,j].getnnz()
         M=out[x,y,z]                        # The rays which have already been stored
         indM=M.nonzero()                    # The positions of the nonzero terms which are already stored.
@@ -1041,7 +1035,7 @@ class DS:
             continue
           c=indM[1][l]
           indMrow=M[:,c].nonzero()[0]
-          indMrow=Correct_ObNumbers(indMrow,Ntri)
+          #indMrow=Correct_ObNumbers(indMrow,Ntri)
           rep=np.array_equal(indMrow,vecnz)
           if rep:
             break
@@ -1059,7 +1053,7 @@ class DS:
             check=0
             indout=indicesSec
     return out,indout
-  def doubles__inMat__(s,h,vec,Nob,po,Ntri=-1):
+  def doubles__inMat__(s,h,vec,Nsur,po,Ntri=-1):
     ''' Check whether the input ray (vec) has already been counted in
     the DSM.
 
@@ -1083,10 +1077,10 @@ class DS:
     :return: out
 
     '''
-    if isinstance(Ntri,type(-1)):
-      Ntri=np.ones(Nob)
+    #if isinstance(Ntri,type(-1)):
+    #  Ntri=np.ones(Nob)
     ind=vec.nonzero()[0]   # The positions of the nonzero terms in the vector looking to be stored
-    ind=Correct_ObNumbers(ind,Ntri)
+    #ind=Correct_ObNumbers(ind,Ntri)
     n=vec.getnnz()         # How many terms there are in the vector
     assert n!=0 #: raise ValueError('There are no nonzero terms in the ray vector')
     M=s[po[0],po[1],po[2]] # The matrix currently stored in the same (x,y,z) position
@@ -1098,11 +1092,11 @@ class DS:
         continue
       c=indM[1][i]           # If the column has changed then reset the column check
       rownz=M[:,c].nonzero()[0]
-      rownz=Correct_ObNumbers(rownz,Ntri)
+      #rownz=Correct_ObNumbers(rownz,Ntri)
       if np.array_equal(rownz,ind):
         return True
     return False
-  def refcoefbyterm_withmul(s,m,refindex,LOS=0,PerfRef=0, ind=-1,Nob=12):
+  def refcoefbyterm_withmul(s,m,refindex,LOS=0,PerfRef=0, ind=-1,Nsur=6):
     ''' Using the impedance ratios of the obstacles, \
     refractive index of obstacles, the wavelength and the
     length scaling the unit mesh the reflection coefficents for each ray
@@ -1169,7 +1163,7 @@ class DS:
     x2=-1
     y2=-1
     z2=-1
-    Nre=int((s.shape[0]-1)/Nob)
+    Nre=int((s.shape[0]-1)/Nsur)
     Ns=int(np.count_nonzero(refindex)-1/Nre)# Number of reflective surfaces
     if LOS==0 and PerfRef==0:
       for l in range(n):
@@ -1336,13 +1330,13 @@ class DS:
     for i in range(0,n):
       Grid[ind[0][i],ind[1][i],ind[2][i]]+=s[ind[0][i],ind[1][i],ind[2][i],ind[3][i],ind[4][i]]
     return Grid
-  def check_nonzero_col(s,Nre=1,Nob=1,nre=-1,ind=-1):
+  def check_nonzero_col(s,Nre=1,Nsur=1,nre=-1,ind=-1):
     ''' Check the number of non-zero terms in a column of a SM in s is \
     less than the maximum number of reflections+1(LOS). If nre and ind=[x,y,z,:,b] are \
     input then number of nonzero terms in columns b is equal to nre+1.
 
     :param Nre: The maximum number of reflections for any ray.
-    :param Nob: The number of obstacles in the envrionment. Not needed in nre and ind are input.
+    :param Nsur: The number of surfaces in the envrionment. Not needed in nre and ind are input.
     :param nre: The reflection number of the ray being checked. Only input if ind is also input.
     :param ind: The position of the ray segment to be checked. If not input then all positions are checked.
 
@@ -1365,12 +1359,14 @@ class DS:
         elif 0<s[x,y,z][:,b].getnnz()<=Nre+1:
           indch=s[x,y,z][:,b].nonzero()
           r=indch[0][-1]
-          nre=nre_fromrow(r,Nob)
+          nre=nre_fromrow(r,Nsur)
           if nre+1!=s[x,y,z][:,b].getnnz():
             errmsg='Error at position(%d,%d,%d)'%(x,y,z)
             logging.error(errmsg)
-            errmsg='The number of nonzero terms in column %d is not nre+1'%b
+            errmsg='The number of nonzero terms in column %d is not nre+1 %d'%(b,nre+1)
             logging.error(errmsg)
+            logging.error(str(s[x,y,z][:,b]))
+            pdb.set_trace()
             return False
         else: return False
       return True
@@ -1946,9 +1942,9 @@ class DS:
     #FIXME add the check for the end of the ray.
     #if i>=p1[0] and j>=p1[1] and k>=p1[2]:
     #  return 0
-    if i>s.Nx-1 or j>s.Ny-1 or k>s.Nz-1 or i<0 or j<0 or k<0: #i>s.Nx or j>s.Ny or k>s.Nz or i<0 or j<0 or k<0:#
-      return 0
-    else: return 1
+    if 0<=i<s.Nx and 0<=j<s.Ny and 0<=k<s.Nz: #i>s.Nx or j>s.Ny or k>s.Nz or i<0 or j<0 or k<0:#
+      return 1
+    else: return 0
   def stopchecklist(s,ps,p3,n):
     """ Check if the list of points is valid.
 
@@ -2131,9 +2127,9 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
 
   :param Mesh:    The :py:class:`DS` mesh of ray information. \
   Containing the non-dimensionalised ray lengths and their angles of reflection.
-  :param Znobrat: An Nob x Nre+1 array containing tiles of the impedance \
+  :param Znobrat: An Nsur x Nre+1 array containing tiles of the impedance \
   of obstacles divided by the impedance of air.
-  :param refindex: An Nob x Nre+1 array containing tiles of the refractive\
+  :param refindex: An Nsur x Nre+1 array containing tiles of the refractive\
   index of obstacles.
   :param Antpar: Numpy array containing the wavenumber, wavelength and lengthscale.
   :param Gt:     Array of the transmitting antenna gains.
@@ -2188,7 +2184,7 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
   # Check if the reflections angles are saved, if not then find them.
-  angfile='./Mesh/ang%dRefs%dNs%d.npy'%(Nra,Nre,Ns)
+  angfile='./Mesh/ang%03dRefs%03dNs%0d.npy'%(Nra,Nre,Ns)
   afile=Path(angfile)
   if newvar:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
@@ -2200,9 +2196,8 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
       AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
       AngDSM.save_dict(angfile)
   Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,LOS,PerfRef,ind)
-  if dbg:
-    AngNpy=DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])
-    for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
+  AngNpy=DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])
+  for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
       #AngNpy[x,y,z]=AngDSM[x,y,z].multiply(Comper[x,y,z])
       n=Comper[x,y,z].getnnz()
       inp=Comper[x,y,z].nonzero()
@@ -2213,6 +2208,7 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
           AngNpy[x,y,z][a,b]=0
         else:
           AngNpy[x,y,z][a,b]=AngDSM[x,y,z][a,b]
+  if dbg:
     if LOS==1:
       for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
         if Comper[x,y,z].getnnz()>1 or Compar[x,y,z].getnnz()>1:
@@ -2230,23 +2226,24 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
           print('Number of terms in reflection coefficient matrices',Comper[x,y,z].getnnz(),Compar[x,y,z].getnnz())
           raise ValueError(errmsg)
   if not LOS:
+    #print(Mesh)
     Theta=AngNpy.togrid()
     np.save('Mesh/'+plottype+'/AngNpy.npy',Theta)
   rfile='./Mesh/rad%dRefs%dNs%d.npy'%(Nra,Nre,Ns)
-  radfile = Path(rfile)
   Nob=room.Nob
+  Nsur=room.Nsur
   h=room.get_meshwidth(Mesh)
   #print('before rad')
   #print(Mesh[3,3,3])
   if newvar:
-    RadMesh,ind=Mesh.__get_rad__(h,Nob,room.Ntri,ind,plottype,Nra,Nre)
+    RadMesh,ind=Mesh.__get_rad__(h,Nsur,room.Ntri,ind,plottype,Nra,Nre)
     RadMesh.save_dict(rfile)
   else:
     if radfile.is_file() and Path(RadAstr).is_file() and Path(RadBstr).is_file():
       RadMesh=load_dict(rfile)
       ind=RadMesh.nonzero()
     else:
-      RadMesh,ind=Mesh.__get_rad__(h,Nob,room.Ntri,ind,plottype,Nra,Nre)
+      RadMesh,ind=Mesh.__get_rad__(h,Nsur,room.Ntri,ind,plottype,Nra,Nre)
       RadMesh.save_dict(rfile)
   t4=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)
@@ -2266,14 +2263,14 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
   return P,indout
 
 
-def quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,PerfRef,ind=-1):
+def quality_compute(Mesh,Grid,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,PerfRef,ind=-1):
   ''' Compute the field from a Mesh of ray information and the physical \
   parameters.
 
   :param Mesh: The :py:class:`DS` mesh of ray information.
-  :param Znobrat: An Nob x Nre+1 array containing tiles of the impedance \
+  :param Znobrat: An Nsur x Nre+1 array containing tiles of the impedance \
     of obstacles divided by the impedance of air.
-  :param refindex: An Nob x Nre+1 array containing tiles of the refractive\
+  :param refindex: An Nsur x Nre+1 array containing tiles of the refractive\
     index of obstacles.
   :param Antpar: Numpy array containing the wavenumber, wavelength and lengthscale.
   :param Gt: Array of the transmitting antenna gains.
@@ -2339,16 +2336,16 @@ def quality_compute(Mesh,Grid,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,Per
   rfile='./Mesh/rad%dRefs%dNs%d.npy'%(Nra,Nre,Ns)
   radfile = Path(rfile)
   h=1/Mesh.Nx
-  Nob=int((Mesh.shape[1]-1)/Nre)
+  Nsur=room.Nsur
   if newvar:
-    RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nob,ind, plottype,Nra,Nre)
+    RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nsur,ind, plottype,Nra,Nre)
     RadMesh.save_dict(rfile)
   else:
     if radfile.is_file():
       RadMesh=load_dict(rfile)
       ind=RadMesh.nonzero()
     else:
-      RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nob,ind, plottype,Nra,Nre)
+      RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nsur,ind, plottype,Nra,Nre)
       RadMesh.save_dict(rfile)
   t4=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)
@@ -2396,6 +2393,16 @@ def QualityFromPower(P):
    :returns: :math:`sum(P)/Nx*Ny*Nz`
    '''
    return np.sum(P)/(P.shape[0]*P.shape[1]*P.shape[2])
+
+def QualityPercentileFromPower(P):
+   '''Calculate the quality of coverage from Power.
+   :param P: Power as a Nx x Ny x Nz array
+
+   :rtype: float
+
+   :returns: the 10th percentile of P
+   '''
+   return np.percentile(P, 10)
 
 def nonzero_bycol(SM):
   ''' Find the index pairs for the nonzero terms in a sparse matrix.
