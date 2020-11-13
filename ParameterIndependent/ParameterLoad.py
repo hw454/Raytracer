@@ -35,6 +35,7 @@ def DeclareParameters(SN):
   # -------------------------------------------------------------------
 
   #print('Saving ray-launcher parameters')
+  print(SN)
   InBook     =wb.load_workbook(filename=SN,data_only=True)
   AngSpacestr='AngleSpacing'
   SimParstr  ='SimulationParameters'
@@ -57,7 +58,7 @@ def DeclareParameters(SN):
 
   deltheta=np.array([])
   nrays=Angspace.max_row-1
-  nrays=6
+  nrays=1
   SimPar.cell(row=12,column=3).value=nrays
 
 
@@ -65,10 +66,8 @@ def DeclareParameters(SN):
     deltheta=np.append(deltheta,Angspace.cell(row=j+2,column=1).value)
     #np.pi*np.array([1/3])#,1/5,1/7,1/8,1/9,1/12,1/14,1/16,1/18,1/19,1/20,1/22,1/25,1/36])
   Nra=np.ones(nrays,dtype=int)
-  Nre=int(SimPar.cell(row=2,column=3).value )           # Number of reflections
-  Ns=int(SimPar.cell(row=3,column=3).value )             # Number of steps on longest axis.
-  #for i,j in product(range(Nre*Ns),range(Nre*Ns)):
-  #   option=np.append(option,i*straight+j*diagnoal)
+  Nre=int(SimPar.cell(row=2,column=3).value )     # Number of reflections
+  Ns=int(SimPar.cell(row=3,column=3).value )      # Number of steps on longest axis.
   split=SimPar.cell(row=4,column=3).value           # Number of steps through each mesh square
   l1=SimPar.cell(row=5,column=3).value            # Interior obstacle scale
   l2=SimPar.cell(row=6,column=3).value            # Outer Boundary length scale
@@ -179,7 +178,7 @@ def DeclareParameters(SN):
     ObstCoor=InBook[ObCooStr]
   for j in range(Nob):
     if j+1<Nout:
-      Obstr='OuterBoundar%d'%j
+      Obstr='OuterBoundar%03d'%j
       ObstCoor.cell(row=3*j+1,column=1).value=Obstr
       ObstCoor.cell(row=3*j+1,column=2).value=OuterBoundary[j,0,0]
       ObstCoor.cell(row=3*j+1,column=3).value=OuterBoundary[j,0,1]
@@ -191,7 +190,7 @@ def DeclareParameters(SN):
       ObstCoor.cell(row=3*j+3,column=3).value=OuterBoundary[j,2,1]
       ObstCoor.cell(row=3*j+3,column=4).value=OuterBoundary[j,2,2]
     if Nout<=j+1<Nout+Nobst:
-      Obstr='Obstacle%d'%j
+      Obstr='Obstacle%03d'%j
       ObstCoor.cell(row=3*j+1,column=1).value=Obstr
       ObstCoor.cell(row=3*j+1,column=2).value=Oblist[j-Nout,0,0]
       ObstCoor.cell(row=3*j+1,column=3).value=Oblist[j-Nout,0,1]
@@ -212,7 +211,7 @@ def DeclareParameters(SN):
   # CALCULATED PARAMETERS TO SAVE
   # -------------------------------------------------------------------
   # CALCULATE RELATIVE MESHWIDTH
-  roomlengthscale                  =l2*abs(np.amax(OuterBoundary)-np.amin(OuterBoundary)) # SCALE WITHIN THE UNIT CO-ORDINATES.
+  roomlengthscale      =l2#*abs(np.amax(OuterBoundary)-np.amin(OuterBoundary)) # SCALE WITHIN THE UNIT CO-ORDINATES.
   SimPar.cell(row=6,column=3).value=roomlengthscale
   #OuterBoundary=OuterBoundary/roomlengthscale
   #Oblist=Oblist/roomlengthscale
@@ -260,10 +259,10 @@ def DeclareParameters(SN):
       directions[1:-1]=np.c_[coords,np.zeros((Nra[j]-2,1))]
       directions[0] =np.array([0.0,0.0, 1.0,0.0])
       directions[-1]=np.array([0.0,0.0,-1.0,0.0])
-      directionname='Parameters/Directions%d.npy'%j
+      directionname='Parameters/Directions%03d.npy'%j
       np.save(directionname,directions)
     Angspace.cell(row=j+2,column=2).value=Nra[j]
-    DirecStr='Directions%d'%(Nra[j])
+    DirecStr='Directions%03d'%(Nra[j])
     try:
       DirecSh=InBook[DirecStr]
     except KeyError:
@@ -476,12 +475,12 @@ def ObstacleCoefficients(SN,index=0):
   bottom=sigma[-1]+eps0*frequency*epsr[-1]*1j
   Znob =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
   Znobrat=np.array([Znob/Z0])
-  ObstPar.cell(row=j+2,column=5).value=str(Znob/Z0)
+  ObstPar.cell(row=2,column=5).value=str(Znob/Z0)
   refindex=np.array([mur[-1]*epsr[-1]])
   ObstPar.cell(row=2,column=6).value=str(refindex[-1])
   for j in range(0,Ns):
     if j+1<=NOut:
-      for i in range(1,int(NtriOut[j]*(Obst.cell(row=j+2,column=3).value*6+Obst.cell(row=j+2,column=4).value))):
+      for i in range(1,int(Obst.cell(row=j+2,column=3).value*6+Obst.cell(row=j+2,column=4).value)):
         mur   =np.append(mur,complex(ObstPar.cell(row=j+2,column=2).value))
         epsr  =np.append(epsr ,complex(ObstPar.cell(row=j+2,column=3).value))
         sigma =np.append(sigma,complex(ObstPar.cell(row=j+2,column=4).value))
@@ -490,12 +489,12 @@ def ObstacleCoefficients(SN,index=0):
         Znob =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
         Znobrat=np.append(Znobrat,Znob/Z0)
         ObstPar.cell(row=j+2,column=5).value=str(Znob/Z0)
-        if i > Nrs*np.sum(NtriOut[:(Nrs-1)])+1:
+        if j > Nrs+1:
           refindex=np.append(refindex,0+0j)
         else:
           refindex=np.append(refindex,mur[-1]*epsr[-1])
     if NOut+Nobst+1>j+1>NOut:
-      for i in range(int(NtriOb[j]*(Obst.cell(row=j-NOut+2,column=3).value*6+Obst.cell(row=j-NOut+2,column=4).value))):
+      for i in range(int(Obst.cell(row=j-NOut+2,column=3).value*6+Obst.cell(row=j-NOut+2,column=4).value)):
         mur   =np.append(mur  ,complex(ObstPar.cell(row=j+2,column=2).value))
         epsr  =np.append(epsr ,complex(ObstPar.cell(row=j+2,column=3).value))
         sigma =np.append(sigma,complex(ObstPar.cell(row=j+2,column=4).value))
@@ -504,7 +503,7 @@ def ObstacleCoefficients(SN,index=0):
         Znob   =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
         Znobrat=np.append(Znobrat,Znob/Z0)
         ObstPar.cell(row=j+2,column=5).value=str(Znob/Z0)
-        if i>Nrs*np.sum(NtriOut[:(Nrs-1)]):
+        if j>Nrs+1:
           refindex=np.append(refindex,0+0j)
         else:
           refindex=np.append(refindex,mur[-1]*epsr[-1])
@@ -512,20 +511,20 @@ def ObstacleCoefficients(SN,index=0):
   # CALCULATE OBSTACLE PARAMETERS
   PerfRef=SimPar.cell(row=11,column=3).value
   if PerfRef:
-    refindex=np.zeros(Nob,dtype=np.complex128)          # Perfect Relection
+    refindex=np.zeros(Ns,dtype=np.complex128)          # Perfect Relection
     refindex[0]=1 #np.sqrt(np.multiply(mur[0],epsr[0]))     # Refractive index of the obstacles
     refindex[1]=1
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS
   # --------------------------------------------------------------------
-  np.save('Parameters/Freespace'+str(index)+'.npy',Freespace)
-  np.save('Parameters/frequency'+str(index)+'.npy',frequency)
-  np.save('Parameters/lam'+str(index)+'.npy',lam)
-  np.save('Parameters/khat'+str(index)+'.npy',khat)
-  np.save('Parameters/Antpar'+str(index)+'.npy',Antpar)
-  np.save('Parameters/Znobrat'+str(index)+'.npy',Znobrat)
-  np.save('Parameters/refindex'+str(index)+'.npy',refindex)
-  np.save('Parameters/Pol'+str(index)+'.npy',Pol)
+  np.save('Parameters/Freespace%03d.npy'%index,Freespace)
+  np.save('Parameters/frequency%03d.npy'%index,frequency)
+  np.save('Parameters/lam%03d.npy'%index,lam)
+  np.save('Parameters/khat%03d.npy'%index,khat)
+  np.save('Parameters/Antpar%03d.npy'%index,Antpar)
+  np.save('Parameters/Znobrat%03d.npy'%index,Znobrat)
+  np.save('Parameters/refindex%03d.npy'%index,refindex)
+  np.save('Parameters/Pol%03d.npy'%index,Pol)
   #print('------------------------------------------------')
   #print('Material parameters saved')
   #print('------------------------------------------------')
