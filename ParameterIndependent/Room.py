@@ -163,6 +163,10 @@ class room:
       if np.linalg.norm(p2-p)<epsilon:
         return True
     return False
+  def CheckTxInner(s,Tx,h):
+    Txind=s.position(Tx,h)
+    Txp=s.coordinate(h,Txind[0],Txind[1],Txind[2])
+    return s.check_innerpoint(Txp)
   def maxleng(s,a=0):
     ''' Get the maximum length in the room or axis.
 

@@ -2404,6 +2404,16 @@ def QualityPercentileFromPower(P):
    '''
    return np.percentile(P, 10)
 
+def QualityMinFromPower(P):
+   '''Calculate the quality of coverage from Power.
+   :param P: Power as a Nx x Ny x Nz array
+
+   :rtype: float
+
+   :returns: the 10th percentile of P
+   '''
+   return np.amin(P)
+
 def nonzero_bycol(SM):
   ''' Find the index pairs for the nonzero terms in a sparse matrix.
   Go through each column and find the nonzero rows.
