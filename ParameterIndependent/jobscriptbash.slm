@@ -30,7 +30,7 @@
 module load python3/2019.x
 source activate py3
 
-bash Raytracer_transmittermover.sh
+./Raytracer_transmittermover.sh
 
 echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 250"
 echo "Starting job..."
