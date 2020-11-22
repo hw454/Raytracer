@@ -244,7 +244,7 @@ def MeshProgram(SN,repeat=0,plottype=str(),job=0):
   ##----Retrieve the environment--------------------------------------
   ##----The lengths are non-dimensionalised---------------------------
   Oblist        =np.load('Parameters/Obstacles.npy').astype(float)      # The obstacles which are within the outerboundary
-  Tx            =np.load('Parameters/Origin.npy').astype(float)         # The location of the source antenna (origin of every ray)
+  Tx            =np.load('Parameters/Origin_job%03d.npy'%job).astype(float)         # The location of the source antenna (origin of every ray)
   #OuterBoundary =np.load('Parameters/OuterBoundary.npy').astype(float)  # The Obstacles forming the outer boundary of the room
   deltheta      =np.load('Parameters/delangle.npy')             # Array of
   #NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
@@ -275,7 +275,9 @@ def MeshProgram(SN,repeat=0,plottype=str(),job=0):
     #------------Initialise the Mesh------------------------------------
     Mesh=DSM.DS(Nx,Ny,Nz,Nsur*Nre+1,Nra[j]*(Nre+1),np.complex128,split)
     rom.FindInnerPoints(Room,Mesh,Tx)
-    if Room.CheckTxInner(Tx,h):
+    if not Room.CheckTxInner(Tx):
+      logging.info('Tx=(%f,%f,%f) is not a valid transmitter location'%(Tx[0],Tx[1],Tx[2]))
+      print('This is not a valid transmitter location')
       return Mesh,timesmat,Room
     print('-------------------------------')
     print('Starting the ray bouncing and information storage')
