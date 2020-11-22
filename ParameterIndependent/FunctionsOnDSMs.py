@@ -232,9 +232,16 @@ def QualityPercentileAndMinQFromPower(SN,repeat=0,plottype=str(),Roomnum=0):
     rom.FindInnerPoints(Room,Mesh,Orig)
     for index in range(0,Roomnum):
       for job in range(0,numjobs+1):
+       if not os.path.exists('./Quality'):
+         os.makedirs('./Quality')
+       if not os.path.exists('./Quality/'+plottype):
+         os.makedirs('./Quality/'+plottype)
        Tx=np.load('Parameters/Origin_job%03d.npy'%job)
        Txind=Room.position(Tx,h)
-       if Room.CheckTxInner(Tx,h):
+       if not Room.CheckTxInner(Tx):
+         print(Tx)
+         np.save('./Quality/'+plottype+'/'+Box+'QualityPercentile%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job),0.0)
+         np.save('./Quality/'+plottype+'/'+Box+'QualityMin%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job),0.0)
          continue
        pstr       ='./Mesh/'+plottype+'/'+Box+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
        P=np.load(pstr)
@@ -242,10 +249,6 @@ def QualityPercentileAndMinQFromPower(SN,repeat=0,plottype=str(),Roomnum=0):
        Q2=DSM.QualityMinFromPower(P)
        Qmat[j,job]=Q
        Qmat2[j,job]=Q2
-       if not os.path.exists('./Quality'):
-         os.makedirs('./Quality')
-       if not os.path.exists('./Quality/'+plottype):
-         os.makedirs('./Quality/'+plottype)
        np.save('./Quality/'+plottype+'/'+Box+'QualityPercentile%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job),Q)
        np.save('./Quality/'+plottype+'/'+Box+'QualityMin%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job),Q2)
     t1=t.time()
@@ -257,7 +260,7 @@ def QualityPercentileAndMinQFromPower(SN,repeat=0,plottype=str(),Roomnum=0):
   #print('Quality Percentile from Power Grid complete', Qmat2)
   #print('Time taken',timemat)
   print('-------------------------------')
-  return Q,Qmat2
+  return Qmat,Qmat2
 
 
 def main(argv,verbose=False):
