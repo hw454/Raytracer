@@ -14,7 +14,7 @@
 #SBATCH --partition=batch
 #
 # Choose the number of nodes & processors per node:
-#SBATCH --nodes=5
+#SBATCH --nodes=1
 #SBATCH --ntasks-per-node=10
 #
 # Choose the time your code will need at most:
@@ -25,26 +25,12 @@
 #
 # send mail to this address
 #SBATCH --mail-user=hw454@bath.ac.uk
-#
-# Set up environment
+
+# set up environment
 module load python3/2019.x
 source activate py3
 
-#############################################################
-##     Below this nothing should have to be changed !!!     ##
-##############################################################
-
-# Application name:
-# export RUNFILE=$SLURM_JOB_NAME
-
-echo Running on host `hostname`
-
-# Run the python program
-# python RayTracerMainProgram.py
-python ParameterLoad.py
-for ((job=0; job<250; job++)); do
-  echo "job=${job}"
-  time python RayTracerMainProgram.py "${job}" 
+bash Raytracer_transmittermover.sh
 
 echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 250"
 echo "Starting job..."
