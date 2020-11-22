@@ -185,6 +185,11 @@ def TransmitterMovie():
   tp=1 # Time pause for video
   Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
   Nra        =np.load('Parameters/Nra.npy')
+  InnerOb    =np.load('Parameters/InnerOb.npy')
+  if InnerOb:
+      Box='Box'
+  else:
+      Box='NoBox'
   #numjobs    =np.load('Parameters/Numjobs.npy')
   myfile = open('Parameters/runplottype.txt', 'rt') # open lorem.txt for reading text
   plottype= myfile.read()         # read the entire file into a string
@@ -196,61 +201,77 @@ def TransmitterMovie():
       nra=len(Nra)
   for i in range(nra):
     Nr=Nra[i]
-    QP=np.load('./Mesh/'+plottype+'/QualityPercentile%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,0))
+    QP=np.load('./Mesh/'+plottype+'/'+Box+'QualityPercentile%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,0))
     Nz=QP.shape[2]
-    filestart='./Quality/'+plottype+'/Qualitysurface%03dto%03dNref%03d_z'%(Nra[0],Nra[-1],Nre)
+    filestart='./Quality/'+plottype+'/'+Box+'Qualitysurface%03dto%03dNref%03d_z'%(Nra[0],Nra[-1],Nre)
     img_array=[]
     img_array,size=CombineImages(img_array,filestart,Nz)
-    videoname='./Quality/'+plottype+'/Qualitysurface%03dto%03dNref%03d.avi'%(Nra[0],Nra[-1],Nre)
+    videoname='./Quality/'+plottype+'/'+Box+'Qualitysurface%03dto%03dNref%03d.avi'%(Nra[0],Nra[-1],Nre)
     out = cv2.VideoWriter(videoname,cv2.VideoWriter_fourcc(*'DIVX'), tp, size)
     for j in range(len(img_array)):
       out.write(img_array[j])
     #print(img_array)
     out.release()
-    filestart='./Quality/'+plottype+'/QualityPercentileSurface%03dto%03dNref%03d_z'%(Nra[0],Nra[-1],Nre)
+    filestart='./Quality/'+plottype+'/'+Box+'QualityPercentileSurface%03dto%03dNref%03d_z'%(Nra[0],Nra[-1],Nre)
     img_array=[]
     img_array,size=CombineImages(img_array,filestart,Nz,size)
-    videoname='./Quality/'+plottype+'/QualityPercentileSurface%03dto%03dNref%03d.avi'%(Nra[0],Nra[-1],Nre)
+    videoname='./Quality/'+plottype+'/'+Box+'QualityPercentileSurface%03dto%03dNref%03d.avi'%(Nra[0],Nra[-1],Nre)
     out = cv2.VideoWriter(videoname,cv2.VideoWriter_fourcc(*'DIVX'), tp, size)
     for j in range(len(img_array)):
       out.write(img_array[j])
     out.release()
-    filestart='./Quality/'+plottype+'/QualityContour%03dto%03dNref%03d_z'%(Nra[0],Nra[-1],Nre)
+    filestart='./Quality/'+plottype+'/'+Box+'QualityMinSurface%03dto%03dNref%03d_z'%(Nra[0],Nra[-1],Nre)
     img_array=[]
     img_array,size=CombineImages(img_array,filestart,Nz,size)
-    videoname='./Quality/'+plottype+'/QualityContour%03dto%03dNref%03d.avi'%(Nra[0],Nra[-1],Nre)
+    videoname='./Quality/'+plottype+'/'+Box+'QualityMinSurface%03dto%03dNref%03d.avi'%(Nra[0],Nra[-1],Nre)
     out = cv2.VideoWriter(videoname,cv2.VideoWriter_fourcc(*'DIVX'), tp, size)
     for j in range(len(img_array)):
       out.write(img_array[j])
     out.release()
-    filestart='./Quality/'+plottype+'/QualityPercentileContour%03dto%03dNref%03d_z'%(Nra[0],Nra[-1],Nre)
+    filestart='./Quality/'+plottype+'/'+Box+'QualityContour%03dto%03dNref%03d_z'%(Nra[0],Nra[-1],Nre)
     img_array=[]
     img_array,size=CombineImages(img_array,filestart,Nz,size)
-    videoname='./Quality/'+plottype+'/QualityPercentileContour%03dto%03dNref%03d.avi'%(Nra[0],Nra[-1],Nre)
+    videoname='./Quality/'+plottype+'/'+Box+'QualityContour%03dto%03dNref%03d.avi'%(Nra[0],Nra[-1],Nre)
     out = cv2.VideoWriter(videoname,cv2.VideoWriter_fourcc(*'DIVX'), tp, size)
     for j in range(len(img_array)):
       out.write(img_array[j])
     out.release()
-    filestart='./Quality/'+plottype+'/QualityPercentileBothSurface%03dto%03dNref%03d_z'%(Nra[0],Nra[-1],Nre)
+    filestart='./Quality/'+plottype+'/'+Box+'QualityPercentileContour%03dto%03dNref%03d_z'%(Nra[0],Nra[-1],Nre)
     img_array=[]
     img_array,size=CombineImages(img_array,filestart,Nz,size)
-    videoname='./Quality/'+plottype+'/QualityPercentileBothSurface%03dto%03dNref%03d.avi'%(Nra[0],Nra[-1],Nre)
+    videoname='./Quality/'+plottype+'/'+Box+'QualityPercentileContour%03dto%03dNref%03d.avi'%(Nra[0],Nra[-1],Nre)
     out = cv2.VideoWriter(videoname,cv2.VideoWriter_fourcc(*'DIVX'), tp, size)
     for j in range(len(img_array)):
       out.write(img_array[j])
     out.release()
-    filestart='./Quality/'+plottype+'/NoBoxQualityBothSurface%03dto%03dNref%03d_z'%(Nra[0],Nra[-1],Nre)
+    filestart='./Quality/'+plottype+'/'+Box+'QualityMinContour%03dto%03dNref%03d_z'%(Nra[0],Nra[-1],Nre)
     img_array=[]
     img_array,size=CombineImages(img_array,filestart,Nz,size)
-    videoname='./Quality/'+plottype+'/NoBoxQualityBothSurface%03dto%03dNref%03d.avi'%(Nra[0],Nra[-1],Nre)
+    videoname='./Quality/'+plottype+'/'+Box+'QualityMinContour%03dto%03dNref%03d.avi'%(Nra[0],Nra[-1],Nre)
     out = cv2.VideoWriter(videoname,cv2.VideoWriter_fourcc(*'DIVX'), tp, size)
     for j in range(len(img_array)):
       out.write(img_array[j])
     out.release()
-    filestart='./Times/'+plottype+'/NoBoxTimeSurface%03dto%03dNref%03d_z'%(Nra[0],Nra[-1],Nre)
+    # filestart='./Quality/'+plottype+'/'+Box+'QualityPercentileBothSurface%03dto%03dNref%03d_z'%(Nra[0],Nra[-1],Nre)
+    # img_array=[]
+    # img_array,size=CombineImages(img_array,filestart,Nz,size)
+    # videoname='./Quality/'+plottype+'/'+Box+'QualityPercentileBothSurface%03dto%03dNref%03d.avi'%(Nra[0],Nra[-1],Nre)
+    # out = cv2.VideoWriter(videoname,cv2.VideoWriter_fourcc(*'DIVX'), tp, size)
+    # for j in range(len(img_array)):
+      # out.write(img_array[j])
+    # out.release()
+    # # filestart='./Quality/'+plottype+'/'+Box+'QualityBothSurface%03dto%03dNref%03d_z'%(Nra[0],Nra[-1],Nre)
+    # img_array=[]
+    # img_array,size=CombineImages(img_array,filestart,Nz,size)
+    # videoname='./Quality/'+plottype+'/'+Box+'QualityBothSurface%03dto%03dNref%03d.avi'%(Nra[0],Nra[-1],Nre)
+    # out = cv2.VideoWriter(videoname,cv2.VideoWriter_fourcc(*'DIVX'), tp, size)
+    # for j in range(len(img_array)):
+      # out.write(img_array[j])
+    # out.release()
+    filestart='./Times/'+plottype+'/'+Box+'TimeSurface%03dto%03dNref%03d_z'%(Nra[0],Nra[-1],Nre)
     img_array=[]
     img_array,size=CombineImages(img_array,filestart,Nz,size)
-    videoname='./Times/'+plottype+'/NoBoxTimesSurface%03dto%03dNref%03d.avi'%(Nra[0],Nra[-1],Nre)
+    videoname='./Times/'+plottype+'/'+Box+'TimesSurface%03dto%03dNref%03d.avi'%(Nra[0],Nra[-1],Nre)
     out = cv2.VideoWriter(videoname,cv2.VideoWriter_fourcc(*'DIVX'), tp, size)
     for j in range(len(img_array)):
       out.write(img_array[j])

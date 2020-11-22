@@ -163,6 +163,43 @@ class room:
       if np.linalg.norm(p2-p)<epsilon:
         return True
     return False
+  def CheckTxInner(s,Tx):
+    direc =np.array([1,0,0])
+    direc2=np.array([0,1,0])
+    direc3=np.array([0,0,1])
+    ray =np.array([Tx,direc])
+    ray2=np.array([Tx,direc2])
+    ray3=np.array([Tx,direc3])
+    count =0
+    count2=0
+    intercheck =np.array([-1,-1,-1])
+    intercheck2=np.array([-1,-1,-1])
+    for Tri in s.obst:
+      inter=ins.intersection(ray,Tri)
+      #print(inter,ma.isnan(inter[0]),intercheck,(inter==intercheck).all(),inter.all()==intercheck.all())
+      inter2=ins.intersection(ray2,Tri)
+      if not ma.isnan(inter[0]):
+        if not (inter==intercheck).all():
+          count+=1
+          intercheck=inter
+      if not ma.isnan(inter2[0]):
+        if not (inter2==intercheck2).all():
+          count2+=1
+          intercheck2=inter2
+    if count%2==count2%2:
+      return count%2
+    else:
+      count3=0
+      intercheck3=np.array([-1,-1,-1])
+      for Tri in s.obst:
+        inter3=ins.intersection(ray3,Tri)
+        if not ma.isnan(inter3[0]):
+          if not (inter3==intercheck3).all():
+            count3+=1
+            intercheck3=inter3
+      if count%2+count2%2+count3%2==2:
+        return 1
+      else: return 0
   def maxleng(s,a=0):
     ''' Get the maximum length in the room or axis.
 
@@ -495,11 +532,29 @@ def FindInnerPoints(Room,Mesh,Tx):
       for Tri in Room.obst:
         inter=ins.intersection(ray,Tri)
         if not ma.isnan(inter[0]):
-          if np.linalg.norm(inter-Tx)<np.linalg.norm(direc) and not inter.all()==intercheck.all():
+          if np.linalg.norm(inter-Tx)<Room.maxleng() and not (inter==intercheck).all():
             count+=1
           intercheck=inter
       if count%2==1:
         Room.__set_insidepoint__(p)
     return 0
 
+def TestTxCheck():
+  ##----The lengths are non-dimensionalised---------------------------
+  OuterBoundary =np.load('Parameters/OuterBoundary.npy').astype(float)  # The Obstacles forming the outer boundary of the room
+  NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
+  Oblist=OuterBoundary
+
+  Room=room(Oblist,NtriOb)
+  Nob=Room.Nob
+  Nsur=Room.Nsur
+  for x,y,z in product(np.arange(0,1,0.1),np.arange(0,1,0.1),np.arange(0,1,0.1)):
+    Tx=np.array([x,y,z])
+    print('Tx',Tx)
+    print(Room.CheckTxInner(Tx))
+  return 0
+
+if __name__=='__main__':
+  TestTxCheck()
+  exit()
 

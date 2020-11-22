@@ -3,7 +3,7 @@
 # bash Raytracer_transmittermover.sh
 
 ./ParameterLoad.py
-for ((job=0; job<250; job++)); do
+for ((job=0; job<251; job++)); do
   echo "job=${job}"
   time ./RayTracerMainProgram.py "${job}" 
 done
