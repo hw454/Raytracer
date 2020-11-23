@@ -5,5 +5,5 @@
 ./ParameterLoad.py
 for ((job=0; job<251; job++)); do
   echo "job=${job}"
-  time python3 RayTracerMainProgram.py "${job}"
+  time ./RayTracerMainProgram.py "${job}" 
 done
