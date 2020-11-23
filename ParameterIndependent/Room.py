@@ -12,6 +12,7 @@ import math                 as ma
 import numpy.linalg         as lin
 import random               as rnd
 import Rays                 as ry
+import DictionarySparseMatrix as DS
 import time                 as t
 from itertools import product
 import sys
@@ -517,25 +518,67 @@ class room:
       s.Nob+=1
     return
 
-def FindInnerPoints(Room,Mesh,Tx):
+def FindInnerPoints(Room,Mesh):
     h=Room.get_meshwidth(Mesh)
     Nx=Mesh.Nx
     Ny=Mesh.Ny
     Nz=Mesh.Nz
+    CentreX=np.array([h*(Nx/2)+h/2,-h/2,h*(Nz/2)+h/2])
+    CentreY=np.array([-h/2,h*(Ny/2)+h/2,h*(Nz/2)+h/2])
+    CentreZ=np.array([h*(Nz/2)+h/2,h*(Nz/2)+h/2,h*(Nz/2)+h/2])
     for i,j,k in product(range(Nx),range(Ny),range(Nz)):
       x,y,z=Room.coordinate(h,i,j,k)
       p=np.array([x,y,z])
-      direc=p-Tx
-      ray=np.array([Tx,direc])
-      count=0
-      intercheck=np.array([-1,-1,-1])
+      d1=CentreX-p
+      d2=CentreY-p
+      d3=CentreZ-p
+      ray1=np.array([p,d1])
+      rayleng1=np.linalg.norm([d1])
+      ray2=np.array([p,d2])
+      rayleng2=np.linalg.norm([d2])
+      ray3=np.array([p,d3])
+      rayleng3=np.linalg.norm([d3])
+      count1=0
+      count2=0
+      count3=0
+      TriP=1
+      surfacenumbers1=np.array([])
+      surfacenumbers2=np.array([])
+      surfacenumbers3=np.array([])
       for Tri in Room.obst:
-        inter=ins.intersection(ray,Tri)
-        if not ma.isnan(inter[0]):
-          if np.linalg.norm(inter-Tx)<Room.maxleng() and not (inter==intercheck).all():
-            count+=1
-          intercheck=inter
-      if count%2==1:
+        inter1=ins.intersection(ray1,Tri)
+        inter2=ins.intersection(ray2,Tri)
+        inter3=ins.intersection(ray3,Tri)
+        nsur=DS.Correct_ObNumbers(np.array([TriP]),Room.Ntri)[0]
+        if ins.InsideCheck(inter1,Tri) and not ma.isnan(inter1[0]):
+          repeatpoint1=0
+          if len(surfacenumbers1)!=0:
+            surcheck=(abs(nsur-surfacenumbers1)<epsilon).any()
+            if surcheck:
+              repeatpoint1=1
+          if np.linalg.norm(inter1-p)<rayleng1 and not repeatpoint1:
+            count1+=1
+            surfacenumbers1=np.append(surfacenumbers1,nsur)
+        if ins.InsideCheck(inter2,Tri) and not ma.isnan(inter2[0]):
+          repeatpoint2=0
+          if len(surfacenumbers2)!=0:
+            surcheck=(abs(nsur-surfacenumbers2)<epsilon).any()
+            if surcheck:
+              repeatpoint2=1
+          if np.linalg.norm(inter2-p)<rayleng2 and not repeatpoint2:
+            count2+=1
+            surfacenumbers2=np.append(surfacenumbers2,nsur)
+        if ins.InsideCheck(inter3,Tri) and not ma.isnan(inter3[0]):
+          repeatpoint3=0
+          if len(surfacenumbers3)!=0:
+            surcheck=(abs(nsur-surfacenumbers3)<epsilon).any()
+            if surcheck:
+              repeatpoint3=1
+          if np.linalg.norm(inter3-p)<rayleng3 and not repeatpoint3:
+            count3+=1
+            surfacenumbers3=np.append(surfacenumbers3,nsur)
+        TriP+=1
+      if count1%2+count2%2+count3%2<2:
         Room.__set_insidepoint__(p)
     return 0
 
