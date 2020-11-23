@@ -213,8 +213,8 @@ def QualityPercentileAndMinQFromPower(SN,repeat=0,plottype=str(),Roomnum=0):
       Box='Box'
   else:
       Box='NoBox'
-  Qmat=np.zeros((nra,numjobs))
-  Qmat2=np.zeros((nra,numjobs))
+  Qmat=np.zeros((nra,numjobs+1))
+  Qmat2=np.zeros((nra,numjobs+1))
   Room=rom.room(Oblist,Ntri)
   Nob=Room.Nob
   Room.__set_MaxInter__(MaxInter)
@@ -239,7 +239,7 @@ def QualityPercentileAndMinQFromPower(SN,repeat=0,plottype=str(),Roomnum=0):
        Tx=np.load('Parameters/Origin_job%03d.npy'%job)
        Txind=Room.position(Tx,h)
        if not Room.CheckTxInner(Tx):
-         print(Tx)
+         print('Tx invalid',Tx)
          np.save('./Quality/'+plottype+'/'+Box+'QualityPercentile%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job),0.0)
          np.save('./Quality/'+plottype+'/'+Box+'QualityMin%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job),0.0)
          continue
@@ -278,8 +278,8 @@ def main(argv,verbose=False):
   myfile = open('Parameters/runplottype.txt', 'rt') # open lorem.txt for reading text
   plottype= myfile.read()         # read the entire file into a string
   myfile.close()
-  Qmat   =np.zeros((testnum,nra,numjobs))
-  Qmat2  =np.zeros((testnum,nra,numjobs))
+  Qmat   =np.zeros((testnum,nra,numjobs+1))
+  Qmat2  =np.zeros((testnum,nra,numjobs+1))
   #P=PowerFromDSM(plottype,Nra,numjobs,testnum,timetest,roomnumstat)
   for j in range(0,timetest):
     Roomnum=(2*j+1)*roomnumstat
