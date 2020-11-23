@@ -286,7 +286,7 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
       for job in range(numjobs):
        Tx=np.load('Parameters/Origin_job%03d.npy'%job)
        Txind=Room.position(Tx,h)
-       if Room.CheckTxInner(Tx,h):
+       if not Room.CheckTxInner(Tx):
           Qmesh[Txind] =np.nan
           QPmesh[Txind]=np.nan
           QMmesh[Txind]=np.nan

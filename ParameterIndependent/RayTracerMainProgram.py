@@ -247,11 +247,13 @@ def MeshProgram(SN,repeat=0,plottype=str(),job=0):
   Tx            =np.load('Parameters/Origin_job%03d.npy'%job).astype(float)         # The location of the source antenna (origin of every ray)
   #OuterBoundary =np.load('Parameters/OuterBoundary.npy').astype(float)  # The Obstacles forming the outer boundary of the room
   deltheta      =np.load('Parameters/delangle.npy')             # Array of
-  #NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
+  NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
   Ntri          =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
   InnerOb       =np.load('Parameters/InnerOb.npy')              # Whether the innerobjects should be included or not.
   MaxInter      =np.load('Parameters/MaxInter.npy')             # The number of intersections a single ray can have in the room in one direction.
 
+  if InnerOb:
+    Ntri=np.append(Ntri,NtriOb)
 
     # Oblist=OuterBoundary
     # Ntri=NtriOut
@@ -268,13 +270,16 @@ def MeshProgram(SN,repeat=0,plottype=str(),job=0):
   Nx=int(Room.maxxleng()/h)
   Ny=int(Room.maxyleng()/h)
   Nz=int(Room.maxzleng()/h)
+  DumbyMesh=DSM.DS(Nx,Ny,Nz)
+  rom.FindInnerPoints(Room,DumbyMesh)
   #--------------Run the ray tracer for each ray number-----------------
 
   for j in range(0,nra):
     j=int(j)
     #------------Initialise the Mesh------------------------------------
     Mesh=DSM.DS(Nx,Ny,Nz,Nsur*Nre+1,Nra[j]*(Nre+1),np.complex128,split)
-    rom.FindInnerPoints(Room,Mesh,Tx)
+    #print(Room.obst)
+    print('Inside P',Room.inside_points)
     if not Room.CheckTxInner(Tx):
       logging.info('Tx=(%f,%f,%f) is not a valid transmitter location'%(Tx[0],Tx[1],Tx[2]))
       print('This is not a valid transmitter location')
@@ -803,7 +808,7 @@ def main(argv,verbose=False):
       Grid,G_z,timep=power_grid(Sheetname,Room,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
       repeat=1
       G_zeros[count,:]=G_z
-      Q=Quality(Sheetname,repeat,plottype,Roomnum,job)
+      Q             =Quality(Sheetname,repeat,plottype,Roomnum,job)
       Qmat[count,:]=Q
       #Qtruemat[count,:]=Q2
       end=t.time()
