@@ -260,7 +260,7 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
     for i in range(nra):
       Nr=int(Nra[i])
       Mesh=DSM.DS(Nx,Ny,Nz,Nsur*int(Nre)+1,Nr*(int(Nre)+1),np.complex128,int(split))
-      rom.FindInnerPoints(Room,Mesh,Orig)
+      rom.FindInnerPoints(Room,Mesh)
       Nr=Nra[i]
       pstr       ='./Mesh/'+plottype+'/'+Box+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,0,0)
       P   =np.load(pstr)

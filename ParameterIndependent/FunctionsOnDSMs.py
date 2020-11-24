@@ -229,7 +229,7 @@ def QualityPercentileAndMinQFromPower(SN,repeat=0,plottype=str(),Roomnum=0):
     Nr=int(Nra[j])
     t0=t.time()
     Mesh=DSM.DS(Nx,Ny,Nz,Nsur*Nre+1,Nr*(Nre+1),np.complex128,split)
-    rom.FindInnerPoints(Room,Mesh,Orig)
+    rom.FindInnerPoints(Room,Mesh)
     for index in range(0,Roomnum):
       for job in range(0,numjobs+1):
        if not os.path.exists('./Quality'):

@@ -279,7 +279,7 @@ def MeshProgram(SN,repeat=0,plottype=str(),job=0):
     #------------Initialise the Mesh------------------------------------
     Mesh=DSM.DS(Nx,Ny,Nz,Nsur*Nre+1,Nra[j]*(Nre+1),np.complex128,split)
     #print(Room.obst)
-    print('Inside P',Room.inside_points)
+    #print('Inside P',Room.inside_points)
     if not Room.CheckTxInner(Tx):
       logging.info('Tx=(%f,%f,%f) is not a valid transmitter location'%(Tx[0],Tx[1],Tx[2]))
       print('This is not a valid transmitter location')
