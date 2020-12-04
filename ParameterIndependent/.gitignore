@@ -9,6 +9,8 @@
 *.orig
 *.log
 testDS
+*.csv
+*~lock*
 *BACKUP
 *BASE
 *LOCAL
