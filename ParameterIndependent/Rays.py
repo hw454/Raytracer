@@ -158,7 +158,7 @@ class Ray:
 
      :rtype:int
      :return:Ns'''
-     Nc=2*no_cone_steps(h,dist,delangle)
+     Nc=1.5*no_cone_steps(h,dist,delangle)
      return Nc
   def _normal_mat_(s,Ncones,Nra,d,dist,h):
      ''' Form a matrix of vectors representing the plane which is \
