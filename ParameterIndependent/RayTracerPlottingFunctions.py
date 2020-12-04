@@ -45,15 +45,15 @@ def plot_grid(plottype=str(),testnum=1,roomnumstat=0):
       for job in range(0,numjobs):
         Nr=int(Nra[j])
         Nre=int(Nre)
-        pstr       ='./Mesh/'+plottype+'/Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
+        pstr       ='./Mesh/'+plottype+'/'+boxstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
         P   =np.load(pstr)
-        RadAstr    ='./Mesh/'+plottype+'/RadA_grid%02dRefs%dm%d_tx%03d.npy'%(Nr,Nre,index,job)
+        RadAstr    ='./Mesh/'+plottype+'/'+boxstr+'RadA_grid%02dRefs%dm%d_tx%03d.npy'%(Nr,Nre,index,job)
         RadB=np.zeros((Nsur,P.shape[0],P.shape[1],P.shape[2]))
         ThetaMesh=np.zeros((P.shape[0],P.shape[1],P.shape[2]))
         RadA=np.load(RadAstr)
         if LOS==0:
           for k in range(0,Nsur):
-            RadSistr='./Mesh/'+plottype+'/RadS%d_grid%dRefs%dm%d_tx%03d.npy'%(k,Nra[j],Nre,0,job)
+            RadSistr='./Mesh/'+plottype+'/'+boxstr+'RadS%d_grid%dRefs%dm%d_tx%03d.npy'%(k,Nra[j],Nre,0,job)
             RadB[k]=np.load(RadSistr)
           #Thetastr='Mesh/'+plottype+'/AngNpy%03dRefs%03dNs%0d.npy_tx%03d.npy'%(Nra,Nre,Ns,job)
           #ThetaMesh=np.load(Thetastr).astype(float)
@@ -493,7 +493,7 @@ if __name__=='__main__':
   testnum    =SimPar.cell(row=17,column=3).value
   roomnumstat=SimPar.cell(row=18,column=3).value
   #plot_times(plottype,testnum,roomnumstat)
-  #plot_grid(plottype,testnum,roomnumstat)        # Plot the power in slices.
+  plot_grid(plottype,testnum,roomnumstat)        # Plot the power in slices.
   plot_quality_contour(plottype,testnum,roomnumstat)
   ResOn      =np.load('Parameters/ResOn.npy')
   if ResOn:
