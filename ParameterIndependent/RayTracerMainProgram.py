@@ -777,11 +777,7 @@ def main(argv,verbose=False):
     Reserr  =np.zeros((testnum,nra))
   Timemat =np.zeros((testnum,nra,8))
   repeat=1
-  logname='RayTracer'+plottype+'.log'
-  j=1
-  while os.path.exists(logname):
-    logname='RayTracer'+plottype+'%03d.log'%j
-    j+=1
+  logname='RayTracer'+plottype+'%03d.log'%job
   logging.basicConfig(filename=logname,filemode='w',format="[%(asctime)s %(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s",
     level=logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S')
