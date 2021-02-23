@@ -7,6 +7,10 @@ import sys
 import os
 import pickle
 import openpyxl as wb
+import logging
+import num2words as nw
+
+epsilon=sys.float_info.epsilon
 
 def DeclareParameters(SN):
   '''All input parameters for the ray-launching method are entered in
@@ -55,10 +59,12 @@ def DeclareParameters(SN):
   timetest   =SimPar.cell(row=19,column=3).value
   ResOn      =SimPar.cell(row=20,column=3).value
   MaxInter   =SimPar.cell(row=21,column=3).value
+  logon      =SimPar.cell(row=25,column=3).value
 
   deltheta=np.array([])
   nrays=Angspace.max_row-1
-  nrays=1
+
+  nrays=2
   SimPar.cell(row=12,column=3).value=nrays
 
 
@@ -66,12 +72,13 @@ def DeclareParameters(SN):
     deltheta=np.append(deltheta,Angspace.cell(row=j+2,column=1).value)
     #np.pi*np.array([1/3])#,1/5,1/7,1/8,1/9,1/12,1/14,1/16,1/18,1/19,1/20,1/22,1/25,1/36])
   Nra=np.ones(nrays,dtype=int)
+  Nrs =SimPar.cell(row=13,column=3).value
   Nre=int(SimPar.cell(row=2,column=3).value )     # Number of reflections
   Ns=int(SimPar.cell(row=3,column=3).value )      # Number of steps on longest axis.
-  split=SimPar.cell(row=4,column=3).value           # Number of steps through each mesh square
+  split=SimPar.cell(row=4,column=3).value         # Number of steps through each mesh square
   l1=SimPar.cell(row=5,column=3).value            # Interior obstacle scale
   l2=SimPar.cell(row=6,column=3).value            # Outer Boundary length scale
-  InnerOb=SimPar.cell(row=7,column=3).value         # Indicator of whether the inner obstacles should be used
+  InnerOb=SimPar.cell(row=7,column=3).value       # Indicator of whether the inner obstacles should be used
   NtriOut=np.array([])# This will be the number of triangles forming each plane surface in the outer boundary
   NtriOb=np.array([]) # This will be the number of triangles forming each plane surface in the obstacle list
 
@@ -80,41 +87,67 @@ def DeclareParameters(SN):
   for j in range(Nbox):
     ## Obstacles are all triangles in 3D.
     Box=Obst.cell(row=j+2,column=3).value
-    Tri=Obst.cell(row=j+2,column=4).value
+    Surf=Obst.cell(row=j+2,column=4).value
+    Tri=Obst.cell(row=j+2,column=5).value
     if Box:
-        xmi=Obst.cell(row=j+2,column=5).value
-        xma=Obst.cell(row=j+2,column=6).value
-        ymi=Obst.cell(row=j+2,column=7).value
-        yma=Obst.cell(row=j+2,column=8).value
-        zmi=Obst.cell(row=j+2,column=9).value
-        zma=Obst.cell(row=j+2,column=10).value
-        if j==0:
-          Oblist=BoxBuild(xmi,xma,ymi,yma,zmi,zma)
-        else:
-          Oblist=np.vstack((Oblist.astype(float),BoxBuild(xmi,xma,ymi,yma,zmi,zma).astype(float)))
-        # In a box all surfaces are formed of two triangles
-        NTribox=2*np.ones(6)
-        NtriOb=np.append(NtriOb,NTribox)
+      xmi=Obst.cell(row=j+2,column=6).value
+      xma=Obst.cell(row=j+2,column=7).value
+      ymi=Obst.cell(row=j+2,column=8).value
+      yma=Obst.cell(row=j+2,column=9).value
+      zmi=Obst.cell(row=j+2,column=10).value
+      zma=Obst.cell(row=j+2,column=11).value
+      if j==0:
+        Oblist=BoxBuild(xmi,xma,ymi,yma,zmi,zma)
+      else:
+        Oblist=np.vstack((Oblist.astype(float),BoxBuild(xmi,xma,ymi,yma,zmi,zma).astype(float)))
+      # In a box all surfaces are formed of two triangles
+      NTribox=2*np.ones(6)
+      NtriOb=np.append(NtriOb,NTribox)
+    elif Surf:
+      xmi=Obst.cell(row=j+2,column=6).value
+      xma=Obst.cell(row=j+2,column=7).value
+      ymi=Obst.cell(row=j+2,column=8).value
+      yma=Obst.cell(row=j+2,column=9).value
+      zmi=Obst.cell(row=j+2,column=10).value
+      zma=Obst.cell(row=j+2,column=11).value
+      if abs(xmi-xma)<epsilon:
+        T1 =np.array([(xmi,ymi,zmi),(xmi,yma,zmi),(xmi,yma,zma)])
+        T2 =np.array([(xmi,yma,zma),(xmi,ymi,zma),(xmi,ymi,zmi)])
+      elif abs(ymi-yma)<epsilon:
+        T1 =np.array([(xmi,ymi,zmi),(xma,ymi,zmi),(xma,ymi,zma)])
+        T2 =np.array([(xmi,ymi,zmi),(xmi,ymi,zma),(xma,ymi,zma)])
+      elif abs(zmi-zma)<epsilon:
+        T1 =np.array([(xmi,ymi,zmi),(xmi,yma,zmi),(xma,yma,zmi)])
+        T2 =np.array([(xmi,ymi,zmi),(xma,ymi,zmi),(xma,yma,zmi)])
+      else:
+          raise('Surface indicated but incorrect values for bounds used')
+      SurfOb=np.array([T1,T2])
+      if j==0:
+        Oblist=SurfOb
+      else:
+        Oblist=np.vstack((Oblist.astype(float),SurfOb.astype(float)))
+      # In a box all surfaces are formed of two triangles
+      NtriOb=np.append(NtriOb,2)
     elif Tri:
-        p0=np.ones(3)
-        p1=np.ones(3)
-        p2=np.ones(3)
-        p0[0]=Obst.cell(row=j+2,column=11).value
-        p0[1]=Obst.cell(row=j+2,column=12).value
-        p0[2]=Obst.cell(row=j+2,column=13).value
-        p1[0]=Obst.cell(row=j+2,column=14).value
-        p2[1]=Obst.cell(row=j+2,column=15).value
-        p1[2]=Obst.cell(row=j+2,column=16).value
-        p2[0]=Obst.cell(row=j+2,column=17).value
-        p2[1]=Obst.cell(row=j+2,column=18).value
-        p2[2]=Obst.cell(row=j+2,column=19).value
-        Tri=np.array([p0,p1,p2]).astype(float)
-        if j==1:
-          Oblist=Tri
-        else:
-          Oblist=np.vstack((Oblist.astype(float),Tri))
-        # In a box all surfaces are formed of two triangles
-        NtriOb=np.append(NtriOb,1)
+      p0=np.ones(3)
+      p1=np.ones(3)
+      p2=np.ones(3)
+      p0[0]=Obst.cell(row=j+2,column=12).value
+      p0[1]=Obst.cell(row=j+2,column=13).value
+      p0[2]=Obst.cell(row=j+2,column=14).value
+      p1[0]=Obst.cell(row=j+2,column=15).value
+      p2[1]=Obst.cell(row=j+2,column=16).value
+      p1[2]=Obst.cell(row=j+2,column=17).value
+      p2[0]=Obst.cell(row=j+2,column=18).value
+      p2[1]=Obst.cell(row=j+2,column=19).value
+      p2[2]=Obst.cell(row=j+2,column=20).value
+      Tri=np.array([p0,p1,p2]).astype(float)
+      if j==1:
+        Oblist=Tri
+      else:
+        Oblist=np.vstack((Oblist.astype(float),Tri))
+      # In a box all surfaces are formed of two triangles
+      NtriOb=np.append(NtriOb,1)
   for j in range(len(NtriOb)):
     NTriObSh.cell(row=j+1,column=1).value=NtriOb[j]
 
@@ -125,35 +158,61 @@ def DeclareParameters(SN):
   for j in range(Nbox):
     ## Obstacles are all triangles in 3D.
     Box=OutB.cell(row=j+2,column=3).value
-    Tri=OutB.cell(row=j+2,column=4).value
+    Surf=OutB.cell(row=j+2,column=4).value
+    Tri=OutB.cell(row=j+2,column=5).value
     if Box:
-        xmi=OutB.cell(row=j+2,column=5).value
-        xma=OutB.cell(row=j+2,column=6).value
-        ymi=OutB.cell(row=j+2,column=7).value
-        yma=OutB.cell(row=j+2,column=8).value
-        zmi=OutB.cell(row=j+2,column=9).value
-        zma=OutB.cell(row=j+2,column=10).value
-        Bound=BoxBuild(xmi,xma,ymi,yma,zmi,zma)
-        if j==0:
-          OuterBoundary=Bound
-        else:
-          OuterBoundary=np.vstack((OuterBoundary,Bound))
-        # In a box all surfaces are formed of two triangles
-        NTribox=2*np.ones(6)
-        NtriOut=np.append(NtriOut,NTribox)
+      xmi=OutB.cell(row=j+2,column=6).value
+      xma=OutB.cell(row=j+2,column=7).value
+      ymi=OutB.cell(row=j+2,column=8).value
+      yma=OutB.cell(row=j+2,column=9).value
+      zmi=OutB.cell(row=j+2,column=10).value
+      zma=OutB.cell(row=j+2,column=11).value
+      Bound=BoxBuild(xmi,xma,ymi,yma,zmi,zma)
+      if j==0:
+        OuterBoundary=Bound
+      else:
+        OuterBoundary=np.vstack((OuterBoundary,Bound))
+      # In a box all surfaces are formed of two triangles
+      NTribox=2*np.ones(6)
+      NtriOut=np.append(NtriOut,NTribox)
+    elif Surf:
+      xmi=OutB.cell(row=j+2,column=6).value
+      xma=OutB.cell(row=j+2,column=7).value
+      ymi=OutB.cell(row=j+2,column=8).value
+      yma=OutB.cell(row=j+2,column=9).value
+      zmi=OutB.cell(row=j+2,column=10).value
+      zma=OutB.cell(row=j+2,column=11).value
+      if abs(xmi-xma)<epsilon:
+        T1 =np.array([(xmi,ymi,zmi),(xmi,yma,zmi),(xmi,yma,zma)])
+        T2 =np.array([(xmi,yma,zma),(xmi,ymi,zma),(xmi,ymi,zmi)])
+      elif abs(ymi-yma)<epsilon:
+        T1 =np.array([(xmi,ymi,zmi),(xma,ymi,zmi),(xma,ymi,zma)])
+        T2 =np.array([(xmi,ymi,zmi),(xmi,ymi,zma),(xma,ymi,zma)])
+      elif abs(zmi-zma)<epsilon:
+        T1 =np.array([(xmi,ymi,zmi),(xmi,yma,zmi),(xma,yma,zmi)])
+        T2 =np.array([(xmi,ymi,zma),(xma,ymi,zma),(xma,yma,zmi)])
+      else:
+          raise('Surface indicated but incorrect values for bounds used')
+      SurfOb=np.array([T1,T2])
+      if j==0:
+        OuterBoundary=SurfOb
+      else:
+        OuterBoundary=np.vstack((OuterBoundary.astype(float),SurfOb.astype(float)))
+      # In a box all surfaces are formed of two triangles
+      NtriOut=np.append(NtriOut,2)
     elif Tri:
         p0=np.ones(3)
         p1=np.ones(3)
         p2=np.ones(3)
-        p0[0]=OutB.cell(row=j+2,column=11).value
-        p0[1]=OutB.cell(row=j+2,column=12).value
-        p0[2]=OutB.cell(row=j+2,column=13).value
-        p1[0]=OutB.cell(row=j+2,column=14).value
-        p2[1]=OutB.cell(row=j+2,column=15).value
-        p1[2]=OutB.cell(row=j+2,column=16).value
-        p2[0]=OutB.cell(row=j+2,column=17).value
-        p2[1]=OutB.cell(row=j+2,column=18).value
-        p2[2]=OutB.cell(row=j+2,column=19).value
+        p0[0]=OutB.cell(row=j+2,column=12).value
+        p0[1]=OutB.cell(row=j+2,column=13).value
+        p0[2]=OutB.cell(row=j+2,column=14).value
+        p1[0]=OutB.cell(row=j+2,column=15).value
+        p2[1]=OutB.cell(row=j+2,column=16).value
+        p1[2]=OutB.cell(row=j+2,column=17).value
+        p2[0]=OutB.cell(row=j+2,column=18).value
+        p2[1]=OutB.cell(row=j+2,column=19).value
+        p2[2]=OutB.cell(row=j+2,column=20).value
         Tri=np.array([p0,p1,p2])
         if j==0:
           OuterBoundary=Tri
@@ -202,10 +261,13 @@ def DeclareParameters(SN):
       ObstCoor.cell(row=3*j+3,column=3).value=Oblist[j-Nout,2,1]
       ObstCoor.cell(row=3*j+3,column=4).value=Oblist[j-Nout,2,2]
   runplottype=SimPar.cell(row=15,column=3).value
+  locatype=SimPar.cell(row=22,column=3).value
   Heatmappattern=SimPar.cell(row=16,column=3).value
+  plotfit=SimPar.cell(row=24,column=3).value
 
   LOS=SimPar.cell(row=10,column=3).value     # LOS=1 for LOS propagation, LOS=0 for reflected propagation
   PerfRef=SimPar.cell(row=11,column=3).value # Perfect reflection has no loss and ignores angles.
+  AngChan=SimPar.cell(row=23,column=3).value # Switch for whether angles should be correction for the received point.
 
   # -------------------------------------------------------------------
   # CALCULATED PARAMETERS TO SAVE
@@ -259,9 +321,10 @@ def DeclareParameters(SN):
       directions[1:-1]=np.c_[coords,np.zeros((Nra[j]-2,1))]
       directions[0] =np.array([0.0,0.0, 1.0,0.0])
       directions[-1]=np.array([0.0,0.0,-1.0,0.0])
-      directionname='Parameters/Directions%03d.npy'%j
+      directionname='Parameters/Directions%03d.npy'%Nra[j]
       np.save(directionname,directions)
     Angspace.cell(row=j+2,column=2).value=Nra[j]
+    Angspace.cell(row=j+2,column=1).value=deltheta[j]
     DirecStr='Directions%03d'%(Nra[j])
     try:
       DirecSh=InBook[DirecStr]
@@ -277,14 +340,13 @@ def DeclareParameters(SN):
   # COMBINE THE RAY-LAUNCHER PARAMETERS INTO ONE ARRAY
   RTPar=np.array([Nre,h,roomlengthscale,split])
 
-  print('Number of rays ', Nraout,'Number of reflections ', Nre,'Mesh spacing ', h)
-  print('Angle spacing ', deltheta)
   #print('Origin of raytracer ', Tx)
 
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS IN A FOLDER TITLED `Parameters`
   # --------------------------------------------------------------------
   np.save('Parameters/ResOn.npy',ResOn)
+  np.save('Parameters/logon.npy',logon)
   np.save('Parameters/MaxInter.npy',MaxInter)
   np.save('Parameters/testnum.npy',testnum)
   np.save('Parameters/roomnumstat.npy',roomnumstat)
@@ -303,16 +365,52 @@ def DeclareParameters(SN):
   np.save('Parameters/NtriOut.npy',NtriOut)
   np.save('Parameters/Nob.npy',Nob)
   np.save('Parameters/Ns.npy',Ns)
+  np.save('Parameters/Nrs.npy',Nrs)
   np.save('Parameters/Nob.npy',Nob)
   np.save('Parameters/Origin.npy',Tx)
   np.save('Parameters/LOS.npy',LOS)
   np.save('Parameters/PerfRef.npy',PerfRef)
+  np.save('Parameters/AngChan.npy',AngChan)
 
+  nsur=len(NtriOb)
+
+  if LOS:
+    LOSstr='LOS'
+  elif PerfRef:
+    if Nre>2:
+      LOSstr='MultiPerfRef'
+    else:
+      LOSstr='SinglePerfRef'
+  else:
+    if Nre>2 and Nrs>1:
+      #if Nrs<nsur:
+       #LOSstr=nw.num2words(Nrs)+'Ref'
+      #else:
+       LOSstr='MultiRef'
+    else:
+      LOSstr='SingleRef'
+  if InnerOb:
+    boxstr='Box'
+  else:
+    boxstr='NoBox'
+  if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
+    loca='Centre'
+  else:
+    loca='OffCentre'
+  SimPar.cell(row=22,column=3).value=loca
+  runplottype=LOSstr+boxstr+loca
+  SimPar.cell(row=15,column=3).value=runplottype
   text_file = open('Parameters/runplottype.txt', 'w')
   n = text_file.write(runplottype)
   text_file.close()
+  text_file = open('Parameters/locatype.txt', 'w')
+  n = text_file.write(locatype)
+  text_file.close()
   text_file = open('Parameters/Heatmapstyle.txt', 'w')
   n = text_file.write(Heatmappattern)
+  text_file.close()
+  text_file = open('Parameters/PlotFit.txt', 'w')
+  n = text_file.write(plotfit)
   text_file.close()
   #print('------------------------------------------------')
   #print('Geometrical parameters saved')
@@ -440,7 +538,7 @@ def ObstacleCoefficients(SN,index=0):
   # Gains of the rays
   for j in range(0,nra):
     Gt=np.ones((Nra[j],1),dtype=np.complex128)
-    gainname=str('Parameters/Tx'+str(Nra[j])+'Gains'+str(index)+'.npy')
+    gainname='Parameters/Tx%03dGains%03d.npy'%(Nra[j],index)
     np.save(gainname, Gt)
   frequency     =float(Air.cell(row=2,column=4).value)              # 2.79 GHz #FIXME make this a table and choose a frequency option
   khat          =frequency*L/c                 # Non-dimensional wave number
@@ -462,58 +560,89 @@ def ObstacleCoefficients(SN,index=0):
   #----------------------------------------------------------------------
   # Relative Constants for the obstacles
   NtriOut=np.load('Parameters/NtriOut.npy')
-  NtriOb=np.load('Parameters/NtriOb.npy')
+  NtriOb =np.load('Parameters/NtriOb.npy')
 
   InOb=SimPar.cell(row=7,column=3).value
-  Nobst=OutB.max_row-1
-  NOut=Obst.max_row-1
+  NOut=OutB.max_row-1
+  Nobst=Obst.max_row-1
   Ns=Nobst*InOb+NOut
   mur   =np.array([complex(ObstPar.cell(row=2,column=2).value)])
   epsr  =np.array([complex(ObstPar.cell(row=2,column=3).value)])
   sigma =np.array([complex(ObstPar.cell(row=2,column=4).value)])
   top=frequency*mu0*mur[-1]*1j
   bottom=sigma[-1]+eps0*frequency*epsr[-1]*1j
-  Znob =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
+  if bottom==0:
+    Znob=0
+  else:
+    Znob =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
   Znobrat=np.array([Znob/Z0])
   ObstPar.cell(row=2,column=5).value=str(Znob/Z0)
-  refindex=np.array([mur[-1]*epsr[-1]])
-  ObstPar.cell(row=2,column=6).value=str(refindex[-1])
-  for j in range(0,Ns):
-    if j+1<=NOut:
-      for i in range(1,int(Obst.cell(row=j+2,column=3).value*6+Obst.cell(row=j+2,column=4).value)):
-        mur   =np.append(mur,complex(ObstPar.cell(row=j+2,column=2).value))
-        epsr  =np.append(epsr ,complex(ObstPar.cell(row=j+2,column=3).value))
-        sigma =np.append(sigma,complex(ObstPar.cell(row=j+2,column=4).value))
-        top=frequency*mu0*mur[-1]*1j
-        bottom=sigma[-1]+eps0*frequency*epsr[-1]*1j
-        Znob =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
-        Znobrat=np.append(Znobrat,Znob/Z0)
-        ObstPar.cell(row=j+2,column=5).value=str(Znob/Z0)
-        if j > Nrs+1:
-          refindex=np.append(refindex,0+0j)
-        else:
-          refindex=np.append(refindex,mur[-1]*epsr[-1])
-    if NOut+Nobst+1>j+1>NOut:
-      for i in range(int(Obst.cell(row=j-NOut+2,column=3).value*6+Obst.cell(row=j-NOut+2,column=4).value)):
-        mur   =np.append(mur  ,complex(ObstPar.cell(row=j+2,column=2).value))
-        epsr  =np.append(epsr ,complex(ObstPar.cell(row=j+2,column=3).value))
-        sigma =np.append(sigma,complex(ObstPar.cell(row=j+2,column=4).value))
-        top    =frequency*mu0*mur[-1]*1j
-        bottom =sigma[-1]+eps0*frequency*epsr[-1]*1j
-        Znob   =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
-        Znobrat=np.append(Znobrat,Znob/Z0)
-        ObstPar.cell(row=j+2,column=5).value=str(Znob/Z0)
-        if j>Nrs+1:
-          refindex=np.append(refindex,0+0j)
-        else:
-          refindex=np.append(refindex,mur[-1]*epsr[-1])
-        ObstPar.cell(row=2,column=6).value=str(refindex[-1])
-  # CALCULATE OBSTACLE PARAMETERS
   PerfRef=SimPar.cell(row=11,column=3).value
-  if PerfRef:
-    refindex=np.zeros(Ns,dtype=np.complex128)          # Perfect Relection
-    refindex[0]=1 #np.sqrt(np.multiply(mur[0],epsr[0]))     # Refractive index of the obstacles
-    refindex[1]=1
+  if PerfRef and Znob!=0:
+    refindec=np.array([1+0j])
+  else:
+    refindex=np.array([mur[-1]*epsr[-1]])
+  ObstPar.cell(row=2,column=6).value=str(refindex[-1])
+  nre=0
+  for j in range(1,Ns):
+    box=int(OutB.cell(row=j+2,column=3).value)
+    surf=int(OutB.cell(row=j+2,column=4).value)
+    tri=int(OutB.cell(row=j+2,column=5).value)
+    if j+1<=NOut:
+      for i in range(1,6*box+2*surf+tri):
+        murj =complex(ObstPar.cell(row=j+2,column=2).value)
+        epsrj=complex(ObstPar.cell(row=j+2,column=3).value)
+        sigj =complex(ObstPar.cell(row=j+2,column=4).value)
+        mur   =np.append(mur  ,murj)
+        epsr  =np.append(epsr ,epsrj)
+        sigma =np.append(sigma,sigj)
+        top=frequency*mu0*murj*1j
+        bottom=sigj+eps0*frequency*epsrj*1j
+        if bottom==0:
+          Znob=0
+        else:
+          nre+=1
+          Znob   =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
+        Znobrat=np.append(Znobrat,Znob/Z0)
+        ObstPar.cell(row=j+2,column=5).value=str(Znob/Z0)
+        if nre > Nrs+1:
+          refindex=np.append(refindex,0+0j)
+          ObstPar.cell(row=j+2,column=6).value=str(0+0j)
+        else:
+          if PerfRef and Znob!=0:
+            refindex=np.append(refindex,1)
+            ObstPar.cell(row=j+2,column=6).value=str(1+0j)
+          else:
+            refindex=np.append(refindex,murj*epsrj)
+            ObstPar.cell(row=j+2,column=6).value=str(murj*epsrj)
+    if NOut+Nobst+1>j+1>NOut:
+      for i in range(1,box*6+surf*2+tri):
+        murj =complex(ObstPar.cell(row=j+2,column=2).value)
+        epsrj=complex(ObstPar.cell(row=j+2,column=3).value)
+        sigj =complex(ObstPar.cell(row=j+2,column=4).value)
+        mur   =np.append(mur  ,murj)
+        epsr  =np.append(epsr ,epsrj)
+        sigma =np.append(sigma,sigj)
+        top=frequency*mu0*murj*1j
+        bottom=sigj+eps0*frequency*epsrj*1j
+        if bottom==0:
+          Znob=0
+        else:
+          nre+=1
+          Znob   =np.sqrt(top/bottom)
+        Znobrat=np.append(Znobrat,Znob/Z0)
+        ObstPar.cell(row=j+2,column=5).value=str(Znob/Z0)
+        if nre>Nrs+1:
+          refindex=np.append(refindex,0+0j)
+          ObstPar.cell(row=j+2,column=6).value=str(0+0j)
+        else:
+          if PerfRef and Znob!=0:
+            refindex=np.append(refindex,1)
+            ObstPar.cell(row=j+2,column=6).value=str(1+0j)
+          else:
+            refindex=np.append(refindex,murj*epsrj)
+            ObstPar.cell(row=j+2,column=6).value=str(murj*epsrj)
+
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS
   # --------------------------------------------------------------------
@@ -575,6 +704,142 @@ def BoxBuild(xmi,xma,ymi,yma,zmi,zma):
   triangle12])
   return Box
 
+def initialload(index=0):
+  mu0,eps0,Z0,c=np.load('Parameters/Freespace%03d.npy'%index)
+  freq     =np.load('Parameters/frequency%03d.npy'%index)
+  lam=np.load('Parameters/lam%03d.npy'%index)
+  khat=np.load('Parameters/khat%03d.npy'%index)
+  _,_,L=np.load('Parameters/Antpar%03d.npy'%index)
+  Znobrat=np.load('Parameters/Znobrat%03d.npy'%index)
+  refindex=np.load('Parameters/refindex%03d.npy'%index)
+  Pol=np.load('Parameters/Pol%03d.npy'%index)
+
+  ResOn                       =np.load('Parameters/ResOn.npy')
+  logon                       =np.load('Parameters/logon.npy')
+  MaxInter                    =np.load('Parameters/MaxInter.npy')
+  testnum                     =np.load('Parameters/testnum.npy')
+  roomnumstat                 =np.load('Parameters/roomnumstat.npy')
+  timetest                    =np.load('Parameters/timetest.npy')
+  Nre,h,roomlengthscale,split =np.load('Parameters/Raytracing.npy')
+  Nra                         =np.load('Parameters/Nra.npy')
+  deltheta                    =np.load('Parameters/delangle.npy')
+  Oblist                      =np.load('Parameters/Obstacles.npy')
+  NtriOb                      =np.load('Parameters/NtriOb.npy')
+  InnerOb                     =np.load('Parameters/InnerOb.npy')
+  OutBoundary                 =np.load('Parameters/OuterBoundary.npy')
+  NtriOut                     =np.load('Parameters/NtriOut.npy')
+  Nob                         =np.load('Parameters/Nob.npy')
+  Ns                          =np.load('Parameters/Ns.npy')
+  Nrs                         =np.load('Parameters/Nrs.npy')
+  Tx                          =np.load('Parameters/Origin.npy')
+  LOS                         =np.load('Parameters/LOS.npy')
+  PerfRef                     =np.load('Parameters/PerfRef.npy')
+  AngChan                     =np.load('Parameters/AngChan.npy')
+  myfile = open('Parameters/runplottype.txt', 'rt') # open lorem.txt for reading text
+  plottype= myfile.read()         # read the entire file into a string
+  myfile.close()
+  logname='Parameters'+plottype+'.log'
+  logging.basicConfig(filename=logname,filemode='w',format="[%(asctime)s ]%(message)s",
+    level=logging.INFO,
+    datefmt='%Y-%m-%d %H:%M:%S')
+  logging.info(sys.version)
+  if ResOn:
+    msg='Residual to be calculated'
+  else:
+    msg='Residual calculation turned off'
+  print(msg)
+  logging.info(msg)
+  if logon:
+    msg='logging to be done'
+  else:
+    msg='logging turned off for speed.'
+  print(msg)
+  logging.info(msg)
+  if InnerOb:
+    msg='Interior obstacles included'
+  else:
+    msg='Only the bounding walls included'
+  print(msg)
+  logging.info(msg)
+  if  LOS:
+    msg='Only line of sight paths included'
+  else:
+    msg='LOS and refelected paths included'
+  print(msg)
+  logging.info(msg)
+  if PerfRef:
+    msg='Reflections are modelled as perfect with no loss'
+  else:
+    msg='loss is accounted for at reflection with angles used'
+  print(msg)
+  logging.info(msg)
+  if AngChan:
+    msg='Angles of reflection are corrected when the receiver is moved through cones or centre point'
+  else:
+    msg='Reflection angles for all points in the cone are determined by the ray'
+  print(msg)
+  logging.info(msg)
+
+  print('Permittivity in air',mu0)
+  print('Permeability in air',eps0)
+  print('Impedance of air',Z0)
+  print('Speed of light',c)
+  print('Frequency of EM wave',freq)
+  print('Wavelength',lam)
+  print('Non-dimensional wave number',khat)
+  print('Environment lengthscale',L)
+  print('Ratio of impedance of obstacles over impedance of air',Znobrat)
+  print('Refractive index of the obstacles',refindex)
+  print('Polarisation',Pol)
+  print('Maximum number of intersections for any ray ',MaxInter)
+  print('Number of runs of the algorithm for roomtypes ',testnum)
+  print('Starting number of different rooms ',roomnumstat)
+  print('Number of times to repeat the algorithm for testing times ',timetest)
+  print('Number of reflections ',Nre)
+  print('Mesh width ',h)
+  print('Room lengthscale ',L)
+  print('Steps through each voxel ',split)
+  print('Number of rays ',Nra)
+  print('Angle spacing ',deltheta)
+  print('All obstacles in the environment ',Oblist)
+  print('Number of triangles forming each obstacle ',  NtriOb)
+  print('The triangles forming the boundary of the environment ',OutBoundary)
+  print(' The number of triangles per boundary surface ',  NtriOut)
+  print('The total number of triangles forming obstacles in the environment ', Nob)
+  print('The number of steps to discretise the longest axis into ', Ns)
+  print('The number of reflective surface in the enironment (all others are totally absorbing) ',Nrs)
+  print('Position of the transmitter ',Tx)
+  logging.info('Permittivity in air %f+i%f'%(mu0.real,mu0.imag))
+  logging.info('Permeability in air %f+i%f'%(eps0.real,eps0.imag))
+  logging.info('Impedance of air %f+i%f'%(Z0.real,Z0.imag))
+  logging.info('Speed of light %f+i%f'%(c.real,c.imag))
+  logging.info('Frequency of EM wave %f'%freq)
+  logging.info('Wavelength %f'%lam)
+  logging.info('Non-dimensional wave number %f'%khat)
+  logging.info('Environment lengthscale %f'%L)
+  logging.info('Ratio of impedance of obstacles over impedance of air '+str(Znobrat))
+  logging.info('Refractive index of the obstacles '+str(refindex))
+  logging.info('Polarisation (%d,%d)'%(Pol[0],Pol[1]))
+  logging.info('Maximum number of intersections for any ray %d'%MaxInter)
+  logging.info('Number of runs of the algorithm for roomtypes %d'%testnum)
+  logging.info('Starting number of different rooms %d'%roomnumstat)
+  logging.info('Number of times to repeat the algorithm for testing times %d'%timetest)
+  logging.info('Number of reflections %d'%Nre)
+  logging.info('Mesh width %f'%h)
+  logging.info('Room lengthscale %f'%L)
+  logging.info('Steps through each voxel %d'%split)
+  logging.info('Number of rays '+str(Nra))
+  logging.info('Angle spacing '+str(deltheta))
+  logging.info('All obstacles in the environment '+str(Oblist))
+  logging.info('Number of triangles forming each obstacle '+str(NtriOb))
+  logging.info('The triangles forming the boundary of the environment '+str(OutBoundary))
+  logging.info(' The number of triangles per boundary surface '+str(NtriOut))
+  logging.info('The total number of triangles forming obstacles in the environment %d'%Nob)
+  logging.info('The number of steps to discretise the longest axis into %d'%Ns)
+  logging.info('The number of reflective surface in the enironment (all others are totally absorbing) %d'%Nrs)
+  logging.info('Position of the transmitter (%f,%f,%f)'%(Tx[0],Tx[1],Tx[2]))
+  return
+
 if __name__=='__main__':
   np.set_printoptions(precision=3)
   print('Running  on python version')
@@ -582,6 +847,7 @@ if __name__=='__main__':
   Sheetname='InputSheet.xlsx'
   out=DeclareParameters(Sheetname)
   out=ObstacleCoefficients(Sheetname)
+  initialload()
 
   exit()
 

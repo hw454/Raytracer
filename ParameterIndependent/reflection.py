@@ -13,8 +13,14 @@ import intersection as inter
 import linefunctions as lf
 import sys
 import math as ma
+import logging
 
 epsilon=sys.float_info.epsilon
+dbg=0
+if dbg:
+  logon=1
+else:
+  logon=np.load('Parameters/logon.npy')
 
 ##  Reflection of a ray with a triangle
 # @param ray=[p0,p1] p0 is the start of the ray and p1 should be the
@@ -44,6 +50,35 @@ def try_reflect_ray(ray,triangle):
   ray-=trdist
   normedge-=trdist
   ReflPt-=trdist
+  return np.array([ray[1], ReflPt])
+
+def room_reflect_ray(ray,room,ob):
+  # Find the distances which need to be translated
+  direc=lf.Direction(ray)
+  # Translate the points before the reflection
+  # Check the obstacle number is correct by checking that ray[1] is in room.obst[ob]
+  if dbg:
+    if not (inter.InsideCheck(ray[1],room.obst[ob]) or inter.InsideCheck(ray[1],room.obst[ob-1])):
+      logging.info('Inter point'+str(ray[1]))
+      logging.info('Triangle'+str(room.obst[ob]))
+      logging.info('Ob number %d'%ob)
+      logging.info('Inter point'+str(ray[1]))
+      logging.info('Triangle'+str(room.obst[ob-1]))
+      logging.info('Ob number %d'%(ob-1))
+      logging.info(inter.InsideCheck(ray[1],room.obst[ob-1]))
+    assert inter.InsideCheck(ray[1],room.obst[ob]) or inter.InsideCheck(ray[1],room.obst[ob-1])
+  normedge=room.norms[ob]
+  normleng=normedge@normedge
+  # Find the image of the ray in the edge
+  # The image point is the point if the ray was to continue going through the surface
+  normcoef=(direc)@normedge/normleng
+  normedge=normcoef*normedge
+  # Find the reflection using the Image
+  if abs(normcoef)>epsilon:
+    ReflPt=ray[1]+direc-2*normedge
+  else:
+    #Ray is normal to the surface so returns in opposite direction
+    ReflPt=ray[1]-direc
   return np.array([ray[1], ReflPt])
 
 # FIXME The plotting for the tests should go elsewhere

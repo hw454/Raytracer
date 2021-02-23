@@ -48,11 +48,17 @@ import logging
 import pdb
 import openpyxl as wb
 import xlrd as rd
+from itertools import product
 
 epsilon=sys.float_info.epsilon
-xcheck=1
-ycheck=0
-zcheck=0
+xcheck=4
+ycheck=2
+zcheck=9
+dbg=0
+if dbg:
+  logon=1
+else:
+  logon=np.load('Parameters/logon.npy')
 
 def RayTracer(job=0):
   ''' Reflect rays and output the points of reflection.
@@ -131,7 +137,7 @@ def RayTracer(job=0):
   for j in range(0,nra):
     # Calculate the Ray trajectories
     j=int(j)
-    directionname='Parameters/Directions%d.npy'%j
+    directionname='Parameters/Directions%d.npy'%Nra[j]
     Direc         =np.load(directionname)         # Matrix of intial ray directions for Nra rays.
     print('Starting trajectory calculation')
     print('-------------------------------')
@@ -244,13 +250,14 @@ def MeshProgram(SN,repeat=0,plottype=str(),job=0):
   ##----Retrieve the environment--------------------------------------
   ##----The lengths are non-dimensionalised---------------------------
   Oblist        =np.load('Parameters/Obstacles.npy').astype(float)      # The obstacles which are within the outerboundary
-  Tx            =np.load('Parameters/Origin_job%03d.npy'%job).astype(float)         # The location of the source antenna (origin of every ray)
+  Tx            =np.load('Parameters/Origin_job%03d.npy'%job).astype(float)# The location of the source antenna (origin of every ray)
   #OuterBoundary =np.load('Parameters/OuterBoundary.npy').astype(float)  # The Obstacles forming the outer boundary of the room
   deltheta      =np.load('Parameters/delangle.npy')             # Array of
   NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
   Ntri          =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
   InnerOb       =np.load('Parameters/InnerOb.npy')              # Whether the innerobjects should be included or not.
   MaxInter      =np.load('Parameters/MaxInter.npy')             # The number of intersections a single ray can have in the room in one direction.
+  AngChan       =np.load('Parameters/AngChan.npy')              # switch for whether angles should be corrected for the received points on cones and voxel centre.
 
   if InnerOb:
     Ntri=np.append(Ntri,NtriOb)
@@ -270,8 +277,9 @@ def MeshProgram(SN,repeat=0,plottype=str(),job=0):
   Nx=int(Room.maxxleng()/h)
   Ny=int(Room.maxyleng()/h)
   Nz=int(Room.maxzleng()/h)
-  DumbyMesh=DSM.DS(Nx,Ny,Nz)
-  rom.FindInnerPoints(Room,DumbyMesh)
+  if InnerOb:
+    DumbyMesh=DSM.DS(Nx,Ny,Nz)
+    rom.FindInnerPoints(Room,DumbyMesh)
   #--------------Run the ray tracer for each ray number-----------------
 
   for j in range(0,nra):
@@ -281,7 +289,8 @@ def MeshProgram(SN,repeat=0,plottype=str(),job=0):
     #print(Room.obst)
     #print('Inside P',Room.inside_points)
     if not Room.CheckTxInner(Tx):
-      logging.info('Tx=(%f,%f,%f) is not a valid transmitter location'%(Tx[0],Tx[1],Tx[2]))
+      if logon:
+        logging.info('Tx=(%f,%f,%f) is not a valid transmitter location'%(Tx[0],Tx[1],Tx[2]))
       print('This is not a valid transmitter location')
       return Mesh,timesmat,Room
     print('-------------------------------')
@@ -289,23 +298,23 @@ def MeshProgram(SN,repeat=0,plottype=str(),job=0):
     print('-------------------------------')
     t0=t.time()
     #-----------The input directions changes for each ray number.-------
-    directionname='Parameters/Directions%03d.npy'%j
+    directionname='Parameters/Directions%03d.npy'%Nra[j]
     Direc=np.load(directionname)
     '''Find the ray points and the mesh storing their information
     The rays are reflected Nre times in directions Direc from Tx then
     the information about their paths is stored in Mesh.'''
-    logging.info('Tx at(%f,%f,%f)'%(Tx[0],Tx[1],Tx[2]))
+    if logon:
+      logging.info('Tx at(%f,%f,%f)'%(Tx[0],Tx[1],Tx[2]))
     print('Tx',Tx)
-    Rays, Mesh=Room.ray_mesh_bounce(Tx,Nre,Nra[j],Direc,Mesh,deltheta[j])
-    assert Mesh.check_nonzero_col(Nre,Nsur)
-    #logging.info('Before doubles deleted'+str(Mesh[xcheck,ycheck,zcheck]))
-    #print('Deleting doubles')
-    Mesh,ind=Mesh.__del_doubles__(h,Nsur,Ntri=Room.Ntri)
-    #logging.info('After doubles deleted'+str(Mesh[xcheck,ycheck,zcheck]))
-    # if Mesh.check_nonzero_col(Nre):
-      # pass
-    # else:
-      # print('Too many nonzero terms in column after del')
+    programterms=np.array([Nra[j],Nre,AngChan,split,deltheta[j]])
+    Rays, Mesh=Room.ray_mesh_bounce(Tx,Direc,Mesh,programterms)
+    if dbg:
+      assert Mesh.check_nonzero_col(Nre,Nsur)
+      print('before del',Mesh[xcheck,ycheck,zcheck])
+      for l,m in product(Mesh[xcheck,ycheck,zcheck].nonzero()[0],Mesh[xcheck,ycheck,zcheck].nonzero()[1]):
+        print(l,m,abs(Mesh[xcheck,ycheck,zcheck][l,m]))
+      Mesh,ind=Mesh.__del_doubles__(h,Nsur,Ntri=Room.Ntri)
+      print('after del',Mesh[xcheck,ycheck,zcheck])
     t1=t.time()
     timesmat[j]=t1-t0
     #----------Save the Mesh for further calculations
@@ -330,7 +339,7 @@ def MeshProgram(SN,repeat=0,plottype=str(),job=0):
     print('-------------------------------')
   return Mesh,timesmat,Room
 
-def StdProgram(plottype,index=0):
+def StdProgram(SN,Roomnum=1,repeat=0,plottype=str(),job=0):
   ''' Refect rays and input object information output the power.
 
   Parameters for the raytracer are input in :py:mod:`ParameterInput`
@@ -398,93 +407,110 @@ def StdProgram(plottype,index=0):
   '''
   ##---- Define the room co-ordinates----------------------------------
   # Obstacles are triangles stored as three 3D co-ordinates
-
   ##----Retrieve the Raytracing Parameters-----------------------------
-  Nre,h,L,split =np.load('Parameters/Raytracing.npy')
-  Nra           =np.load('Parameters/Nra.npy')
+  Nre,h,L,split    =np.load('Parameters/Raytracing.npy')
+  Nra        =np.load('Parameters/Nra.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
-      nra=1
       Nra=np.array([Nra])
+      nra=1
   else:
       nra=len(Nra)
-  timemat=np.zeros(nra)
   Nre=int(Nre)
+  timesmat=np.zeros(nra)
 
-  ##----Retrieve the environment parameters--------------------------------------
+  ##----Retrieve the environment--------------------------------------
   ##----The lengths are non-dimensionalised---------------------------
   Oblist        =np.load('Parameters/Obstacles.npy').astype(float)      # The obstacles which are within the outerboundary
-  Tx            =np.load('Parameters/Origin.npy').astype(float)         # The location of the source antenna (origin of every ray)
-  OuterBoundary =np.load('Parameters/OuterBoundary.npy').astype(float)  # The Obstacles forming the outer boundary of the room
+  Tx            =np.load('Parameters/Origin_job%03d.npy'%job).astype(float)         # The location of the source antenna (origin of every ray)
+  #OuterBoundary =np.load('Parameters/OuterBoundary.npy').astype(float)  # The Obstacles forming the outer boundary of the room
   deltheta      =np.load('Parameters/delangle.npy')             # Array of
   NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
-  NtriOut       =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
+  Ntri          =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
   InnerOb       =np.load('Parameters/InnerOb.npy')              # Whether the innerobjects should be included or not.
-  # if InnerOb:
-    # Oblist=np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
-    # Ntri=np.append(NtriOb,NtriOut)
-  # else:
-    # Oblist=OuterBoundary
-    # Ntri=NtriOut
+  MaxInter      =np.load('Parameters/MaxInter.npy')             # The number of intersections a single ray can have in the room in one direction.
 
-  # Room contains all the obstacles and walls.
-  Room=rom.room(Oblist)
+  if InnerOb:
+    Ntri=np.append(Ntri,NtriOb)
+
+  # Room contains all the obstacles and walls as well as the number of max intersections any ray segment can have,
+  #the number of obstacles (each traingle is separate in this list), number of triangles making up each surface,
+  #the number of surfaces.
+  Room=rom.room(Oblist,Ntri)
   Nob=Room.Nob
+  Room.__set_MaxInter__(MaxInter)
   Nsur=Room.Nsur
-  np.save('Parameters/Nsur.npy',Nsur)
+  print('Number of obstacles',Nob)
+  # This number will be used in further functions so resaving will ensure the correct number is used.
   np.save('Parameters/Nob.npy',Nob)
+  np.save('Parameters/Nsur.npy',Nsur)
 
   ##----Retrieve the antenna parameters--------------------------------------
-  ##----Retrieve the Raytracing Parameters-----------------------------
   PerfRef    =np.load('Parameters/PerfRef.npy')
+  # Indicates whether reflection coefficents are calculated (0) or whether a perfect reflection should be used (1).
   LOS        =np.load('Parameters/LOS.npy')
-  freq          = np.load('Parameters/frequency%03d.npy'%index)
-  Freespace     = np.load('Parameters/Freespace%03d.npy'%index)
-  Pol           = np.load('Parameters/Pol%03d.npy'%index)
-  c             =Freespace[3]
-  Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
-  khat          =Antpar[0]
-  lam           =Antpar[1]
-  L             =Antpar[2]
-
-  ##----Retrieve the Obstacle Parameters--------------------------------------
-  Znobrat      =np.load('Parameters/Znobrat%03d.npy'%index)
-  refindex     =np.load('Parameters/refindex%03d.npy'%index)
-
-  Znobrat=np.insert(Znobrat,0,1.0+0.0j)     # Use a zero for placement in the LOS row
-  refindex=np.insert(refindex,0,1.0+0.0j)
 
   Nx=int(Room.maxxleng()/(h)+1)
   Ny=int(Room.maxyleng()/(h)+1)
   Nz=int(Room.maxzleng()/(h)+1)
   Mesh=np.zeros((Nx,Ny,Nz,2),dtype=np.complex128)
+  # There are two terms in each grid point to account for the polarisation directions.
   print('-------------------------------')
   print('Mesh for Std program built')
   print('-------------------------------')
   print('Starting the ray bouncing and field storage')
   print('-------------------------------')
   for j in range(0,nra):
-    t0=t.time()
-    directionname=str('Parameters/Directions%03d_tx%03d.npy'%(j,job))
-    Direc=np.load(directionname)
-    Nr=int(Nra[j])
-    gainname      ='Parameters/Tx%03dGains%03d_tx%03d.npy'%(Nr,index,job)
-    Gt            = np.load(gainname)
-    Rays, Grid=Room.ray_mesh_power_bounce(Tx,Nre,Nra[j],Direc,Mesh,Znobrat,refindex,Antpar,Gt,Pol,deltheta)
-    if not os.path.exists('./Mesh'):
-      os.makedirs('./Mesh')
-      os.makedirs('./Mesh/'+plottype)
-    if not os.path.exists('./Mesh/'+plottype):
-      os.makedirs('./Mesh/'+plottype)
-    stdraypointname='./Mesh/'+plottype+'/RayMeshPointsstd%03dRefs%03dm_tx%03d.npy'%(Nr,Nre,job)
-    np.save(stdraypointname,Rays*L)
-    stdGridname='./Mesh/'+plottype+'/Power_gridstd%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
-    np.save(stdGridname,Grid)
-    t1=t.time()
-    timemat[j]=t1-t0
-    print('-------------------------------')
-    print('Ray-launching std complete')
-    print('Time taken',t1-t0)
-    print('-------------------------------')
+    for index in range(Roomnum):
+      # Indicates whether all terms after reflection should be ignored and line of sight modelled (1). (0) if reflection should be included.
+      freq          = np.load('Parameters/frequency%03d.npy'%index)
+      # The frequency in GHz associated with the antenna.
+      Freespace     = np.load('Parameters/Freespace%03d.npy'%index)
+      # The permmittivty and permeability of air
+      Pol           = np.load('Parameters/Pol%03d.npy'%index)
+      # Polarisation of the antenna.
+      c             =Freespace[3]
+      # Speed of light in freespace
+      Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
+      # Antenna parameters=[khat,lam,L]
+
+      # Length scale of the environment. (length of the longest axis)
+
+      ##----Retrieve the Obstacle Parameters--------------------------------------
+      Znobrat      =np.load('Parameters/Znobrat%03d.npy'%index)
+      # Ratio of the impedance of each obstacle divided by the impedance of air.
+      refindex     =np.load('Parameters/refindex%03d.npy'%index)
+      # The refractive index of each obstacle
+
+      Znobrat=np.insert(Znobrat,0,1.0+0.0j)     # Use a 1 for placement in the LOS row
+      refindex=np.insert(refindex,0,1.0+0.0j)   # Use a 1 for placement in the LOS row
+      if not Room.CheckTxInner(Tx): # Check that the transmitter location is not inside an obstacle
+        if logon:
+          logging.info('Tx=(%f,%f,%f) is not a valid transmitter location'%(Tx[0],Tx[1],Tx[2]))
+        print('This is not a valid transmitter location')
+        return Mesh,timesmat,Room
+      t0=t.time()
+      directionname=str('Parameters/Directions%03d.npy'%(Nra[j]))
+      Direc=np.load(directionname)
+      Nr=int(Nra[j])
+      gainname      ='Parameters/Tx%dGains%d.npy'%(Nr,index)
+      Gt            = np.load(gainname)
+      programterms=np.array([Nr,Nr,AngChan,split,deltheta[j]])
+      Rays, Grid=Room.ray_mesh_power_bounce(Tx,Direc,Mesh,Znobrat,refindex,Antpar,Gt,Pol,programterms)
+      if not os.path.exists('./Mesh'):
+        os.makedirs('./Mesh')
+        os.makedirs('./Mesh/'+plottype)
+      if not os.path.exists('./Mesh/'+plottype):
+        os.makedirs('./Mesh/'+plottype)
+      stdraypointname='./Mesh/'+plottype+'/RayMeshPointsstd%03dRefs%03dm_tx%03d.npy'%(Nr,Nre,job)
+      np.save(stdraypointname,Rays*L)
+      stdGridname='./Mesh/'+plottype+'/Power_gridstd%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
+      np.save(stdGridname,Grid)
+      t1=t.time()
+      timemat[j]=t1-t0
+      print('-------------------------------')
+      print('Ray-launching std complete')
+      print('Time taken',t1-t0)
+      print('-------------------------------')
   return Grid,timemat
 
 def power_grid(SN,room,repeat=0,plottype=str(),Roomnum=0,job=0):
@@ -524,8 +550,8 @@ def power_grid(SN,room,repeat=0,plottype=str(),Roomnum=0,job=0):
   Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
   Nra        =np.load('Parameters/Nra.npy')
   InnerOb    =np.load('Parameters/InnerOb.npy')
-  Nob            =np.load('Parameters/Nob.npy')
-  Nsur            =np.load('Parameters/Nsur.npy')
+  Nob        =np.load('Parameters/Nob.npy')
+  Nsur       =np.load('Parameters/Nsur.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       nra=np.array([Nra])
   else:
@@ -575,7 +601,7 @@ def power_grid(SN,room,repeat=0,plottype=str(),Roomnum=0,job=0):
       refindex=np.tile(refindex,(Nre,1))        # The number of rows is Nsur*Nre+1. Repeat refindex to match Mesh dimensions
       refindex=np.insert(refindex,0,1.0+0.0j)   # Use a 1 for placement in the LOS row
       Gt=np.tile(Gt,(Nre+1,1))
-
+      print(refindex,Znobrat)
       # Calculate the necessry parameters for the power calculation.
       c             =Freespace[3]            # Speed of Light
       Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
@@ -592,11 +618,11 @@ def power_grid(SN,room,repeat=0,plottype=str(),Roomnum=0,job=0):
       if not os.path.exists('./Mesh/'+plottype):
         os.makedirs('./Mesh/'+plottype)
       np.save('./Mesh/'+plottype+'/'+Box+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job),Grid)
-      os.rename(r'./Mesh/'+plottype+'/RadA_grid%dRefs%dm%d.npy'%(Nra,Nre,0),r'./Mesh/'+plottype+'/'+Box+'RadA_grid%dRefs%dm%d_tx%03d.npy'%(Nra,Nre,0,job))
+      os.rename(r'./Mesh/'+plottype+'/RadA_grid%dRefs%dm%d.npy'%(Nr,Nre,0),r'./Mesh/'+plottype+'/'+Box+'RadA_grid%dRefs%dm%d_tx%03d.npy'%(Nr,Nre,0,job))
       if not LOS:
-        os.rename(r'./Mesh/'+plottype+'/AngNpy.npy',r'./Mesh/'+plottype+'/'+Box+'AngNpy%03dRefs%03dNs%03d_tx%03d.npy'%(Nra,Nre,Ns,job))
+        os.rename(r'./Mesh/'+plottype+'/AngNpy.npy',r'./Mesh/'+plottype+'/'+Box+'AngNpy%03dRefs%03dNs%03d_tx%03d.npy'%(Nr,Nre,Ns,job))
         for su in range(0,Nsur):
-          os.rename(r'./Mesh/'+plottype+'/RadS%d_grid%dRefs%dm%d.npy'%(su,Nra,Nre,0),r'./Mesh/'+plottype+'/'+Box+'RadS%d_grid%dRefs%dm%d_tx%03d.npy'%(su,Nra,Nre,0,job))
+          os.rename(r'./Mesh/'+plottype+'/RadS%d_grid%dRefs%dm%d.npy'%(su,Nr,Nre,0),r'./Mesh/'+plottype+'/'+Box+'RadS%d_grid%dRefs%dm%d_tx%03d.npy'%(su,Nr,Nre,0,job))
       G_z[0,j]=np.count_nonzero((Grid==0))
     t1=t.time()
     timemat[j]=t1-t0
@@ -607,7 +633,7 @@ def power_grid(SN,room,repeat=0,plottype=str(),Roomnum=0,job=0):
   print('-------------------------------')
   return Grid,G_z,timemat
 
-def Residual(plottype=str(),Roomnum=0):
+def Residual(plottype=str(),box=str(),Roomnum=0,job=0):
   ''' Compute the residual between the computed mesh and the true mesh summed over x,y,z and averaged
   '''
   Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
@@ -626,18 +652,24 @@ def Residual(plottype=str(),Roomnum=0):
     for j in range(0,nra):
       Nr=int(Nra[j])
       Nre=int(Nre)
-      pstr       ='./Mesh/'+plottype+'/Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
-      truestr    ='./Mesh/True/'+plottype+'/True.npy'
-      Pt   =np.load(truestr)
-      Pthat=DSM.db_to_Watts(Pt)
-      P    =np.load(pstr)
-      Phat =DSM.db_to_Watts(P)
-      rat  =Phat/Pthat
-      err[j]+=DSM.Watts_to_db(np.sum(rat)/(P.shape[0]*P.shape[1]*P.shape[2]))
-      pratstr='./Mesh/'+plottype+'/PowerRat_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
-      np.save(pratstr,rat)
-      ResStr  ='./Errors/'+plottype+'/Residual%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
-      np.save(ResStr,err[j])
+      pstr       ='./Mesh/'+plottype+'/'+box+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
+      truestr    ='./Mesh/True/'+plottype+'/True_tx%03d.npy'%job
+      if os.path.isfile(truestr) and os.path.isfile(pstr):
+        Pt   =np.load(truestr)
+        Pthat=DSM.db_to_Watts(Pt)
+        P    =np.load(pstr)
+        Phat =DSM.db_to_Watts(P)
+        rat  =abs(Phat-Pthat)
+        err[j]+=DSM.Watts_to_db(np.sum(rat)/(P.shape[0]*P.shape[1]*P.shape[2]))
+        pratstr='./Mesh/'+plottype+'/'+box+'PowerRes_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
+        np.save(pratstr,rat)
+        if not os.path.exists('./Errors'):
+          mkdir('./Errors/')
+          mkdir('./Errors/'+plottype)
+        if not os.path.exists('./Errors/'+plottype):
+          mkdir('./Errors/'+plottype)
+        ResStr  ='./Errors/'+plottype+'/'+box+'Residual%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
+        np.save(ResStr,err[j])
   return err
 
 def Quality(SN,repeat=0,plottype=str(),Roomnum=0,job=0):
@@ -721,6 +753,11 @@ def MoveTx(job,Nx,Ny,Nz,Tx,h,L):
   np.save('Parameters/Origin_job%03d.npy'%job,Tx)
   return Tx
 
+def jobfromTx(Tx,h):
+  H=(Tx[2]-0.5*h)//h
+  t=(Tx[0]-0.5*h)//h
+  u=(Tx[1]-0.5*h)//h
+  return int(H*100+t*10+u)
 
 def main(argv,verbose=False):
   job=0 # default job
@@ -728,6 +765,10 @@ def main(argv,verbose=False):
   fn='ray_trace_output_%03d.txt'%job
   if verbose:
     print('main called with job=%3d, using output filename=%s'%(job,fn,))
+  else:
+    Tx=np.load('Parameters/Origin.npy')
+    h=np.load('Parameters/Raytracing.npy')[1]
+    job=jobfromTx(Tx,h)
   np.set_printoptions(precision=3)
   print('Running  on python version')
   print(sys.version)
@@ -740,8 +781,8 @@ def main(argv,verbose=False):
   roomnumstat=np.load('Parameters/roomnumstat.npy')
   ResOn      =np.load('Parameters/ResOn.npy')
   InnerOb    =np.load('Parameters/InnerOb.npy')
-  Nre,h,L     =np.load('Parameters/Raytracing.npy')[0:3]
-  Tx=np.load('Parameters/Origin.npy')
+  Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
+  #Tx=np.load('Parameters/Origin.npy')
   ##----Retrieve the environment--------------------------------------
   ##----The lengths are non-dimensionalised---------------------------
   Oblist     =np.load('Parameters/Obstacles.npy').astype(float)      # The obstacles which are within the outerboundary
@@ -765,7 +806,10 @@ def main(argv,verbose=False):
   else:
       nra=len(Nra)
   # Call another function which moves the transmitter using job.
-  Tx=MoveTx(job,Nx,Ny,Nz,Tx,h,L)
+  if verbose:
+    Tx=MoveTx(job,Nx,Ny,Nz,Tx,h,L)
+  else:
+    np.save('Parameters/Origin_job%03d.npy'%job,Tx)
   InBook     =rd.open_workbook(filename=Sheetname)#,data_only=True)
   SimParstr  ='SimulationParameters'
   SimPar     =InBook.sheet_by_name(SimParstr)
@@ -777,11 +821,12 @@ def main(argv,verbose=False):
     Reserr  =np.zeros((testnum,nra))
   Timemat =np.zeros((testnum,nra,8))
   repeat=1
-  logname='RayTracer'+plottype+'%03d.log'%job
-  logging.basicConfig(filename=logname,filemode='w',format="[%(asctime)s %(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s",
-    level=logging.INFO,
-    datefmt='%Y-%m-%d %H:%M:%S')
-  logging.info(sys.version)
+  if logon:
+    logname='RayTracer'+plottype+'%03d.log'%job
+    logging.basicConfig(filename=logname,filemode='w',format="[%(asctime)s %(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s",
+      level=logging.INFO,
+      datefmt='%Y-%m-%d %H:%M:%S')
+    logging.info(sys.version)
   if not os.path.exists('./Quality'):
     os.makedirs('./Quality')
   if not os.path.exists('./Quality/'+plottype):
@@ -802,22 +847,28 @@ def main(argv,verbose=False):
       Mesh1,timemesh,Room=MeshProgram(Sheetname,repeat,plottype,job) # Shoot the rays and store the information
       mid=t.time()
       Grid,G_z,timep=power_grid(Sheetname,Room,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
-      repeat=1
-      G_zeros[count,:]=G_z
-      Q             =Quality(Sheetname,repeat,plottype,Roomnum,job)
-      Qmat[count,:]=Q
-      #Qtruemat[count,:]=Q2
-      end=t.time()
+      # repeat=1
+      # #G_zeros[count,:]=G_z
+      # #Q             =Quality(Sheetname,repeat,plottype,Roomnum,job)
+      # #Qmat[count,:]=Q
+      # #Qtruemat[count,:]=Q2
+      # end=t.time()
       if ResOn:
-        Reserr[count,:]+=Residual(plottype,Roomnum)/Roomnum
-      Timemat[count,:,0]+=Roomnum
-      Timemat[count,:,1]+=timemesh
-      Timemat[count,:,2]+=timep/(Roomnum)
-      if count !=0:
-        Timemat[0,:,2]+=timep/(Roomnum)
-      Timemat[count,:,3]+=timep
-      Timemat[count,:,4]+=timep+timemesh
-      Timemat[count,:,5]+=(timep+timemesh)/(Roomnum)
+        Reserr[count,:]+=Residual(plottype,box,Roomnum,job)/Roomnum
+      #Timemat[count,:,0]+=Roomnum
+      #Timemat[count,:,1]+=timemesh
+      #Timemat[count,:,2]+=timep/(Roomnum)
+      #if count !=0:
+      #  Timemat[0,:,2]+=timep/(Roomnum)
+      #Timemat[count,:,3]+=timep
+      #Timemat[count,:,4]+=timep+timemesh
+      #Timemat[count,:,5]+=(timep+timemesh)/(Roomnum)
+      start2=t.time()
+      #Pstd,timemesh2=StdProgram(Sheetname,Roomnum,repeat,plottype,job) # Shoot the rays and store the information
+      repeat=1
+      end2=t.time()
+      Timemat[count,:,6]+=Roomnum
+      #Timemat[count,:,7]+=timemesh2
   Timemat[:,:,2]/=(testnum)
   Timemat[:,:,5]/=(testnum)
   Timemat/=(timetest)

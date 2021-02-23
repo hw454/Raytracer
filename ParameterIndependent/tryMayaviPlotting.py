@@ -14,6 +14,7 @@ from mayavi import mlab
 from pyface.api import GUI
 import scipy.sparse.linalg
 from itertools import product
+import matplotlib.pyplot as mp
 
 epsilon=sys.float_info.epsilon
 
@@ -28,11 +29,6 @@ def PlotRays(plottype=str()):
     else:
       nra=len(Nra)
     Nre,h ,L    =np.load('Parameters/Raytracing.npy')[0:3]
-    #Nra=98
-    #Nre=5
-
-    #L=1
-    #Nra=int(np.sqrt(Nrao/2.0)-1)*int(np.sqrt(2.0*Nrao))+1
 
     ##----Retrieve the environment--------------------------------------
     Oblist        =np.load('Parameters/Obstacles.npy')
@@ -59,24 +55,27 @@ def PlotRays(plottype=str()):
     mlab.savefig('ConeFigures/'+plottype+'/Room.jpg',size=(1000,1000))
     mlab.clf()
     mlab.close(all=True)
-    for i in range(nra):
+    for i in range(1):#nra):
+      job=jobfromTx(Tx,h)
       mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.25)
       ##---Retrieve the Ray points ---------------------------------------
-      data_matrix=np.load('./Mesh/'+plottype+'/RayMeshPoints%dRefs%dm.npy'%(Nra[i],Nre))
-      #data_matrix=data_matrix #print(data_matrix)
+      data_matrix=np.load('./Mesh/'+plottype+'/RayMeshPoints%03dRefs%03d_tx%03d.npy'%(Nra[i],Nre,job))
+      print(Nre)
+      print(data_matrix.shape)
       for j in range(0,int(Nra[i])):
         for l in range(0,int(Nre)+1):
-          if l==0:
-            x=np.array([data_matrix[j][0][0]])
-            y=np.array([data_matrix[j][0][1]])
-            z=np.array([data_matrix[j][0][2]])
-          else:
-            xp=np.array([data_matrix[j][l][0]])
-            yp=np.array([data_matrix[j][l][1]])
-            zp=np.array([data_matrix[j][l][2]])
-            x=np.append(x,xp)
-            y=np.append(y,yp)
-            z=np.append(z,zp)
+          if not any(ma.isnan(d) for d in data_matrix[j][l]):
+            if l==0:
+              x=np.array([data_matrix[j][0][0]])
+              y=np.array([data_matrix[j][0][1]])
+              z=np.array([data_matrix[j][0][2]])
+            else:
+              xp=np.array([data_matrix[j][l][0]])
+              yp=np.array([data_matrix[j][l][1]])
+              zp=np.array([data_matrix[j][l][2]])
+              x=np.append(x,xp)
+              y=np.append(y,yp)
+              z=np.append(z,zp)
         mlab.plot3d(x,y,z,color= (0, 1, 1),opacity=0.5)
       for k in range(0,RoomP.shape[0],3):
         x=np.array([RoomP[k][0],RoomP[k+1][0],RoomP[k+2][0],RoomP[k][0]])
@@ -89,9 +88,8 @@ def PlotRays(plottype=str()):
       if not os.path.exists('./ConeFigures/'+plottype):
         os.makedirs('./ConeFigures/'+plottype)
       mlab.savefig('ConeFigures/'+plottype+'/Room%d.jpg'%Nra[i],size=(1000,1000))
-      #gui = GUI()
       #gui.start_event_loop()
-      mlab.clf()
+      #mlab.clf()
  #     mlab.close(all=True)
     return
 
@@ -202,6 +200,299 @@ def PlotCones(plottype):
       mlab.close(all=True)
     #mlab.show()
     return
+
+def PlotConesGains(plottype):
+    '''Plot the cone calculations.'''
+
+    ##----Retrieve the Raytracing Parameters-----------------------------
+    Nra         =np.load('Parameters/Nra.npy')
+    if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
+      Nra=np.array([Nra])
+      nra=1
+    else:
+      nra=len(Nra)
+    Nre,h ,L =np.load('Parameters/Raytracing.npy')[0:3]
+    # Take Tx to be 0,0,0
+    delangle     =np.load('Parameters/delangle.npy')
+    mulfac=1
+    cophi=0
+    siphi=0
+    for i in range(0,nra):
+      directionname='Parameters/Directions%03d.npy'%Nra[i]
+      data_matrix   =np.load(directionname)         # Matrix of ray directions
+      ray_matrix=np.zeros((Nra[i],3))
+      mlab.points3d(0,0,0,scale_factor=0.1)
+      zsteps=int(np.pi/delangle[i])
+      nre=0
+      dist=1 #L
+      Ncon=ra.no_cones(h,dist,delangle[i],0,nre)
+      anglevec=np.linspace(0.0,2*ma.pi,num=int(Ncon), endpoint=False) # Create an array of all the angles
+      Norm=np.zeros((Ncon,3),dtype=np.float) # Initialise the matrix of normals
+      Cones=np.zeros((int(Nra[i])*Ncon,2,3))
+      for j in range(0,int(Nra[i])):#int(Nrao)):
+        d=data_matrix[j][0:3]/np.linalg.norm(data_matrix[j][0:3])
+        r=np.linalg.norm(d)
+        if d[0]!=0:
+          theta=np.arctan(d[1]/d[0])
+        else:
+          theta=np.pi/2
+        if d[0]<0 and d[1]>0:
+          theta=np.pi-abs(theta)
+        elif d[0]<0 and d[1]<0:
+          theta=np.pi+abs(theta)
+        elif d[0]>0 and d[1]<0:
+          theta=2*np.pi-abs(theta)
+        phi=np.arccos(d[2]/r)
+        if np.pi/2 <= theta <= 3*np.pi/2:
+          cothe=np.cos(theta)
+          sithe=np.sin(theta)
+        else:
+          cothe=0.5*np.cos(5*theta)
+          sithe=0.5*np.sin(5*theta)
+        if np.pi/4 <= phi <= 3*np.pi/4:
+          cophi=np.cos(2*phi+np.pi/2)
+          siphi=np.sin(2*phi+np.pi/2)
+        #print(mulfac,theta,phi,data_matrix[j])
+        #cx,cy,cz,cs=mulfac*data_matrix[j]/np.linalg.norm(data_matrix[j])
+        mulfac=(2*(cothe**2)+siphi**2)**0.5
+        ray_matrix[j]=mulfac*d
+        cx,cy,cz=ray_matrix[j][0:3]
+        #d=data_matrix[j][0:3]/np.linalg.norm(data_matrix[j][0:3])                  # Normalise the direction of the ray
+        if abs(d[2])>0 and Ncon>0:
+         Norm[0]=np.array([1,1,-(d[0]+d[1])/d[2]])# This vector will lie in the plane unless d_z=0
+         Norm[0]/=np.linalg.norm(Norm[0]) # Normalise the vector
+         yax=np.cross(Norm[0],d)            # Compute another vector in the plane for the axis.
+         yax/=np.linalg.norm(yax)             # Normalise y. y and Norm[0] are now the co-ordinate axis in the plane.
+        elif Ncon>0:
+         Norm[0]=np.array([0,0,1])        # If d_z is 0 then this vector is always in the plane.
+         yax=np.cross(Norm[0],d)            # Compute another vector in the plane to form co-ordinate axis.
+         yax/=np.linalg.norm(yax)             # Normalise y. y and Norm[0] are now the co-ordinate axis in the plane.
+        if Ncon>0:
+          Norm=np.outer(np.cos(anglevec),Norm[0])+np.outer(np.sin(anglevec),yax) # Use the outer product to multiple the axis
+        delth=ra.angle_space(delangle[i],nre)
+        beta=ra.beta_leng(dist*mulfac,delth,0)
+        #print(beta,j)
+        for k in range(0,Ncon):
+          Cones[j*Ncon+k][0]=np.array([cx,cy,cz])
+          Cones[j*Ncon+k][1]=(mulfac*data_matrix[j][0:3]/np.linalg.norm(data_matrix[j][0:3]))+beta*Norm[k]
+      if not os.path.exists('./ConeFigures'):
+        os.makedirs('./ConeFigures')
+        os.makedirs('./ConeFigures/'+plottype)
+      if not os.path.exists('./ConeFigures/'+plottype):
+        os.makedirs('./ConeFigures/'+plottype)
+      for j in range(0,int(Nra[i])):
+        x=0
+        y=0
+        z=0
+        x2,y2,z2=ray_matrix[j][0:3]
+        x=np.append(x,[x2])
+        y=np.append(y,[y2])
+        z=np.append(z,[z2])
+        mlab.plot3d(x,y,z,color= (0, 1, 1))
+      mlab.savefig('ConeFigures/'+plottype+'/RaysGains%d.jpg'%Nra[i],size=(1000,1000))
+      N=int(zsteps)
+      count=0
+      for j in range(0,Nra[i]*Ncon):
+            x=np.array([Cones[j][0][0]])
+            y=np.array([Cones[j][0][1]])
+            z=np.array([Cones[j][0][2]])
+            xp=np.append(x,[Cones[j][1][0]])
+            yp=np.append(y,[Cones[j][1][1]])
+            zp=np.append(z,[Cones[j][1][2]])
+            mlab.plot3d(xp,yp,zp,color= (1,0,1))
+            xp=np.append(0,[Cones[j][1][0]])
+            yp=np.append(0,[Cones[j][1][1]])
+            zp=np.append(0,[Cones[j][1][2]])
+            mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.25)
+            #count+=1
+      mlab.show()
+      filename='ConeFigures/'+plottype+'/ConesWithGains%03d.jpg'%Nra[i]
+      mlab.savefig(filename,size=(1000,1000))
+      #mlab.clf()
+      #mlab.close(all=True)
+    #mlab.show()
+    return
+
+def PlotPolarTheoryGains(plottype):
+    '''Plot the cone calculations.'''
+    mulfac=1
+    steps=1000
+    theta_matrix=np.linspace(0,2*np.pi,steps)
+    phi_matrix  =np.linspace(0,np.pi,steps)
+    polarhoz_matrix=np.zeros((steps,2))
+    polarvert_matrix=np.zeros((steps,2))
+    for j in range(0,steps):#int(Nrao)):
+      theta=theta_matrix[j]
+      phi  =phi_matrix[j]
+      if np.pi/2 <= theta <= 3*np.pi/2:
+        cothe=np.cos(theta)
+        sithe=np.sin(theta)
+      #elif 2*np.pi/3 < theta <= np.pi :
+       # mulfacthe=0.25+0.25*(np.pi-theta)*3/np.pi
+      #elif 0 <= theta < np.pi/3:
+       # mulfacthe=0.25+0.25*(theta)*3/np.pi
+      #elif 5*np.pi/3 < theta <= 2*np.pi :
+       # mulfacthe=0.25*(2*np.pi-theta)/np.pi
+      else:
+        cothe=0.5*np.cos(5*theta)
+        sithe=0.5*np.sin(5*theta)
+      if np.pi/4 <= phi <= 3*np.pi/4:
+        cophi=np.cos(2*phi+np.pi/2)
+        siphi=np.sin(2*phi+np.pi/2)
+      #elif 0 <= phi < np.pi/4:
+       # mulfacphi=0.25*( phi)*4/np.pi
+      #elif 3*np.pi/4 < phi <= np.pi:
+      #  mulfacphi=0.25*(np.pi-phi)*4/np.pi
+      else:
+        cophi=0.5*np.cos(12*phi)
+        siphi=0.5*np.sin(12*phi)
+      radhoz=abs(cothe)
+      radver=abs(siphi)
+      polarhoz_matrix[j]=theta,radhoz
+      polarvert_matrix[j]=phi,radver
+    if not os.path.exists('./ConeFigures'):
+      os.makedirs('./ConeFigures')
+    mp.figure(1)
+    #print(polarhoz_matrix)
+    #polarhoz_matrix=np.sort(polarhoz_matrix,1)
+    mp.polar(polarhoz_matrix[:,0],polarhoz_matrix[:,1])
+    filename='ConeFigures/GainsPatternHozTheory.jpg'
+    mp.title('Angle to the horizontal plane and antenna gain')
+    mp.savefig(filename)
+    mp.figure(2)
+    mp.polar(polarvert_matrix[:,0],polarvert_matrix[:,1])
+    filename='ConeFigures/GainsPatternVertTheory.jpg'
+    mp.title('Angle to the z-axis and antenna gain')
+    mp.savefig(filename)
+    mp.show()
+    mp.clf()
+    return
+
+def PlotPolarGains(plottype):
+    '''Plot the cone calculations.'''
+
+    ##----Retrieve the Raytracing Parameters-----------------------------
+    Nra         =np.load('Parameters/Nra.npy')
+    if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
+      Nra=np.array([Nra])
+      nra=1
+    else:
+      nra=len(Nra)
+    Nre,h ,L =np.load('Parameters/Raytracing.npy')[0:3]
+    # Take Tx to be 0,0,0
+    delangle     =np.load('Parameters/delangle.npy')
+    mulfac=1
+    cothe=0
+    sithe=0
+    cophi=0
+    siphi=0
+    for i in range(0,nra):
+      directionname='Parameters/Directions%03d.npy'%Nra[i]
+      data_matrix   =np.load(directionname)         # Matrix of ray directions
+      nre=0
+      dist=1 #L
+      Ncon=ra.no_cones(h,dist,delangle[i],0,nre)
+      anglevec=np.linspace(0.0,2*ma.pi,num=int(Ncon), endpoint=False) # Create an array of all the angles
+      Norm=np.zeros((Ncon,3),dtype=np.float) # Initialise the matrix of normals
+      Cones=np.zeros((int(Nra[i])*Ncon,2,3))
+      radhoz_matrix=np.zeros((Nra[i]*(Ncon+1),1))
+      radvert_matrix=np.zeros((Nra[i]*(Ncon+1),1))
+      theta_matrix=np.zeros((Nra[i]*(Ncon+1),1))
+      phi_matrix=np.zeros((Nra[i]*(Ncon+1),1))
+      polarhoz_matrix=np.zeros((Nra[i]*(Ncon+1),2))
+      polarvert_matrix=np.zeros((Nra[i]*(Ncon+1),2))
+      for j in range(0,int(Nra[i])):#int(Nrao)):
+        d=data_matrix[j]
+        r=np.linalg.norm(d)
+        if d[0]!=0:
+          theta=np.arctan(d[1]/d[0])
+        else:
+          theta=np.pi/2
+        if d[0]<0 and d[1]>0:
+          theta=np.pi-abs(theta)
+        elif d[0]<0 and d[1]<0:
+          theta=np.pi+abs(theta)
+        elif d[0]>0 and d[1]<0:
+          theta=2*np.pi-abs(theta)
+        phi=np.arccos(d[2]/r)
+        if np.pi/2 <= theta <= 3*np.pi/2:
+          cothe=np.cos(theta)
+          sithe=np.sin(theta)
+        else:
+          cothe=0.5*np.cos(5*theta)
+          sithe=0.5*np.sin(5*theta)
+        if np.pi/4 <= phi <= 3*np.pi/4:
+          cophi=np.cos(2*phi+np.pi/2)
+          siphi=np.sin(2*phi+np.pi/2)
+        cx,cy,cz,cs=data_matrix[j]/np.linalg.norm(data_matrix[j])
+        #cx*=cophi*cothe
+        #cy*=cophi*sithe
+        #cz*=sithe
+        theta_matrix[j*Ncon]=theta
+        phi_matrix[j*Ncon]=phi
+        radhoz_matrix[j*Ncon]=abs(cothe)
+        radvert_matrix[j*Ncon]=abs(siphi)
+        polarhoz_matrix[j*Ncon] =theta_matrix[j*Ncon],radhoz_matrix[j*Ncon]
+        polarvert_matrix[j*Ncon]=phi_matrix[j*Ncon]  ,radvert_matrix[j*Ncon]
+        d=data_matrix[j][0:3]/np.linalg.norm(data_matrix[j][0:3])                  # Normalise the direction of the ray
+        if abs(d[2])>0 and Ncon>0:
+         Norm[0]=np.array([1,1,-(d[0]+d[1])/d[2]])# This vector will lie in the plane unless d_z=0
+         Norm[0]/=np.linalg.norm(Norm[0]) # Normalise the vector
+         yax=np.cross(Norm[0],d)            # Compute another vector in the plane for the axis.
+         yax/=np.linalg.norm(yax)             # Normalise y. y and Norm[0] are now the co-ordinate axis in the plane.
+        elif Ncon>0:
+         Norm[0]=np.array([0,0,1])        # If d_z is 0 then this vector is always in the plane.
+         yax=np.cross(Norm[0],d)            # Compute another vector in the plane to form co-ordinate axis.
+         yax/=np.linalg.norm(yax)             # Normalise y. y and Norm[0] are now the co-ordinate axis in the plane.
+        if Ncon>0:
+          Norm=np.outer(np.cos(anglevec),Norm[0])+np.outer(np.sin(anglevec),yax) # Use the outer product to multiple the axis
+        delth=ra.angle_space(delangle[i],nre)
+        beta=ra.beta_leng(dist*mulfac,delth,0)
+        #print(beta,j)
+        for k in range(1,Ncon+1):
+          Cones[j*Ncon+k-1][0]=np.array([cx,cy,cz])
+          coneout=(mulfac*data_matrix[j][0:3]/np.linalg.norm(data_matrix[j][0:3]))+beta*Norm[k-1]
+          Cones[j*Ncon+k-1][1]=coneout
+          r=np.linalg.norm(coneout)
+          if coneout[0]!=0:
+            theta=np.arctan(coneout[1]/coneout[0])
+          else:
+            theta=np.pi/2
+          if coneout[0]<0 and coneout[1]>0:
+            theta=np.pi-abs(theta)
+          elif coneout[0]<0 and coneout[1]<0:
+            theta=np.pi+abs(theta)
+          elif coneout[0]>0 and coneout[1]<0:
+            theta=2*np.pi-abs(theta)
+          phi=np.arccos(coneout[2]/r)
+          theta_matrix[j*Ncon+k]=theta
+          phi_matrix[j*Ncon+k]=phi
+          print(theta,abs(cothe))
+          polarhoz_matrix[j*Ncon+k] =theta,abs(cothe)
+          polarvert_matrix[j*Ncon+k]=phi  ,abs(siphi)
+      if not os.path.exists('./ConeFigures'):
+        os.makedirs('./ConeFigures')
+        os.makedirs('./ConeFigures/'+plottype)
+      if not os.path.exists('./ConeFigures/'+plottype):
+        os.makedirs('./ConeFigures/'+plottype)
+      mp.figure(2*i)
+      #polarhoz_matrix=np.sort(polarhoz_matrix,0)
+      print(polarhoz_matrix)
+      mp.polar(polarhoz_matrix[:,0],polarhoz_matrix[:,1],'+')
+      filename='ConeFigures/'+plottype+'/GainsPatternHoz%03d.jpg'%Nra[i]
+      mp.title('Horiztonal angle and antenna gain')
+      mp.savefig(filename)
+      mp.figure(2*i+1)
+      #polarvert_matrix=np.sort(polarvert_matrix,0)
+      #print(polarhoz_matrix)
+      mp.polar(polarvert_matrix[:,0],polarvert_matrix[:,1],'+')
+      filename='ConeFigures/'+plottype+'/GainsPatternVert%03d.jpg'%Nra[i]
+      mp.title('Vertical angle and antenna gain')
+      mp.savefig(filename)
+    mp.show()
+    mp.clf()
+    return
+
 
 def PlotConesOnSquare(plottype):
     '''Plot the cone calculations.'''
@@ -609,7 +900,7 @@ def PlotDirections(plottype=str()):
     mlab.points3d(0,0,0,scale_factor=0.1)
     mulfac=4
     for i in range(0,nra):
-      directionname=str('Parameters/Directions'+str(int(i))+'.npy')
+      directionname='Parameters/Directions%03d.npy'%Nra[i]
       data_matrix   =np.load(directionname)         # Matrix of ray directions
       delangle=delang[i]
       #mlab.savefig('ConeFigures/Rays.jpg',size=(1000,1000))
@@ -641,7 +932,9 @@ def PlotDirections(plottype=str()):
         y=np.append(y,[y2])
         z=np.append(z,[z2])
         mlab.plot3d(x,y,z,color= (0, 1, 1))
-      filename=str('ConeFigures/'+plottype+'/Rays'+str(Nra[i])+'.jpg')
+      filename='ConeFigures/'+plottype+'/Rays%03d.jpg'%Nra[i]
+      mlab.savefig(filename,size=(1000,1000))
+      filename='ConeFigures/Rays%03d.jpg'%Nra[i]
       mlab.savefig(filename,size=(1000,1000))
       #gui = GUI()
       #gui.start_event_loop()
@@ -1029,16 +1322,25 @@ def PlotSingleCone(plottype):
     #mlab.show()
   return
 
+def jobfromTx(Tx,h):
+  H=(Tx[2]-0.5*h)//h
+  t=(Tx[0]-0.5*h)//h
+  u=(Tx[1]-0.5*h)//h
+  return int(H*100+t*10+u)
+
+
 if __name__=='__main__':
   myfile = open('Parameters/runplottype.txt', 'rt') # open lorem.txt for reading text
   plottype= myfile.read()         # read the entire file into a string
   myfile.close()
   #PlotSingleCone(plottype)
-  PlotPowerSlice(plottype)
+  #PlotPowerSlice(plottype)
   PlotRays(plottype)
   PlotDirections(plottype)
   #PlotConesOnSquare(plottype)
-  #PlotCones(plottype)
+  #PlotConesGains(plottype)
+  #PlotPolarTheoryGains(plottype)
+  #PlotPolarGains(plottype)
   print('Running  on python version')
   print(sys.version)
 exit()

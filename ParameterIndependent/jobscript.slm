@@ -44,7 +44,7 @@ echo Running on host `hostname`
 python ParameterLoad.py
 for ((job=0; job<250; job++)); do
   echo "job=${job}"
-  time python RayTracerMainProgram.py "${job}" 
+  time python RayTracerMainProgram.py "${job}"
 
 echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 250"
 echo "Starting job..."

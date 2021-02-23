@@ -19,6 +19,14 @@ import sys
 import logging
 import pdb
 epsilon=sys.float_info.epsilon
+xcheck=2
+ycheck=4
+zcheck=9
+dbg=0
+if dbg:
+  logon=1
+else:
+  logon=np.load('Parameters/logon.npy')
 
 class room:
   ''' A room is where the obstacle co-ordinates are contained.
@@ -113,10 +121,9 @@ class room:
   def get_meshwidth(s,Mesh):
     if abs(s.meshwidth)<epsilon:
       if type(Mesh) is np.ndarray:
-        return s.maxlength[1]/Mesh.shape[0]
-      else: return s.maxlength[1]/Mesh.Nx
-    else:
-      return s.meshwidth
+        s.meshwidth=s.maxlength[1]/Mesh.shape[0]
+      else: s.meshwidth=s.maxlength[1]/Mesh.Nx
+    return s.meshwidth
   ## Add a new obst to the room.
   # @param obst0 is added to s.obst
   # @param obst0[0],obst0[1],obst0[2] are added to s.points.
@@ -175,10 +182,10 @@ class room:
     count2=0
     intercheck =np.array([-1,-1,-1])
     intercheck2=np.array([-1,-1,-1])
-    for Tri in s.obst:
-      inter=ins.intersection(ray,Tri)
+    for ob in range(s.Nob):
+      inter=ins.intersection(ray,s,ob)
       #print(inter,ma.isnan(inter[0]),intercheck,(inter==intercheck).all(),inter.all()==intercheck.all())
-      inter2=ins.intersection(ray2,Tri)
+      inter2=ins.intersection(ray2,s,ob)
       if not ma.isnan(inter[0]):
         if not (inter==intercheck).all():
           count+=1
@@ -192,8 +199,8 @@ class room:
     else:
       count3=0
       intercheck3=np.array([-1,-1,-1])
-      for Tri in s.obst:
-        inter3=ins.intersection(ray3,Tri)
+      for ob in range(s.Nob):
+        inter3=ins.intersection(ray3,s,ob)
         if not ma.isnan(inter3[0]):
           if not (inter3==intercheck3).all():
             count3+=1
@@ -301,6 +308,14 @@ class room:
   # \f$ p=[[minx,miny,minz] +h*[i0+0.5,j0+0.5,k0+0.5],...,
   # [minx,miny,minz] +h*[in+0.5,jn+0.5,kn+0.5 ]\f$ \endelseif
   # @return p
+  def surf_from_ob(s,nob):
+    nsur=1
+    for j in range(s.Nsur):
+      if nob-sum(s.Ntri[0:j])>0:
+        nsur=int(j+1)
+    return nsur
+  def nob_from_sur(s,nsur):
+    return sum(s.Ntri[0:nsur])
   def coordinate(s,h,i,j,k):
     ''' Find the co-ordinate of the point at the centre of the element.
 
@@ -366,7 +381,7 @@ class room:
  # \par When complete the time in s.time() is assigned to the time taken
  # to complete the function.
  # @return raylist, Mesh
-  def ray_mesh_bounce(s,Tx,Nre,Nra,directions,Mesh,deltheta):
+  def ray_mesh_bounce(s,Tx,directions,Mesh,programterms):
     ''' Traces ray's uniformly emitted from an origin around a room.
 
     :param Tx: the co-ordinate of the transmitter location
@@ -399,6 +414,7 @@ class room:
     :return: raylist, Mesh
 
     '''
+    Nra,Nre       =programterms[0:2].astype(int)
     start_time    =t.time()         # Start the time counter
     r             =s.maxleng()
     raylist       =np.zeros([Nra+1, Nre+1,4])
@@ -411,16 +427,17 @@ class room:
       Dir       =directions[it]
       start     =np.append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
-      Mesh=raystart.mesh_multiref(s,Nre,Mesh,Nra,it,deltheta)
+      Mesh=raystart.mesh_multiref(s,Mesh,it,programterms)
       raylist[it]=raystart.points[0:-2]
-    assert Mesh.check_nonzero_col(Nre,s.Nsur)
+    if dbg:
+      assert Mesh.check_nonzero_col(Nre,s.Nsur)
       #logging.error('There is a column with too many terms')
       #raise ValueError('There is a column with too many terms')
     #logging.info('Raypoints')
     #logging.info(str(raylist))
     s.time=t.time()-start_time
     return raylist, Mesh
-  def ray_mesh_power_bounce(s,Tx,Nre,Nra,directions,Grid,Znobrat,refindex,Antpar,Gt,Pol,deltheta,loghandle=str()):
+  def ray_mesh_power_bounce(s,Tx,directions,Grid,Znobrat,refindex,Antpar,Gt,Pol,programterms,loghandle=str()):
     ''' Traces ray's uniformly emitted from an origin around a room.
 
     :param Tx: the co-ordinate of the transmitter location
@@ -434,6 +451,9 @@ class room:
     :param refindex: Array with the refractive indices of an obstacle.
     :param Antpar: array with antenna parameters - scaled wavenumber, wavelength, lengthscale.
     :param Gt: transmitter gains.
+    :param Pol: polarisation of the antenna, first term indicates the strength in ther perp direction, second in the parallel.
+    :param deltheta: The maximum angle spacing between neighbouring rays.
+    :param loghandle: handle for logging information during run time.
 
 
     The rays are reflected Nre times with the obstacles s.obst. \
@@ -452,19 +472,15 @@ class room:
     :return: raylist, Grid
 
     '''
-    start_time    =t.time()         # Start the time counter
-    raylist       =np.zeros([Nra+1, Nre+1,4]) # Careful empty will assign random numbers and must therefore get filled.
-    lam           =Antpar[1]
-    L             =Antpar[2]
+    Nra,Nre=programterms[0:2].astype(int)
+    #start_time    =t.time()         # Start the time counter
+    raylist       =np.zeros([Nra+1, Nre+1,4]) # Initialise the ray reflection points
     # Iterate through the rays find the ray reflections
-    # FIXME rays are independent of each other so this is parallelisable
-    #FIXME Find out whether the ray points are correct.
-    #j=int(3*Nra/4)
     for it in range(Nra):
       Dir       =directions[it]
       start     =np.append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
-      Grid=raystart.mesh_power_multiref(s,Nre,Grid,Nra,it,Znobrat,refindex,Antpar,Pol,deltheta)
+      Grid=raystart.mesh_power_multiref(s,Grid,it,Znobrat,refindex,Antpar,Pol,programterms,loghandle)
       raylist[it]=raystart.points[0:-2]
     Nx=Grid.shape[0]
     Ny=Grid.shape[1]
@@ -472,7 +488,7 @@ class room:
     P=np.zeros((Nx,Ny,Nz),dtype=np.longdouble)
     P=np.absolute(Grid[:,:,:,0])**2+np.absolute(Grid[:,:,:,1])**2
     P=DSM.Watts_to_db(P)
-    s.time=t.time()-start_time
+    #s.time=t.time()-start_time
     return raylist, P
   def ray_bounce(s,Tx,Nre,Nra,directions):
     ''' Trace ray's uniformly emitted from an origin around a room.
@@ -517,6 +533,17 @@ class room:
       s.add_obst(obst1)
       s.Nob+=1
     return
+  def nsurffromnob(s,Nob):
+    ttot=0
+    nsur=0
+    for t in s.Ntri:
+      ttot+=t
+      if ttot<Nob:
+        nsur+=1
+      else:
+        break
+    return nsur
+
 
 def FindInnerPoints(Room,Mesh):
     h=Room.get_meshwidth(Mesh)
@@ -541,15 +568,15 @@ def FindInnerPoints(Room,Mesh):
       count1=0
       count2=0
       count3=0
-      TriP=1
       surfacenumbers1=np.array([])
       surfacenumbers2=np.array([])
       surfacenumbers3=np.array([])
-      for Tri in Room.obst:
-        inter1=ins.intersection(ray1,Tri)
-        inter2=ins.intersection(ray2,Tri)
-        inter3=ins.intersection(ray3,Tri)
-        nsur=DS.Correct_ObNumbers(np.array([TriP]),Room.Ntri)[0]
+      for ob in range(Room.Nob):
+        Tri=Room.obst[ob]
+        inter1=ins.intersection(ray1,Room,ob)
+        inter2=ins.intersection(ray2,Room,ob)
+        inter3=ins.intersection(ray3,Room,ob)
+        nsur=DS.Correct_ObNumbers(np.array([ob]),Room.Ntri)[0]
         if ins.InsideCheck(inter1,Tri) and not ma.isnan(inter1[0]):
           repeatpoint1=0
           if len(surfacenumbers1)!=0:
@@ -577,7 +604,6 @@ def FindInnerPoints(Room,Mesh):
           if np.linalg.norm(inter3-p)<rayleng3 and not repeatpoint3:
             count3+=1
             surfacenumbers3=np.append(surfacenumbers3,nsur)
-        TriP+=1
       if count1%2+count2%2+count3%2<2:
         Room.__set_insidepoint__(p)
     return 0
