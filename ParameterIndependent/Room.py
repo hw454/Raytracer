@@ -3,13 +3,18 @@
 ''' Code to construct the mesh of the room '''
 
 from math import atan2,hypot,sqrt,copysign
-from math import sin,cos,atan2,log
+from math import sin,cos,atan2,log,isnan
 import numpy                as np
+from numpy import zeros, load, cross, ones,concatenate, amin,amax,append,vstack
+from numpy import sin, cos, tan, arcsin, arccos, allclose,absolute,arange
+from numpy import min as nmin
+from numpy import max as nmax
+from numpy import array as numparr
 import reflection           as ref
 import intersection         as ins
 import linefunctions        as lf
 import math                 as ma
-import numpy.linalg         as lin
+from numpy.linalg import norm as leng
 import random               as rnd
 import Rays                 as ry
 import DictionarySparseMatrix as DS
@@ -26,7 +31,7 @@ dbg=0
 if dbg:
   logon=1
 else:
-  logon=np.load('Parameters/logon.npy')
+  logon=load('Parameters/logon.npy')
 
 class room:
   ''' A room is where the obstacle co-ordinates are contained.
@@ -48,7 +53,6 @@ class room:
     :math:`s.bounds= [ [minx, miny, minz], [maxx,maxy,maxz]]`
     * s.inside_points is an initial empty array. Points which are known \
     to be inside obstacles are added to this array later.
-    * s.time is an array with the time the room was created.
     * s.meshwidth is initialised as zero but is stored once asked for \
     using get_meshwidth.
 
@@ -66,32 +70,30 @@ class room:
   # \f$ s.bounds= [ [minx, miny, minz], [maxx,maxy,maxz]] \f$
   # - s.inside_points is an initial empty array. Points which are known
   # to be inside obstacles are added to this array later.
-  # - s.time is an array with the time the room was created.
   # - s.meshwidth is initialised as zero but is stored once asked for
   # using get_meshwidth.
   def __init__(s,obst,Ntri=0):
     s.obst=obst
     RoomP=obst[0]
     for j in range(1,len(obst)):
-      RoomP=np.concatenate((RoomP,obst[j]),axis=0)
+      RoomP=concatenate((RoomP,obst[j]),axis=0)
     s.points=RoomP
     # Points is the array of all the co-ordinates which form the surfaces in the room
     s.Nob=len(obst)
-    s.norms=np.zeros((s.Nob,3),dtype=float)
+    s.norms=zeros((s.Nob,3),dtype=float)
     for j in range(s.Nob):
-      s.norms[j]=np.cross(s.obst[j][0]-s.obst[j][1],s.obst[j][0]-s.obst[j][2])
-      s.norms[j]/=np.linalg.norm(s.norms[j])
+      s.norms[j]=cross(s.obst[j][0]-s.obst[j][1],s.obst[j][0]-s.obst[j][2])
+      s.norms[j]/=leng(s.norms[j])
     if isinstance(Ntri,type(0)):
-      s.Ntri=np.ones(s.Nob,dtype=int)
+      s.Ntri=ones(s.Nob,dtype=int)
     else:
       s.Ntri=Ntri.astype(int)
     s.Nsur=len(s.Ntri)
     # Nob is the number of surfaces forming obstacles in the room.
-    s.maxlength=np.zeros(4)
-    s.bounds=np.array([np.min(s.points,axis=0),np.max(s.points,axis=0)])
-    s.inside_points=np.array([]).astype(float)
+    s.maxlength=zeros(4)
+    s.bounds=numparr([nmin(s.points,axis=0),nmax(s.points,axis=0)])
+    s.inside_points=numparr([]).astype(float)
     # The inside points line within obstacles and are used to detect if a ray is inside or outside.
-    s.time=np.array([t.time()])
     # The time taken for a computation is stored in time.
     s.meshwidth=0.0
     # The length of a cell in the room. Before scaling.
@@ -132,8 +134,8 @@ class room:
     s.obst+=(obst0,)
     s.points+=obst0
     s.Nob+=1
-    s.norms=np.append(s.norms,np.cross(obst0[0]-obst0[1],obst0[0]-obst0[2]))
-    s.norms[-1]/=np.linalg.norm(s.norms[1])
+    s.norms=append(s.norms,cross(obst0[0]-obst0[1],obst0[0]-obst0[2]))
+    s.norms[-1]/=leng(s.norms[1])
     return
   def __set_MaxInter__(s,m):
     s.MaxInter=m
@@ -148,9 +150,9 @@ class room:
   # @return nothing
   def __set_insidepoint__(s,p):
     if len(s.inside_points)<1:
-      s.inside_points=np.array([p])
+      s.inside_points=numparr([p])
     else:
-      s.inside_points=np.vstack((s.inside_points,p))
+      s.inside_points=vstack((s.inside_points,p))
     return
   ## The string representation of the room s is the string of the
   # obstacle co-ordinates.
@@ -167,30 +169,27 @@ class room:
   def check_innerpoint(s,p):
     '''Check if the point p is one of the interior points of the room.
     Return True is interior False if not'''
-    for p2 in s.inside_points:
-      if np.linalg.norm(p2-p)<epsilon:
-        return True
-    return False
+    return any(allclose(p2,p,rtol=epsilon) for p2 in s.inside_points)
   def CheckTxInner(s,Tx):
-    direc =np.array([1,0,0])
-    direc2=np.array([0,1,0])
-    direc3=np.array([0,0,1])
-    ray =np.array([Tx,direc])
-    ray2=np.array([Tx,direc2])
-    ray3=np.array([Tx,direc3])
+    direc =numparr([1,0,0])
+    direc2=numparr([0,1,0])
+    direc3=numparr([0,0,1])
+    ray =numparr([Tx,direc])
+    ray2=numparr([Tx,direc2])
+    ray3=numparr([Tx,direc3])
     count =0
     count2=0
-    intercheck =np.array([-1,-1,-1])
-    intercheck2=np.array([-1,-1,-1])
+    intercheck =numparr([-1,-1,-1])
+    intercheck2=numparr([-1,-1,-1])
     for ob in range(s.Nob):
       inter=ins.intersection(ray,s,ob)
-      #print(inter,ma.isnan(inter[0]),intercheck,(inter==intercheck).all(),inter.all()==intercheck.all())
+      #print(inter,isnan(inter[0]),intercheck,(inter==intercheck).all(),inter.all()==intercheck.all())
       inter2=ins.intersection(ray2,s,ob)
-      if not ma.isnan(inter[0]):
+      if not isnan(inter[0]):
         if not (inter==intercheck).all():
           count+=1
           intercheck=inter
-      if not ma.isnan(inter2[0]):
+      if not isnan(inter2[0]):
         if not (inter2==intercheck2).all():
           count2+=1
           intercheck2=inter2
@@ -198,10 +197,10 @@ class room:
       return count%2
     else:
       count3=0
-      intercheck3=np.array([-1,-1,-1])
+      intercheck3=numparr([-1,-1,-1])
       for ob in range(s.Nob):
         inter3=ins.intersection(ray3,s,ob)
-        if not ma.isnan(inter3[0]):
+        if not isnan(inter3[0]):
           if not (inter3==intercheck3).all():
             count3+=1
             intercheck3=inter3
@@ -222,13 +221,13 @@ class room:
     '''
     # Has the maxlength in the room been found yet? If no compute it.
     if abs(s.maxlength[a])<epsilon:
-      leng=0
+      leng1=0
       if a==0:
         for p1,p2 in product(s.points,s.points):
-          leng2=lf.length(np.array([p1,p2]))
-          if leng2>leng:
+          leng2=leng(p1-p2)
+          if leng2>leng1:
             s.maxlength[a]=leng2
-            leng=leng2
+            leng1=leng2
       else:
         s.maxlength[a]=s.bounds[1][a-1]-s.bounds[0][a-1]
       return s.maxlength[a]
@@ -288,7 +287,7 @@ class room:
       i,j,k=(p-s.bounds[0])//h
       return int(i),int(j),int(k)
     elif n>1:
-      positions=np.array((p-np.tile(s.bounds[0],(n,1)))//h,dtype=int)
+      positions=numparr([(px-s.bounds[0])//h for px in p]).astype(int)#np.array((p-np.tile(s.bounds[0],(n,1)))//h,dtype=int)
       return positions
     else:
       raise ValueError("Neither point nor array of points")
@@ -350,11 +349,11 @@ class room:
     else:
       n=len(i)
     if n==1:
-      coord=s.bounds[0]+h*np.array([i,j,k])+h*np.array([0.5,0.5,0.5])
+      coord=numparr([s.bounds[0]+h*numparr([i+0.5,j+0.5,k+0.5])])
       return coord
     elif n>1:
-      Addarray=np.tile(s.bounds[0]+h*np.array([0.5,0.5,0.5]),(n,1))
-      coord=np.array((h*np.c_[i,j,k]+Addarray),dtype=float)
+      Addarray=s.bounds[0]+h*numparr([0.5,0.5,0.5])#np.tile(s.bounds[0]+h*np.array([0.5,0.5,0.5]),(n,1))
+      coord=numparr([h*numparr([ix,jx,kx])+Addarray for (ix,jx,kx) in zip(i,j,k)])#np.array((h*np.c_[i,j,k]+Addarray),dtype=float)
       #coord=coord.T
       return coord
     else:
@@ -378,8 +377,6 @@ class room:
  # to the centre of each mesh element. This is stored in Mesh.
  # See function mesh_multiref for more details on the reflections and
  # storage.
- # \par When complete the time in s.time() is assigned to the time taken
- # to complete the function.
  # @return raylist, Mesh
   def ray_mesh_bounce(s,Tx,directions,Mesh,programterms):
     ''' Traces ray's uniformly emitted from an origin around a room.
@@ -408,25 +405,19 @@ class room:
     See :py:func:`Rays.mesh_multiref` for more details on the \
     reflections and storage.
 
-    When complete the time in s.time() is assigned to the time taken \
-    to complete the function.
-
     :return: raylist, Mesh
 
     '''
     Nra,Nre       =programterms[0:2].astype(int)
-    start_time    =t.time()         # Start the time counter
     r             =s.maxleng()
-    raylist       =np.zeros([Nra+1, Nre+1,4])
+    raylist       =zeros([Nra+1, Nre+1,4])
     directions    =r*directions
     # Iterate through the rays find the ray reflections
     # FIXME rays are independent of each other so this is parallelisable
     #j=int(Nra/2)
-    start=0 # Initialising to prevent pointing error.
-    for it in range(0,Nra):#j,j+3):
-      Dir       =directions[it]
-      start     =np.append(Tx,[0])
-      raystart  =ry.Ray(start, Dir)
+    start     =append(Tx,[0])
+    for it in range(0,Nra):
+      raystart  =ry.Ray(start, directions[it])
       Mesh=raystart.mesh_multiref(s,Mesh,it,programterms)
       raylist[it]=raystart.points[0:-2]
     if dbg:
@@ -435,7 +426,6 @@ class room:
       #raise ValueError('There is a column with too many terms')
     #logging.info('Raypoints')
     #logging.info(str(raylist))
-    s.time=t.time()-start_time
     return raylist, Mesh
   def ray_mesh_power_bounce(s,Tx,directions,Grid,Znobrat,refindex,Antpar,Gt,Pol,programterms,loghandle=str()):
     ''' Traces ray's uniformly emitted from an origin around a room.
@@ -466,29 +456,25 @@ class room:
     See :py:func:`Rays.mesh_multiref` for more details on the \
     reflections and storage.
 
-    When complete the time in s.time() is assigned to the time taken \
-    to complete the function.
-
     :return: raylist, Grid
 
     '''
     Nra,Nre=programterms[0:2].astype(int)
     #start_time    =t.time()         # Start the time counter
-    raylist       =np.zeros([Nra+1, Nre+1,4]) # Initialise the ray reflection points
+    raylist       =zeros([Nra+1, Nre+1,4]) # Initialise the ray reflection points
     # Iterate through the rays find the ray reflections
     for it in range(Nra):
       Dir       =directions[it]
-      start     =np.append(Tx,[0])
+      start     =append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
       Grid=raystart.mesh_power_multiref(s,Grid,it,Znobrat,refindex,Antpar,Pol,programterms,loghandle)
       raylist[it]=raystart.points[0:-2]
     Nx=Grid.shape[0]
     Ny=Grid.shape[1]
     Nz=Grid.shape[2]
-    P=np.zeros((Nx,Ny,Nz),dtype=np.longdouble)
-    P=np.absolute(Grid[:,:,:,0])**2+np.absolute(Grid[:,:,:,1])**2
+    P=zeros((Nx,Ny,Nz),dtype=np.longdouble)
+    P=absolute(Grid[:,:,:,0])**2+absolute(Grid[:,:,:,1])**2
     P=DSM.Watts_to_db(P)
-    #s.time=t.time()-start_time
     return raylist, P
   def ray_bounce(s,Tx,Nre,Nra,directions):
     ''' Trace ray's uniformly emitted from an origin around a room.
@@ -511,15 +497,14 @@ class room:
     start_time    =t.time()         # Start the time counter
     r             =s.maxleng()
     directions    =r*directions
-    raylist       =np.empty([Nra+1, Nre+1,4])
+    raylist       =empty([Nra+1, Nre+1,4])
     # FIXME the rays are independent of each toher so this is easily parallelisable
     for it in range(0,Nra):
       Dir       =directions[it]
-      start     =np.append(Tx,[0])
+      start     =append(Tx,[0])
       raystart  =ry.Ray(start, Dir)
       raystart.multiref(s,Nre)
       raylist[it]=raystart.points[0:-2]
-    s.time=t.time()-start_time
     return raylist
   ## Takes in n array of obsts and adds to the room
   # @param obsts=[obst0,obst1,...,obstn] the array of obstacles
@@ -550,75 +535,75 @@ def FindInnerPoints(Room,Mesh):
     Nx=Mesh.Nx
     Ny=Mesh.Ny
     Nz=Mesh.Nz
-    CentreX=np.array([h*(Nx/2)+h/2,-h/2,h*(Nz/2)+h/2])
-    CentreY=np.array([-h/2,h*(Ny/2)+h/2,h*(Nz/2)+h/2])
-    CentreZ=np.array([h*(Nz/2)+h/2,h*(Nz/2)+h/2,h*(Nz/2)+h/2])
+    CentreX=numparr([h*(Nx*0.5)+h*0.5,-h*0.5,h*(Nz*0.5)+h*0.5])
+    CentreY=numparr([-h*0.5,h*(Ny*0.5)+h*0.5,h*(Nz*0.5)+h*0.5])
+    CentreZ=numparr([h*(Nz*0.5)+h*0.5,h*(Nz*0.5)+h*0.5,h*(Nz*0.5)+h*0.5])
     for i,j,k in product(range(Nx),range(Ny),range(Nz)):
       x,y,z=Room.coordinate(h,i,j,k)
-      p=np.array([x,y,z])
+      p=numparr([x,y,z])
       d1=CentreX-p
       d2=CentreY-p
       d3=CentreZ-p
-      ray1=np.array([p,d1])
-      rayleng1=np.linalg.norm([d1])
-      ray2=np.array([p,d2])
-      rayleng2=np.linalg.norm([d2])
-      ray3=np.array([p,d3])
-      rayleng3=np.linalg.norm([d3])
+      ray1=numparr([p,d1])
+      rayleng1=leng([d1])
+      ray2=numparr([p,d2])
+      rayleng2=leng([d2])
+      ray3=numparr([p,d3])
+      rayleng3=leng([d3])
       count1=0
       count2=0
       count3=0
-      surfacenumbers1=np.array([])
-      surfacenumbers2=np.array([])
-      surfacenumbers3=np.array([])
+      surfacenumbers1=numparr([])
+      surfacenumbers2=numparr([])
+      surfacenumbers3=numparr([])
       for ob in range(Room.Nob):
         Tri=Room.obst[ob]
         inter1=ins.intersection(ray1,Room,ob)
         inter2=ins.intersection(ray2,Room,ob)
         inter3=ins.intersection(ray3,Room,ob)
-        nsur=DS.Correct_ObNumbers(np.array([ob]),Room.Ntri)[0]
-        if ins.InsideCheck(inter1,Tri) and not ma.isnan(inter1[0]):
+        nsur=DS.Correct_ObNumbers(numparr([ob]),Room.Ntri)[0]
+        if ins.InsideCheck(inter1,Tri) and not isnan(inter1[0]):
           repeatpoint1=0
           if len(surfacenumbers1)!=0:
             surcheck=(abs(nsur-surfacenumbers1)<epsilon).any()
             if surcheck:
               repeatpoint1=1
-          if np.linalg.norm(inter1-p)<rayleng1 and not repeatpoint1:
+          if leng(inter1-p)<rayleng1 and not repeatpoint1:
             count1+=1
-            surfacenumbers1=np.append(surfacenumbers1,nsur)
-        if ins.InsideCheck(inter2,Tri) and not ma.isnan(inter2[0]):
+            surfacenumbers1=append(surfacenumbers1,nsur)
+        if ins.InsideCheck(inter2,Tri) and not isnan(inter2[0]):
           repeatpoint2=0
           if len(surfacenumbers2)!=0:
             surcheck=(abs(nsur-surfacenumbers2)<epsilon).any()
             if surcheck:
               repeatpoint2=1
-          if np.linalg.norm(inter2-p)<rayleng2 and not repeatpoint2:
+          if leng(inter2-p)<rayleng2 and not repeatpoint2:
             count2+=1
-            surfacenumbers2=np.append(surfacenumbers2,nsur)
-        if ins.InsideCheck(inter3,Tri) and not ma.isnan(inter3[0]):
+            surfacenumbers2=append(surfacenumbers2,nsur)
+        if ins.InsideCheck(inter3,Tri) and not isnan(inter3[0]):
           repeatpoint3=0
           if len(surfacenumbers3)!=0:
             surcheck=(abs(nsur-surfacenumbers3)<epsilon).any()
             if surcheck:
               repeatpoint3=1
-          if np.linalg.norm(inter3-p)<rayleng3 and not repeatpoint3:
+          if leng(inter3-p)<rayleng3 and not repeatpoint3:
             count3+=1
-            surfacenumbers3=np.append(surfacenumbers3,nsur)
+            surfacenumbers3=append(surfacenumbers3,nsur)
       if count1%2+count2%2+count3%2<2:
         Room.__set_insidepoint__(p)
     return 0
 
 def TestTxCheck():
   ##----The lengths are non-dimensionalised---------------------------
-  OuterBoundary =np.load('Parameters/OuterBoundary.npy').astype(float)  # The Obstacles forming the outer boundary of the room
-  NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
+  OuterBoundary =load('Parameters/OuterBoundary.npy').astype(float)  # The Obstacles forming the outer boundary of the room
+  NtriOb        =load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
   Oblist=OuterBoundary
 
   Room=room(Oblist,NtriOb)
   Nob=Room.Nob
   Nsur=Room.Nsur
-  for x,y,z in product(np.arange(0,1,0.1),np.arange(0,1,0.1),np.arange(0,1,0.1)):
-    Tx=np.array([x,y,z])
+  for x,y,z in product(arange(0,1,0.1),arange(0,1,0.1),arange(0,1,0.1)):
+    Tx=numparr([x,y,z])
     print('Tx',Tx)
     print(Room.CheckTxInner(Tx))
   return 0

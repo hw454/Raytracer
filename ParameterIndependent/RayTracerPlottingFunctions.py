@@ -27,7 +27,6 @@ def plot_grid(plottype=str(),testnum=1,roomnumstat=0):
   '''
   Nsur        =np.load('Parameters/Nsur.npy')
   Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
-  Nre=4
   Nra        =np.load('Parameters/Nra.npy')
   numjobs    =np.load('Parameters/Numjobs.npy')
   Nrs        =np.load('Parameters/Nrs.npy')
@@ -49,18 +48,18 @@ def plot_grid(plottype=str(),testnum=1,roomnumstat=0):
     LOSstr='LOS'
   elif PerfRef:
     if Nre>2:
-      #if Nrs<nsur:
-        #LOSstr=nw.num2words(Nrs)+'Ref'
-      #else:
+      if Nrs<Nsur:
+        LOSstr=nw.num2words(Nrs)+'PerfRef'
+      else:
         LOSstr='MultiPerfRef'
     else:
       LOSstr='SinglePerfRef'
   else:
     if Nre>2 and Nrs>1:
-      #if Nrs<nsur:
-        #LOSstr=nw.num2words(Nrs)+'Ref'
-      #else:
-      LOSstr='MultiRef'
+      if Nrs<Nsur:
+        LOSstr=nw.num2words(Nrs)+'Ref'
+      else:
+        LOSstr='MultiRef'
     else:
       LOSstr='SingleRef'
   if InnerOb:
@@ -68,111 +67,108 @@ def plot_grid(plottype=str(),testnum=1,roomnumstat=0):
   else:
     boxstr='NoBox'
   Roomnum=roomnumstat
-  numjobs=500
   for i in range(testnum):
-   for index in range(0,Roomnum):
-    for j in range(0,nra):
-      for job in range(0,numjobs+1):
-        Nr=int(Nra[j])
-        Nre=int(Nre)
-        Txstr='Parameters/Origin_job%03d.npy'%job
-        if os.path.isfile(Txstr):
-          Tx=np.load(Txstr)
-          if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
-            loca='Centre'
-          else:
-            loca='OffCentre'
-          plottype=LOSstr+boxstr+loca
-          plottype='MultiPerfRefNoBoxCentre'
-          LOS=0
-          pstr       ='./Mesh/'+plottype+'/'+boxstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
-          meshname='./Mesh/'+plottype+'/DSM%03dRefs%03d_tx%03d.npy'%(Nr,Nre,job)
-          if os.path.isfile(pstr):
-            Mesh= DSM.load_dict(meshname)
-            P   =np.load(pstr)
-            print(pstr)
-            RadAstr    ='./Mesh/'+plottype+'/'+boxstr+'RadA_grid%02dRefs%dm%d_tx%03d.npy'%(Nr,Nre,index,job)
-            RadB=np.zeros((Nsur,P.shape[0],P.shape[1],P.shape[2]))
-            ThetaMesh=np.zeros((P.shape[0],P.shape[1],P.shape[2]))
-            RadA=np.load(RadAstr)
-            if LOS==0:
-              for k in range(0,Nsur):
-                RadSistr='./Mesh/'+plottype+'/'+boxstr+'RadS%d_grid%dRefs%dm%d_tx%03d.npy'%(k,Nra[j],Nre,0,job)
-                RadB[k]=np.load(RadSistr)
-              #Thetastr='Mesh/'+plottype+'/AngNpy%03dRefs%03dNs%0d.npy_tx%03d.npy'%(Nra,Nre,Ns,job)
-              #ThetaMesh=np.load(Thetastr).astype(float)
-            n=P.shape[2]
-            lb=np.amin(P)
-            ub=np.amax(P)
-            if LOS:
-              rlb=np.amin(RadA)
-              rub=np.amax(RadA)
+    for index in range(0,Roomnum):
+      refindex=np.load('Parameters/refindex%03d.npy'%index)
+      obnumbers=np.zeros((Nrs,1))
+      k=0
+      Obstr=''
+      if Nrs<Nsur:
+        for ob, refin in enumerate(refindex):
+          if abs(refin)>epsilon:
+            obnumbers[k]=ob
+            k+=1
+            Obstr=Obstr+'Ob%02d'%ob
+      for j in range(0,nra):
+        for job in range(0,numjobs+1):
+          Nr=int(Nra[j])
+          Nre=int(Nre)
+          Txstr='Parameters/Origin_job%03d.npy'%job
+          if os.path.isfile(Txstr):
+            Tx=np.load(Txstr)
+            if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
+              loca='Centre'
             else:
-              rlb=min(np.amin(RadA),np.amin(RadB))
-              rub=max(np.amax(RadA),np.amax(RadB))
-              #tlb=np.amin(ThetaMesh)
-              #tub=np.amax(ThetaMesh)
-            if not os.path.exists('./GeneralMethodPowerFigures'):
-              os.makedirs('./GeneralMethodPowerFigures')
-              os.makedirs('./GeneralMethodPowerFigures/'+plottype)
-              os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d'%job)
-            if not os.path.exists('./GeneralMethodPowerFigures/'+plottype):
-              os.makedirs('./GeneralMethodPowerFigures/'+plottype)
-              os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d'%job)
-            if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d'%job):
-              os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d'%job)
-            for i in range(0,n):
-              mp.clf()
-              mp.figure(i)
-              mp.imshow(P[:,:,i], cmap=cmapopt, vmax=ub,vmin=lb)
-              mp.colorbar()
-              rayfolder='./GeneralMethodPowerFigures/'+plottype+'/Tx%03d/PowerSlice/Nra%03d'%(job,Nr)
-              if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d/PowerSlice'%job):
-                os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d/PowerSlice'%job)
-                os.makedirs(rayfolder)
-              elif not os.path.exists(rayfolder):
-                os.makedirs(rayfolder)
-              filename=rayfolder+'/'+boxstr+'PowerSliceNra%03dNref%03dslice%03dof%03d.jpg'%(Nr,Nre,i+1,n)#.eps')
-              mp.savefig(filename,bbox_inches=plotfit)
-              mp.clf()
-              mp.figure(i)
-              mp.imshow(RadA[:,:,i], cmap=cmapopt, vmax=rub,vmin=rlb)
-              mp.colorbar()
-              rayfolder='./GeneralMethodPowerFigures/'+plottype+'/Tx%03d/RadSlice/Nra%03d'%(job,Nr)
-              if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d/RadSlice'%job):
-                os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d/RadSlice'%job)
-                os.makedirs(rayfolder)
-              elif not os.path.exists(rayfolder):
-                os.makedirs(rayfolder)
-              filename=rayfolder+'/'+boxstr+'RadASliceNra%02dNref%03dslice%03dof%03d.jpg'%(Nr,Nre,i+1,n)#.eps')
-              mp.savefig(filename,bbox_inches=plotfit)
-              mp.clf()
-              if not LOS:
+              loca='OffCentre'
+            plottype=LOSstr+boxstr+loca
+            pstr       ='./Mesh/'+plottype+'/'+boxstr+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
+            meshname='./Mesh/'+plottype+'/DSM%03dRefs%03d_tx%03d.npy'%(Nr,Nre,job)
+            if os.path.isfile(pstr):
+              Mesh= DSM.load_dict(meshname)
+              P   =np.load(pstr)
+              RadAstr    ='./Mesh/'+plottype+'/'+boxstr+'RadA_grid%02dRefs%dm%d_tx%03d.npy'%(Nr,Nre,index,job)
+              RadB=np.zeros((Nsur,P.shape[0],P.shape[1],P.shape[2]))
+              ThetaMesh=np.zeros((P.shape[0],P.shape[1],P.shape[2]))
+              RadA=np.load(RadAstr)
+              if LOS==0:
                 for k in range(0,Nsur):
-                  mp.figure(i)
-                  mp.imshow(RadB[k,:,:,i], cmap=cmapopt, vmax=rub,vmin=rlb)
-                  mp.colorbar()
-                  filename=rayfolder+'/'+boxstr+'RadS%02dSliceNra%03dNref%03dslice%03dof%03d.jpg'%(k,Nr,Nre,i+1,n)#.eps')
-                  mp.savefig(filename,bbox_inches=plotfit)
-                  mp.clf()
-                #mp.figure(i)
-                #mp.imshow(ThetaMesh[:,:,i], cmap=cmapopt, vmax=tub,vmin=tlb)
-                #mp.colorbar()
-                # rayfolder='./GeneralMethodPowerFigures/'+plottype+'/Tx%03d/ThetaSlice/Nra%03d'%(job,Nr)
-                # if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d/ThetaSlice'%job):
-                  # os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d/ThetaSlice'%job)
-                  # os.makedirs(rayfolder)
-                # elif not os.path.exists(rayfolder):
-                  # os.makedirs(rayfolder)
-                # filename=rayfolder+'/'+boxstr+'ThetaSliceNra%03dNref%03dslice%03dof%03d.jpg'%(Nr,Nre,i+1,n)#.eps')
-                # mp.savefig(filename,bbox_inches=plotfit)
+                  RadSistr='./Mesh/'+plottype+'/'+boxstr+'RadS%d_grid%dRefs%dm%d_tx%03d.npy'%(k,Nra[j],Nre,0,job)
+                  RadB[k]=np.load(RadSistr)
+                #Thetastr='Mesh/'+plottype+'/AngNpy%03dRefs%03dNs%0d.npy_tx%03d.npy'%(Nra,Nre,Ns,job)
+                #ThetaMesh=np.load(Thetastr).astype(float)
+              n=P.shape[2]
+              lb=np.amin(P)
+              ub=np.amax(P)
+              if LOS:
+                rlb=np.amin(RadA)
+                rub=np.amax(RadA)
+              else:
+                rlb=min(np.amin(RadA),np.amin(RadB))
+                rub=max(np.amax(RadA),np.amax(RadB))
+                #tlb=np.amin(ThetaMesh)
+                #tub=np.amax(ThetaMesh)
+              if not os.path.exists('./GeneralMethodPowerFigures'):
+                os.makedirs('./GeneralMethodPowerFigures')
+                os.makedirs('./GeneralMethodPowerFigures/'+plottype)
+                os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d'%job)
+              if not os.path.exists('./GeneralMethodPowerFigures/'+plottype):
+                os.makedirs('./GeneralMethodPowerFigures/'+plottype)
+                os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d'%job)
+              if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d'%job):
+                os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d'%job)
+              for i in range(0,n):
                 mp.clf()
-   Roomnum*=2
+                mp.figure(i)
+                mp.imshow(P[:,:,i], cmap=cmapopt, vmax=ub,vmin=lb)
+                mp.colorbar()
+                rayfolder='./GeneralMethodPowerFigures/'+plottype+'/Tx%03d/PowerSlice/Nra%03d'%(job,Nr)
+                if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d/PowerSlice'%job):
+                  os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d/PowerSlice'%job)
+                  os.makedirs(rayfolder)
+                elif not os.path.exists(rayfolder):
+                  os.makedirs(rayfolder)
+                filename=rayfolder+'/'+boxstr+'PowerSliceNra%03dNref%03dslice%03dof%03d.jpg'%(Nr,Nre,i+1,n)#.eps')
+                mp.savefig(filename,bbox_inches=plotfit)
+                mp.clf()
+                mp.figure(i)
+                mp.imshow(RadA[:,:,i], cmap=cmapopt, vmax=rub,vmin=rlb)
+                mp.colorbar()
+                rayfolder='./GeneralMethodPowerFigures/'+plottype+'/Tx%03d/RadSlice/Nra%03d'%(job,Nr)
+                if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d/RadSlice'%job):
+                  os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d/RadSlice'%job)
+                  os.makedirs(rayfolder)
+                elif not os.path.exists(rayfolder):
+                  os.makedirs(rayfolder)
+                filename=rayfolder+'/'+boxstr+'RadASliceNra%02dNref%03dslice%03dof%03d.jpg'%(Nr,Nre,i+1,n)#.eps')
+                mp.savefig(filename,bbox_inches=plotfit)
+                mp.clf()
+                if not LOS:
+                  for k in range(0,Nsur):
+                    mp.figure(i)
+                    mp.imshow(RadB[k,:,:,i], cmap=cmapopt, vmax=rub,vmin=rlb)
+                    mp.colorbar()
+                    filename=rayfolder+'/'+boxstr+'RadS%02dSliceNra%03dNref%03dslice%03dof%03d.jpg'%(k,Nr,Nre,i+1,n)#.eps')
+                    mp.savefig(filename,bbox_inches=plotfit)
+                    mp.clf()
+                mp.clf()
+    Roomnum*=2
   return
 
 def plot_residual(plottype,testnum,roomnumstat):
   Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
   Nra        =np.load('Parameters/Nra.npy')
+  Nrs        =np.load('Parameters/Nrs.npy')
+  Nsur       =np.load('Parameters/Nsur.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       Nra=np.array([Nra])
       nra=1
@@ -194,7 +190,18 @@ def plot_residual(plottype,testnum,roomnumstat):
    for i in range(nra):
     Nr=int(Nra[i])
     for k in range(testnum):
-      pratstr='./Mesh/'+plottype+'/'+boxstr+'PowerRes_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,k,job)
+      refstr='Parameters/refindex%03d.npy'%k
+      refindex=np.load(refstr)
+      obnumbers=np.zeros((Nrs,1))
+      l=0
+      Obstr=''
+      if Nrs<Nsur:
+        for ob, refin in enumerate(refindex):
+          if abs(refin)>epsilon:
+            obnumbers[k]=ob
+            l+=1
+            Obstr=Obstr+'Ob%02d'%ob
+      pratstr='./Mesh/'+plottype+'/'+boxstr+Obstr+'PowerRes_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,k,job)
       if os.path.isfile(pratstr):
         Prat   =np.load(pratstr)
       else:
@@ -221,15 +228,15 @@ def plot_residual(plottype,testnum,roomnumstat):
             os.makedirs(rayfolder)
           elif not os.path.exists(rayfolder):
             os.makedirs(rayfolder)
-          filename=rayfolder+'/'+boxstr+'DiffSliceNra%03dNref%03dslice%03dof%03d_tx%03d.jpg'%(Nr,Nre,j+1,n,job)#.eps')
+          filename=rayfolder+'/'+boxstr+Obstr+'DiffSliceNra%03dNref%03dslice%03dof%03d_tx%03d.jpg'%(Nr,Nre,j+1,n,job)#.eps')
           mp.savefig(filename,bbox_inches=plotfit)
           mp.clf()
-      errorname='./Errors/'+plottype+'/ErrorsNrays%03dRefs%03dRoomnum%03dto%03d_tx%03d.npy'%(nra,Nre,roomnumstat,roomnumstat+(k)*2,job)
+      errorname='./Errors/'+plottype+'/'+boxstr+Obstr+'ErrorsNrays%03dRefs%03dRoomnum%03dto%03d_tx%03d.npy'%(nra,Nre,roomnumstat,roomnumstat+(k)*2,job)
       if os.path.isfile(errorname):
         Res=np.load(errorname)
         mp.figure(k+1)
         mp.plot(Nra,Res)
-        filename='./Errors/'+plottype+'/Residual%03dto%03dNref%03d_tx%03d.jpg'%(Nra[0],Nra[-1],Nre,job)
+        filename='./Errors/'+plottype+'/'+boxstr+Obstr+'Residual%03dto%03dNref%03d_tx%03d.jpg'%(Nra[0],Nra[-1],Nre,job)
         mp.savefig(filename,bbox_inches=plotfit)
   return
 
@@ -313,18 +320,18 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
     LOSstr='LOS'
   elif PerfRef:
     if Nre>2:
-      #if Nrs<nsur:
-        #LOSstr=nw.num2words(Nrs)+'Ref'
-      #else:
+      if Nrs<nsur:
+        LOSstr=nw.num2words(Nrs)+'Ref'
+      else:
         LOSstr='MultiPerfRef'
     else:
       LOSstr='SinglePerfRef'
   else:
     if Nre>2 and Nrs>1:
-      #if Nrs<nsur:
-        #LOSstr=nw.num2words(Nrs)+'Ref'
-      #else:
-      LOSstr='MultiRef'
+      if Nrs<nsur:
+        LOSstr=nw.num2words(Nrs)+'Ref'
+      else:
+        LOSstr='MultiRef'
     else:
       LOSstr='SingleRef'
   if InnerOb:
@@ -347,6 +354,16 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
   else:
       nra=len(Nra)
   for j in range(testnum):
+    refindex=np.load('Parameters/refindex%03d.npy'%j)
+    bnumbers=np.zeros((Nrs,1))
+    k=0
+    Obstr=''
+    if Nrs<Nsur:
+      for ob, refin in enumerate(refindex):
+        if abs(refind)>epsilon:
+          obnumbers[k]=ob
+          k+=1
+          Obstr=Obstr+'Ob%02d'%ob
     for i in range(nra):
       Nr=int(Nra[i])
       Mesh=DSM.DS(Nx,Ny,Nz,Nsur*int(Nre)+1,Nr*(int(Nre)+1),np.complex128,int(split))
@@ -399,28 +416,28 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
           print('job',job)
           print('Tx',Tx,Txind)
           Boxstr=Box
-          qualityname='./Quality/'+plottype+'/'+Boxstr+'Quality%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,0,job)
+          qualityname='./Quality/'+plottype+'/'+Boxstr+Obstr+'Quality%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,0,job)
           if os.path.isfile(qualityname):
             Qu=np.load(qualityname)
             Qmesh[Txind]=Qu
           else:
             print('Quality Average not found')
             print(qualityname)
-          qualityPname='./Quality/'+plottype+'/'+Boxstr+'QualityPercentile%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,0,job)
+          qualityPname='./Quality/'+plottype+'/'+Boxstr+Obstr+'QualityPercentile%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,0,job)
           if os.path.isfile(qualityPname):
             QuP=np.load(qualityPname)
             QPmesh[Txind]=QuP
           else:
             print('Quality Percentile not found')
             print(qualityname)
-          qualityMname='./Quality/'+plottype+'/'+Boxstr+'QualityMin%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,0,job)
+          qualityMname='./Quality/'+plottype+'/'+Boxstr+Obstr+'QualityMin%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,0,job)
           if os.path.isfile(qualityMname):
             QuM=np.load(qualityMname)
             QMmesh[Txind]=QuM
           else:
             print('Quality Min not found')
             print(qualityname)
-          Tname='./Times/'+plottype+'/'+Boxstr+'TimesNra%03dRefs%03dRoomnum%dto%03dMaxInter%d_tx%03d.npy'%(nra,Nre,roomnumstat,roomnummax,MaxInter,job)
+          Tname='./Times/'+plottype+'/'+Boxstr+Obstr+'TimesNra%03dRefs%03dRoomnum%dto%03dMaxInter%d_tx%03d.npy'%(nra,Nre,roomnumstat,roomnummax,MaxInter,job)
           if os.path.isfile(Tname):
             Ti=np.load(Tname)
             Tmesh[Txind]=Ti
@@ -452,18 +469,18 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
             os.mkdir('./Quality/'+foldtype)
           if not os.path.exists('./Quality/'+foldtype):
             os.mkdir('./Quality/'+foldtype)
-          np.save('./Mesh/'+foldtype+'/'+Box+'QualityAverage%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,0),Qmesh)
-          np.save('./Mesh/'+foldtype+'/'+Box+'QualityPercentile%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,0),QPmesh)
-          np.save('./Mesh/'+foldtype+'/'+Box+'QualityMin%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,0),QMmesh)
-          text_file = open('Quality/'+foldtype+'/OptimalLocationAverage%03dRefs%03dm%03d.txt'%(Nr,Nre,0), 'w')
+          np.save('./Mesh/'+foldtype+'/'+Box+Obstr+'QualityAverage%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,0),Qmesh)
+          np.save('./Mesh/'+foldtype+'/'+Box+Obstr+'QualityPercentile%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,0),QPmesh)
+          np.save('./Mesh/'+foldtype+'/'+Box+Obstr+'QualityMin%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,0),QMmesh)
+          text_file = open('Quality/'+foldtype+'/'+Box+Obstr+'OptimalLocationAverage%03dRefs%03dm%03d.txt'%(Nr,Nre,0), 'w')
           n = text_file.write('Optimal transmitter location at ')
           n = text_file.write(str(np.argmax(Qmesh)))
           text_file.close()
-          text_file = open('Quality/'+foldtype+'/OptimalLocationPercentile%03dRefs%03dm%03d.txt'%(Nr,Nre,0), 'w')
+          text_file = open('Quality/'+foldtype+'/'+Box+Obstr+'OptimalLocationPercentile%03dRefs%03dm%03d.txt'%(Nr,Nre,0), 'w')
           n = text_file.write('Optimal transmitter location at ')
           n = text_file.write(str(np.argmax(QPmesh)))
           text_file.close()
-          text_file = open('Quality/'+foldtype+'/OptimalLocationMinimum%03dRefs%03dm%03d.txt'%(Nr,Nre,0), 'w')
+          text_file = open('Quality/'+foldtype+'/'+Box+Obstr+'OptimalLocationMinimum%03dRefs%03dm%03d.txt'%(Nr,Nre,0), 'w')
           n = text_file.write('Optimal transmitter location at ')
           n = text_file.write(str(np.argmax(QMmesh)))
           text_file.close()
@@ -478,7 +495,7 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
             ax.set_title('Quality of coverage by transmitter location, z=%02f'%(k*h+h/2))
             ax.set_xlabel('Y position of Tx')
             ax.set_ylabel('X position of Tx')
-            filename='./Quality/'+foldtype+'/'+Box+'Qualitysurface%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
+            filename='./Quality/'+foldtype+'/'+Box+Obstr+'Qualitysurface%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
             mp.savefig(filename,bbox_inches=plotfit)
             mp.clf()
             mp.close()
@@ -492,7 +509,7 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
             ax.set_title('Quality Percentile of coverage by transmitter location z=%02f'%(k*h+h/2))
             ax.set_xlabel('Y position of Tx')
             ax.set_ylabel('X position of Tx')
-            filename='./Quality/'+foldtype+'/'+Box+'QualityPercentileSurface%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
+            filename='./Quality/'+foldtype+'/'+Box+Obstr+'QualityPercentileSurface%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
             mp.savefig(filename,bbox_inches=plotfit)
             mp.clf()
             mp.close()
@@ -506,7 +523,7 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
             ax.set_title('Quality (min) of coverage by transmitter location z=%02f'%(k*h+h/2))
             ax.set_xlabel('Y position of Tx')
             ax.set_ylabel('X position of Tx')
-            filename='./Quality/'+foldtype+'/'+Box+'QualityMinSurface%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
+            filename='./Quality/'+foldtype+'/'+Box+Obstr+'QualityMinSurface%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
             mp.savefig(filename,bbox_inches=plotfit)
             mp.clf()
             mp.close()
@@ -516,7 +533,7 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
             ax.set_title('Quality of coverage by transmitter location z=%02f'%(k*h+h/2))
             ax.set_xlabel('X position of Tx')
             ax.set_ylabel('Y position of Tx')
-            filename='./Quality/'+foldtype+'/'+Box+'QualityContour%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
+            filename='./Quality/'+foldtype+'/'+Box+Obstr+'QualityContour%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
             mp.savefig(filename,bbox_inches=plotfit)
             mp.clf()
             mp.close()
@@ -526,7 +543,7 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
             ax.set_title('Quality Percentile of coverage by transmitter location z=%02f'%(k*h+h/2))
             ax.set_xlabel('X position of Tx')
             ax.set_ylabel('Y position of Tx')
-            filename='./Quality/'+foldtype+'/'+Box+'QualityPercentileContour%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
+            filename='./Quality/'+foldtype+'/'+Box+Obstr+'QualityPercentileContour%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
             mp.savefig(filename,bbox_inches=plotfit)
             mp.clf()
             mp.close()
@@ -536,7 +553,7 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
             ax.set_title('Quality (min) of coverage by transmitter location z=%02d'%(k*h+h/2))
             ax.set_xlabel('X position of Tx')
             ax.set_ylabel('Y position of Tx')
-            filename='./Quality/'+foldtype+'/'+Box+'QualityMinContour%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
+            filename='./Quality/'+foldtype+'/'+Box+Obstr+'QualityMinContour%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
             mp.savefig(filename,bbox_inches=plotfit)
             mp.clf
             mp.close()
@@ -551,7 +568,7 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
               os.mkdir('./Times/'+foldtype)
             if not os.path.exists('./Times/'+foldtype):
               os.mkdir('./Times/'+foldtype)
-            filename='./Times/'+foldtype+'/'+Box+'TimeContour%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
+            filename='./Times/'+foldtype+'/'+Box+Obstr+'TimeContour%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
             mp.savefig(filename,bbox_inches=plotfit)
             mp.clf()
             mp.close()
@@ -565,7 +582,7 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
             ax.set_title('Time for calculation by transmitter location z=%02f'%(k*h+h/2))
             ax.set_xlabel('Y position of Tx')
             ax.set_ylabel('X position of Tx')
-            filename='./Times/'+foldtype+'/'+Box+'TimeSurface%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
+            filename='./Times/'+foldtype+'/'+Box+Obstr+'TimeSurface%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
             mp.savefig(filename,bbox_inches=plotfit)
             mp.clf()
             mp.close()

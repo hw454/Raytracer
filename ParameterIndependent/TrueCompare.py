@@ -679,6 +679,18 @@ def main():
     box='Box'
   else:
     box='NoBox'
+  Nrs =np.load('Parameters/Nrs.npy')
+  Nsur=np.load('Parameters/Nsur.npy')
+  refindex=np.load('Parameters%03d.npy'%0)
+  obnumbers=np.zeros((Nrs,1))
+  k=0
+  Obstr=''
+  if Nrs<Nsur:
+    for ob, refin in enumerate(refindex):
+      if abs(refind)>epsilon:
+        obnumbers[k]=ob
+        k+=1
+        Obstr=Obstr+'Ob%02d'%ob
   Mesh1,RadMesh1=makematrix_LOS()
   Q1=DSM.QualityFromPower(Mesh1)
   MeshLOS,RadMeshLOSa,RadMeshLOSb=makematrix_circle_LOS()
@@ -701,38 +713,51 @@ def main():
     os.makedirs('./Mesh/True/LOS'+box+loca)
     os.makedirs('./Mesh/True/Circle'+box+loca)
     os.makedirs('./Mesh/True/Circle'+box+loca+'/MultiRef'+box+loca)
+    os.makedirs('./Mesh/True/Circle'+box+loca+'/twoRef'+box+loca)
     os.makedirs('./Mesh/True/SingleRef'+box+loca)
     os.makedirs('./Mesh/True/SinglePerfRef'+box+loca)
     os.makedirs('./Mesh/True/MultiRef'+box+loca)
     os.makedirs('./Mesh/True/MultiPerfRef'+box+loca)
+    os.makedirs('./Mesh/True/twoRef'+box+loca)
+    os.makedirs('./Mesh/True/twoPerfRef'+box+loca)
   if not os.path.exists('./Mesh/True'):
     os.makedirs('./Mesh/True')
     os.makedirs('./Mesh/True/LOS'+box+loca)
     os.makedirs('./Mesh/True/Circle'+box+loca)
     os.makedirs('./Mesh/True/Circle'+box+loca+'/MultiRef'+box+loca)
+    os.makedirs('./Mesh/True/Circle'+box+loca+'/twoRef'+box+loca)
     os.makedirs('./Mesh/True/SingleRef'+box+loca)
     os.makedirs('./Mesh/True/SinglePerfRef'+box+loca)
     os.makedirs('./Mesh/True/MultiRef'+box+loca)
     os.makedirs('./Mesh/True/MultiPerfRef'+box+loca)
+    os.makedirs('./Mesh/True/twoRef'+box+loca)
+    os.makedirs('./Mesh/True/twoPerfRef'+box+loca)
   if not os.path.exists('./Mesh/True/LOS'+box+loca):
     os.makedirs('./Mesh/True/LOS'+box+loca)
   if not    os.path.exists('./Mesh/True/SingleRef'+box+loca):
     os.makedirs('./Mesh/True/SingleRef'+box+loca)
   if not    os.path.exists('./Mesh/True/SinglePerfRef'+box+loca):
     os.makedirs('./Mesh/True/SinglePerfRef'+box+loca)
+  if not os.path.exists('./Mesh/True/twoRef'+box+loca):
+    os.makedirs('./Mesh/True/twoRef'+box+loca)
+  if not os.path.exists('./Mesh/True/twoPerfRef'+box+loca):
+    os.makedirs('./Mesh/True/twoPerfRef'+box+loca)
   if not os.path.exists('./Mesh/True/MultiRef'+box+loca):
     os.makedirs('./Mesh/True/MultiRef'+box+loca)
   if not os.path.exists('./Mesh/True/MultiPerfRef'+box+loca):
     os.makedirs('./Mesh/True/MultiPerfRef'+box+loca)
   if not os.path.exists('./Mesh/True/Circle'+box+loca):
     os.makedirs('./Mesh/True/Circle'+box+loca)
+    os.makedirs('./Mesh/True/Circle'+box+loca+'/twoRef'+box+loca)
     os.makedirs('./Mesh/True/Circle'+box+loca+'/MultiRef'+box+loca)
+  if not os.path.exists('./Mesh/True/Circle'+box+loca+'/twoRef'+box+loca):
+    os.makedirs('./Mesh/True/Circle'+box+loca+'/twoRef'+box+loca)
   if not os.path.exists('./Mesh/True/Circle'+box+loca+'/MultiRef'+box+loca):
     os.makedirs('./Mesh/True/Circle'+box+loca+'/MultiRef'+box+loca)
-  Truename='./Mesh/True/Circle'+box+loca+'/MultiRef'+box+loca+'/True_tx%03d.npy'%job
-  TrueRadname='./Mesh/True/Circle'+box+loca+'/MultiRef'+box+loca+'/TrueRadA_tx%03d.npy'%job
-  TrueRadBname='./Mesh/True/Circle'+box+loca+'/MultiRef'+box+loca+'/TrueRadA_tx%03d.npy'%job
-  TrueQname='./Mesh/True/Circle'+box+loca+'/MultiRef'+box+loca+'/TrueQ_tx%03d.npy'%job
+  Truename='./Mesh/True/Circle'+box+loca+'/twoRef'+box+loca+'/'+box+'True_tx%03d.npy'%job
+  TrueRadname='./Mesh/True/Circle'+box+loca+'/twoRef'+box+loca+'/'+box+'TrueRadA_tx%03d.npy'%job
+  TrueRadBname='./Mesh/True/Circle'+box+loca+'/twoRef'+box+loca+'/'+box+'TrueRadA_tx%03d.npy'%job
+  TrueQname='./Mesh/True/Circle'+box+loca+'/twoRef'+box+loca+'/'+box+'TrueQ_tx%03d.npy'%job
   # True results for sphere
   TrueFolder='./GeneralMethodPowerFigures/Circle'+box+loca+'/LOS'+box+loca+'/Tx%03d/TrueSlice'%job
   TruePlotName=TrueFolder+'/NoBoxTrueSliceNref%d'%Nre
@@ -744,7 +769,7 @@ def main():
   ub=np.amax(MeshPerfRef)
   lb=np.amin(MeshPerfRef)
   plot_mesh(MeshPerfRef,TrueFolder,TruePlotName,lb,ub)
-  TrueFolder='./GeneralMethodPowerFigures/Circle'+box+loca+'/MultiRef'+box+loca+'/Tx%03d/TrueSlice'%job
+  TrueFolder='./GeneralMethodPowerFigures/Circle'+box+loca+'/twoRef'+box+loca+'/Tx%03d/TrueSlice'%job
   TruePlotName=TrueFolder+'/NoBoxTrueSliceNref%d'%Nre
   ub=np.amax(MeshRef)
   lb=np.amin(MeshRef)
@@ -753,44 +778,44 @@ def main():
   ub=np.amax(MeshTRef)
   lb=np.amin(MeshTRef)
   plot_mesh(MeshTRef,TrueFolder,TruePlotName,lb,ub)
-  TrueFolder='./GeneralMethodPowerFigures/Circle'+box+loca+'/MultiRef'+box+loca+'/Tx%03d/TrueSlice/Rad'%job
+  TrueFolder='./GeneralMethodPowerFigures/Circle'+box+loca+'/twoRef'+box+loca+'/Tx%03d/TrueSlice/Rad'%job
   TruePlotName=TrueFolder+'/NoBoxRadASliceNref%d'%Nre
   ub=max(np.amax(RadMeshRefa),np.amax(RadMeshRefb))
   lb=min(np.amin(RadMeshRefa),np.amin(RadMeshRefb))
   plot_mesh(RadMeshRefa,TrueFolder,TruePlotName,lb,ub)
-  TrueFolder='./GeneralMethodPowerFigures/Circle'+box+loca+'/MultiRef'+box+loca+'/Tx%03d/TrueSlice/Rad'%job
+  TrueFolder='./GeneralMethodPowerFigures/Circle'+box+loca+'/twoRef'+box+loca+'/Tx%03d/TrueSlice/Rad'%job
   TruePlotName=TrueFolder+'/'+box+'RadBSliceNref%d'%Nre
   plot_mesh(RadMeshRefb,TrueFolder,TruePlotName,lb,ub)
   print('True mesh saved at', Truename)
-  Truename='./Mesh/True/LOS'+box+loca+'/True_tx%03d.npy'%job
-  TrueRadname='./Mesh/True/LOS'+box+loca+'/TrueRadA_tx%03d.npy'%job
-  TrueQname='./Mesh/True/LOS'+box+loca+'/TrueQ_tx%03d.npy'%job
+  Truename='./Mesh/True/LOS'+box+loca+'/'+box+'True_tx%03d.npy'%job
+  TrueRadname='./Mesh/True/LOS'+box+loca+'/'+box+'TrueRadA_tx%03d.npy'%job
+  TrueQname='./Mesh/True/LOS'+box+loca+'/'+box+'TrueQ_tx%03d.npy'%job
   np.save(Truename,Mesh1)
   np.save(TrueRadname,RadMesh1)
   np.save(TrueQname,Q1)
   print('True mesh saved at', Truename)
-  Truename='./Mesh/True/SinglePerfRef'+box+loca+'/True_tx%03d.npy'%job
-  TrueRadname='./Mesh/True/SinglePerfRef'+box+loca+'/TrueRadA_tx%03d.npy'%job
-  TrueRadBname='./Mesh/True/SinglePerfRef'+box+loca+'/TrueRadB_tx%03d.npy'%job
-  TrueQname='./Mesh/True/SinglePerfRef'+box+loca+'/TrueQ_tx%03d.npy'%job
+  Truename='./Mesh/True/SinglePerfRef'+box+loca+'/'+box+Obstr+'True_tx%03d.npy'%job
+  TrueRadname='./Mesh/True/SinglePerfRef'+box+loca+'/'+box+Obstr+'TrueRadA_tx%03d.npy'%job
+  TrueRadBname='./Mesh/True/SinglePerfRef'+box+loca+'/'+box+Obstr+'TrueRadB_tx%03d.npy'%job
+  TrueQname='./Mesh/True/SinglePerfRef'+box+loca+'/'+box+Obstr+'TrueQ_tx%03d.npy'%job
   np.save(Truename,Mesh2)
   np.save(TrueRadname,RadMesh2a)
   np.save(TrueRadBname,RadMesh2b)
   np.save(TrueQname,Q2)
   print('True mesh saved at', Truename)
-  Truename='./Mesh/True/MultiRef'+box+loca+'/True_tx%03d.npy'%job
-  TrueRadname='./Mesh/True/MultiRef'+box+loca+'/TrueRadA_tx%03d.npy'%job
-  TrueRadBname='./Mesh/True/MultiRef'+box+loca+'/TrueRadB_tx%03d.npy'%job
-  TrueQname='./Mesh/True/MultiRef'+box+loca+'/TrueQ_tx%03d.npy'%job
+  Truename='./Mesh/True/twoRef'+box+loca+'/'+box+Obstr+'True_tx%03d.npy'%job
+  TrueRadname='./Mesh/True/twoRef'+box+loca+'/'+box+Obstr+'TrueRadA_tx%03d.npy'%job
+  TrueRadBname='./Mesh/True/twoRef'+box+loca+'/'+box+Obstr+'TrueRadB_tx%03d.npy'%job
+  TrueQname='./Mesh/True/twoRef'+box+loca+'/TrueQ_tx%03d.npy'%job
   np.save(Truename,Mesh3)
   np.save(TrueRadname,RadMesh3a)
   np.save(TrueRadBname,RadMesh3b)
   np.save(TrueQname,Q3)
   print('True mesh saved at', Truename)
-  Truename='./Mesh/True/SingleRef'+box+loca+'/True_tx%03d.npy'%job
-  TrueRadname='./Mesh/True/SingleRef'+box+loca+'/TrueRadA_tx%03d.npy'%job
-  TrueRadBname='./Mesh/True/SingleRef'+box+loca+'/TrueRadB_tx%03d.npy'%job
-  TrueQname='./Mesh/True/SingleRef'+box+loca+'/TrueQ_tx%03d.npy'%job
+  Truename='./Mesh/True/SingleRef'+box+loca+'/'+box+Obstr+'True_tx%03d.npy'%job
+  TrueRadname='./Mesh/True/SingleRef'+box+loca+'/'+box+Obstr+'TrueRadA_tx%03d.npy'%job
+  TrueRadBname='./Mesh/True/SingleRef'+box+loca+'/'+box+Obstr+'TrueRadB_tx%03d.npy'%job
+  TrueQname='./Mesh/True/SingleRef'+box+loca+'/'+box+Obstr+'TrueQ_tx%03d.npy'%job
   np.save(Truename,Mesh4)
   np.save(TrueRadname,RadMesh4a)
   np.save(TrueRadBname,RadMesh4b)
@@ -808,12 +833,12 @@ def main():
   plot_mesh(RadMesh1,TrueFolder,TruePlotName,lb,ub)
   plot_mesh(Mesh2,TrueFolder,TruePlotName,lb,ub)
   TrueFolder='./GeneralMethodPowerFigures/SinglePerfRef'+box+loca+'/Tx%03d/TrueSlice'%job
-  TruePlotName=TrueFolder+'/'+box+'TrueSliceNref%d'%Nre
+  TruePlotName=TrueFolder+'/'+box+Obstr+'TrueSliceNref%d'%Nre
   ub=np.amax(Mesh2)
   lb=np.amin(Mesh2)
   plot_mesh(Mesh2,TrueFolder,TruePlotName,lb,ub)
   TrueFolder='./GeneralMethodPowerFigures/SinglePerfRef'+box+loca+'/Tx%03d/TrueSlice/Rad'%job
-  TruePlotName=TrueFolder+''+box+'RadASliceNref%d'%Nre
+  TruePlotName=TrueFolder+''+box+Obstr+'RadASliceNref%d'%Nre
   ub=max(np.amax(RadMesh2a),np.amax(RadMesh2a))
   lb=min(np.amin(RadMesh2a),np.amin(RadMesh2a))
   plot_mesh(RadMesh2a,TrueFolder,TruePlotName,lb,ub)
@@ -821,13 +846,13 @@ def main():
   ub=max(np.amax(RadMesh2b),np.amax(RadMesh2b))
   lb=min(np.amin(RadMesh2b),np.amin(RadMesh2b))
   plot_mesh(RadMesh2b,TrueFolder,TruePlotName,lb,ub)
-  TrueFolder='./GeneralMethodPowerFigures/MultiRef'+box+loca+'/Tx%03d/TrueSlice'%job
-  TruePlotName=TrueFolder+'/'+box+'TrueSliceNref%d'%Nre
+  TrueFolder='./GeneralMethodPowerFigures/twoRef'+box+loca+'/Tx%03d/TrueSlice'%job
+  TruePlotName=TrueFolder+'/'+box+Obstr+'TrueSliceNref%d'%Nre
   ub=np.amax(Mesh3)
   lb=np.amin(Mesh3)
   plot_mesh(Mesh3,TrueFolder,TruePlotName,lb,ub)
-  TrueFolder='./GeneralMethodPowerFigures/MultiRef'+box+loca+'/Tx%03d/TrueSlice/Rad'%job
-  TruePlotName=TrueFolder+''+box+'RadASliceNref%d'%Nre
+  TrueFolder='./GeneralMethodPowerFigures/twoRef'+box+loca+'/Tx%03d/TrueSlice/Rad'%job
+  TruePlotName=TrueFolder+''+box+Obstr+'RadASliceNref%d'%Nre
   ub=max(np.amax(RadMesh3a),np.amax(RadMesh3a))
   lb=min(np.amin(RadMesh3a),np.amin(RadMesh3a))
   plot_mesh(RadMesh3a,TrueFolder,TruePlotName,lb,ub)
@@ -836,16 +861,16 @@ def main():
   lb=min(np.amin(RadMesh3b),np.amin(RadMesh3b))
   plot_mesh(RadMesh3b,TrueFolder,TruePlotName,lb,ub)
   TrueFolder='./GeneralMethodPowerFigures/SingleRef'+box+loca+'/Tx%03d/TrueSlice'%job
-  TruePlotName=TrueFolder+'/'+box+'TrueSliceNref%d'%Nre
+  TruePlotName=TrueFolder+'/'+box+Obstr+'TrueSliceNref%d'%Nre
   ub=np.amax(Mesh4)
   lb=np.amin(Mesh4)
   plot_mesh(Mesh4,TrueFolder,TruePlotName,lb,ub)
   TrueFolder='./GeneralMethodPowerFigures/SingleRef'+box+loca+'/Tx%03d/TrueSlice/Rad'%job
-  TruePlotName=TrueFolder+''+box+'RadASliceNref%d'%Nre
+  TruePlotName=TrueFolder+''+box+Obstr+'RadASliceNref%d'%Nre
   ub=max(np.amax(RadMesh4a),np.amax(RadMesh4a))
   lb=min(np.amin(RadMesh4a),np.amin(RadMesh4a))
   plot_mesh(RadMesh4a,TrueFolder,TruePlotName,lb,ub)
-  TruePlotName=TrueFolder+''+box+'RadBSliceNref%d'%Nre
+  TruePlotName=TrueFolder+''+box+Obstr+'RadBSliceNref%d'%Nre
   ub=max(np.amax(RadMesh4b),np.amax(RadMesh4b))
   lb=min(np.amin(RadMesh4b),np.amin(RadMesh4b))
   plot_mesh(RadMesh4b,TrueFolder,TruePlotName,lb,ub)

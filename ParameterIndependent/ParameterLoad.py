@@ -377,15 +377,18 @@ def DeclareParameters(SN):
   if LOS:
     LOSstr='LOS'
   elif PerfRef:
-    if Nre>2:
-      LOSstr='MultiPerfRef'
+    if Nre>2 and Nrs>1:
+      if Nrs<nsur:
+       LOSstr=nw.num2words(Nrs)+'PerfRef'
+      else:
+       LOSstr='MultiPerfRef'
     else:
       LOSstr='SinglePerfRef'
   else:
     if Nre>2 and Nrs>1:
-      #if Nrs<nsur:
-       #LOSstr=nw.num2words(Nrs)+'Ref'
-      #else:
+      if Nrs<nsur:
+       LOSstr=nw.num2words(Nrs)+'Ref'
+      else:
        LOSstr='MultiRef'
     else:
       LOSstr='SingleRef'
@@ -565,7 +568,7 @@ def ObstacleCoefficients(SN,index=0):
   InOb=SimPar.cell(row=7,column=3).value
   NOut=OutB.max_row-1
   Nobst=Obst.max_row-1
-  Ns=Nobst*InOb+NOut
+  Nsur=Nobst*InOb+NOut
   mur   =np.array([complex(ObstPar.cell(row=2,column=2).value)])
   epsr  =np.array([complex(ObstPar.cell(row=2,column=3).value)])
   sigma =np.array([complex(ObstPar.cell(row=2,column=4).value)])
@@ -584,7 +587,7 @@ def ObstacleCoefficients(SN,index=0):
     refindex=np.array([mur[-1]*epsr[-1]])
   ObstPar.cell(row=2,column=6).value=str(refindex[-1])
   nre=0
-  for j in range(1,Ns):
+  for j in range(1,Nsur):
     box=int(OutB.cell(row=j+2,column=3).value)
     surf=int(OutB.cell(row=j+2,column=4).value)
     tri=int(OutB.cell(row=j+2,column=5).value)
@@ -646,6 +649,19 @@ def ObstacleCoefficients(SN,index=0):
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS
   # --------------------------------------------------------------------
+  Obstr=''
+  if Nrs<Nsur:
+    obnumbers=np.zeros((Nrs,1))
+    k=0
+    for ob, refin in enumerate(refindex):
+      if abs(refin)>epsilon:
+        obnumbers[k]=ob
+        k+=1
+        Obstr=Obstr+'Ob%02d'%ob
+  text_file = open('Parameters/Obstr.txt', 'w')
+  n = text_file.write(Obstr)
+  text_file.close()
+  SimPar.cell(row=26,column=3).value=Obstr
   np.save('Parameters/Freespace%03d.npy'%index,Freespace)
   np.save('Parameters/frequency%03d.npy'%index,frequency)
   np.save('Parameters/lam%03d.npy'%index,lam)

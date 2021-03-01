@@ -12,16 +12,18 @@ import io
 import sys
 import importlib
 import RayTracerMainProgram as RT
+import Rays as Ra
 
 def main():
   pr=cP.Profile()
   pr.enable()
+  #Ra.centre_dist_test()
   RT.main(sys.argv)
   pr.disable()
   s=io.StringIO()
   sortby=SortKey.CUMULATIVE
   ps=pstats.Stats(pr,stream=s).sort_stats(sortby)
-  ps.print_stats(10)
+  ps.print_stats(20)
   print(s.getvalue())
   ps.dump_stats('RayTracerProfile.dmp')
 

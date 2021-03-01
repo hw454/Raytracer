@@ -15,6 +15,7 @@ from pyface.api import GUI
 import scipy.sparse.linalg
 from itertools import product
 import matplotlib.pyplot as mp
+import num2words as nw
 
 epsilon=sys.float_info.epsilon
 
@@ -29,16 +30,39 @@ def PlotRays(plottype=str()):
     else:
       nra=len(Nra)
     Nre,h ,L    =np.load('Parameters/Raytracing.npy')[0:3]
+    Nre=int(Nre)
 
     ##----Retrieve the environment--------------------------------------
     Oblist        =np.load('Parameters/Obstacles.npy')
     Tx            =np.load('Parameters/Origin.npy')
-    Nob           =len(Oblist)
     OuterBoundary =np.load('Parameters/OuterBoundary.npy')
-    Nob2          =len(OuterBoundary)
-    Room          =np.concatenate((Oblist,OuterBoundary),axis=0)
+    LOS           =np.load('Parameters/LOS.npy')
+    PerfRef       =np.load('Parameters/PerfRef.npy')
+    Nsur          =np.load('Parameters/Nsur.npy')
+    Nrs           =np.load('Parameters/Nrs.npy')
+    InnerOb       =np.load('Parameters/InnerOb.npy')
+    numjobs       =np.load('Parameters/Numjobs.npy')
+    numjobs=500
+    Nob           =len(Oblist)
+    #Nob2          =len(OuterBoundary)
+    Room          =Oblist#=np.concatenate((Oblist,OuterBoundary),axis=0)
     Oblist        =Room
     RoomP=Oblist[0]
+    if LOS:
+      LOSstr='LOS'
+    else:
+      if Nre>2:
+        if Nrs<Nsur:
+          LOSstr=nw.num2words(Nrs)+''
+        else:
+          LOSstr='Multi'
+      else:
+        LOSstr='Single'
+    if InnerOb:
+      Box='Box'
+    else:
+      Box='NoBox'
+    foldtype=LOSstr+Box
     for j in range(1,Nob):
       RoomP=np.concatenate((RoomP,Oblist[j]),axis=0)
     for j in range(0,RoomP.shape[0],3):
@@ -49,48 +73,64 @@ def PlotRays(plottype=str()):
       mlab.plot3d(x,y,z,tube_radius=0.01)
       if not os.path.exists('./ConeFigures'):
         os.makedirs('./ConeFigures')
-        os.makedirs('./ConeFigures/'+plottype)
-      if not os.path.exists('./ConeFigures/'+plottype):
-        os.makedirs('./ConeFigures/'+plottype)
-    mlab.savefig('ConeFigures/'+plottype+'/Room.jpg',size=(1000,1000))
+        os.makedirs('./ConeFigures/'+Box)
+      if not os.path.exists('./ConeFigures/'+Box):
+        os.makedirs('./ConeFigures/'+Box)
+    mlab.savefig('ConeFigures/'+Box+'/Room.jpg',size=(1000,1000))
     mlab.clf()
     mlab.close(all=True)
-    for i in range(1):#nra):
-      job=jobfromTx(Tx,h)
-      mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.25)
-      ##---Retrieve the Ray points ---------------------------------------
-      data_matrix=np.load('./Mesh/'+plottype+'/RayMeshPoints%03dRefs%03d_tx%03d.npy'%(Nra[i],Nre,job))
-      print(Nre)
-      print(data_matrix.shape)
-      for j in range(0,int(Nra[i])):
-        for l in range(0,int(Nre)+1):
-          if not any(ma.isnan(d) for d in data_matrix[j][l]):
-            if l==0:
-              x=np.array([data_matrix[j][0][0]])
-              y=np.array([data_matrix[j][0][1]])
-              z=np.array([data_matrix[j][0][2]])
-            else:
-              xp=np.array([data_matrix[j][l][0]])
-              yp=np.array([data_matrix[j][l][1]])
-              zp=np.array([data_matrix[j][l][2]])
-              x=np.append(x,xp)
-              y=np.append(y,yp)
-              z=np.append(z,zp)
-        mlab.plot3d(x,y,z,color= (0, 1, 1),opacity=0.5)
-      for k in range(0,RoomP.shape[0],3):
-        x=np.array([RoomP[k][0],RoomP[k+1][0],RoomP[k+2][0],RoomP[k][0]])
-        y=np.array([RoomP[k][1],RoomP[k+1][1],RoomP[k+2][1],RoomP[k][1]])
-        z=np.array([RoomP[k][2],RoomP[k+1][2],RoomP[k+2][2],RoomP[k][2]])
-        mlab.plot3d(x,y,z,opacity=0.5)
-      if not os.path.exists('./ConeFigures'):
-        os.makedirs('./ConeFigures')
-        os.makedirs('./ConeFigures/'+plottype)
-      if not os.path.exists('./ConeFigures/'+plottype):
-        os.makedirs('./ConeFigures/'+plottype)
-      mlab.savefig('ConeFigures/'+plottype+'/Room%d.jpg'%Nra[i],size=(1000,1000))
-      #gui.start_event_loop()
-      #mlab.clf()
- #     mlab.close(all=True)
+    for job in range(numjobs):
+      Txstr='Parameters/Origin_job%03d.npy'%job
+      if os.path.isfile(Txstr):
+        Tx=np.load(Txstr)
+        if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
+          loca='Centre'
+        else:
+          loca='OffCentre'
+        foldtype=LOSstr+Box+loca
+      else:
+        continue
+      for i,nre in product(range(nra),range(Nre+1)):
+        ##---Retrieve the Ray points ---------------------------------------
+        RayPstr='./Mesh/'+foldtype+'/RayMeshPoints%03dRefs%03d_tx%03d.npy'%(Nra[i],nre,job)
+        if os.path.isfile(RayPstr):
+          print('Plotting ray points')
+          print(RayPstr)
+          data_matrix=np.load(RayPstr)
+          mlab.clf()
+          mlab.close(all=True)
+          mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.25)
+        else:
+          continue
+        for j in range(0,int(Nra[i])):
+          for l in range(0,int(nre)+1):
+            if not any(ma.isnan(d) for d in data_matrix[j][l]):
+              if l==0:
+                x=np.array([data_matrix[j][0][0]])
+                y=np.array([data_matrix[j][0][1]])
+                z=np.array([data_matrix[j][0][2]])
+              else:
+                xp=np.array([data_matrix[j][l][0]])
+                yp=np.array([data_matrix[j][l][1]])
+                zp=np.array([data_matrix[j][l][2]])
+                x=np.append(x,xp)
+                y=np.append(y,yp)
+                z=np.append(z,zp)
+          mlab.plot3d(x,y,z,color= (0, 1, 1),opacity=0.5)
+        for k in range(0,RoomP.shape[0],3):
+          x=np.array([RoomP[k][0],RoomP[k+1][0],RoomP[k+2][0],RoomP[k][0]])
+          y=np.array([RoomP[k][1],RoomP[k+1][1],RoomP[k+2][1],RoomP[k][1]])
+          z=np.array([RoomP[k][2],RoomP[k+1][2],RoomP[k+2][2],RoomP[k][2]])
+          mlab.plot3d(x,y,z,opacity=0.5)
+        if not os.path.exists('./ConeFigures'):
+          os.makedirs('./ConeFigures')
+          os.makedirs('./ConeFigures/'+foldtype)
+        if not os.path.exists('./ConeFigures/'+foldtype):
+          os.makedirs('./ConeFigures/'+foldtype)
+        mlab.savefig('ConeFigures/'+foldtype+'/Room%03dRefs%03d_tx%03d.jpg'%(Nra[i],nre,job),size=(1000,1000))
+        print('ConeFigures/'+foldtype+'/Room%03dRefs%03d_tx%03d.jpg'%(Nra[i],nre,job))
+        mlab.clf()
+        mlab.close(all=True)
     return
 
 def PlotCones(plottype):
@@ -194,7 +234,7 @@ def PlotCones(plottype):
             zp=np.append(z,[Cones[j][1][2]])
             mlab.plot3d(xp,yp,zp,color= (1,0,1))
             count+=1
-      filename=str('ConeFigures/'+plottype+'/Cone%d.jpg'%Nra[i])
+      filename='ConeFigures/'+plottype+'/Cone%d.jpg'%Nra[i]
       mlab.savefig(filename,size=(1000,1000))
       mlab.clf()
       mlab.close(all=True)
@@ -1336,7 +1376,7 @@ if __name__=='__main__':
   #PlotSingleCone(plottype)
   #PlotPowerSlice(plottype)
   PlotRays(plottype)
-  PlotDirections(plottype)
+  #PlotDirections(plottype)
   #PlotConesOnSquare(plottype)
   #PlotConesGains(plottype)
   #PlotPolarTheoryGains(plottype)

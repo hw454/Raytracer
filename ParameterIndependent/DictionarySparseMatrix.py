@@ -36,10 +36,11 @@
 
 
 import numpy as np
+from numpy import array_equal as arr_eq
+from numpy import cos, sin, sqrt
 from scipy.sparse import dok_matrix as SM
 import scipy.sparse.linalg
 from itertools import product
-import math
 import sys
 import time as t
 from six.moves import cPickle as pkl
@@ -58,7 +59,7 @@ epsilon=sys.float_info.epsilon
 # DS or DSM is a DS object which is a dictionary of sparse matrices.
 dbg=0
 xcheck=2
-ycheck=4
+ycheck=5
 zcheck=9
 newvar=1
 if dbg:
@@ -1057,17 +1058,13 @@ class DS:
             check=0
             indout=indicesSec
     return out,indout
-  def doubles__inMat__(s,h,vec,Nsur,po,Ntri=-1):
+  def doubles__inMat__(s,vec,po,ind=-1):
     ''' Check whether the input ray (vec) has already been counted in
     the DSM.
 
     :meta public:
 
-    :param h:   Mesh width
-
     :param vec: The ray vector which will be set if there are no doubles.
-
-    :param Nob: The number of obstacles.
 
     :param po:The x,y,z position of the SM to check.
 
@@ -1081,25 +1078,15 @@ class DS:
     :return: out
 
     '''
-    #if isinstance(Ntri,type(-1)):
-    #  Ntri=np.ones(Nob)
-    ind=vec.nonzero()[0]   # The positions of the nonzero terms in the vector looking to be stored
-    #ind=Correct_ObNumbers(ind,Ntri)
-    n=vec.getnnz()         # How many terms there are in the vector
-    assert n!=0 #: raise ValueError('There are no nonzero terms in the ray vector')
-    M=s[po[0],po[1],po[2]] # The matrix currently stored in the same (x,y,z) position
-    indM=M.nonzero()       # The positions of the non-zero terms already stored in that matrix
-    n2=len(indM[0])        # The number of nonzero columns in that matrix
-    c=-1                   # Initialise the new column check
-    for i in range(n2):
-      if indM[1][i]==c:      # If the column hasn't changed go to the next term in the loop
-        continue
-      c=indM[1][i]           # If the column has changed then reset the column check
-      rownz=M[:,c].nonzero()[0]
-      #rownz=Correct_ObNumbers(rownz,Ntri)
-      if np.array_equal(rownz,ind):
+    if isinstance(ind,type(-1)):
+      ind=vec.nonzero()[0]   # The positions of the nonzero terms in the vector looking to be stored
+    M=s[po[0],po[1],po[2]]   # The matrix currently stored in the same (x,y,z) position
+    M=M.toarray()
+    for i in set(M.nonzero()[1]) : # the nonzero columns in the matrix M
+      if arr_eq(M[:,i].nonzero()[0],ind):
         return True
     return False
+
   def refcoefbyterm_withmul(s,m,refindex,LOS=0,PerfRef=0, ind=-1,Nsur=6):
     ''' Using the impedance ratios of the obstacles, \
     refractive index of obstacles, the wavelength and the
@@ -1193,14 +1180,14 @@ class DS:
                 if 4-epsilon<=theta<=4+epsilon:
                   theta=0.0
                 if dbg:
-                  assert -epsilon<theta<np.pi/2+epsilon
+                  assert -epsilon<theta<np.pi*0.5+epsilon
                     #errmsg='Reflection angle should be within 0 and pi/2 %f, epsilon %f'%(theta,epsilon)
                     #logging.error(errmsg)
                     #raise ValueError(errmsg)
                 #pdb.set_trace()
-                cthi=np.cos(theta)
+                cthi=cos(theta)
                 #ctht=np.cos(np.arcsin(np.sin(theta)/refindex[k+1]))
-                ctht=np.sqrt(1-(np.sin(theta)/refindex[k+1])**2)
+                ctht=sqrt(1-(sin(theta)/refindex[k+1])**2)
                 #if dbg:
                 #  pdb.set_trace()
                 #pdb.set_trace()
@@ -1951,9 +1938,7 @@ class DS:
     #FIXME add the check for the end of the ray.
     #if i>=p1[0] and j>=p1[1] and k>=p1[2]:
     #  return 0
-    if 0<=i<s.Nx and 0<=j<s.Ny and 0<=k<s.Nz: #i>s.Nx or j>s.Ny or k>s.Nz or i<0 or j<0 or k<0:#
-      return 1
-    else: return 0
+    return (0<=int(i)<s.Nx and 0<=int(j)<s.Ny and 0<=int(k)<s.Nz)
   def stopchecklist(s,ps,p3,n):
     """ Check if the list of points is valid.
 
@@ -2040,7 +2025,7 @@ def Correct_ObNumbers(rvec,Ntri):
 
 def Correct_test():
     Nob=12
-    Ntri=2*np.ones(int(Nob/2))
+    Ntri=2*np.ones(int(Nob*0.5))
     row=np.arange(12)
     return Correct_ObNumbers(row,Ntri)
 
@@ -2226,12 +2211,13 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
           logging.info('Position (%d,%d,%d), number of nonzero terms per %d, par %d'%(x,y,z,Comper[x,y,z].getnnz(),Compar[x,y,z].getnnz()))
           logging.error('Comper '+str(Comper[x,y,z])+' Compar  '+str(Compar[x,y,z]))
           raise ValueError(errmsg)
-    Nsur=int((np.count_nonzero(refindex)-1)/2)# Each planar surface is formed of two triangles
+    Nsur=int((np.count_nonzero(refindex)-1)*0.5)# Each planar surface is formed of two triangles
     if LOS==0:
+      Maxnonzero=(Nsur**(Nre+1)-1)/(Nsur-1)
       for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
-        if Comper[x,y,z].getnnz()>(Nsur**(Nre+1)-1)/(Nsur-1) or Compar[x,y,z].getnnz()>(Nsur**(Nre+1)-1)/(Nsur-1):
+        if Comper[x,y,z].getnnz()>Maxnonzero or Compar[x,y,z].getnnz()>Maxnonzero:
           pdb.set_trace()
-          errmsg='Checking reflection case and more than %d terms is in the reflection matrix'%((Nsur**(Nre+1)-1)/(Nsur-1))
+          errmsg='Checking reflection case and more than %d terms is in the reflection matrix'%(Maxnonzero)
           print('Position (%d,%d,%d)'%(x,y,z))
           print('Number of terms in reflection coefficient matrices',Comper[x,y,z].getnnz(),Compar[x,y,z].getnnz())
           raise ValueError(errmsg)
@@ -2393,7 +2379,7 @@ def FieldEquation(r,khat,L,lam):
   :rtype: Array with dimensions of Pol
   :return: :math:`(lam/(4*ma.pi*r))*np.exp(1j*khat*r*(L**2))*Pol`
   '''
-  return (lam/(4*math.pi*r))*np.exp(1j*khat*r*(L**2))
+  return (lam/(4.0*np.pi*r))*np.exp(1j*khat*r*(L**2))
 
 def QualityFromPower(P):
    '''Calculate the quality of coverage from Power.
@@ -2819,10 +2805,10 @@ def test_18():
   Nx=5                                         # Number of x spaces
   Ny=5
   Nz=10
-  ds=test_03( Nx , Ny , Nz , na , nb )         # test_03() initialises a
+  ds=test_03c( Nx , Ny , Nz , na , nb )         # test_03() initialises a
                                                # DSM with values on the
                                                # diagonal of each mesh element
-  filename=str('testDS')
+  filename='testDS'
   ds.save_dict(filename)
   ds=load_dict(filename)
   return
@@ -2877,7 +2863,7 @@ def test_20():
   D2=D1.dict_col_mult()
   for x,y,z in product(range(0,Nx),range(0,Ny),range(0,Nz)):
     for j in range(0,nb):
-      if D2[x,y,x,0,j] != math.factorial(j+1):
+      if D2[x,y,x,0,j] != np.math.factorial(j+1):
         return 1
       else : pass
   return 0
@@ -2914,7 +2900,7 @@ def test_22():
   count=0
   vec=np.ones((nb,1))
   for x,y,z in product(range(Nx),range(Ny),range(Nz)):
-    col=int(nb/2)
+    col=int(nb*0.5)
     for j in range(na):
       Mesh[x,y,z,j,col]=count*vec[j]
       count+=1
@@ -2924,7 +2910,7 @@ def test_22():
   count=0
   Mesh=DS(Nx,Ny,Nz,na,nb)
   for x,y,z in product(range(Nx),range(Ny),range(Nz)):
-    col=int(nb/2)
+    col=int(nb*0.5)
     Mesh[x,y,z,:,col]=count*vec
     count+=1
   if Mesh.__self_eq__():
@@ -2960,10 +2946,52 @@ def test_24():
   AngDSM=Mesh.sparse_angles()
   return AngDSM
 
+def doubles_in_test():
+
+
+  ##----Retrieve the Mesh--------------------------------------
+  meshname='testDS'
+  Mesh= load_dict(meshname)
+
+  newtime=0
+  oldtime=0
+  Avenum=500
+  Avetot=0
+  Nsur=np.load('Parameters/Nsur.npy')
+  Nre,_,_,_    =np.load('Parameters/Raytracing.npy')
+  rn=Mesh.shape[0]
+  cn=Mesh.shape[1]
+  Nx=Mesh.Nx
+  Ny=Mesh.Ny
+  Nz=Mesh.Nz
+  h=1.0/max(Nx,Ny,Nz)
+  for j in range(Avenum):
+    vec=SM((rn,1),dtype=np.complex128)
+    po=np.array([np.random.randint(Nx),np.random.randint(Ny),np.random.randint(Nz)])
+    for i in range(int(Nre)):
+      r=np.random.randint(0,rn)
+      vec[r]=np.random.rand()
+    if j%5==1:
+      c=np.random.randint(0,cn)
+      vec=Mesh[po[0],po[1],po[2]][:,c]
+    t0=t.time()
+    doub=Mesh.doubles__inMat__(vec,po)
+    if j%5==1 and len(vec.nonzero()[0]>0):
+      assert doub
+    t1=t.time()
+    #print('after')
+    #print(altcoposout,copos2out,p3out,normout)
+    newtime+=t1-t0
+    Avetot+=1
+  print('new method time',newtime/(Avetot))
+    # The 'new' method is slower so the old method is kept
+  return 0
+
 
 if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   #job_server = pp.Server()
-  print(Correct_test())
+  test_18()
+  doubles_in_test()
   exit()
