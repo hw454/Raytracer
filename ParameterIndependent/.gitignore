@@ -8,6 +8,7 @@
 *.pyc
 *.orig
 *.log
+*.ngz
 testDS
 *.csv
 *~lock*
