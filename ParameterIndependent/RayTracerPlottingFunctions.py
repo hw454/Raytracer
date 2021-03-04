@@ -93,10 +93,9 @@ def plot_grid(plottype=str(),testnum=1,roomnumstat=0):
               loca='OffCentre'
             plottype=LOSstr+boxstr+loca
             meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
-            meshname=meshfolder+'/DSM_tx%03d'%(job)
             pstr       =meshfolder+'/'+boxstr+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
             if os.path.isfile(pstr):
-              Mesh= DSM.load_dict(meshname)
+              print('Plotting power at Tx=',Tx)
               P   =np.load(pstr)
               RadAstr    =meshfolder+'/'+boxstr+'RadA_grid%02dRefs%dm%d_tx%03d.npy'%(Nr,Nre,index,job)
               RadA=np.zeros((P.shape[0],P.shape[1],P.shape[2]))
@@ -270,6 +269,7 @@ def plot_residual(plottype,testnum,roomnumstat):
   Nra        =np.load('Parameters/Nra.npy')
   Nrs        =np.load('Parameters/Nrs.npy')
   Nsur       =np.load('Parameters/Nsur.npy')
+  Ns         =np.load('Parameters/Ns.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       Nra=np.array([Nra])
       nra=1
@@ -302,7 +302,7 @@ def plot_residual(plottype,testnum,roomnumstat):
             obnumbers[k]=ob
             l+=1
             Obstr=Obstr+'Ob%02d'%ob
-      meshfolder='./Mesh/'+plotype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
+      meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
       pratstr=meshfolder+'/'+boxstr+Obstr+'PowerRes_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,k,job)
       if os.path.isfile(pratstr):
         Prat   =np.load(pratstr)

@@ -840,14 +840,14 @@ class Ray:
     stpch=Mesh.stopcheck(i1,j1,k1)      # Check if the ray point is outside the domain.
     if stpch:
       p2           =room.coordinate(h,i1,j1,k1)                                # Calculate the co-ordinate of the center of the element the ray hit
-      doubcheck    =Mesh.doubles__inMat__(calcvec,(i1,j1,k1),rind) # Check if the ray has already been stored
+      Mesh.doubles__inMat_for_ray_(calcvec,(i1,j1,k1),rind) # Check if the ray has already been stored
       #interiorcheck=room.check_innerpoint(p2)                                  # Check if the point is inside obstacles
       # Recalculate distance to be for the centre point
       distcor=s.centre_dist(p1,p2,olddist,room)
       if abs(distcor-dist)>sqrt(3)*h:
         raise ValueError('The corrected distance on the ray is more than a mesh width from the ray point distance')
       # If the distance is 0 then the point is at the centre and the power is not well defined.
-      if not doubcheck  and abs(distcor)>epsilon:#and not interiorcheck
+      if  abs(distcor)>epsilon:#and not interiorcheck
         # Find the positions of the nonzero terms in calcvec and check the number of terms is valid.
         #calind=calcvec.nonzero()
         #assert Mesh[i1,j1,k1].shape[0]==calcvec.shape[0]
@@ -891,7 +891,7 @@ class Ray:
         stpch=Mesh.stopcheck(i1,j1,k1)   # stopcheck finds 1 if the term is in the environment and 0 if not
         if stpch:
           p2=room.coordinate(h,i1,j1,k1) # Calculate the co-ordinate of the center of the element the ray hit
-          doubcheck=Mesh.doubles__inMat__(calcvec,(i1,j1,k1),rind) # Check if the ray has already been stored
+          Mesh.doubles__inMat_for_ray_(calcvec,(i1,j1,k1),rind) # Check if the ray has already been stored
           #interiorcheck=room.check_innerpoint(p2) # Check the point is not inside an obstacle
           distcor=s.centre_dist(p1,p2,dist,room) # Correct the distance travelled to the distance for the point as the centre of the element.
           if dbg:
@@ -901,7 +901,7 @@ class Ray:
               logging.info('Calcvec'+str(calcvec))
               logging.info('Room triangles'+str(room.Ntri))
               logging.warning('distance%f for ray with distance %f at position (%d,%d,%d,%d,%d) reflection number %d'%(distcor,dist,i1,j1,k1,row,col,nre))
-          if abs(distcor)>epsilon and not doubcheck: # and not interiorcheck:
+          if abs(distcor)>epsilon: # and not interiorcheck:
             # If the distance is 0 then the point is at the centre and the power is not well defined.
             # Find the positions of the nonzero terms in calcvec and check the number of terms is valid.
             for r in rind:

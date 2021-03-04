@@ -64,7 +64,7 @@ dbg=0
 xcheck=2
 ycheck=5
 zcheck=9
-newvar=0
+newvar=1
 if dbg:
   logon=1
 else:
@@ -1090,6 +1090,39 @@ class DS:
       if arr_eq(M[:,i].nonzero()[0],ind):
         return True
     return False
+  def doubles__inMat_for_ray_(s,vec,po,ind=-1):
+    ''' Check whether the input ray (vec) has already been counted in
+    the DSM.
+
+    :meta public:
+
+    :param vec: The ray vector which will be set if there are no doubles.
+
+    :param po:The x,y,z position of the SM to check.
+
+      * Go through the nonzero columns and put the absolute value of the \
+      first term in the corresponding column in out[x,y,z]
+
+      * Pass until the next nonzero index is for a new column and repeat.
+
+    :rtype: DS(Nx,Ny,Nz,1,s.shape[1]) of real values.
+
+    :return: out
+
+    '''
+    if isinstance(ind,type(-1)):
+      ind=vec.nonzero()[0]   # The positions of the nonzero terms in the vector looking to be stored
+    M=s[po[0],po[1],po[2]]   # The matrix currently stored in the same (x,y,z) position
+    M=M.toarray()
+    for i in set(M.nonzero()[1]) : # the nonzero columns in the matrix M
+      if arr_eq(M[:,i].nonzero()[0],ind):
+        for j in range(len(M.nonzero()[0])):
+          a=M.nonzero()[0][j]
+          b=M.nonzero()[1][j]
+          if b==i:
+            s.d[po[0],po[1],po[2]][a,b]=0
+    return
+
 
   def refcoefbyterm_withmul(s,m,refindex,LOS=0,PerfRef=0, ind=-1,Nsur=6):
     ''' Using the impedance ratios of the obstacles, \
@@ -1467,16 +1500,7 @@ class DS:
       SinDSM[ind[0][j],ind[1][j],ind[2][j]][ind[3][j],ind[4][j]]=np.sin(s[ind[0][j],ind[1][j],ind[2][j]][ind[3][j],ind[4][j]])
     return SinDSM
   def image_real_parts(s,ind=-1):
-    """ Finds :math:`\\sin(\\theta)` for all terms \
-
-    :meta private:
-
-    :math:`\\theta != 0` in the DS s.
-
-    :return: A DSM with the same dimensions with \
-    :math:`\\sin(\\theta)` in the \
-     same position as the corresponding theta terms.
-
+    """ Return the imaginary and Real Parts of s. As DSMs with the same shape
     """
     if isinstance(ind, type(-1)):
       ind=s.nonzero().T
@@ -1586,10 +1610,11 @@ class DS:
         r=s[x,y,z][a,b]
         coskdiv=cos(khat*r*(L**2))/r
         sinkdiv=sin(khat*r*(L**2))/r
-        Hx[x,y,z,a]+=coskdiv*(abs(ImagePer[x,y,z][a,b]*Pol[0])**2+abs(ImagePar[x,y,z][a,b]*Pol[0])**2)
-        Hx[x,y,z,a]+=sinkdiv*(abs(RealPer[x,y,z][a,b]*Pol[0])**2+abs(RealPar[x,y,z][a,b]*Pol[0])**2)
-        Fx[x,y,z,a]+=coskdiv*(abs(RealPer[x,y,z][a,b]*Pol[0])**2+abs(RealPar[x,y,z][a,b]*Pol[0])**2)
-        Fx[x,y,z,a]+=sinkdiv*(abs(ImagePer[x,y,z][a,b]*Pol[0])**2+abs(ImagePar[x,y,z][a,b]*Pol[0])**2)
+        Hx[x,y,z,0,nra]+=coskdiv*(abs(ImagePer[x,y,z][a,b]*Pol[0])**2+abs(ImagePar[x,y,z][a,b]*Pol[1])**2)
+        Hx[x,y,z,0,nra]+=sinkdiv*(abs(RealPer[x,y,z][a,b]*Pol[0])**2+abs(RealPar[x,y,z][a,b]*Pol[1])**2)
+        Fx[x,y,z,0,nra]+=coskdiv*(abs(RealPer[x,y,z][a,b]*Pol[0])**2+abs(RealPar[x,y,z][a,b]*Pol[1])**2)
+        Fx[x,y,z,0,nra]+=sinkdiv*(abs(ImagePer[x,y,z][a,b]*Pol[0])**2+abs(ImagePar[x,y,z][a,b]*Pol[1])**2)
+    print('image and func mats',Hx,Fx)
     return Hx,Fx
   def opti_combo_inverse(s,Fx,Nra):
     '''
@@ -1614,18 +1639,18 @@ class DS:
     '''
     na,nb=s.shape
     Ainv=DS(s.Nx,s.Ny,s.Nz,Nra,Nra,dt=np.complex128)
-    Atot=np.zeros((Nra,Nra))
+    Atot=np.zeros((Nra,Nra),dtype=np.complex128)
     for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
-      H=s.d[x,y,z].toarray()
-      F=Fx[x,y,z].toarray()
+      H=s.d[x,y,z].toarray().copy()
+      F=Fx[x,y,z].toarray().copy()
       Amat=np.matmul(F.transpose(),F)+np.matmul(H.transpose(),H)
-      print('in func',Nra)
       for i,j in product(range(Nra),range(Nra)):
-        Atot[i,j]+=Amat[i,j]
+        Atot[i,j]+=Amat[i,j].copy()
+    print(Atot)
     Ainv=inv(Atot)
     Aout=np.zeros(Nra,1)
     for i,j in product(range(Nra),range(Nra)):
-      Aout[i,0]+=Atot[i,j]**2
+      Aout[i,0]+=Ainv[i,j]**2
     Aout/=np.sqrt(sum(Aout))
     return Aout
   def gain_phase_rad_ref_mul_add(s,Com1,Com2,G,khat,L,lam,Nra=0,ind=-1):
@@ -2320,7 +2345,7 @@ def optimum_gains(plottype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS
   if not os.path.exists(meshfolder):
     os.makedirs(meshfolder)
   # Check if the reflections angles are saved, if not then find them.
-  angfile=meshfolder+'/ang.npy'
+  angfile=meshfolder+'/ang'
   afile=Path(angfile)
   if newvar:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
@@ -2386,7 +2411,8 @@ def optimum_gains(plottype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS
       RadMesh.save_dict(rfile)
   t4=t.time()
   Hx,Fx=RadMesh.opti_func_mats(Realper,Realpar,Imageper,Imagepar,khat,L,lam,Pol,Nra,ind)
-  print('before func',Nra)
+  print('Hx',Hx)
+  print('Fx',Fx)
   Gt=Hx.opti_combo_inverse(Fx,Nra)
   return Gt
 def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,PerfRef=0,ind=-1):
@@ -2454,7 +2480,7 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
   else:
     ind=ind.T
     indout=ind
-  meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nra[j],Nre,Ns)
+  meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
     os.makedirs('./Mesh/'+plottype)
@@ -2462,7 +2488,7 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
   if not os.path.exists('./Mesh/'+plottype):
     os.makedirs('./Mesh/'+plottype)
     os.makedirs(meshfolder)
-  if not os.path.exist(meshfolder):
+  if not os.path.exists(meshfolder):
     os.makedirs(meshfolder)
   # Check if the reflections angles are saved, if not then find them.
   angfile=meshfolder+'/ang%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
