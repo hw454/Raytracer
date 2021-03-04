@@ -975,7 +975,7 @@ def jobfromTx(Tx,h):
   u=(Tx[1]-0.5*h)//h
   return int(H*100+t*10+u)
 
-def main(argv,verbose=False):
+def main(argv,scriptcall=False):
   job=0 # default job
   if len(argv)>1:
     job=int(argv[1])

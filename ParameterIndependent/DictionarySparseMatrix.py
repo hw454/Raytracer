@@ -1648,7 +1648,7 @@ class DS:
         Atot[i,j]+=Amat[i,j].copy()
     print(Atot)
     Ainv=inv(Atot)
-    Aout=np.zeros(Nra,1)
+    Aout=np.zeros((Nra,1))
     for i,j in product(range(Nra),range(Nra)):
       Aout[i,0]+=Ainv[i,j]**2
     Aout/=np.sqrt(sum(Aout))
