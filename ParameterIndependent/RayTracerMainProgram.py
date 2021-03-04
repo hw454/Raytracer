@@ -683,6 +683,17 @@ def power_grid(SN,room,Mesh,repeat=0,plottype=str(),Roomnum=0,job=0):
           RadSstr=meshfolder+'/RadS%d_grid%dRefs%dm%d.npy'%(su,Nra[j],Nre,0)
           if os.path.isfile(RadSstr):
             os.rename(r''+meshfolder+'/RadS%d_grid%dRefs%dm%d.npy'%(su,Nra[j],Nre,0),r''+meshfolder+'/'+Box+'RadS%d_grid%dRefs%dm%d_tx%03d.npy'%(su,Nra[j],Nre,0,job))
+       rstr='rad%dRefs%dNs%d'%(Nra[j],Nre,Ns)
+       rfile=meshfolder+rstr
+       angstr='/ang%03dRefs%03dNs%0d'%(Nra[j],Nre,Ns)
+       angfile=meshfolder+angstr
+       for (x,y,z) in product(range(Nx),range(Ny),range(Nz)):
+          rfilename=rfile+'%02dx%02dy%02dz.npz'(x,y,z)
+          angfilename=angfile+'%02dx%02dy%02dz.npz'(x,y,z)
+          os.rename(r''+rfilename,r''+meshfolder+'/'+Box+rstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+          os.rename(r''+angfilename,r''+meshfolder+'/'+Box+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+
+
       G_z[0,j]=np.count_nonzero((Grid==0))
     t1=t.time()
     timemat[j]=t1-t0
