@@ -675,7 +675,7 @@ def power_grid(SN,room,Mesh,repeat=0,plottype=str(),Roomnum=0,job=0):
       if os.path.isfile(RadAstr):
         os.rename(r''+meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nra[j],Nre,0),r''+meshfolder+'/'+Box+'RadA_grid%dRefs%dm%d_tx%03d.npy'%(Nra[j],Nre,0,job))
       if not LOS:
-        Angstr='./Mesh/'+plottype+'/AngNpy.npy'
+        Angstr=meshfolder+'/AngNpy.npy'
         if os.path.isfile(Angstr):
           os.rename(r''+meshfolder+'/AngNpy.npy',r''+meshfolder+'/'+Box+'AngNpy%03dRefs%03dNs%03d_tx%03d.npy'%(Nra[j],Nre,Ns,job))
         for su in range(0,Nsur):
@@ -1061,8 +1061,8 @@ def main(argv,verbose=False):
       start=t.time()
       Mesh1,timemesh,Room=MeshProgram(Sheetname,repeat,plottype,job) # Shoot the rays and store the information
       mid=t.time()
-      Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
-      #Gtout,timeo=optimum_gains(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)
+      #Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+      Gtout,timeo=optimum_gains(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)
       # repeat=1
       # #G_zeros[count,:]=G_z
       # #Q             =Quality(Sheetname,repeat,plottype,Roomnum,job)

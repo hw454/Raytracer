@@ -41,8 +41,7 @@ from numpy import cos, sin, sqrt
 from numpy.linalg import norm as leng
 from scipy.sparse import dok_matrix as SM
 import scipy.sparse.linalg
-from scipy.sparse.linalg import LinearOperator as LO
-from scipy.sparse.linalg import inv as SMinv
+from numpy.linalg import inv
 from scipy.sparse import save_npz, load_npz
 from itertools import product
 import sys
@@ -1617,15 +1616,17 @@ class DS:
     Ainv=DS(s.Nx,s.Ny,s.Nz,Nra,Nra,dt=np.complex128)
     Atot=np.zeros((Nra,Nra))
     for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
-      H=Hx[x,y,z]
-      F=Fx[x,y,z]
-      Amat=((F.transpose()).LO.matmat(F)+(H.transpose()).LO.matmat(H)).SMinv
+      H=s.d[x,y,z].toarray()
+      F=Fx[x,y,z].toarray()
+      Amat=np.matmul(F.transpose(),F)+np.matmul(H.transpose(),H)
+      print('in func',Nra)
       for i,j in product(range(Nra),range(Nra)):
         Atot[i,j]+=Amat[i,j]
+    Ainv=inv(Atot)
     Aout=np.zeros(Nra,1)
     for i,j in product(range(Nra),range(Nra)):
       Aout[i,0]+=Atot[i,j]**2
-    Aout/=leng(Aout)
+    Aout/=np.sqrt(sum(Aout))
     return Aout
   def gain_phase_rad_ref_mul_add(s,Com1,Com2,G,khat,L,lam,Nra=0,ind=-1):
     """ Multiply all terms of s elementwise with Com1/Rad and each row by Gt.
@@ -2385,6 +2386,7 @@ def optimum_gains(plottype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS
       RadMesh.save_dict(rfile)
   t4=t.time()
   Hx,Fx=RadMesh.opti_func_mats(Realper,Realpar,Imageper,Imagepar,khat,L,lam,Pol,Nra,ind)
+  print('before func',Nra)
   Gt=Hx.opti_combo_inverse(Fx,Nra)
   return Gt
 def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,PerfRef=0,ind=-1):
@@ -2452,10 +2454,18 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
   else:
     ind=ind.T
     indout=ind
+  meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nra[j],Nre,Ns)
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
+    os.makedirs('./Mesh/'+plottype)
+    os.makedirs(meshfolder)
+  if not os.path.exists('./Mesh/'+plottype):
+    os.makedirs('./Mesh/'+plottype)
+    os.makedirs(meshfolder)
+  if not os.path.exist(meshfolder):
+    os.makedirs(meshfolder)
   # Check if the reflections angles are saved, if not then find them.
-  angfile='./Mesh/ang%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
+  angfile=meshfolder+'/ang%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
   #afile=Path(angfile)
   if newvar:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
@@ -2497,19 +2507,19 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
   if not LOS:
     #print(Mesh)
     Theta=AngDSM.togrid(ind)
-    np.save('Mesh/'+plottype+'/AngNpy.npy',Theta)
-  rfile='./Mesh/rad%dRefs%dNs%d'%(Nra,Nre,Ns)
+    np.save(meshfolder+'/AngNpy.npy',Theta)
+  rfile=meshfolder+'/rad%dRefs%dNs%d'%(Nra,Nre,Ns)
   Nob=room.Nob
   Nsur=room.Nsur
   if newvar:
-    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,plottype)
+    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,plottype,Nra,Nre)
     RadMesh.save_dict(rfile)
   else:
     try:
       RadMesh=load_dict(rfile,Nx,Ny,Nz)
       ind=RadMesh.nonzero()
     except:
-      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,plottype)
+      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,plottype,Nra,Nre)
       RadMesh.save_dict(rfile)
   t4=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,Nra,ind)
