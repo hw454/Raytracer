@@ -38,8 +38,12 @@
 import numpy as np
 from numpy import array_equal as arr_eq
 from numpy import cos, sin, sqrt
+from numpy.linalg import norm as leng
 from scipy.sparse import dok_matrix as SM
 import scipy.sparse.linalg
+from scipy.sparse.linalg import LinearOperator as LO
+from scipy.sparse.linalg import inv as SMinv
+from scipy.sparse import save_npz, load_npz
 from itertools import product
 import sys
 import time as t
@@ -61,7 +65,7 @@ dbg=0
 xcheck=2
 ycheck=5
 zcheck=9
-newvar=1
+newvar=0
 if dbg:
   logon=1
 else:
@@ -883,10 +887,8 @@ class DS:
           elif s[x1,y1,z1,a1,b1]!=s[x2,y2,z2,a2,b2]: return False
           else: pass
     return True
-  def __get_rad__(s,h,Nsur,Ntri,ind=-1,plottype=str(),Nra=0,Nre=0):
+  def __get_rad__(s,Nsur,ind=-1,plottype=str(),Nra=-1,Nre=-1):
     ''' Return a DS corresponding to the distances stored in the mesh.
-
-    :param h:   Mesh width
 
     :param Nob: The number of obstacles.
 
@@ -954,11 +956,14 @@ class DS:
           else:
             check=0
             indout=np.array([ind[0][i],ind[1][i],ind[2][i],0,ind[4][i]])
-    RadAstr    ='./Mesh/'+plottype+'/RadA_grid%dRefs%dm%d.npy'%(Nra,Nre,0)
-    np.save(RadAstr,RadA)
-    for j in range(0,Nsur):
-      RadSistr='./Mesh/'+plottype+'/RadS%d_grid%dRefs%dm%d.npy'%(j,Nra,Nre,0)
-      np.save(RadSistr,RadSi[j])
+    Ns=max(s.Nx,s.Ny,s.Nz)
+    meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
+    if Nra>0 and Nre>0:
+      RadAstr    =meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nra,Nre,0)
+      np.save(RadAstr,RadA)
+      for j in range(0,Nsur):
+        RadSistr=meshfolder+'/RadS%d_grid%dRefs%dm%d.npy'%(j,Nra,Nre,0)
+        np.save(RadSistr,RadSi[j])
     return out,indout
   def __del_doubles__(s,h,Nsur,ind=-1,Ntri=-1):
     ''' Return the same DS as input but with double counted rays removed.
@@ -1462,6 +1467,39 @@ class DS:
     for j in range(0,n):
       SinDSM[ind[0][j],ind[1][j],ind[2][j]][ind[3][j],ind[4][j]]=np.sin(s[ind[0][j],ind[1][j],ind[2][j]][ind[3][j],ind[4][j]])
     return SinDSM
+  def image_real_parts(s,ind=-1):
+    """ Finds :math:`\\sin(\\theta)` for all terms \
+
+    :meta private:
+
+    :math:`\\theta != 0` in the DS s.
+
+    :return: A DSM with the same dimensions with \
+    :math:`\\sin(\\theta)` in the \
+     same position as the corresponding theta terms.
+
+    """
+    if isinstance(ind, type(-1)):
+      ind=s.nonzero().T
+    else:
+      if len(ind[0])==5 and len(ind.T[0]!=5):
+        ind=ind.T
+        #pass
+      elif len(ind[0])!=5 and len(ind.T[0]==5):
+        pass
+        #ind=ind.T
+      else:
+        ind=s.nonzero().T
+    na,nb=s.shape
+    RealDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
+    ImageDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
+    #ind=np.transpose(ind)
+    n=len(ind[0])
+    for j in range(0,n):
+      x,y,z,a,b=ind[0][j],ind[1][j],ind[2][j],ind[3][j],ind[4][j]
+      ImageDSM[x,y,z][a,b]=s[x,y,z][a,b].imag
+      RealDSM[x,y,z][a,b]=s[x,y,z][a,b].real
+    return RealDSM,ImageDSM
   ## Finds the angles theta which are the arguments of the nonzero
   # complex terms in the DSM s.
   # @return a DSM with the same dimensions with theta in the
@@ -1502,7 +1540,94 @@ class DS:
       if abs(np.angle(s[x,y,z][a,b]))<epsilon:
         AngDSM[x,y,z][a,b]=4
     return AngDSM
-  def gain_phase_rad_ref_mul_add(s,Com1,Com2,G,khat,L,lam,ind=-1):
+  def opti_func_mats(s,RealPer,RealPar,ImagePer,ImagePar,khat,L,lam,Pol,Nra,ind):
+    '''
+    Computes the optimal antenna gains discretised into Nra rays.
+
+    :param Realper: The real parts of the products of the perpendicular reflection coefficients.
+    :param Realpar: The real parts of the products of the parallel reflection coefficients.
+    :param Imageper: The imaginary parts of the products of the perpendicular reflection coefficients.'
+    :param Imageper: The imaginary parts of the products of the parallel reflection coefficients.
+    :param khat: Non-dimensional wavenumber.
+    :param L: lengthscale
+    :param lam: wavelength
+    :param Pol: polarisation
+    :param ind: nonzero indices.
+
+    :math: Hx=\sqrt(|(\sum_{nre} \cos(\wavenumber s*L**2)/s)*ImagePer*Pol[0]|**2
+              +|(\sum_{nre} \cos(\wavenumber s*L**2)/s)*ImagePar*Pol[1]|**2)
+              \sqrt(|(\sum_{nre} \sin(\wavenumber s*L**2)/s)*RealPer*Pol[0]|**2
+              +|(\sum_{nre} \sin(\wavenumber s*L**2)/s)*RealPar*Pol[1]|**2)
+
+    :math: Fx=\sqrt(|(\sum_{nre} \sin(\wavenumber s*L**2)/s)*ImagePer*Pol[0]|**2
+              +|(\sum_{nre} \sin(\wavenumber s*L**2)/s)*ImagePar*Pol[1]|**2)
+              \sqrt(|(\sum_{nre} \cos(\wavenumber s*L**2)/s)*RealPer*Pol[0]|**2
+              +|(\sum_{nre} \cos(\wavenumber s*L**2)/s)*RealPar*Pol[1]|**2)
+
+    :rtype: 2x DSM
+    :returns: Hx, Fx
+
+    '''
+    Hx=DS(s.Nx,s.Ny,s.Nz,1,Nra,dt=np.complex128)
+    Fx=DS(s.Nx,s.Ny,s.Nz,1,Nra,dt=np.complex128)
+    if isinstance(ind, type(-1)):
+      ind=s.nonzero().T
+    else:
+      if len(ind[0])==5 and len(ind.T[0]!=5):
+        ind=ind.T
+      elif len(ind[0])!=5 and len(ind.T[0]==5):
+        pass
+      else:
+        ind=s.nonzero().T
+    Ni=len(ind[0])
+    for l in range(0,Ni):
+      x,y,z,a,b=ind[:,l]
+      if s[x,y,z][a,b]!=0:
+        nra=b%Nra
+        r=s[x,y,z][a,b]
+        coskdiv=cos(khat*r*(L**2))/r
+        sinkdiv=sin(khat*r*(L**2))/r
+        Hx[x,y,z,a]+=coskdiv*(abs(ImagePer[x,y,z][a,b]*Pol[0])**2+abs(ImagePar[x,y,z][a,b]*Pol[0])**2)
+        Hx[x,y,z,a]+=sinkdiv*(abs(RealPer[x,y,z][a,b]*Pol[0])**2+abs(RealPar[x,y,z][a,b]*Pol[0])**2)
+        Fx[x,y,z,a]+=coskdiv*(abs(RealPer[x,y,z][a,b]*Pol[0])**2+abs(RealPar[x,y,z][a,b]*Pol[0])**2)
+        Fx[x,y,z,a]+=sinkdiv*(abs(ImagePer[x,y,z][a,b]*Pol[0])**2+abs(ImagePar[x,y,z][a,b]*Pol[0])**2)
+    return Hx,Fx
+  def opti_combo_inverse(s,Fx,Nra):
+    '''
+    Computes the optimal antenna gains discretised into Nra rays.
+
+    :param s: s is the Hx imaginary matrix from :py:func:'opti_func_mats'
+    :math: Hx=\sqrt(|(\sum_{nre} \cos(\wavenumber s*L**2)/s)*ImagePer*Pol[0]|**2
+              +|(\sum_{nre} \cos(\wavenumber s*L**2)/s)*ImagePar*Pol[1]|**2)
+              \sqrt(|(\sum_{nre} \sin(\wavenumber s*L**2)/s)*RealPer*Pol[0]|**2
+              +|(\sum_{nre} \sin(\wavenumber s*L**2)/s)*RealPar*Pol[1]|**2)
+    :param Fx:
+    :math: Fx=\sqrt(|(\sum_{nre} \sin(\wavenumber s*L**2)/s)*ImagePer*Pol[0]|**2
+              +|(\sum_{nre} \sin(\wavenumber s*L**2)/s)*ImagePar*Pol[1]|**2)
+              \sqrt(|(\sum_{nre} \cos(\wavenumber s*L**2)/s)*RealPer*Pol[0]|**2
+              +|(\sum_{nre} \cos(\wavenumber s*L**2)/s)*RealPar*Pol[1]|**2)
+
+     Ainv=(Fx.^*Fx+Hx.THx)^{-1} at every x.
+
+    :rtype: 2x DSM
+    :returns: Hx, Fx
+
+    '''
+    na,nb=s.shape
+    Ainv=DS(s.Nx,s.Ny,s.Nz,Nra,Nra,dt=np.complex128)
+    Atot=np.zeros((Nra,Nra))
+    for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
+      H=Hx[x,y,z]
+      F=Fx[x,y,z]
+      Amat=((F.transpose()).LO.matmat(F)+(H.transpose()).LO.matmat(H)).SMinv
+      for i,j in product(range(Nra),range(Nra)):
+        Atot[i,j]+=Amat[i,j]
+    Aout=np.zeros(Nra,1)
+    for i,j in product(range(Nra),range(Nra)):
+      Aout[i,0]+=Atot[i,j]**2
+    Aout/=leng(Aout)
+    return Aout
+  def gain_phase_rad_ref_mul_add(s,Com1,Com2,G,khat,L,lam,Nra=0,ind=-1):
     """ Multiply all terms of s elementwise with Com1/Rad and each row by Gt.
         Multiply all terms of s elementwise with Com2/Rad and each row by Gt.
 
@@ -1541,8 +1666,12 @@ class DS:
       x,y,z,a,b=ind[:,l]
       if s[x,y,z][a,b]!=0:
         k=FieldEquation(s[x,y,z][a,b],khat,L,lam)
-        out1[x,y,z]+=k*Com1[x,y,z][a,b]
-        out2[x,y,z]+=k*Com2[x,y,z][a,b]
+        if Nra>0:
+          nra=b%Nra
+        else:
+          nra=b
+        out1[x,y,z]+=G[nra-1,0]*k*Com1[x,y,z][a,b]
+        out2[x,y,z]+=G[nra-1,0]*k*Com2[x,y,z][a,b]
       if x==xcheck and y==ycheck and z==zcheck and dbg:
         logging.info('This is an information message')
         logmessage='At position (%d,%d,%d)'%(x,y,z)
@@ -1814,8 +1943,11 @@ class DS:
     :return: nothing
 
     """
-    with open(filename_, 'wb') as f:
-        pkl.dump(s.d, f)
+    for x,y,z in s.d.keys():
+      filename_out=filename_+'%02dx%02dy%02dz'%(x,y,z)
+      out=s.d[x,y,z].tocsr()
+      save_npz(filename_out+'.npz',out)
+        #print('Program continued by Mesh is not saved')
     return
   ## Find the indices of the nonzero terms in the DSM s.
   # The indices are found by iterating through all keys (x,y,z) for the
@@ -2115,7 +2247,146 @@ def stopchecklist(ps,p3,h,Nx,Ny,Nz):
         pass
       j+=1
     return start, newps, newp3, newn
+def optimum_gains(plottype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS=0,PerfRef=0,ind=-1):
+  ''' Compute the optimal transmitter gains from a Mesh of ray information and the physical \
+  parameters.
 
+  :param Mesh:    The :py:class:`DS` mesh of ray information. \
+  Containing the non-dimensionalised ray lengths and their angles of reflection.
+  :param Znobrat: An Nsur x Nre+1 array containing tiles of the impedance \
+  of obstacles divided by the impedance of air.
+  :param refindex: An Nsur x Nre+1 array containing tiles of the refractive\
+  index of obstacles.
+  :param Antpar: Numpy array containing the wavenumber, wavelength and lengthscale.
+  :param Gt:     Array of the transmitting antenna gains.
+  :param Pol:    2x1 numpy array containing the polarisation terms.
+  :param Nra:    The number of rays in the ray tracer.
+  :param Nre:    The number of reflections in the ray tracer.
+  :param Ns:     The number of terms on each axis.
+  :param LOS:    Line of sight, 1 for yes 0 for no, default is 0.
+  :param ind:    The non-zero indices of the Mesh, default is -1, then \
+  the indices are found after a check.
+
+  Method:
+
+    * First compute the angles of reflection using py:func:`Mesh.sparse_angles()`.\
+    If the angles are already saved from previous calculations then they are loaded.
+    * Compute the combined reflection coefficients for the parallel and \
+    perpendicular to polarisation terms using \
+    :py:class:`DS`.:py:func:`Mesh.refcoefbyterm_withmu(Nre,refindex,LOS=0,PerfRef=0, ind=-1)`=Comper,Compar.
+    * Extract the distance each ray travelled using \
+    :py:class:`DS`. :py:func:`__get_rad__()`
+    * Multiply by the gains for the corresponding ray, the phase, \
+    the combined reflection coefficients and divide by the distance the \
+    ray travelled to get the power in the different polarisation directions.\
+    Using :py:class:`DS`.:py:func:`gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)`
+    * Multiply by initial polarisation vectors and combine.
+    * Ignore dividing by initial phi as when converting to power in db \
+    this disappears.
+    * Take the amplitude and square.
+
+  :rtype: Nx x Ny x Nz numpy array of real values.
+
+  :return: Grid
+
+  '''
+  #print('----------------------------------------------------------')
+  #print('Start computing the power from the Mesh')
+  #print('----------------------------------------------------------')
+  t0=t.time()
+  # Retrieve the parameters
+  khat,lam,L = Antpar # khat is the non-dimensional wave number,
+                      # lam is the non-dimensionalised wave length.
+                      # L is the length scale for the dimensions.
+  # Check in the nonzero indices have been input or not, if not then find them.
+  #print('power start')
+  Nx,Ny,Nz=Mesh.Nx,Mesh.Ny,Mesh.Nz
+  na,nb=Mesh.shape[0],Mesh.shape[1]
+  if isinstance(ind, type(-1)):
+    ind=Mesh.nonzero().T
+    indout=ind
+  else:
+    ind=ind.T
+    indout=ind
+  meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
+  if not os.path.exists('./Mesh'):
+    os.makedirs('./Mesh')
+    os.makedirs('./Mesh/'+plottype)
+    os.makedirs(meshfolder)
+  if not os.path.exists('./Mesh/'+plottype):
+    os.makedirs('./Mesh/'+plottype)
+    os.makedirs(meshfolder)
+  if not os.path.exists(meshfolder):
+    os.makedirs(meshfolder)
+  # Check if the reflections angles are saved, if not then find them.
+  angfile=meshfolder+'/ang.npy'
+  afile=Path(angfile)
+  if newvar:
+    AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
+    AngDSM.save_dict(angfile)
+  else:
+    if afile.is_file():
+      AngDSM=load_dict(angfile,Nx,Ny,Nz)
+    else:
+      AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
+      AngDSM.save_dict(angfile)
+  Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,LOS,PerfRef,ind)
+  Realper,Imageper=Comper.image_real_parts(ind)
+  Realpar,Imagepar=Compar.image_real_parts(ind)
+  AngNpy=DS(Nx,Ny,Nz,na,nb)
+  for x,y,z in product(range(Nx),range(Ny),range(Nz)):
+      #AngNpy[x,y,z]=AngDSM[x,y,z].multiply(Comper[x,y,z])
+      n=Comper[x,y,z].getnnz()
+      inp=Comper[x,y,z].nonzero()
+      for l in range(n):
+        b=inp[1][l]
+        a=AngDSM[x,y,z][:,b].nonzero()[0][-1]
+        if abs(Comper[x,y,z][a,b]-1)<epsilon:
+          AngNpy[x,y,z][a,b]=0
+        else:
+          AngNpy[x,y,z][a,b]=AngDSM[x,y,z][a,b]
+  if dbg:
+    if LOS==1:
+      for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
+        if Comper[x,y,z].getnnz()>1 or Compar[x,y,z].getnnz()>1:
+          errmsg='Checking LOS case but more than one term is in the reflection matrix'
+          logging.info('Position (%d,%d,%d), number of nonzero terms per %d, par %d'%(x,y,z,Comper[x,y,z].getnnz(),Compar[x,y,z].getnnz()))
+          logging.error('Comper '+str(Comper[x,y,z])+' Compar  '+str(Compar[x,y,z]))
+          raise ValueError(errmsg)
+    Nsur=int((np.count_nonzero(refindex)-1)*0.5)# Each planar surface is formed of two triangles
+    if LOS==0:
+      Maxnonzero=(Nsur**(Nre+1)-1)/(Nsur-1)
+      for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
+        if Comper[x,y,z].getnnz()>Maxnonzero or Compar[x,y,z].getnnz()>Maxnonzero:
+          pdb.set_trace()
+          errmsg='Checking reflection case and more than %d terms is in the reflection matrix'%(Maxnonzero)
+          print('Position (%d,%d,%d)'%(x,y,z))
+          print('Number of terms in reflection coefficient matrices',Comper[x,y,z].getnnz(),Compar[x,y,z].getnnz())
+          raise ValueError(errmsg)
+  if not LOS:
+    #print(Mesh)
+    Theta=AngNpy.togrid(ind)
+    np.save(meshfolder+'/AngNpy.npy',Theta)
+  rfile=meshfolder+'rad'
+  Nob=room.Nob
+  Nsur=room.Nsur
+  h=room.get_meshwidth(Mesh)
+  #print('before rad')
+  #print(Mesh[3,3,3])
+  if newvar:
+    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,plottype)
+    RadMesh.save_dict(rfile)
+  else:
+    if Path(rfile).is_file():
+      RadMesh=load_dict(rfile,Nx,Ny,Nx)
+      ind=RadMesh.nonzero()
+    else:
+      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,plottype)
+      RadMesh.save_dict(rfile)
+  t4=t.time()
+  Hx,Fx=RadMesh.opti_func_mats(Realper,Realpar,Imageper,Imagepar,khat,L,lam,Pol,Nra,ind)
+  Gt=Hx.opti_combo_inverse(Fx,Nra)
+  return Gt
 def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,PerfRef=0,ind=-1):
   ''' Compute the field from a Mesh of ray information and the physical \
   parameters.
@@ -2170,6 +2441,11 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
                       # L is the length scale for the dimensions.
   # Check in the nonzero indices have been input or not, if not then find them.
   #print('power start')
+  Nx=Mesh.Nx
+  Ny=Mesh.Ny
+  Nz=Mesh.Nz
+  na=Mesh.shape[0]
+  nb=Mesh.shape[1]
   if isinstance(ind, type(-1)):
     ind=Mesh.nonzero().T
     indout=ind
@@ -2179,20 +2455,19 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
   # Check if the reflections angles are saved, if not then find them.
-  angfile='./Mesh/ang%03dRefs%03dNs%0d.npy'%(Nra,Nre,Ns)
-  afile=Path(angfile)
+  angfile='./Mesh/ang%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
+  #afile=Path(angfile)
   if newvar:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
     AngDSM.save_dict(angfile)
   else:
-    if afile.is_file():
-      AngDSM=load_dict(angfile)
-    else:
+    try:
+      AngDSM=load_dict(angfile,Nx,Ny,Nz)
+    except:
       AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
       AngDSM.save_dict(angfile)
   Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,LOS,PerfRef,ind)
-  AngNpy=DS(Mesh.Nx,Mesh.Ny,Mesh.Nz,Mesh.shape[0],Mesh.shape[1])
-  for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
+  for x,y,z in product(range(Nx),range(Ny),range(Nz)):
       #AngNpy[x,y,z]=AngDSM[x,y,z].multiply(Comper[x,y,z])
       n=Comper[x,y,z].getnnz()
       inp=Comper[x,y,z].nonzero()
@@ -2200,12 +2475,10 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
         b=inp[1][l]
         a=AngDSM[x,y,z][:,b].nonzero()[0][-1]
         if abs(Comper[x,y,z][a,b]-1)<epsilon:
-          AngNpy[x,y,z][a,b]=0
-        else:
-          AngNpy[x,y,z][a,b]=AngDSM[x,y,z][a,b]
+          AngDSM[x,y,z][a,b]=0
   if dbg:
     if LOS==1:
-      for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
+      for x,y,z in product(range(Nx),range(Ny),range(Nz)):
         if Comper[x,y,z].getnnz()>1 or Compar[x,y,z].getnnz()>1:
           errmsg='Checking LOS case but more than one term is in the reflection matrix'
           logging.info('Position (%d,%d,%d), number of nonzero terms per %d, par %d'%(x,y,z,Comper[x,y,z].getnnz(),Compar[x,y,z].getnnz()))
@@ -2223,30 +2496,24 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
           raise ValueError(errmsg)
   if not LOS:
     #print(Mesh)
-    Theta=AngNpy.togrid(ind)
+    Theta=AngDSM.togrid(ind)
     np.save('Mesh/'+plottype+'/AngNpy.npy',Theta)
-  rfile='./Mesh/rad%dRefs%dNs%d.npy'%(Nra,Nre,Ns)
+  rfile='./Mesh/rad%dRefs%dNs%d'%(Nra,Nre,Ns)
   Nob=room.Nob
   Nsur=room.Nsur
-  h=room.get_meshwidth(Mesh)
-  #print('before rad')
-  #print(Mesh[3,3,3])
   if newvar:
-    RadMesh,ind=Mesh.__get_rad__(h,Nsur,room.Ntri,ind,plottype,Nra,Nre)
+    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,plottype)
     RadMesh.save_dict(rfile)
   else:
-    if radfile.is_file() and Path(RadAstr).is_file() and Path(RadBstr).is_file():
-      RadMesh=load_dict(rfile)
+    try:
+      RadMesh=load_dict(rfile,Nx,Ny,Nz)
       ind=RadMesh.nonzero()
-    else:
-      RadMesh,ind=Mesh.__get_rad__(h,Nsur,room.Ntri,ind,plottype,Nra,Nre)
+    except:
+      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,plottype)
       RadMesh.save_dict(rfile)
   t4=t.time()
-  Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)
-  #P=np.zeros((Mesh.Nx,Mesh.Ny,Mesh.Nz),dtype=np.longdouble)
-  #field=DSM.FieldEquation(Txleng,khat,L,lam)*Pol
+  Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,Nra,ind)
   P=np.absolute(Gridpe*Pol[0])**2+np.absolute(Gridpa*Pol[1])**2
-  #P=10*np.log10(P,where=(P!=0))
   P=Watts_to_db(P)
   # if dbg:
     # TrGrid=np.load('./Mesh/True/'+plottype+'/True.npy')
@@ -2260,7 +2527,7 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
   return P,indout
 
 
-def quality_compute(Mesh,Grid,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,PerfRef,ind=-1):
+def quality_compute(plottype,Mesh,Grid,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,PerfRef,ind=-1):
   ''' Compute the field from a Mesh of ray information and the physical \
   parameters.
 
@@ -2322,30 +2589,29 @@ def quality_compute(Mesh,Grid,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LO
   Nra=int(Nra)
   Nre=int(Nre)
   Ns=int(Ns)
-  angfile='./Mesh/ang%dRefs%dNs%d.npy'%(Nra,Nre,Ns)
+  angfile='./Mesh/ang%dRefs%dNs%d'%(Nra,Nre,Ns)
   afile=Path(angfile)
-  if afile.is_file():
-    AngDSM=load_dict(angfile)
-  else:
+  try:
+    AngDSM=load_dict(angfile,Nx,Ny,Nz)
+  except:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
     AngDSM.save_dict(angfile)
   Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,LOS,PerfRef,ind)
-  rfile='./Mesh/rad%dRefs%dNs%d.npy'%(Nra,Nre,Ns)
-  radfile = Path(rfile)
+  rfile='./Mesh/rad%dRefs%dNs%d'%(Nra,Nre,Ns)
   h=1/Mesh.Nx
   Nsur=room.Nsur
   if newvar:
-    RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nsur,ind, plottype,Nra,Nre)
+    RadMesh,ind=Mesh.__get_rad__(Nsur,ind)
     RadMesh.save_dict(rfile)
   else:
-    if radfile.is_file():
-      RadMesh=load_dict(rfile)
+    try:
+      RadMesh=load_dict(rfile,Nx,Ny,Nz)
       ind=RadMesh.nonzero()
-    else:
-      RadMesh,RadA,RadB,ind=Mesh.__get_rad__(h,Nsur,ind, plottype,Nra,Nre)
+    except:
+      RadMesh,ind=Mesh.__get_rad__(Nsur,ind, plottype)
       RadMesh.save_dict(rfile)
   t4=t.time()
-  Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,ind)
+  Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,Nra,ind)
   P=np.zeros((Mesh.Nx,Mesh.Ny,Mesh.Nz),dtype=np.longdouble)
   P=np.absolute(Gridpe*Pol[0])**2+np.absolute(Gridpa*Pol[1])**2
   P=Watts_to_db(P)
@@ -2429,7 +2695,7 @@ def singletype(x):
     return True
   else: return False
 
-def load_dict(filename_):
+def load_dict(filename_,Nx=0,Ny=0,Nz=0):
   ''' Load a DS as a dictionary and construct the DS again.
 
   :param filename_: the name of the DS saved
@@ -2443,20 +2709,18 @@ def load_dict(filename_):
   :returns: nothing
 
   '''
-
-  with open(filename_, 'rb') as f:
-    ret_di = pkl.load(f)
-  Keys=ret_di.keys()
-  Nx=max(Keys)[0]-min(Keys)[0]+1
-  Ny=max(Keys)[1]-min(Keys)[1]+1
-  Nz=max(Keys)[2]-min(Keys)[2]+1
-  na=ret_di[0,0,0].shape[0]
-  nb=ret_di[0,0,0].shape[1]
-  ret_ds=DS(Nx,Ny,Nz,na,nb)
-  default_value=SM((na,nb),dtype=np.complex128)
-  for k in Keys:
-    ret_ds.__setitem__(k,ret_di[k])
-  return ret_ds
+  out=load_npz(filename_+'%02dx%02dy%02dz.npz'%(0,0,0))
+  na=out.shape[0]
+  nb=out.shape[1]
+  outDS=DS(Nx,Ny,Nz,na,nb)
+  outDS.__setitem__((0,0,0),out.todok())
+  for x,y,z in product(range(0,Nx),range(0,Ny),range(0,Nz)):
+    if x==0 and y==0 and z==0:
+      continue
+    filename_out=filename_+'%02dx%02dy%02dz'%(x,y,z)
+    out=load_npz(filename_out+'.npz')
+    outDS.__setitem__((x,y,z),out.todok())
+  return outDS
 
 def ref_coef(Mesh,Znobrat,refindex,Nra,Nre,Ns,ind=-1):
   ''' Find the reflection coefficients.
@@ -2506,11 +2770,10 @@ def ref_coef(Mesh,Znobrat,refindex,Nra,Nre,Ns,ind=-1):
   #print('Make DS for angles')
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
-  angfile=str('./Mesh/ang'+str(int(Nra))+'Refs'+str(int(Nre))+'Ns'+str(int(Ns))+'.npy')
-  afile=Path(angfile)
-  if afile.is_file():
-    AngDSM=load_dict(angfile)
-  else:
+  angfile='./Mesh/ang%dRefs%dNs%d'%(Nra,Nre,Ns)
+  try:
+    AngDSM=load_dict(angfile,Nx,Ny,Nz)
+  except:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
     AngDSM.save_dict(angfile)
   t2=t.time()
@@ -2810,7 +3073,7 @@ def test_18():
                                                # diagonal of each mesh element
   filename='testDS'
   ds.save_dict(filename)
-  ds=load_dict(filename)
+  ds=load_dict(filename,Nx,Ny,Nz)
   return
 
 def test_19():
@@ -2921,6 +3184,7 @@ def test_22():
 
 def test_24():
   Nra,Nre,h,L    =np.load('Parameters/Raytracing.npy')
+  Ns             =np.load('Parameters/Ns.npy')
   Nra=int(Nra)
   Nre=int(Nre)
   Nob            =np.load('Parameters/Nob.npy')
@@ -2940,8 +3204,8 @@ def test_24():
   refindex     =np.load('Parameters/refindex.npy')
 
   ##----Retrieve the Mesh--------------------------------------
-  meshname=str('DSM'+str(Nra)+'Refs'+str(Nre)+'m.npy')
-  Mesh= load_dict(meshname)
+  meshname='DSM%dRefs%dm'(Nra,Nre)
+  Mesh= load_dict(meshname,Ns,Ns,Ns)
   ind=Mesh.nonzero()
   AngDSM=Mesh.sparse_angles()
   return AngDSM
@@ -2950,9 +3214,9 @@ def doubles_in_test():
 
 
   ##----Retrieve the Mesh--------------------------------------
+  Ns=np.load('Parameters/Ns.npy')
   meshname='testDS'
-  Mesh= load_dict(meshname)
-
+  Mesh= load_dict(meshname,5,5,10)
   newtime=0
   oldtime=0
   Avenum=500

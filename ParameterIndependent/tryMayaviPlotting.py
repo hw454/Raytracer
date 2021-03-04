@@ -408,11 +408,54 @@ def PlotPolarTheoryGains(plottype):
     mp.clf()
     return
 
-def PlotPolarGains(plottype):
+def PlotPolarGains(plottype,index=0):
     '''Plot the cone calculations.'''
 
     ##----Retrieve the Raytracing Parameters-----------------------------
     Nra         =np.load('Parameters/Nra.npy')
+    job         =np.load('Parameters/Numjobs.npy')
+    InnerOb     =np.load('Parameters/InnerOb.npy')
+    LOS         =np.load('Parameters/LOS.npy')
+    PerfRef     =np.load('Parameters/PerfRef.npy')
+    refindex    =np.load('Parameters/refindex%03d.npy'%index)
+    InnerOb     =np.load('Parameters/InnerOb.npy')
+    Tx          =np.load('Parameters/Origin_job%03d.npy'%job)
+    if LOS:
+      LOSstr='LOS'
+    elif PerfRef:
+      if Nre>2:
+        if Nrs<Nsur:
+          LOSstr=nw.num2words(Nrs)+'PerfRef'
+        else:
+          LOSstr='MultiPerfRef'
+      else:
+        LOSstr='SinglePerfRef'
+    else:
+      if Nre>2 and Nrs>1:
+        if Nrs<Nsur:
+          LOSstr=nw.num2words(Nrs)+'Ref'
+        else:
+          LOSstr='MultiRef'
+      else:
+        LOSstr='SingleRef'
+    if InnerOb:
+      Box='Box'
+    else:
+      Box='NoBox'
+    if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
+      loca='Centre'
+    else:
+      loca='OffCentre'
+    plottype=LOSstr+Box+loca
+    Obstr=''
+    if Nrs<Nsur:
+      obnumbers=np.zeros((Nrs,1))
+      k=0
+      for ob, refin in enumerate(refindex):
+        if abs(refin)>epsilon:
+          obnumbers[k]=ob
+          k+=1
+          Obstr=Obstr+'Ob%02d'%ob
     if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       Nra=np.array([Nra])
       nra=1
@@ -429,6 +472,7 @@ def PlotPolarGains(plottype):
     for i in range(0,nra):
       directionname='Parameters/Directions%03d.npy'%Nra[i]
       data_matrix   =np.load(directionname)         # Matrix of ray directions
+      OptiStr='./Mesh/'+plottype+'/'+Box+Obstr+'OptimalGains%03dRefs%03dm%03d_tx%03d'%(Nr,Nre,index,job)
       nre=0
       dist=1 #L
       Ncon=ra.no_cones(h,dist,delangle[i],0,nre)
@@ -443,7 +487,7 @@ def PlotPolarGains(plottype):
       polarvert_matrix=np.zeros((Nra[i]*(Ncon+1),2))
       for j in range(0,int(Nra[i])):#int(Nrao)):
         d=data_matrix[j]
-        r=np.linalg.norm(d)
+        r=Gt[j]*np.linalg.norm(d)
         if d[0]!=0:
           theta=np.arctan(d[1]/d[0])
         else:
@@ -554,16 +598,33 @@ def PlotConesOnSquare(plottype):
     ##----Retrieve the environment--------------------------------------
     Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
     OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
-    Oblist        =OuterBoundary/L #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
-
+    Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+    refindex      =np.load('Parameters/refindex%03d.npy'%index)
+    Nrs           =np.load('Parameters/Nrs.npy')
+    Nsur          =np.load('Parameters/Nsur.npy')
+    InnerOb       =np.load('Parameters/InnerOb.npy')
+    LOS           =np.load('Parameters/LOS.npy')
+    PerfRef       =np.load('Parameters/PerfRef.npy')
+    refindex      =np.load('Parameters/refindex%03d.npy'%0)
+    if InnerOb:
+      Box='Box'
+    else:
+      Box='NoBox'
+    Obstr=''
+      if Nrs<Nsur:
+        obnumbers=np.zeros((Nrs,1))
+        k=0
+        for ob, refin in enumerate(refindex):
+          if abs(refin)>epsilon:
+            obnumbers[k]=ob
+            k+=1
+            Obstr=Obstr+'Ob%02d'%ob
     # Room contains all the obstacles and walls.
     Room=rom.room(Oblist)
 
     Nz=int(Room.maxyleng()/(h))
     Nx=int(Room.maxxleng()/(h))
     Ny=int(Room.maxyleng()/(h))
-
-    #Oblist=Oblist*L
 
 
     Room=rom.room(Oblist)
@@ -576,6 +637,28 @@ def PlotConesOnSquare(plottype):
     zmax=Room.bounds[1][2]
     xgrid=np.linspace(xmin,xmax,Nx)
     # Generate co-ordinates fot the grid
+    if LOS:
+      LOSstr='LOS'
+    else:
+      if Nre>2:
+        if Nrs<Nsur:
+          LOSstr=nw.num2words(Nrs)+''
+        else:
+          LOSstr='Multi'
+      else:
+        LOSstr='Single'
+    if InnerOb:
+      Box='Box'
+    else:
+      Box='NoBox'
+    foldtype=LOSstr+Box
+    Obstr=''
+      if Nrs<Nsur:
+        for ob, refin in enumerate(refindex):
+          if abs(refin)>epsilon:
+            obnumbers[k]=ob
+            k+=1
+            Obstr=Obstr+'Ob%02d'%ob
     for yp in range(0,Ny):
       yt=np.tile(ymin+(yp/Ny)*(ymax-ymin),(1,Nx))
       if yp==0:
@@ -592,9 +675,10 @@ def PlotConesOnSquare(plottype):
     # Create Figures for each ray number
     for i in range(0, nra):
       # The intersection Points
-      data_matrix   =np.load('./Mesh/'+plottype+'/RayMeshPoints%dRefs%dm.npy'%(Nra[i],Nre))
+      meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+      data_matrix   =np.load('./Mesh/'+foldtype+'/RayMeshPoints%dRefs%dm.npy'%(Nra[i],Nre))
       # The arrays of Power Values
-      Power=np.load('./Mesh/'+plottype+'/Power_grid%dRefs%dm%d.npy'%(Nra[i],Nre,0))
+      Power=np.load(meshfolder+'/'+Box+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job),Grid)
       Powx,Powy,Powz=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
       Pmin=np.amin(Power)
       Pmax=np.amax(Power)
@@ -1012,6 +1096,7 @@ def PlotPowerSlice(plottype):
     Nz=int(Room.maxzleng()/(h))
     Nx=int(Room.maxxleng()/(h))
     Ny=int(Room.maxyleng()/(h))
+    Nx=max(Nx,Ny,Nz)
     # Get the x, y, z co-ordinates for P
     xmin=Room.bounds[0][0]
     xmax=Room.bounds[1][0]
@@ -1044,11 +1129,12 @@ def PlotPowerSlice(plottype):
     for j in range(1,Nob):
       RoomP=np.concatenate((RoomP,Oblist[j]),axis=0)
     for i in range(0,nra):
-      Power=np.load('./Mesh/'+plottype+'/Power_grid%dRefs%dm%d.npy'%(Nra[i],Nre,0))
-      RadA=np.load('./Mesh/'+plottype+'/RadA_grid%dRefs%dm%d.npy'%(Nra[i],Nre,0))
+      meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nra[i],Nre,Ns)
+      Power=np.load(meshfolder+'/Power_grid%dRefs%dm%d.npy'%(Nra[i],Nre,0))
+      RadA=np.load(meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nra[i],Nre,0))
       RadS=np.zeros((Nob,Nx,Ny,Nz))
       for j in range(0,Nsur):
-        RadS[j]=np.load('./Mesh/'+plottype+'/RadS%d_grid%dRefs%dm%d.npy'%(j,Nra[i],Nre,0))
+        RadS[j]=np.load(meshfolder+'/RadS%d_grid%dRefs%dm%d.npy'%(j,Nra[i],Nre,0))
       Powx,Powy,Powz=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
       Pmin=np.amin(Power)
       Pmax=np.amax(Power)
@@ -1278,19 +1364,22 @@ def PlotSingleCone(plottype):
       nra=len(Nra)
   Nre,h ,L =np.load('Parameters/Raytracing.npy')
   # Take Tx to be 0,0,0
-  Tx=     np.load('Parameters/Origin.npy')/L
+  Tx=     np.load('Parameters/Origin.npy')
   delangle      =np.load('Parameters/delangle.npy')
   ##----Retrieve the environment--------------------------------------
   Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
   OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
-  Oblist        =OuterBoundary/L #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
-
+  Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
+  LOS           =np.load('Parameters/LOS.npy')
+  PerfRef       =np.load('Parameters/PerfRef.npy')
+  InnerOb       =np.load('Parameters/InnerOb.npy')
   # Room contains all the obstacles and walls.
   Room=rom.room(Oblist)
 
   Nz=int(Room.maxyleng()/(h))
   Nx=int(Room.maxxleng()/(h))
   Ny=int(Room.maxyleng()/(h))
+  Ns=max(Nx,Ny,Nz)
 
   Oblist=Oblist
 
@@ -1303,11 +1392,31 @@ def PlotSingleCone(plottype):
   zmin=Room.bounds[0][2]
   zmax=Room.bounds[1][2]
   xgrid=np.linspace(xmin,xmax,Nx)
+  if LOS:
+    LOSstr='LOS'
+  else:
+    if Nre>2:
+      if Nrs<Nsur:
+        LOSstr=nw.num2words(Nrs)+''
+      else:
+        LOSstr='Multi'
+    else:
+      LOSstr='Single'
+  if InnerOb:
+    Box='Box'
+  else:
+    Box='NoBox'
+  foldtype=LOSstr+Box
   for i in range(0,  nra):
-      data_matrix   =np.load('./Mesh/'+plottype+'RayMeshPoints%dRefs%dm.npy'%(Nra[i],Nre))
-      Power=np.load('./Mesh/'+plottype+'Power_grid%dRefs%dm%d.npy'%(Nra[i],Nre,0))
+      meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nra[i],Nre,Ns)
+      data_matrix   =np.load('./Mesh/'+foldtype+'RayMeshPoints%dRefs%dm.npy'%(Nra[i],Nre))
+      Power=np.load(meshfolder+'/'+Box+Obstr+'Power_grid%dRefs%dm%d.npy'%(Nra[i],Nre,0))
       Powx,Powy,Powz=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
-      Cones=np.load('./Mesh/'+plottype+'SingleCone%dRefs%dm.npy'%(Nra[i],Nre))
+      Conestr=meshfolder+'SingleCone%dRefs%dm.npy'%(Nra[i],Nre)
+      if os.path.isfile(Conestr):
+        Cones=np.load(Conestr)
+      else:
+        continue
       mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
       for j in range(0, Nra[i]):
         x=Tx[0]

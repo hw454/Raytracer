@@ -13,12 +13,14 @@ import sys
 import importlib
 import RayTracerMainProgram as RT
 import Rays as Ra
+import OptimisationMethod as OM
 
 def main():
   pr=cP.Profile()
   pr.enable()
   #Ra.centre_dist_test()
-  RT.main(sys.argv)
+  #RT.main(sys.argv)
+  OM.main()
   pr.disable()
   s=io.StringIO()
   sortby=SortKey.CUMULATIVE
