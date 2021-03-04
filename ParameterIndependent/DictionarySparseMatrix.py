@@ -1618,14 +1618,15 @@ class DS:
     for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
       H=s.d[x,y,z].toarray()
       F=Fx[x,y,z].toarray()
-      Amat=inv(np.matmul(F.transpose(),F)+np.matmul(H.transpose(),H))
+      Amat=np.matmul(F.transpose(),F)+np.matmul(H.transpose(),H)
       print('in func',Nra)
       for i,j in product(range(Nra),range(Nra)):
         Atot[i,j]+=Amat[i,j]
+    Ainv=inv(Atot)
     Aout=np.zeros(Nra,1)
     for i,j in product(range(Nra),range(Nra)):
       Aout[i,0]+=Atot[i,j]**2
-    Aout/=leng(Aout)
+    Aout/=np.sqrt(sum(Aout))
     return Aout
   def gain_phase_rad_ref_mul_add(s,Com1,Com2,G,khat,L,lam,Nra=0,ind=-1):
     """ Multiply all terms of s elementwise with Com1/Rad and each row by Gt.
