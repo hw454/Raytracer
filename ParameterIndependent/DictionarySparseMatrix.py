@@ -41,7 +41,7 @@ from numpy import cos, sin, sqrt
 from numpy.linalg import norm as leng
 from scipy.sparse import dok_matrix as SM
 import scipy.sparse.linalg
-from numpy.linalg import inv
+from numpy.linalg import inv,pinv
 from scipy.sparse import save_npz, load_npz
 from itertools import product
 import sys
@@ -1514,8 +1514,8 @@ class DS:
       else:
         ind=s.nonzero().T
     na,nb=s.shape
-    RealDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
-    ImageDSM=DS(s.Nx,s.Ny,s.Nz,na,nb)
+    RealDSM=DS(s.Nx,s.Ny,s.Nz,na,nb,dt=float)
+    ImageDSM=DS(s.Nx,s.Ny,s.Nz,na,nb,dt=float)
     #ind=np.transpose(ind)
     n=len(ind[0])
     for j in range(0,n):
@@ -1591,8 +1591,8 @@ class DS:
     :returns: Hx, Fx
 
     '''
-    Hx=DS(s.Nx,s.Ny,s.Nz,1,Nra,dt=np.complex128)
-    Fx=DS(s.Nx,s.Ny,s.Nz,1,Nra,dt=np.complex128)
+    Hx=DS(s.Nx,s.Ny,s.Nz,1,Nra,dt=float)
+    Fx=DS(s.Nx,s.Ny,s.Nz,1,Nra,dt=float)
     if isinstance(ind, type(-1)):
       ind=s.nonzero().T
     else:
@@ -1614,7 +1614,6 @@ class DS:
         Hx[x,y,z,0,nra]+=sinkdiv*(abs(RealPer[x,y,z][a,b]*Pol[0])**2+abs(RealPar[x,y,z][a,b]*Pol[1])**2)
         Fx[x,y,z,0,nra]+=coskdiv*(abs(RealPer[x,y,z][a,b]*Pol[0])**2+abs(RealPar[x,y,z][a,b]*Pol[1])**2)
         Fx[x,y,z,0,nra]+=sinkdiv*(abs(ImagePer[x,y,z][a,b]*Pol[0])**2+abs(ImagePar[x,y,z][a,b]*Pol[1])**2)
-    print('image and func mats',Hx,Fx)
     return Hx,Fx
   def opti_combo_inverse(s,Fx,Nra):
     '''
@@ -1638,19 +1637,19 @@ class DS:
 
     '''
     na,nb=s.shape
-    Ainv=DS(s.Nx,s.Ny,s.Nz,Nra,Nra,dt=np.complex128)
-    Atot=np.zeros((Nra,Nra),dtype=np.complex128)
+    Ainv=DS(s.Nx,s.Ny,s.Nz,Nra,Nra,dt=float)
+    Atot=np.zeros((Nra,Nra),dtype=float)
     for x,y,z in product(range(0,s.Nx),range(0,s.Ny),range(0,s.Nz)):
       H=s.d[x,y,z].toarray().copy()
       F=Fx[x,y,z].toarray().copy()
       Amat=np.matmul(F.transpose(),F)+np.matmul(H.transpose(),H)
       for i,j in product(range(Nra),range(Nra)):
         Atot[i,j]+=Amat[i,j].copy()
-    print(Atot)
     Ainv=inv(Atot)
-    Aout=np.zeros((Nra,1))
+    Aout=np.zeros((Nra,1),float)
     for i,j in product(range(Nra),range(Nra)):
       Aout[i,0]+=Ainv[i,j]**2
+    print(Aout,np.sqrt(sum(Aout)))
     Aout/=np.sqrt(sum(Aout))
     return Aout
   def gain_phase_rad_ref_mul_add(s,Com1,Com2,G,khat,L,lam,Nra=0,ind=-1):
@@ -2273,7 +2272,7 @@ def stopchecklist(ps,p3,h,Nx,Ny,Nz):
         pass
       j+=1
     return start, newps, newp3, newn
-def optimum_gains(plottype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS=0,PerfRef=0,ind=-1):
+def optimum_gains(foldtype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS=0,PerfRef=0,ind=-1):
   ''' Compute the optimal transmitter gains from a Mesh of ray information and the physical \
   parameters.
 
@@ -2334,13 +2333,13 @@ def optimum_gains(plottype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS
   else:
     ind=ind.T
     indout=ind
-  meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
+  meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
-    os.makedirs('./Mesh/'+plottype)
+    os.makedirs('./Mesh/'+foldtype)
     os.makedirs(meshfolder)
-  if not os.path.exists('./Mesh/'+plottype):
-    os.makedirs('./Mesh/'+plottype)
+  if not os.path.exists('./Mesh/'+foldtype):
+    os.makedirs('./Mesh/'+foldtype)
     os.makedirs(meshfolder)
   if not os.path.exists(meshfolder):
     os.makedirs(meshfolder)
@@ -2359,39 +2358,17 @@ def optimum_gains(plottype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS
   Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,LOS,PerfRef,ind)
   Realper,Imageper=Comper.image_real_parts(ind)
   Realpar,Imagepar=Compar.image_real_parts(ind)
-  AngNpy=DS(Nx,Ny,Nz,na,nb)
   for x,y,z in product(range(Nx),range(Ny),range(Nz)):
-      #AngNpy[x,y,z]=AngDSM[x,y,z].multiply(Comper[x,y,z])
       n=Comper[x,y,z].getnnz()
       inp=Comper[x,y,z].nonzero()
       for l in range(n):
         b=inp[1][l]
         a=AngDSM[x,y,z][:,b].nonzero()[0][-1]
         if abs(Comper[x,y,z][a,b]-1)<epsilon:
-          AngNpy[x,y,z][a,b]=0
-        else:
-          AngNpy[x,y,z][a,b]=AngDSM[x,y,z][a,b]
-  if dbg:
-    if LOS==1:
-      for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
-        if Comper[x,y,z].getnnz()>1 or Compar[x,y,z].getnnz()>1:
-          errmsg='Checking LOS case but more than one term is in the reflection matrix'
-          logging.info('Position (%d,%d,%d), number of nonzero terms per %d, par %d'%(x,y,z,Comper[x,y,z].getnnz(),Compar[x,y,z].getnnz()))
-          logging.error('Comper '+str(Comper[x,y,z])+' Compar  '+str(Compar[x,y,z]))
-          raise ValueError(errmsg)
-    Nsur=int((np.count_nonzero(refindex)-1)*0.5)# Each planar surface is formed of two triangles
-    if LOS==0:
-      Maxnonzero=(Nsur**(Nre+1)-1)/(Nsur-1)
-      for x,y,z in product(range(Mesh.Nx),range(Mesh.Ny),range(Mesh.Nz)):
-        if Comper[x,y,z].getnnz()>Maxnonzero or Compar[x,y,z].getnnz()>Maxnonzero:
-          pdb.set_trace()
-          errmsg='Checking reflection case and more than %d terms is in the reflection matrix'%(Maxnonzero)
-          print('Position (%d,%d,%d)'%(x,y,z))
-          print('Number of terms in reflection coefficient matrices',Comper[x,y,z].getnnz(),Compar[x,y,z].getnnz())
-          raise ValueError(errmsg)
+          AngDSM[x,y,z][a,b]=0
   if not LOS:
     #print(Mesh)
-    Theta=AngNpy.togrid(ind)
+    Theta=AngDSM.togrid(ind)
     np.save(meshfolder+'/AngNpy.npy',Theta)
   rfile=meshfolder+'rad'
   Nob=room.Nob
@@ -2400,22 +2377,20 @@ def optimum_gains(plottype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS
   #print('before rad')
   #print(Mesh[3,3,3])
   if newvar:
-    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,plottype)
+    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype)
     RadMesh.save_dict(rfile)
   else:
     if Path(rfile).is_file():
       RadMesh=load_dict(rfile,Nx,Ny,Nx)
       ind=RadMesh.nonzero()
     else:
-      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,plottype)
+      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype)
       RadMesh.save_dict(rfile)
   t4=t.time()
   Hx,Fx=RadMesh.opti_func_mats(Realper,Realpar,Imageper,Imagepar,khat,L,lam,Pol,Nra,ind)
-  print('Hx',Hx)
-  print('Fx',Fx)
   Gt=Hx.opti_combo_inverse(Fx,Nra)
   return Gt
-def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,PerfRef=0,ind=-1):
+def power_compute(foldtype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,PerfRef=0,ind=-1):
   ''' Compute the field from a Mesh of ray information and the physical \
   parameters.
 
@@ -2480,13 +2455,13 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
   else:
     ind=ind.T
     indout=ind
-  meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
+  meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
-    os.makedirs('./Mesh/'+plottype)
+    os.makedirs('./Mesh/'+foldtype)
     os.makedirs(meshfolder)
-  if not os.path.exists('./Mesh/'+plottype):
-    os.makedirs('./Mesh/'+plottype)
+  if not os.path.exists('./Mesh/'+foldtype):
+    os.makedirs('./Mesh/'+foldtype)
     os.makedirs(meshfolder)
   if not os.path.exists(meshfolder):
     os.makedirs(meshfolder)
@@ -2538,14 +2513,14 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
   Nob=room.Nob
   Nsur=room.Nsur
   if newvar:
-    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,plottype,Nra,Nre)
+    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre)
     RadMesh.save_dict(rfile)
   else:
     try:
       RadMesh=load_dict(rfile,Nx,Ny,Nz)
       ind=RadMesh.nonzero()
     except:
-      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,plottype,Nra,Nre)
+      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre)
       RadMesh.save_dict(rfile)
   t4=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,Nra,ind)
@@ -2557,13 +2532,10 @@ def power_compute(plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
       # if abs(TrGrid[x,y,z]-P[x,y,z])>10**4*epsilon:
         # pdb.set_trace()
         # #pass
-  # print('----------------------------------------------------------')
-  # print('Total time to find power', t10-t0)
-  # print('----------------------------------------------------------')
   return P,indout
 
 
-def quality_compute(plottype,Mesh,Grid,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,PerfRef,ind=-1):
+def quality_compute(foldtype,Mesh,Grid,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,PerfRef,ind=-1):
   ''' Compute the field from a Mesh of ray information and the physical \
   parameters.
 
@@ -2625,15 +2597,25 @@ def quality_compute(plottype,Mesh,Grid,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,
   Nra=int(Nra)
   Nre=int(Nre)
   Ns=int(Ns)
-  angfile='./Mesh/ang%dRefs%dNs%d'%(Nra,Nre,Ns)
-  afile=Path(angfile)
+  meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
+  if not os.path.exists('./Mesh'):
+    os.makedirs('./Mesh')
+    os.makedirs('./Mesh/'+foldtype)
+    os.makedirs(meshfolder)
+  if not os.path.exists('./Mesh/'+foldtype):
+    os.makedirs('./Mesh/'+foldtype)
+    os.makedirs(meshfolder)
+  if not os.path.exists(meshfolder):
+    os.makedirs(meshfolder)
+  # Check if the reflections angles are saved, if not then find them.
+  angfile=meshfolder+'/ang%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
   try:
     AngDSM=load_dict(angfile,Nx,Ny,Nz)
   except:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
     AngDSM.save_dict(angfile)
   Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,LOS,PerfRef,ind)
-  rfile='./Mesh/rad%dRefs%dNs%d'%(Nra,Nre,Ns)
+  rfile=meshfolder+'/rad%dRefs%dNs%d'%(Nra,Nre,Ns)
   h=1/Mesh.Nx
   Nsur=room.Nsur
   if newvar:
@@ -2644,7 +2626,7 @@ def quality_compute(plottype,Mesh,Grid,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,
       RadMesh=load_dict(rfile,Nx,Ny,Nz)
       ind=RadMesh.nonzero()
     except:
-      RadMesh,ind=Mesh.__get_rad__(Nsur,ind, plottype)
+      RadMesh,ind=Mesh.__get_rad__(Nsur,ind, foldtype)
       RadMesh.save_dict(rfile)
   t4=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,Nra,ind)
@@ -3110,7 +3092,7 @@ def test_18():
   filename='testDS'
   ds.save_dict(filename)
   ds=load_dict(filename,Nx,Ny,Nz)
-  return
+  return Nx,Ny,Nz
 
 def test_19():
   ''' Test the :py:func:`nonzero_bycol(SM)` function.

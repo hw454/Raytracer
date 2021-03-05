@@ -48,21 +48,14 @@ def PlotRays(plottype=str()):
     Room          =Oblist#=np.concatenate((Oblist,OuterBoundary),axis=0)
     Oblist        =Room
     RoomP=Oblist[0]
-    if LOS:
-      LOSstr='LOS'
+    if Nre>1:
+      Refstr=nw.num2words(Nre)+''
     else:
-      if Nre>2:
-        if Nrs<Nsur:
-          LOSstr=nw.num2words(Nrs)+''
-        else:
-          LOSstr='Multi'
-      else:
-        LOSstr='Single'
+      Refstr='NoRef'
     if InnerOb:
       Box='Box'
     else:
       Box='NoBox'
-    foldtype=LOSstr+Box
     for j in range(1,Nob):
       RoomP=np.concatenate((RoomP,Oblist[j]),axis=0)
     for j in range(0,RoomP.shape[0],3):
@@ -87,7 +80,7 @@ def PlotRays(plottype=str()):
           loca='Centre'
         else:
           loca='OffCentre'
-        foldtype=LOSstr+Box+loca
+        foldtype=Refstr+Box+loca
       else:
         continue
       for i,nre in product(range(nra),range(Nre+1)):
@@ -192,7 +185,7 @@ def PlotCones(plottype):
         y=np.append(y,[y2])
         z=np.append(z,[z2])
         mlab.plot3d(x,y,z,color= (0, 1, 1))
-      mlab.savefig('ConeFigures/'+plottype+'/Rays%d.jpg'%Nra[i],size=(1000,1000))
+      mlab.savefig('ConeFigures/RayDirections%d.jpg'%Nra[i],size=(1000,1000))
       N=int(zsteps)
       count=0
       for l in range(0,N):
@@ -234,7 +227,7 @@ def PlotCones(plottype):
             zp=np.append(z,[Cones[j][1][2]])
             mlab.plot3d(xp,yp,zp,color= (1,0,1))
             count+=1
-      filename='ConeFigures/'+plottype+'/Cone%d.jpg'%Nra[i]
+      filename='ConeFigures/RayDirectionsCone%d.jpg'%Nra[i]
       mlab.savefig(filename,size=(1000,1000))
       mlab.clf()
       mlab.close(all=True)
@@ -317,9 +310,6 @@ def PlotConesGains(plottype):
           Cones[j*Ncon+k][1]=(mulfac*data_matrix[j][0:3]/np.linalg.norm(data_matrix[j][0:3]))+beta*Norm[k]
       if not os.path.exists('./ConeFigures'):
         os.makedirs('./ConeFigures')
-        os.makedirs('./ConeFigures/'+plottype)
-      if not os.path.exists('./ConeFigures/'+plottype):
-        os.makedirs('./ConeFigures/'+plottype)
       for j in range(0,int(Nra[i])):
         x=0
         y=0
@@ -329,7 +319,7 @@ def PlotConesGains(plottype):
         y=np.append(y,[y2])
         z=np.append(z,[z2])
         mlab.plot3d(x,y,z,color= (0, 1, 1))
-      mlab.savefig('ConeFigures/'+plottype+'/RaysGains%d.jpg'%Nra[i],size=(1000,1000))
+      mlab.savefig('ConeFigures/RaysGains%d.jpg'%Nra[i],size=(1000,1000))
       N=int(zsteps)
       count=0
       for j in range(0,Nra[i]*Ncon):
@@ -346,7 +336,7 @@ def PlotConesGains(plottype):
             mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.25)
             #count+=1
       mlab.show()
-      filename='ConeFigures/'+plottype+'/ConesWithGains%03d.jpg'%Nra[i]
+      filename='ConeFigures/ConesWithGains%03d.jpg'%Nra[i]
       mlab.savefig(filename,size=(1000,1000))
       #mlab.clf()
       #mlab.close(all=True)
@@ -412,6 +402,9 @@ def PlotPolarGains(plottype,index=0):
     '''Plot the cone calculations.'''
 
     ##----Retrieve the Raytracing Parameters-----------------------------
+    Nre,h ,L =np.load('Parameters/Raytracing.npy')[0:3]
+    # Take Tx to be 0,0,0
+    delangle     =np.load('Parameters/delangle.npy')
     Nra         =np.load('Parameters/Nra.npy')
     job         =np.load('Parameters/Numjobs.npy')
     InnerOb     =np.load('Parameters/InnerOb.npy')
@@ -419,7 +412,9 @@ def PlotPolarGains(plottype,index=0):
     PerfRef     =np.load('Parameters/PerfRef.npy')
     refindex    =np.load('Parameters/refindex%03d.npy'%index)
     InnerOb     =np.load('Parameters/InnerOb.npy')
-    Tx          =np.load('Parameters/Origin_job%03d.npy'%job)
+    numjobs     =np.load('Parameters/Numjobs.npy')
+    Nrs         =np.load('Parameters/Nrs.npy')
+    Nsur        =np.load('Parameters/Nsur.npy')
     if LOS:
       LOSstr='LOS'
     elif PerfRef:
@@ -442,11 +437,6 @@ def PlotPolarGains(plottype,index=0):
       Box='Box'
     else:
       Box='NoBox'
-    if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
-      loca='Centre'
-    else:
-      loca='OffCentre'
-    plottype=LOSstr+Box+loca
     Obstr=''
     if Nrs<Nsur:
       obnumbers=np.zeros((Nrs,1))
@@ -456,123 +446,129 @@ def PlotPolarGains(plottype,index=0):
           obnumbers[k]=ob
           k+=1
           Obstr=Obstr+'Ob%02d'%ob
-    if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
-      Nra=np.array([Nra])
-      nra=1
-    else:
-      nra=len(Nra)
-    Nre,h ,L =np.load('Parameters/Raytracing.npy')[0:3]
-    # Take Tx to be 0,0,0
-    delangle     =np.load('Parameters/delangle.npy')
-    mulfac=1
-    cothe=0
-    sithe=0
-    cophi=0
-    siphi=0
-    for i in range(0,nra):
-      directionname='Parameters/Directions%03d.npy'%Nra[i]
-      data_matrix   =np.load(directionname)         # Matrix of ray directions
-      OptiStr='./Mesh/'+plottype+'/'+Box+Obstr+'OptimalGains%03dRefs%03dm%03d_tx%03d'%(Nr,Nre,index,job)
-      nre=0
-      dist=1 #L
-      Ncon=ra.no_cones(h,dist,delangle[i],0,nre)
-      anglevec=np.linspace(0.0,2*ma.pi,num=int(Ncon), endpoint=False) # Create an array of all the angles
-      Norm=np.zeros((Ncon,3),dtype=np.float) # Initialise the matrix of normals
-      Cones=np.zeros((int(Nra[i])*Ncon,2,3))
-      radhoz_matrix=np.zeros((Nra[i]*(Ncon+1),1))
-      radvert_matrix=np.zeros((Nra[i]*(Ncon+1),1))
-      theta_matrix=np.zeros((Nra[i]*(Ncon+1),1))
-      phi_matrix=np.zeros((Nra[i]*(Ncon+1),1))
-      polarhoz_matrix=np.zeros((Nra[i]*(Ncon+1),2))
-      polarvert_matrix=np.zeros((Nra[i]*(Ncon+1),2))
-      for j in range(0,int(Nra[i])):#int(Nrao)):
-        d=data_matrix[j]
-        r=Gt[j]*np.linalg.norm(d)
-        if d[0]!=0:
-          theta=np.arctan(d[1]/d[0])
+    for job in range(numjobs):
+      Tx=np.load('Parameters/Origin_job%03d.npy'%job)
+      if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
+        loca='Centre'
+      else:
+        loca='OffCentre'
+      plottype=LOSstr+Box+loca
+      if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
+        Nra=np.array([Nra])
+        nra=1
+      else:
+        nra=len(Nra)
+      mulfac=1
+      cothe=0
+      sithe=0
+      cophi=0
+      siphi=0
+      for i in range(0,nra):
+        Nr=Nra[i]
+        directionname='Parameters/Directions%03d.npy'%Nra[i]
+        data_matrix   =np.load(directionname)         # Matrix of ray directions
+        OptiStr='./Mesh/'+plottype+'/'+Box+Obstr+'OptimalGains%03dRefs%03dm%03d_tx%03d'%(Nr,Nre,index,job)
+        if os.path.isfile(OptiStr+'.npy'):
+          Gt=np.load(OptiStr+'.npy')
+          print('plotting gain pattern for Nra=%03d, Nre=%d, Roomnum=%d,Tx_job=%03d'%(Nr,Nre,index,job))
         else:
-          theta=np.pi/2
-        if d[0]<0 and d[1]>0:
-          theta=np.pi-abs(theta)
-        elif d[0]<0 and d[1]<0:
-          theta=np.pi+abs(theta)
-        elif d[0]>0 and d[1]<0:
-          theta=2*np.pi-abs(theta)
-        phi=np.arccos(d[2]/r)
-        if np.pi/2 <= theta <= 3*np.pi/2:
-          cothe=np.cos(theta)
-          sithe=np.sin(theta)
-        else:
-          cothe=0.5*np.cos(5*theta)
-          sithe=0.5*np.sin(5*theta)
-        if np.pi/4 <= phi <= 3*np.pi/4:
-          cophi=np.cos(2*phi+np.pi/2)
-          siphi=np.sin(2*phi+np.pi/2)
-        cx,cy,cz,cs=data_matrix[j]/np.linalg.norm(data_matrix[j])
-        #cx*=cophi*cothe
-        #cy*=cophi*sithe
-        #cz*=sithe
-        theta_matrix[j*Ncon]=theta
-        phi_matrix[j*Ncon]=phi
-        radhoz_matrix[j*Ncon]=abs(cothe)
-        radvert_matrix[j*Ncon]=abs(siphi)
-        polarhoz_matrix[j*Ncon] =theta_matrix[j*Ncon],radhoz_matrix[j*Ncon]
-        polarvert_matrix[j*Ncon]=phi_matrix[j*Ncon]  ,radvert_matrix[j*Ncon]
-        d=data_matrix[j][0:3]/np.linalg.norm(data_matrix[j][0:3])                  # Normalise the direction of the ray
-        if abs(d[2])>0 and Ncon>0:
-         Norm[0]=np.array([1,1,-(d[0]+d[1])/d[2]])# This vector will lie in the plane unless d_z=0
-         Norm[0]/=np.linalg.norm(Norm[0]) # Normalise the vector
-         yax=np.cross(Norm[0],d)            # Compute another vector in the plane for the axis.
-         yax/=np.linalg.norm(yax)             # Normalise y. y and Norm[0] are now the co-ordinate axis in the plane.
-        elif Ncon>0:
-         Norm[0]=np.array([0,0,1])        # If d_z is 0 then this vector is always in the plane.
-         yax=np.cross(Norm[0],d)            # Compute another vector in the plane to form co-ordinate axis.
-         yax/=np.linalg.norm(yax)             # Normalise y. y and Norm[0] are now the co-ordinate axis in the plane.
-        if Ncon>0:
-          Norm=np.outer(np.cos(anglevec),Norm[0])+np.outer(np.sin(anglevec),yax) # Use the outer product to multiple the axis
-        delth=ra.angle_space(delangle[i],nre)
-        beta=ra.beta_leng(dist*mulfac,delth,0)
-        #print(beta,j)
-        for k in range(1,Ncon+1):
-          Cones[j*Ncon+k-1][0]=np.array([cx,cy,cz])
-          coneout=(mulfac*data_matrix[j][0:3]/np.linalg.norm(data_matrix[j][0:3]))+beta*Norm[k-1]
-          Cones[j*Ncon+k-1][1]=coneout
-          r=np.linalg.norm(coneout)
-          if coneout[0]!=0:
-            theta=np.arctan(coneout[1]/coneout[0])
+          continue
+        nre=0
+        dist=1 #L
+        Ncon=ra.no_cones(h,dist,delangle[i],0,nre)
+        anglevec=np.linspace(0.0,2*ma.pi,num=int(Ncon), endpoint=False) # Create an array of all the angles
+        Norm=np.zeros((Ncon,3),dtype=np.float) # Initialise the matrix of normals
+        Cones=np.zeros((int(Nra[i])*Ncon,2,3))
+        radhoz_matrix=np.zeros((Nra[i]*(Ncon+1),1))
+        radvert_matrix=np.zeros((Nra[i]*(Ncon+1),1))
+        theta_matrix=np.zeros((Nra[i]*(Ncon+1),1))
+        phi_matrix=np.zeros((Nra[i]*(Ncon+1),1))
+        polarhoz_matrix=np.zeros((Nra[i]*(Ncon+1),2))
+        polarvert_matrix=np.zeros((Nra[i]*(Ncon+1),2))
+        for j in range(0,int(Nra[i])):#int(Nrao)):
+          d=Gt[j]*data_matrix[j]
+          r=np.linalg.norm(d)
+          if d[0]!=0:
+            theta=np.arctan(d[1]/d[0])
           else:
             theta=np.pi/2
-          if coneout[0]<0 and coneout[1]>0:
+          if d[0]<0 and d[1]>0:
             theta=np.pi-abs(theta)
-          elif coneout[0]<0 and coneout[1]<0:
+          elif d[0]<0 and d[1]<0:
             theta=np.pi+abs(theta)
-          elif coneout[0]>0 and coneout[1]<0:
+          elif d[0]>0 and d[1]<0:
             theta=2*np.pi-abs(theta)
-          phi=np.arccos(coneout[2]/r)
-          theta_matrix[j*Ncon+k]=theta
-          phi_matrix[j*Ncon+k]=phi
-          print(theta,abs(cothe))
-          polarhoz_matrix[j*Ncon+k] =theta,abs(cothe)
-          polarvert_matrix[j*Ncon+k]=phi  ,abs(siphi)
-      if not os.path.exists('./ConeFigures'):
-        os.makedirs('./ConeFigures')
-        os.makedirs('./ConeFigures/'+plottype)
-      if not os.path.exists('./ConeFigures/'+plottype):
-        os.makedirs('./ConeFigures/'+plottype)
-      mp.figure(2*i)
-      #polarhoz_matrix=np.sort(polarhoz_matrix,0)
-      print(polarhoz_matrix)
-      mp.polar(polarhoz_matrix[:,0],polarhoz_matrix[:,1],'+')
-      filename='ConeFigures/'+plottype+'/GainsPatternHoz%03d.jpg'%Nra[i]
-      mp.title('Horiztonal angle and antenna gain')
-      mp.savefig(filename)
-      mp.figure(2*i+1)
-      #polarvert_matrix=np.sort(polarvert_matrix,0)
-      #print(polarhoz_matrix)
-      mp.polar(polarvert_matrix[:,0],polarvert_matrix[:,1],'+')
-      filename='ConeFigures/'+plottype+'/GainsPatternVert%03d.jpg'%Nra[i]
-      mp.title('Vertical angle and antenna gain')
-      mp.savefig(filename)
+          phi=np.arccos(d[2]/r)
+          if np.pi/2 <= theta <= 3*np.pi/2:
+            cothe=np.cos(theta)
+            sithe=np.sin(theta)
+          else:
+            cothe=0.5*np.cos(5*theta)
+            sithe=0.5*np.sin(5*theta)
+          if np.pi/4 <= phi <= 3*np.pi/4:
+            cophi=np.cos(2*phi+np.pi/2)
+            siphi=np.sin(2*phi+np.pi/2)
+          cx,cy,cz,cs=data_matrix[j]/np.linalg.norm(data_matrix[j])
+          #cx*=cophi*cothe
+          #cy*=cophi*sithe
+          #cz*=sithe
+          theta_matrix[j*Ncon]=theta
+          phi_matrix[j*Ncon]=phi
+          radhoz_matrix[j*Ncon]=abs(cothe)
+          radvert_matrix[j*Ncon]=abs(siphi)
+          polarhoz_matrix[j*Ncon] =theta_matrix[j*Ncon],radhoz_matrix[j*Ncon]
+          polarvert_matrix[j*Ncon]=phi_matrix[j*Ncon]  ,radvert_matrix[j*Ncon]
+          d=data_matrix[j][0:3]/np.linalg.norm(data_matrix[j][0:3])                  # Normalise the direction of the ray
+          if abs(d[2])>0 and Ncon>0:
+           Norm[0]=np.array([1,1,-(d[0]+d[1])/d[2]])# This vector will lie in the plane unless d_z=0
+           Norm[0]/=np.linalg.norm(Norm[0]) # Normalise the vector
+           yax=np.cross(Norm[0],d)            # Compute another vector in the plane for the axis.
+           yax/=np.linalg.norm(yax)             # Normalise y. y and Norm[0] are now the co-ordinate axis in the plane.
+          elif Ncon>0:
+           Norm[0]=np.array([0,0,1])        # If d_z is 0 then this vector is always in the plane.
+           yax=np.cross(Norm[0],d)            # Compute another vector in the plane to form co-ordinate axis.
+           yax/=np.linalg.norm(yax)             # Normalise y. y and Norm[0] are now the co-ordinate axis in the plane.
+          if Ncon>0:
+            Norm=np.outer(np.cos(anglevec),Norm[0])+np.outer(np.sin(anglevec),yax) # Use the outer product to multiple the axis
+          delth=ra.angle_space(delangle[i],nre)
+          beta=ra.beta_leng(dist*mulfac,delth,0)
+          #print(beta,j)
+          for k in range(1,Ncon+1):
+            Cones[j*Ncon+k-1][0]=np.array([cx,cy,cz])
+            coneout=(mulfac*data_matrix[j][0:3]/np.linalg.norm(data_matrix[j][0:3]))+beta*Norm[k-1]
+            Cones[j*Ncon+k-1][1]=coneout
+            r=np.linalg.norm(coneout)
+            if coneout[0]!=0:
+              theta=np.arctan(coneout[1]/coneout[0])
+            else:
+              theta=np.pi/2
+            if coneout[0]<0 and coneout[1]>0:
+              theta=np.pi-abs(theta)
+            elif coneout[0]<0 and coneout[1]<0:
+              theta=np.pi+abs(theta)
+            elif coneout[0]>0 and coneout[1]<0:
+              theta=2*np.pi-abs(theta)
+            phi=np.arccos(coneout[2]/r)
+            theta_matrix[j*Ncon+k]=theta
+            phi_matrix[j*Ncon+k]=phi
+            polarhoz_matrix[j*Ncon+k] =theta,abs(cothe)
+            polarvert_matrix[j*Ncon+k]=phi  ,abs(siphi)
+        if not os.path.exists('./ConeFigures'):
+          os.makedirs('./ConeFigures')
+          os.makedirs('./ConeFigures/'+plottype)
+        if not os.path.exists('./ConeFigures/'+plottype):
+          os.makedirs('./ConeFigures/'+plottype)
+        mp.figure(2*nra*job+2*i)
+        #polarhoz_matrix=np.sort(polarhoz_matrix,0)
+        mp.polar(polarhoz_matrix[:,0],polarhoz_matrix[:,1],'+')
+        filename='ConeFigures/'+plottype+'/OptimalGainsPatternHoz%03d.jpg'%Nra[i]
+        mp.title('Horiztonal angle and antenna gain')
+        mp.savefig(filename)
+        mp.figure(2*nra*job+2*i+1)
+        mp.polar(polarvert_matrix[:,0],polarvert_matrix[:,1],'+')
+        filename='ConeFigures/'+plottype+'/OptimalGainsPatternVert%03d.jpg'%Nra[i]
+        mp.title('Vertical angle and antenna gain')
+        mp.savefig(filename)
     mp.show()
     mp.clf()
     return
@@ -611,14 +607,14 @@ def PlotConesOnSquare(plottype):
     else:
       Box='NoBox'
     Obstr=''
-      if Nrs<Nsur:
-        obnumbers=np.zeros((Nrs,1))
-        k=0
-        for ob, refin in enumerate(refindex):
-          if abs(refin)>epsilon:
-            obnumbers[k]=ob
-            k+=1
-            Obstr=Obstr+'Ob%02d'%ob
+    if Nrs<Nsur:
+      obnumbers=np.zeros((Nrs,1))
+      k=0
+      for ob, refin in enumerate(refindex):
+        if abs(refin)>epsilon:
+          obnumbers[k]=ob
+          k+=1
+          Obstr=Obstr+'Ob%02d'%ob
     # Room contains all the obstacles and walls.
     Room=rom.room(Oblist)
 
@@ -637,28 +633,19 @@ def PlotConesOnSquare(plottype):
     zmax=Room.bounds[1][2]
     xgrid=np.linspace(xmin,xmax,Nx)
     # Generate co-ordinates fot the grid
-    if LOS:
-      LOSstr='LOS'
+    if Nre>1:
+      Refstr=nw.num2words(Nre)+''
     else:
-      if Nre>2:
-        if Nrs<Nsur:
-          LOSstr=nw.num2words(Nrs)+''
-        else:
-          LOSstr='Multi'
-      else:
-        LOSstr='Single'
+      Refstr='NoRef'
     if InnerOb:
       Box='Box'
     else:
       Box='NoBox'
-    foldtype=LOSstr+Box
-    Obstr=''
-      if Nrs<Nsur:
-        for ob, refin in enumerate(refindex):
-          if abs(refin)>epsilon:
-            obnumbers[k]=ob
-            k+=1
-            Obstr=Obstr+'Ob%02d'%ob
+    if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
+      loca='Centre'
+    else:
+      loca='OffCentre'
+    foldtype=Refstr+Box+loca
     for yp in range(0,Ny):
       yt=np.tile(ymin+(yp/Ny)*(ymax-ymin),(1,Nx))
       if yp==0:
@@ -716,9 +703,9 @@ def PlotConesOnSquare(plottype):
             Cones[j*Ncon+k][1]=np.array([cx,cy,cz])+beta*Norm[k]
       if not os.path.exists('./ConeFigures'):
         os.makedirs('./ConeFigures')
-        os.makedirs('./ConeFigures/'+plottype)
-      if not os.path.exists('./ConeFigures/'+plottype):
-        os.makedirs('./ConeFigures/'+plottype)
+        os.makedirs('./ConeFigures/'+foldtype)
+      if not os.path.exists('./ConeFigures/'+foldtype):
+        os.makedirs('./ConeFigures/'+foldtype)
       mlab.savefig('ConeFigures/Rays.jpg',size=(1000,1000))
       #Plot all rays and cones
       mlab.figure(0)
@@ -732,7 +719,7 @@ def PlotConesOnSquare(plottype):
         yp=np.append(y,[Cones[j,1,1]])
         zp=np.append(z,[Cones[j,1,2]])
         mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.5)
-      filename=str('ConeFigures/'+plottype+'/Cone'+str(iternum)+'SquareWithCones.jpg')
+      filename='ConeFigures/'+foldtype+'/Cone%03dSquareWithCones.jpg'%iternum
       mlab.savefig(filename,size=(1000,1000))
       mlab.clf()
       mlab.close(all=True)
@@ -780,7 +767,9 @@ def PlotConesOnSquare(plottype):
                 mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.5)
                 count+=1
             else: count+=Ncon
-          filename=str('ConeFigures/'+plottype+'/Cone'+str(iternum)+'Square'+str(int(l))+'.jpg')
+          if not os.path.exists('./ConeFigures/'+plottype):
+            os.makedirs('./ConeFigures/'+plottype)
+          filename='ConeFigures/'+plottype+'/Cone%03dSquare%02d.jpg'%(iternum,l)
           mlab.savefig(filename,size=(1000,1000))
           mlab.clf()
           mlab.close(all=True)
@@ -817,7 +806,7 @@ def PlotConesOnSquare(plottype):
                  mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.5)
                  count+=1
              else: count+=Ncon
-           filename=str('ConeFigures/'+plottype+'/Cone'+str(iternum)+'FullSquareZ'+str(int(l))+'.jpg')
+           filename='ConeFigures/'+plottype+'/Cone%03dFullSquareZ%02d.jpg'%(iternum,l)
            mlab.savefig(filename,size=(1000,1000))
            mlab.clf()
            mlab.close(all=True)
@@ -853,7 +842,7 @@ def PlotConesOnSquare(plottype):
                 mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.5)
                 count+=1
             else: count+=Ncon
-          filename=str('ConeFigures/'+plottype+'/Cone'+str(iternum)+'FullSquareX'+str(int(l))+'.jpg')
+          filename='ConeFigures/'+plottype+'/Cone%03dFullSquareX%02d.jpg'%(iternum,l)
           mlab.savefig(filename,size=(1000,1000))
           mlab.clf()
           mlab.close(all=True)
@@ -892,7 +881,7 @@ def PlotConesOnSquare(plottype):
                 mlab.plot3d(xp,yp,zp,color= (1,0,1),opacity=0.5)
                 count+=1
             else: count+=Ncon
-          filename=str('ConeFigures/'+plottype+'/Cone'+str(iternum)+'FullSquareY'+str(int(l))+'.jpg')
+          filename='ConeFigures/'+plottype+'/Cone%03dFullSquareY%02d.jpg'%(iternum,)
           mlab.savefig(filename,size=(1000,1000))
           mlab.clf()
           mlab.close(all=True)
@@ -1056,8 +1045,6 @@ def PlotDirections(plottype=str()):
         y=np.append(y,[y2])
         z=np.append(z,[z2])
         mlab.plot3d(x,y,z,color= (0, 1, 1))
-      filename='ConeFigures/'+plottype+'/Rays%03d.jpg'%Nra[i]
-      mlab.savefig(filename,size=(1000,1000))
       filename='ConeFigures/Rays%03d.jpg'%Nra[i]
       mlab.savefig(filename,size=(1000,1000))
       #gui = GUI()
@@ -1079,12 +1066,18 @@ def PlotPowerSlice(plottype):
     Nob         =np.load('Parameters/Nob.npy')
     Nsur        =np.load('Parameters/Nsur.npy')
     Tx          =np.load('Parameters/Origin.npy')
+    LOS         =np.load('Paramerts/LOS.npy')
+    PerfRef     =np.load('Parameters/PerfRef.npy')
+    Nrs         =np.load('Parameters/Nrs.npy')
+    Nsur        =np.load('Parameters/Nsur.npy')
+    Nre,h,L,_   =np.load('Parameters/Raytracing.npy')
+    Ns          =np.load('Parameters/Ns.npy')
     if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       Nra=np.array([Nra])
       nra=1
     else:
       nra=len(Nra)
-    Nre,h ,L =np.load('Parameters/Raytracing.npy')[0:3]
+    job=jobfromTx(Tx,h)
         ##----Retrieve the environment--------------------------------------
     Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
     OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
@@ -1096,7 +1089,6 @@ def PlotPowerSlice(plottype):
     Nz=int(Room.maxzleng()/(h))
     Nx=int(Room.maxxleng()/(h))
     Ny=int(Room.maxyleng()/(h))
-    Nx=max(Nx,Ny,Nz)
     # Get the x, y, z co-ordinates for P
     xmin=Room.bounds[0][0]
     xmax=Room.bounds[1][0]
@@ -1104,11 +1096,27 @@ def PlotPowerSlice(plottype):
     ymax=Room.bounds[1][1]
     zmin=Room.bounds[0][2]
     zmax=Room.bounds[1][2]
+    if Nre>1:
+      Refstr=nw.num2words(Nre)+''
+    else:
+      Refstr='NoRef'
+    if InnerOb:
+      Box='Box'
+    else:
+      Box='NoBox'
+    if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
+      loca='Centre'
+    else:
+      loca='OffCentre'
+    foldtype=Refstr+Box+loca
     if not os.path.exists('./ConeFigures'):
         os.makedirs('./ConeFigures')
         os.makedirs('./ConeFigures/'+plottype)
+        os.makedirs('./ConeFigures/'+foldtype)
     if not os.path.exists('./ConeFigures/'+plottype):
         os.makedirs('./ConeFigures/'+plottype)
+    if not os.path.exists('./ConeFigures/'+foldtype):
+        os.makedirs('./ConeFigures/'+foldtype)
     xgrid=np.linspace(xmin,xmax,Nx)
     # Generate co-ordinates fot the grid
     for yp in range(0,Ny):
@@ -1126,11 +1134,25 @@ def PlotPowerSlice(plottype):
           cubep=np.vstack((cubep,xyz))
     #TrueGrid=np.load('Parameters/'+plottype+'/True.npy')
     RoomP=OuterBoundary[0]#Oblist[0]
+    if Nre>1:
+      Refstr=nw.num2words(Nre)+''
+    else:
+      Refstr='NoRef'
+    if InnerOb:
+      Box='Box'
+    else:
+      Box='NoBox'
+    if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
+      loca='Centre'
+    else:
+      loca='OffCentre'
+    foldtype=Refstr+Box+loca
     for j in range(1,Nob):
       RoomP=np.concatenate((RoomP,Oblist[j]),axis=0)
     for i in range(0,nra):
-      meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nra[i],Nre,Ns)
-      Power=np.load(meshfolder+'/Power_grid%dRefs%dm%d.npy'%(Nra[i],Nre,0))
+      meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+      powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+      Power=np.load(powerfolder+'/Power_grid%dRefs%dm%d.npy'%(Nra[i],Nre,0))
       RadA=np.load(meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nra[i],Nre,0))
       RadS=np.zeros((Nob,Nx,Ny,Nz))
       for j in range(0,Nsur):
@@ -1188,7 +1210,7 @@ def PlotPowerSlice(plottype):
                             vmax=Radmax,
                             vmin=Radmin
                         )
-        filename='ConeFigures/'+plottype+'/Cone%dRadAX%d.jpg'%(Nra[i],l)
+        filename='ConeFigures/'+foldtype+'/Cone%dRadAX%d.jpg'%(Nra[i],l)
         mlab.savefig(filename,size=(1000,1000))
         mlab.clf()
         for j in range(0,Nsur):
@@ -1211,7 +1233,7 @@ def PlotPowerSlice(plottype):
                             vmax=Radmax,
                             vmin=Radmin
                         )
-          filename='ConeFigures/'+plottype+'/Cone%dRadS%dX%d.jpg'%(Nra[i],j,l)
+          filename='ConeFigures/'+foldtype+'/Cone%dRadS%dX%d.jpg'%(Nra[i],j,l)
           mlab.savefig(filename,size=(1000,1000))
           mlab.clf()
       for l in range(0,Ny):
@@ -1256,7 +1278,7 @@ def PlotPowerSlice(plottype):
                             vmax=Radmax,
                             vmin=Radmin
                         )
-        filename='ConeFigures/'+plottype+'/Cone%dRadAY%d.jpg'%(Nra[i],l)
+        filename='ConeFigures/'+foldtype+'/Cone%dRadAY%d.jpg'%(Nra[i],l)
         mlab.savefig(filename,size=(1000,1000))
         mlab.clf()
         for j in range(0,Nsur):
@@ -1279,7 +1301,7 @@ def PlotPowerSlice(plottype):
                             vmax=Radmax,
                             vmin=Radmin
                         )
-          filename='ConeFigures/'+plottype+'/Cone%dRadS%dY%d.jpg'%(Nra[i],j,l)
+          filename='ConeFigures/'+foldtype+'/Cone%dRadS%dY%d.jpg'%(Nra[i],j,l)
           mlab.savefig(filename,size=(1000,1000))
           mlab.clf()
       for l in range(0,Nz):
@@ -1325,7 +1347,7 @@ def PlotPowerSlice(plottype):
                             vmax=Radmax,
                             vmin=Radmin
                         )
-        filename='ConeFigures/'+plottype+'/Cone%dRadAZ%d.jpg'%(Nra[i],l)
+        filename='ConeFigures/'+foldtype+'/Cone%dRadAZ%d.jpg'%(Nra[i],l)
         mlab.savefig(filename,size=(1000,1000))
         mlab.clf()
         for j in range(0,Nsur):
@@ -1348,7 +1370,7 @@ def PlotPowerSlice(plottype):
                             vmax=Radmax,
                             vmin=Radmin
                         )
-          filename='ConeFigures/'+plottype+'/Cone%dRadS%dZ%d.jpg'%(Nra[i],j,l)
+          filename='ConeFigures/'+foldtype+'/Cone%dRadS%dZ%d.jpg'%(Nra[i],j,l)
           mlab.savefig(filename,size=(1000,1000))
           mlab.clf()
     return Power
@@ -1392,82 +1414,81 @@ def PlotSingleCone(plottype):
   zmin=Room.bounds[0][2]
   zmax=Room.bounds[1][2]
   xgrid=np.linspace(xmin,xmax,Nx)
-  if LOS:
-    LOSstr='LOS'
+  if Nre>1:
+    Refstr=nw.num2words(Nre)+''
   else:
-    if Nre>2:
-      if Nrs<Nsur:
-        LOSstr=nw.num2words(Nrs)+''
-      else:
-        LOSstr='Multi'
-    else:
-      LOSstr='Single'
+    Refstr='NoRef'
   if InnerOb:
     Box='Box'
   else:
     Box='NoBox'
-  foldtype=LOSstr+Box
+  if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
+    loca='Centre'
+  else:
+    loca='OffCentre'
+  foldtype=Refstr+Box+loca
   for i in range(0,  nra):
-      meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nra[i],Nre,Ns)
-      data_matrix   =np.load('./Mesh/'+foldtype+'RayMeshPoints%dRefs%dm.npy'%(Nra[i],Nre))
-      Power=np.load(meshfolder+'/'+Box+Obstr+'Power_grid%dRefs%dm%d.npy'%(Nra[i],Nre,0))
-      Powx,Powy,Powz=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
-      Conestr=meshfolder+'SingleCone%dRefs%dm.npy'%(Nra[i],Nre)
-      if os.path.isfile(Conestr):
-        Cones=np.load(Conestr)
-      else:
-        continue
-      mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
-      for j in range(0, Nra[i]):
-        x=Tx[0]
-        y=Tx[1]
-        z=Tx[2]
-        x2,y2,z2=data_matrix[j][1][0:3]
-        x=np.append(x,[x2])
-        y=np.append(y,[y2])
-        z=np.append(z,[z2])
-        mlab.plot3d(x,y,z,color= (0, 1, 1))
-        nob=data_matrix[j][1][3]
-        dist=np.linalg.norm(np.array([x2,y2,z2])-Tx)
-        direc=(np.array([x2,y2,z2])-Tx)/dist
-        if j==0:
-          obst=Room.obst[int(nob-1)]
-          norm=np.cross(obst[1]-obst[0],obst[2]-obst[0])
-          norm/=(np.linalg.norm(norm))
-          check=(np.linalg.norm(direc)*np.linalg.norm(norm))
-          if abs(check-0.0)<=epsilon:
-            raise ValueError('direction or normal has no length')
-          else:
-            nleng=np.linalg.norm(norm)
-            dleng=np.linalg.norm(direc)
-            frac=np.dot(direc,norm)/(nleng*dleng)
-          refangle=ma.acos(frac)
-          if refangle>np.pi/2:
-            refangle=np.pi-refangle
-          Ncon=ra.no_cones(h,dist,delangle[i],refangle,0)
-          Ns=int(Cones.shape[0]/((Ncon+1)))
-          p0=Tx
-          for l in range(0,Ns):
-            j=l*(Ncon+1)
-            p0=Cones[j]
-            for k in range(0,Ncon):
-              j=l*(Ncon+1)+k+1
-              x,y,z=Room.coordinate(h,Cones[j][0],Cones[j][1],Cones[j][2])
-              xp=np.append(p0[0],[x])
-              yp=np.append(p0[1],[y])
-              zp=np.append(p0[2],[z])
-              mlab.plot3d(xp,yp,zp,color= (1,0,1))
-      if not os.path.exists('./ConeFigures'):
-        os.makedirs('./ConeFigures')
-        os.makedirs('./ConeFigures/'+plottype)
-      if not os.path.exists('./ConeFigures/'+plottype):
-        os.makedirs('./ConeFigures/'+plottype)
-      filename='ConeFigures/'+plottype+'/SingleCone%d.jpg'%Nra[i]
-      mlab.savefig(filename,size=(1000,1000))
-      #mlab.clf()
-      gui = GUI()
-      gui.start_event_loop()
-      #mlab.close(all=True)
+    meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+    powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+    data_matrix   =np.load('./Mesh/'+foldtype+'RayMeshPoints%dRefs%dm.npy'%(Nra[i],Nre))
+    Power=np.load(powerfolder+'/'+Box+Obstr+'Power_grid%dRefs%dm%d.npy'%(Nra[i],Nre,0))
+    Powx,Powy,Powz=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
+    Conestr=meshfolder+'/SingleCone%dRefs%dm.npy'%(Nra[i],Nre)
+    if os.path.isfile(Conestr):
+      Cones=np.load(Conestr)
+    else:
+      continue
+    mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
+    for j in range(0, Nra[i]):
+      x=Tx[0]
+      y=Tx[1]
+      z=Tx[2]
+      x2,y2,z2=data_matrix[j][1][0:3]
+      x=np.append(x,[x2])
+      y=np.append(y,[y2])
+      z=np.append(z,[z2])
+      mlab.plot3d(x,y,z,color= (0, 1, 1))
+      nob=data_matrix[j][1][3]
+      dist=np.linalg.norm(np.array([x2,y2,z2])-Tx)
+      direc=(np.array([x2,y2,z2])-Tx)/dist
+      if j==0:
+        obst=Room.obst[int(nob-1)]
+        norm=np.cross(obst[1]-obst[0],obst[2]-obst[0])
+        norm/=(np.linalg.norm(norm))
+        check=(np.linalg.norm(direc)*np.linalg.norm(norm))
+        if abs(check-0.0)<=epsilon:
+          raise ValueError('direction or normal has no length')
+        else:
+          nleng=np.linalg.norm(norm)
+          dleng=np.linalg.norm(direc)
+          frac=np.dot(direc,norm)/(nleng*dleng)
+        refangle=ma.acos(frac)
+        if refangle>np.pi/2:
+          refangle=np.pi-refangle
+        Ncon=ra.no_cones(h,dist,delangle[i],refangle,0)
+        Ns=int(Cones.shape[0]/((Ncon+1)))
+        p0=Tx
+        for l in range(0,Ns):
+          j=l*(Ncon+1)
+          p0=Cones[j]
+          for k in range(0,Ncon):
+            j=l*(Ncon+1)+k+1
+            x,y,z=Room.coordinate(h,Cones[j][0],Cones[j][1],Cones[j][2])
+            xp=np.append(p0[0],[x])
+            yp=np.append(p0[1],[y])
+            zp=np.append(p0[2],[z])
+            mlab.plot3d(xp,yp,zp,color= (1,0,1))
+    if not os.path.exists('./ConeFigures'):
+      os.makedirs('./ConeFigures')
+      os.makedirs('./ConeFigures/'+foldtype)
+    if not os.path.exists('./ConeFigures/'+foldtype):
+      os.makedirs('./ConeFigures/'+foldtype)
+    filename='ConeFigures/'+foldtype+'/SingleCone%d.jpg'%Nra[i]
+    mlab.savefig(filename,size=(1000,1000))
+    #mlab.clf()
+    gui = GUI()
+    gui.start_event_loop()
+    #mlab.close(all=True)
     #mlab.show()
   return
 
@@ -1484,12 +1505,12 @@ if __name__=='__main__':
   myfile.close()
   #PlotSingleCone(plottype)
   #PlotPowerSlice(plottype)
-  PlotRays(plottype)
+  #PlotRays(plottype)
   #PlotDirections(plottype)
   #PlotConesOnSquare(plottype)
   #PlotConesGains(plottype)
   #PlotPolarTheoryGains(plottype)
-  #PlotPolarGains(plottype)
+  PlotPolarGains(plottype)
   print('Running  on python version')
   print(sys.version)
 exit()

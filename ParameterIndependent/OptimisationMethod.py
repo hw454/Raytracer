@@ -278,12 +278,13 @@ def Quality_MoreInputs(Tx,Direc,programterms,RayPar,foldtype,Room,Znobrat,refind
     loca='Centre'
   else:
     loca='OffCentre'
+  foldtype=foldtype+loca
   plottype=foldtype+loca
   Nx=int(Room.maxxleng()/h)
   Ny=int(Room.maxyleng()/h)
   Nz=int(Room.maxzleng()/h)
   Ns=max(Nx,Ny,Nz)
-  meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+  meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   meshname=meshfolder+'/DSM_tx%03d'%(job)
   if os.path.isfile(meshname):
     Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
@@ -301,7 +302,7 @@ def Quality_MoreInputs(Tx,Direc,programterms,RayPar,foldtype,Room,Znobrat,refind
   Ns=max(Nx,Ny,Nz)
   Grid=np.zeros((Nx,Ny,Nz),dtype=float)
   #Gt=DSM.optimum_gains(plottype,Mesh,Room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS,PerfRef)
-  Q,_=DSM.quality_compute(plottype,Mesh,Grid,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,Ns,LOS,PerfRef)
+  Q,_=DSM.quality_compute(foldtype,Mesh,Grid,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,Ns,LOS,PerfRef)
   return -Q
 
 def MoreInputs_Run(index=0):
@@ -342,21 +343,34 @@ def MoreInputs_Run(index=0):
   if InnerOb:
     DumbyMesh=DSM.DS(Nx,Ny,Nz)
     rom.FindInnerPoints(Room,DumbyMesh)
-  if LOS:
-    LOSstr='LOS'
+  if Nre>1:
+    Refstr=nw.num2words(Nre)+''
   else:
-    if Nre>2:
-      if Nrs<Nsur:
-        LOSstr=nw.num2words(Nrs)+''
-      else:
-        LOSstr='Multi'
-    else:
-      LOSstr='Single'
+    Refstr='NoRef'
   if InnerOb:
     Box='Box'
   else:
     Box='NoBox'
-  foldtype=LOSstr+Box
+  if LOS:
+    LOSstr='LOS'
+  elif PerfRef:
+    if Nre>2:
+      if Nrs<Nsur:
+        LOSstr=nw.num2words(Nrs)+'PerfRef'
+      else:
+        LOSstr='MultiPerfRef'
+    else:
+      LOSstr='SinglePerfRef'
+  else:
+    if Nre>2 and Nrs>1:
+      if Nrs<Nsur:
+        LOSstr=nw.num2words(Nrs)+'Ref'
+      else:
+        LOSstr='MultiRef'
+    else:
+      LOSstr='SingleRef'
+  foldtype=Refstr+Box
+  plottype=LOSstr+Box
   ##----Retrieve the environment--------------------------------------
   ##----The lengths are non-dimensionalised---------------------------
   # These paramters are only needed if the Mesh is not already saved.
@@ -394,12 +408,14 @@ def MoreInputs_Run(index=0):
   refindex=np.insert(refindex,0,1.0+0.0j)   # Use a 1 for placement in the LOS row
   # Calculate the necessry parameters for the power calculation.
   Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
-  Tx0=np.array([0,0,0])
+  Tx0=np.array([0.4,0.4,0.4])
   #Q=Quality_MoreInputs(Tx0,Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef)
   pars=(Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef)
+
   TxB=((0,h*Nx),(0,h*Ny),(0,h*Nz))
   Tx=Tx0
   TxOut=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars, tol=1e-6,bounds=TxB)
+
   ResultsFolder='./OptimisationResults'
   SpecResulstsFolder=ResultsFolder+'/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   if not os.path.exists(ResultsFolder):
