@@ -18,9 +18,9 @@ import OptimisationMethod as OM
 def main():
   pr=cP.Profile()
   pr.enable()
-  #Ra.centre_dist_test()
-  #RT.main(sys.argv)
-  OM.main()
+  Ra.centre_dist_test()
+  RT.main(sys.argv)
+  #OM.main()
   pr.disable()
   s=io.StringIO()
   sortby=SortKey.CUMULATIVE

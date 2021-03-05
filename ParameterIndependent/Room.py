@@ -539,8 +539,8 @@ def FindInnerPoints(Room,Mesh):
     CentreY=numparr([-h*0.5,h*(Ny*0.5)+h*0.5,h*(Nz*0.5)+h*0.5])
     CentreZ=numparr([h*(Nz*0.5)+h*0.5,h*(Nz*0.5)+h*0.5,h*(Nz*0.5)+h*0.5])
     for i,j,k in product(range(Nx),range(Ny),range(Nz)):
-      x,y,z=Room.coordinate(h,i,j,k)
-      p=numparr([x,y,z])
+      p=Room.coordinate(h,i,j,k)[0]
+      #p=numparr([x,y,z])
       d1=CentreX-p
       d2=CentreY-p
       d3=CentreZ-p

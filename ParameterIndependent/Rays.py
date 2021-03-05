@@ -840,14 +840,14 @@ class Ray:
     stpch=Mesh.stopcheck(i1,j1,k1)      # Check if the ray point is outside the domain.
     if stpch:
       p2           =room.coordinate(h,i1,j1,k1)                                # Calculate the co-ordinate of the center of the element the ray hit
-      doubcheck    =Mesh.doubles__inMat__(calcvec,(i1,j1,k1),rind) # Check if the ray has already been stored
+      Mesh.doubles__inMat_for_ray_(calcvec,(i1,j1,k1),rind) # Check if the ray has already been stored
       #interiorcheck=room.check_innerpoint(p2)                                  # Check if the point is inside obstacles
       # Recalculate distance to be for the centre point
       distcor=s.centre_dist(p1,p2,olddist,room)
       if abs(distcor-dist)>sqrt(3)*h:
         raise ValueError('The corrected distance on the ray is more than a mesh width from the ray point distance')
       # If the distance is 0 then the point is at the centre and the power is not well defined.
-      if not doubcheck  and abs(distcor)>epsilon:#and not interiorcheck
+      if  abs(distcor)>epsilon:#and not interiorcheck
         # Find the positions of the nonzero terms in calcvec and check the number of terms is valid.
         #calind=calcvec.nonzero()
         #assert Mesh[i1,j1,k1].shape[0]==calcvec.shape[0]
@@ -891,7 +891,7 @@ class Ray:
         stpch=Mesh.stopcheck(i1,j1,k1)   # stopcheck finds 1 if the term is in the environment and 0 if not
         if stpch:
           p2=room.coordinate(h,i1,j1,k1) # Calculate the co-ordinate of the center of the element the ray hit
-          doubcheck=Mesh.doubles__inMat__(calcvec,(i1,j1,k1),rind) # Check if the ray has already been stored
+          Mesh.doubles__inMat_for_ray_(calcvec,(i1,j1,k1),rind) # Check if the ray has already been stored
           #interiorcheck=room.check_innerpoint(p2) # Check the point is not inside an obstacle
           distcor=s.centre_dist(p1,p2,dist,room) # Correct the distance travelled to the distance for the point as the centre of the element.
           if dbg:
@@ -901,7 +901,7 @@ class Ray:
               logging.info('Calcvec'+str(calcvec))
               logging.info('Room triangles'+str(room.Ntri))
               logging.warning('distance%f for ray with distance %f at position (%d,%d,%d,%d,%d) reflection number %d'%(distcor,dist,i1,j1,k1,row,col,nre))
-          if abs(distcor)>epsilon and not doubcheck: # and not interiorcheck:
+          if abs(distcor)>epsilon: # and not interiorcheck:
             # If the distance is 0 then the point is at the centre and the power is not well defined.
             # Find the positions of the nonzero terms in calcvec and check the number of terms is valid.
             for r in rind:
@@ -1360,6 +1360,7 @@ def dup_check_test():
   refangle=pi*0.5
   nref=10
   scal=no_cones(h,dist,delangle,refangle,nref)
+  scal=5
   Avenum=2
   Avetot=0
   Nre,h ,L =np.load('Parameters/Raytracing.npy')[0:3]
@@ -1390,15 +1391,15 @@ def dup_check_test():
         t0=t.time()
         altcoposout,p3out,normout,copos2out=duplicatecheck(copos,copos2,p3,norm)
         t1=t.time()
-        #altcoposout,p3put,normout,copos2out=duplicatecheck_old(copos,copos2,p3,norm,Nx,Ny,Nz)
-        #t2=t.time()
+        altcoposout,p3put,normout,copos2out=duplicatecheck_old(copos,copos2,p3,norm,Nx,Ny,Nz)
+        t2=t.time()
         #print('after')
         #print(altcoposout,copos2out,p3out,normout)
         newtime+=t1-t0
-        #oldtime+=t2-t1
+        oldtime+=t2-t1
         Avetot+=1
   print('new method time',newtime/(Avetot))
-  #print('old method time',oldtime/(Avetot))
+  print('old method time',oldtime/(Avetot))
     # The 'new' method is slower so the old method is kept
   return 1
 
@@ -1519,7 +1520,7 @@ def duplicatecheck_old(copos,copos2,p3,norm,Nx,Ny,Nz):
     if DSM.stopcheck(copos[0],copos[1],copos[2],Nx,Ny,Nz):
       double=0
       for k in range(0,Ncon2):
-        if copos[0]==copos2[k][0] and copos[1]==copos2[k][1] and copos[2]==copos2[k][2]:
+        if copos[0,0]==copos2[k][0] and copos[0,1]==copos2[k][1] and copos[0,2]==copos2[k][2]:
           double=1
           break
       if double!=1:
@@ -1531,7 +1532,7 @@ def duplicatecheck_old(copos,copos2,p3,norm,Nx,Ny,Nz):
      for j in range(0,Ncon2):
        if DSM.stopcheck(copos[j][0],copos[j][1],copos[j][2],Nx,Ny,Nz):
          double=0
-         if copos2[0]==copos[j][0] and copos2[1]==copos[j][1] and copos2[2]==copos[j][2]:
+         if copos2[0,0]==copos[j][0] and copos2[0,1]==copos[j][1] and copos2[0,2]==copos[j][2]:
            double=1
          if double!=1 and rep==0:
            altcopos=numparr([copos[j][0],copos[j][1],copos[j][2]])
@@ -1780,18 +1781,17 @@ def removedoubles(copos,p3,norm,Mesh):
 
 def removedouble_test():
   ##----Retrieve the Mesh--------------------------------------
+  Nx,Ny,Nz=DSM.test_18()
   meshname='testDS'
-  Mesh= DSM.load_dict(meshname)
+  Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
   newtime=0
+  oldtime=0
   Avenum=100
   Avetot=0
   Nsur=np.load('Parameters/Nsur.npy')
   Nre,_,_,_    =np.load('Parameters/Raytracing.npy')
   rn=Mesh.shape[0]
   cn=Mesh.shape[1]
-  Nx=Mesh.Nx
-  Ny=Mesh.Ny
-  Nz=Mesh.Nz
   h=1.0/max(Nx,Ny,Nz)
   dist=sqrt(3)
   delangle=max(np.load('Parameters/delangle.npy'))
@@ -1807,11 +1807,15 @@ def removedouble_test():
       t0=t.time()
       arrout,p3out,normout,copos2=removedoubles(arr,p3,norm,Mesh)
       t1=t.time()
+      arrout,p3out,normout,copos2=removedoubles_old(arr,p3,norm,Mesh)
+      t2=t.time()
       #print('after')
       #print(altcoposout,copos2out,p3out,normout)
-      newtime+=t2-t1
+      newtime+=t1-t0
+      oldtime+=t2-t1
       Avetot+=1
   print('new method time',newtime/(Avetot))
+  print('old method time',oldtime/(Avetot))
   return 1
 
 
@@ -1920,8 +1924,8 @@ if __name__=='__main__':
   print(sys.version)
   Mesh=centre_dist_test()
   #power_singleray_test(Mesh)
-  singleray_test()
+  #singleray_test()
   dup_check_test()
-  removedoubletest()
+  removedouble_test()
 
   exit()
