@@ -564,13 +564,15 @@ def PlotPolarGains(plottype,index=0):
         filename='ConeFigures/'+plottype+'/OptimalGainsPatternHoz%03d.jpg'%Nra[i]
         mp.title('Horiztonal angle and antenna gain')
         mp.savefig(filename)
+        mp.clf()
+        mp.close()
         mp.figure(2*nra*job+2*i+1)
         mp.polar(polarvert_matrix[:,0],polarvert_matrix[:,1],'+')
         filename='ConeFigures/'+plottype+'/OptimalGainsPatternVert%03d.jpg'%Nra[i]
         mp.title('Vertical angle and antenna gain')
         mp.savefig(filename)
-    mp.show()
-    mp.clf()
+        mp.clf()
+        mp.close()
     return
 
 

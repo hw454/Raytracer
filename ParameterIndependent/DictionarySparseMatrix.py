@@ -1645,12 +1645,11 @@ class DS:
       Amat=np.matmul(F.transpose(),F)+np.matmul(H.transpose(),H)
       for i,j in product(range(Nra),range(Nra)):
         Atot[i,j]+=Amat[i,j].copy()
-    Ainv=inv(Atot)
+    Ainv=pinv(Atot)
     Aout=np.zeros((Nra,1),float)
     for i,j in product(range(Nra),range(Nra)):
-      Aout[i,0]+=Ainv[i,j]**2
-    print(Aout,np.sqrt(sum(Aout)))
-    Aout/=np.sqrt(sum(Aout))
+      Aout[i,0]+=Ainv[i,j]
+    Aout/=leng(Aout)
     return Aout
   def gain_phase_rad_ref_mul_add(s,Com1,Com2,G,khat,L,lam,Nra=0,ind=-1):
     """ Multiply all terms of s elementwise with Com1/Rad and each row by Gt.
@@ -1695,8 +1694,8 @@ class DS:
           nra=b%Nra
         else:
           nra=b
-        out1[x,y,z]+=G[nra-1,0]*k*Com1[x,y,z][a,b]
-        out2[x,y,z]+=G[nra-1,0]*k*Com2[x,y,z][a,b]
+        out1[x,y,z]+=np.sqrt(G[nra-1,0])*k*Com1[x,y,z][a,b]
+        out2[x,y,z]+=np.sqrt(G[nra-1,0])*k*Com2[x,y,z][a,b]
       if x==xcheck and y==ycheck and z==zcheck and dbg:
         logging.info('This is an information message')
         logmessage='At position (%d,%d,%d)'%(x,y,z)
@@ -2389,6 +2388,7 @@ def optimum_gains(foldtype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS
   t4=t.time()
   Hx,Fx=RadMesh.opti_func_mats(Realper,Realpar,Imageper,Imagepar,khat,L,lam,Pol,Nra,ind)
   Gt=Hx.opti_combo_inverse(Fx,Nra)
+  Gt=np.power(Gt,2)
   return Gt
 def power_compute(foldtype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,PerfRef=0,ind=-1):
   ''' Compute the field from a Mesh of ray information and the physical \

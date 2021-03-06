@@ -144,7 +144,7 @@ def Quality_Tx(Tx):
   Nz=int(Room.maxzleng()/h)
   Ns=max(Nx,Ny,Nz)
   meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
-  meshname=meshfolder+'/DSM_tx%03d'%(job)
+  meshname=meshfolder+'/DSM_tx%03dx%03dy%03dz'%(Tx[0],Tx[1],Tx[2])
 
   if os.path.isfile(meshname):
     Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
@@ -192,7 +192,7 @@ def Quality_Tx(Tx):
   Q,_=DSM.quality_compute(plottype,Mesh,Grid,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,Ns,LOS,PerfRef)
   return -Q
 
-def Quality_MoreInputs(Tx,Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef):
+def Quality_MoreInputs(Tx,Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef,Boxstr,Obstr,index=0):
   ''' Reflect rays and output the Mesh containing ray information. \
   This mesh contains the distance rays have travelled and the angles of reflection.
 
@@ -273,7 +273,6 @@ def Quality_MoreInputs(Tx,Direc,programterms,RayPar,foldtype,Room,Znobrat,refind
   Nsur                        =Room.Nsur
   if not 0<=Tx[0]<Room.maxxleng() and not 0<=Tx[1]<Room.maxyleng() and not 0<=Tx[2]<Room.maxzleng():
     return -1000
-  job=RT.jobfromTx(Tx,h)
   if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
     loca='Centre'
   else:
@@ -285,7 +284,7 @@ def Quality_MoreInputs(Tx,Direc,programterms,RayPar,foldtype,Room,Znobrat,refind
   Nz=int(Room.maxzleng()/h)
   Ns=max(Nx,Ny,Nz)
   meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
-  meshname=meshfolder+'/DSM_tx%03d'%(job)
+  meshname=meshfolder+'/DSM_tx%03dx%03dy%03dz'%(Tx[0],Tx[1],Tx[2])
   if os.path.isfile(meshname):
     Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
   else:
@@ -298,11 +297,17 @@ def Quality_MoreInputs(Tx,Direc,programterms,RayPar,foldtype,Room,Znobrat,refind
       return 0
     #-----------The input directions changes for each ray number.-------
     Rays, Mesh=Room.ray_mesh_bounce(Tx,Direc,Mesh,programterms)
+    Mesh.save_dict(meshname)
   # Initialise Grid For Power-------------------------------------
   Ns=max(Nx,Ny,Nz)
   Grid=np.zeros((Nx,Ny,Nz),dtype=float)
   #Gt=DSM.optimum_gains(plottype,Mesh,Room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS,PerfRef)
   Q,_=DSM.quality_compute(foldtype,Mesh,Grid,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,Ns,LOS,PerfRef)
+  if not os.path.exists('./Quality'):
+   os.makedirs('./Quality')
+  if not os.path.exists('./Quality/'+plottype):
+    os.makedirs('./Quality/'+plottype)
+  np.save('./Quality/'+plottype+'/'+Boxstr+Obstr+'Quality%03dRefs%03dm%03d_tx%03dx%03dy%03dz.npy'%(Nr,Nre,index,Tx[0],Tx[1],Tx[2]),Q)
   return -Q
 
 def MoreInputs_Run(index=0):
@@ -410,19 +415,18 @@ def MoreInputs_Run(index=0):
   Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
   Tx0=np.array([0.4,0.4,0.4])
   #Q=Quality_MoreInputs(Tx0,Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef)
-  pars=(Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef)
-
-  TxB=((0,h*Nx),(0,h*Ny),(0,h*Nz))
+  pars=(Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef,Box,Obstr)
+  TxB=np.array([(0,h*Nx),(0,h*Ny),(0,h*Nz)])
   Tx=Tx0
-  TxOut=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars, tol=1e-6,bounds=TxB)
-
+  TxOut=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars, tol=1e-1,bounds=TxB)
+  print('Optimal Tx at ',TxOut.x)
   ResultsFolder='./OptimisationResults'
-  SpecResulstsFolder=ResultsFolder+'/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+  SpecResultsFolder=ResultsFolder+'/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   if not os.path.exists(ResultsFolder):
     os.makedirs(ResultsFolder)
     os.makedirs(ResultsFolder+'/'+plottype)
     os.makedirs(SpecResultsFolder)
-  if not os.path.exists(Resultsfolder+'/'+plottype):
+  if not os.path.exists(ResultsFolder+'/'+plottype):
     os.makedirs(ResultsFolder+'/'+plottype)
     os.makedirs(SpecResultsFolder)
   if not os.path.exists(SpecResultsFolder):
@@ -430,25 +434,25 @@ def MoreInputs_Run(index=0):
   np.save(SpecResultsFolder+'/OptimumOrigin.npy',TxOut.x)
   print('moreinputs',TxOut)
   meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
-  job=RT.jobfromTx(Txout.x,h)
-  meshname=meshfolder+'/DSM_tx%03d'%(job)
+  job=RT.jobfromTx(TxOut.x,h)
+  meshname=meshfolder+'/DSM_tx%03dx%03dy%03dz'%(TxOut.x[0],TxOut.x[1],TxOut.x[2])
   if os.path.isfile(meshname):
     Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
   else:
     print('The optimal Tx does not have a corresponding Mesh')
   P,_=power_compute(plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,Ns,LOS,PerfRef)
-  np.save(meshfolder+'/'+Box+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job),P)
+  np.save(meshfolder+'/'+Box+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03dx%03dy%03dz.npy'%(Nr,Nre,index,TxOut.x[0],TxOut.x[1],TxOut.x[2]),P)
   RadAstr=meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
   if os.path.isfile(RadAstr):
-    os.rename(r''+meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nr,Nre,index),r''+meshfolder+'/'+Box+'RadA_grid%dRefs%dm%d_tx%03d.npy'%(Nr,Nre,index,job))
+    os.rename(r''+meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nr,Nre,index),r''+meshfolder+'/'+Box+'RadA_grid%dRefs%dm%d_tx%03dx%03dy%03dz.npy'%(Nr,Nre,index,TxOut.x[0],TxOut.x[1],TxOut.x[2]))
   if not LOS:
     Angstr='./Mesh/'+plottype+'/AngNpy.npy'
     if os.path.isfile(Angstr):
-      os.rename(r''+meshfolder+'/AngNpy.npy',r''+meshfolder+'/'+Box+'AngNpy%03dRefs%03dNs%03d_tx%03d.npy'%(Nr,Nre,Ns,job))
+      os.rename(r''+meshfolder+'/AngNpy.npy',r''+meshfolder+'/'+Box+'AngNpy%03dRefs%03dNs%03d_tx%03dx%03dy%03dz.npy'%(Nr,Nre,Ns,TxOut.x[0],TxOut.x[1],TxOut.x[2]))
     for su in range(0,Nsur):
       RadSstr=meshfolder+'/RadS%d_grid%dRefs%dm%d.npy'%(su,Nr,Nre,index)
       if os.path.isfile(RadSstr):
-        os.rename(r''+meshfolder+'/RadS%d_grid%dRefs%dm%d.npy'%(su,Nr,Nre,index),r''+meshfolder+'/'+Box+'RadS%d_grid%dRefs%dm%d_tx%03d.npy'%(su,Nr,Nre,0,job))
+        os.rename(r''+meshfolder+'/RadS%d_grid%dRefs%dm%d.npy'%(su,Nr,Nre,index),r''+meshfolder+'/'+Box+'RadS%d_grid%dRefs%dm%d_tx%03dx%03dy%03dz.npy'%(su,Nr,Nre,index,TxOut.x[0],TxOut.x[1],TxOut.x[2]))
   myfile = open('Parameters/PlotFit.txt', 'rt') # open lorem.txt for reading text
   plotfit= myfile.read()         # read the entire file into a string
   myfile.close()

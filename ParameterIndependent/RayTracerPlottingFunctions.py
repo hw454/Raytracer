@@ -426,6 +426,10 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
   plotfit= myfile.read()         # read the entire file into a string
   myfile.close()
 
+  if Nre>1:
+    Refstr=nw.num2words(Nre)+'Ref'
+  else:
+    Refstr='NoRef'
   if InnerOb:
     boxstr='Box'
   else:
@@ -448,8 +452,7 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
         LOSstr='MultiRef'
     else:
       LOSstr='SingleRef'
-
-  foldtype=LOSstr+boxstr
+  foldtype=Refstr+boxstr
   #Room contains all the obstacles and walls.
   Room=rom.room(Oblist,Ntri)
   Nob=Room.Nob
@@ -711,7 +714,7 @@ def main():
   testnum    =SimPar.cell(row=17,column=3).value
   roomnumstat=SimPar.cell(row=18,column=3).value
   #plot_times(plottype,testnum,roomnumstat)
-  plot_grid(plottype,testnum,roomnumstat)        # Plot the power in slices.
+  #plot_grid(plottype,testnum,roomnumstat)        # Plot the power in slices.
   plot_quality_contour(plottype,testnum,roomnumstat)
   ResOn      =np.load('Parameters/ResOn.npy')
   if ResOn:
