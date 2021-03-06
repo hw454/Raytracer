@@ -2,15 +2,15 @@
 #
 # Specify the queue
 #SBATCH --account=free
-
+#
 ##############################################################
 ## IMPORTANT:  You need to change the following options     ##
 ##############################################################
 #
 # Choose name of job (name of executable)
-#SBATCH --job-name=TransmitterOptimising
-#SBATCH --output=TXmoveAll.out
-#SBATCH --error=TXMoveAll.err
+#SBATCH --job-name=TransmitterOptimising2
+#SBATCH --output=TXmove2.out
+#SBATCH --error=TXMove2.err
 #SBATCH --partition=batch
 #
 # Choose the number of nodes & processors per node:
@@ -30,7 +30,7 @@
 module load python3/2019.x
 source activate py3
 
-./Raytracer_transmittermover.sh 
+./Raytracer_transmittermover02.sh 
 
 echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 250"
 echo "Starting job..."
