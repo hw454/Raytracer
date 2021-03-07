@@ -64,7 +64,7 @@ def DeclareParameters(SN):
   deltheta=np.array([])
   nrays=Angspace.max_row-1
 
-  nrays=2
+  nrays=1
   SimPar.cell(row=12,column=3).value=nrays
 
 
