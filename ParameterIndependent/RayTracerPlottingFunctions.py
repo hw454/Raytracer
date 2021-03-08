@@ -406,19 +406,18 @@ def plot_quality(plottype,testnum,roomnumstat,job=0):
 
 def plot_quality_contour(plottype,testnum,roomnumstat):
   numjobs    =np.load('Parameters/Numjobs.npy')
+  numjobs=126
   roomnumstat=np.load('Parameters/roomnumstat.npy')
   Nre,h,L,split    =np.load('Parameters/Raytracing.npy')
+  Nre=6
   Nra        =np.load('Parameters/Nra.npy')
-  Oblist        =np.load('Parameters/Obstacles.npy').astype(float)      # The obstacles which are within the outerboundary
   Ntri          =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
-  InnerOb       =np.load('Parameters/InnerOb.npy')              # Whether the innerobjects should be included or not.
   MaxInter      =np.load('Parameters/MaxInter.npy')             # The number of intersections a single ray can have in the room in one direction.
   Orig          =np.load('Parameters/Origin.npy')
-  LOS           =np.load('Parameters/LOS.npy')
-  PerfRef       =np.load('Parameters/PerfRef.npy')
   Nrs           =np.load('Parameters/Nrs.npy')
   Nsur          =np.load('Parameters/Nsur.npy')
-  InnerOb       =np.load('Parameters/InnerOb.npy')
+  NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
+
   myfile = open('Parameters/Heatmapstyle.txt', 'rt') # open lorem.txt for reading text
   cmapopt= myfile.read()         # read the entire file into a string
   myfile.close()
@@ -430,38 +429,6 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
     Refstr=nw.num2words(Nre)+'Ref'
   else:
     Refstr='NoRef'
-  if InnerOb:
-    boxstr='Box'
-  else:
-    boxstr='NoBox'
-  if LOS:
-    LOSstr='LOS'
-  elif PerfRef:
-    if Nre>2:
-      if Nrs<Nsur:
-        LOSstr=nw.num2words(Nrs)+'PerfRef'
-      else:
-        LOSstr='MultiPerfRef'
-    else:
-      LOSstr='SinglePerfRef'
-  else:
-    if Nre>2 and Nrs>1:
-      if Nrs<nsur:
-        LOSstr=nw.num2words(Nrs)+'Ref'
-      else:
-        LOSstr='MultiRef'
-    else:
-      LOSstr='SingleRef'
-  foldtype=Refstr+boxstr
-  #Room contains all the obstacles and walls.
-  Room=rom.room(Oblist,Ntri)
-  Nob=Room.Nob
-  Room.__set_MaxInter__(MaxInter)
-  Nsur=int(Room.Nsur)
-  Nx=int(Room.maxxleng()/h)
-  Ny=int(Room.maxyleng()/h)
-  Nz=int(Room.maxzleng()/h)
-  Ns=max(Nx,Ny,Nz)
   roomnummax=roomnumstat
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       Nra=np.array([Nra])
@@ -469,8 +436,21 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
   else:
       nra=len(Nra)
   for index in range(testnum):
+    Oblist        =np.load('Parameters/Obstacles%d.npy'%index).astype(float)      # The obstacles which are within the outerboundary
+    InnerOb    =np.load('Parameters/InnerOb%d.npy'%index)
+    LOS        =np.load('Parameters/LOS%d.npy'%index)
+    PerfRef    =np.load('Parameters/PerfRef%d.npy'%index)
+    Nsur       =np.load('Parameters/Nsur%d.npy'%index)
     refindex=np.load('Parameters/refindex%03d.npy'%index)
-    bnumbers=np.zeros((Nrs,1))
+    freq          = np.load('Parameters/frequency%03d.npy'%index)
+    Freespace     = np.load('Parameters/Freespace%03d.npy'%index)
+    Pol           = np.load('Parameters/Pol%03d.npy'%index)
+    MaxInter     =np.load('Parameters/MaxInter.npy')
+    ##----Retrieve the Obstacle Parameters--------------------------------------
+    Znobrat      =np.load('Parameters/Znobrat%03d.npy'%index)
+    refindex     =np.load('Parameters/refindex%03d.npy'%index)
+    Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
+    obnumbers=np.zeros((Nrs,1))
     k=0
     Obstr=''
     if Nrs<Nsur:
@@ -480,11 +460,49 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
           obnumbers[k]=ob
           k+=1
           Obstr=Obstr+'Ob%02d'%ob
+    if InnerOb:
+      boxstr='Box'
+    else:
+      boxstr='NoBox'
+    if LOS:
+      LOSstr='LOS'
+    elif PerfRef:
+      if Nre>2:
+        if Nrs<Nsur:
+          LOSstr=nw.num2words(Nrs)+'PerfRef'
+        else:
+          LOSstr='MultiPerfRef'
+      else:
+        LOSstr='SinglePerfRef'
+    else:
+      if Nre>2 and Nrs>1:
+        if Nrs<nsur:
+          LOSstr=nw.num2words(Nrs)+'Ref'
+        else:
+          LOSstr='MultiRef'
+      else:
+        LOSstr='SingleRef'
+    foldtype=Refstr+boxstr
+    #Room contains all the obstacles and walls.
+    Room=rom.room(Oblist,Ntri)
+    Nob=Room.Nob
+    Room.__set_MaxInter__(MaxInter)
+    Nsur=int(Room.Nsur)
+    Nx=int(Room.maxxleng()/h)
+    Ny=int(Room.maxyleng()/h)
+    Nz=int(Room.maxzleng()/h)
+    Ns=max(Nx,Ny,Nz)
+    Znobrat=np.tile(Znobrat,(Nre,1))          # The number of rows is Nsur*Nre+1. Repeat Znobrat to match Mesh dimensions
+    Znobrat=np.insert(Znobrat,0,1.0+0.0j)     # Use a 1 for placement in the LOS row
+    refindex=np.tile(refindex,(Nre,1))        # The number of rows is Nsur*Nre+1. Repeat refindex to match Mesh dimensions
+    refindex=np.insert(refindex,0,1.0+0.0j)   # Use a 1 for placement in the LOS row
+    # Calculate the necessry parameters for the power calculation.
     for i in range(nra):
-      Nr=int(Nra[i])
+      Nr=22 #int(Nra[i])
+      gainname      ='Parameters/Tx%dGains%d.npy'%(Nr,index)
+      Gt            = np.load(gainname)
       Mesh=DSM.DS(Nx,Ny,Nz,Nsur*int(Nre)+1,Nr*(int(Nre)+1),np.complex128,int(split))
       rom.FindInnerPoints(Room,Mesh)
-      Nr=Nra[i]
       #pstr       =meshfolder+'/'+Box+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,0,432)
       #P   =np.load(pstr)
       #Nx=P.shape[0]
@@ -539,9 +557,21 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
               Qu=DSM.QualityFromPower(P)
               Qmesh[Txind]=Qu
             else:
-              Qmesh[Txind]=ma.nan
-              print('Quality Average not found')
-              print(qualityname)
+              print('Power file not found')
+              print(pstr)
+              meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+              meshname=meshfolder+'/DSM_tx%03d'%(job)
+              if os.path.isfile(meshname):
+                Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
+                P,ind=DSM.power_compute(foldtype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Ns,LOS,PerfRef)
+                Qu=DSM.QualityFromPower(P)
+                Qmesh[Txind]=Qu
+              else:
+                Qmesh[Txind]=ma.nan
+                print('Mesh file not found')
+                print(meshname)
+                print('Quality Average not found')
+                print(qualityname)
           qualityPname='./Quality/'+plottype+'/'+boxstr+Obstr+'QualityPercentile%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
           if os.path.isfile(qualityPname):
             QuP=np.load(qualityPname)
@@ -552,10 +582,18 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
               P=np.load(pstr)
               Qu=DSM.QualityPercentileFromPower(P)
               Qmesh[Txind]=Qu
+              meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+              meshname=meshfolder+'/DSM_tx%03d'%(job)
             else:
-              QPmesh[Txind]=ma.nan
-              print('Quality Percentile not found')
-              print(qualityname)
+              if os.path.isfile(meshname):
+                Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
+                P,ind=DSM.power_compute(foldtype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Ns,LOS,PerfRef)
+                Qu=DSM.QualityPercentileFromPower(P)
+                Qmesh[Txind]=Qu
+              else:
+                Qmesh[Txind]=ma.nan
+                print('Quality Percentile not found')
+                print(qualityname)
           qualityMname='./Quality/'+plottype+'/'+boxstr+Obstr+'QualityMin%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
           if os.path.isfile(qualityMname):
             QuM=np.load(qualityMname)
@@ -567,9 +605,48 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
               Qu=DSM.QualityMinFromPower(P)
               QMmesh[Txind]=Qu
             else:
-              QMmesh[Txind]=ma.nan
+              meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+              meshname=meshfolder+'/DSM_tx%03d'%(job)
+              if os.path.isfile(meshname):
+                Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
+                P,ind=DSM.power_compute(foldtype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Ns,LOS,PerfRef)
+                Qu=DSM.QualityMinFromPower(P)
+                Qmesh[Txind]=Qu
+              else:
+                Qmesh[Txind]=ma.nan
               print('Quality Min not found')
               print(qualityname)
+      ResultsFolder='./OptimisationResults'
+      SpecResultsFolder=ResultsFolder+'/'+LOSstr+boxstr+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+      if not os.path.exists(ResultsFolder):
+        os.makedirs(ResultsFolder)
+        os.makedirs(ResultsFolder+'/'+LOSstr+boxstr)
+        os.makedirs(SpecResultsFolder)
+      if not os.path.exists(ResultsFolder+'/'+LOSstr+boxstr):
+        os.makedirs(ResultsFolder+'/'+LOSstr+boxstr)
+        os.makedirs(SpecResultsFolder)
+      if not os.path.exists(SpecResultsFolder):
+        os.makedirs(SpecResultsFolder)
+      TxOpt=np.unravel_index(np.argmax(Qmesh),Qmesh.shape) #np.where(Qmesh==np.amax(Qmesh))
+      TxOpt=Room.coordinate(h,TxOpt[0],TxOpt[1],TxOpt[2])
+      print('Optimal T for Q ave from Exhaust:',TxOpt)
+      np.save(SpecResultsFolder+'/'+Obstr+'OptimumExhaustOriginAverage.npy',TxOpt)
+      TxOptM=np.unravel_index(np.argmax(QMmesh),QMmesh.shape) #np.where(QMmesh==np.amax(QMmesh))
+      TxOptM=Room.coordinate(h,TxOptM[0],TxOptM[1],TxOptM[2])
+      print('Optimal T for Q min from Exhaust:',TxOptM)
+      np.save(SpecResultsFolder+'/'+Obstr+'OptimumExhaustOriginMin.npy',TxOptM)
+      TxOptP=np.unravel_index(np.argmax(QPmesh),QPmesh.shape)
+      TxOptP=Room.coordinate(h,TxOptP[0],TxOptP[1],TxOptP[2])
+      print('Optimal T for Q percentile from Exhaust:',TxOptP)
+      np.save(SpecResultsFolder+'/'+Obstr+'OptimumExhaustOriginPercentile.npy',TxOpt)
+      text_file = open(SpecResultsFolder+'/'+Obstr+'OptimalGainExhaust.txt', 'w')
+      n = text_file.write('\n Optimal location for exhaustive search of average power is at ')
+      n = text_file.write(str(TxOpt))
+      n = text_file.write('\n Optimal location for exhaustive search of min power is at ')
+      n = text_file.write(str(TxOptM))
+      n = text_file.write('\n Optimal location for exhaustive search of 10th percentile power is at ')
+      n = text_file.write(str(TxOptP))
+      text_file.close()
       if numjobs>0:
         Qmin=min(np.amin(Qmesh),np.amin(QPmesh),np.amin(QMmesh))
         Qmax=max(np.amax(Qmesh),np.amax(QPmesh),np.amax(QMmesh))
@@ -581,6 +658,7 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
           print('Q ave range',np.amin(Qmesh),np.amax(Qmesh))
           print('QP range',np.amin(QPmesh),np.amax(QPmesh))
           print('Q min range', np.amin(QMmesh),np.amax(QMmesh))
+          foldtype=Refstr+LOSstr+boxstr
           if not os.path.exists('./Mesh'):
             os.mkdir('./Mesh')
             os.mkdir('./Mesh/'+foldtype)
@@ -633,7 +711,7 @@ def plot_quality_contour(plottype,testnum,roomnumstat):
             ax.set_title('Quality of coverage by transmitter location, z=%02f'%(k*h+h/2))
             ax.set_xlabel('Y position of Tx')
             ax.set_ylabel('X position of Tx')
-            filename='./Quality/'+foldtype+'/'+boxstr+Obstr+'Qualitysurface%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
+            filename='./Quality/'+foldtype+'/'+boxstr+Obstr+'QualitySurface%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
             mp.savefig(filename,bbox_inches=plotfit)
             mp.clf()
             mp.close()

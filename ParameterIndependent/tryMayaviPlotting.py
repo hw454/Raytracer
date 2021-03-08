@@ -19,6 +19,60 @@ import num2words as nw
 
 epsilon=sys.float_info.epsilon
 
+def PlotRoom(index=2):
+    ##Plot the obstacles and the room first
+
+    ##----Retrieve the Raytracing Parameters-----------------------------
+    Nra         =np.load('Parameters/Nra.npy')
+    if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
+      Nra=np.array([Nra])
+      nra=1
+    else:
+      nra=len(Nra)
+    Nre,h ,L    =np.load('Parameters/Raytracing.npy')[0:3]
+    Nre=int(Nre)
+
+    ##----Retrieve the environment--------------------------------------
+    Oblist        =np.load('Parameters/Obstacles%d.npy'%index)
+    Tx            =np.load('Parameters/Origin.npy')
+    InnerOb       =np.load('Parameters/InnerOb%d.npy'%index)
+    Nob           =len(Oblist)
+    #Nob2          =len(OuterBoundary)
+    Room          =Oblist#=np.concatenate((Oblist,OuterBoundary),axis=0)
+    Oblist        =Room
+    RoomP=Oblist[0]
+    if Nre>1:
+      Refstr=nw.num2words(Nre)+''
+    else:
+      Refstr='NoRef'
+    if InnerOb:
+      Box='Box'
+    else:
+      Box='NoBox'
+    for j in range(1,Nob):
+      RoomP=np.concatenate((RoomP,Oblist[j]),axis=0)
+    for j in range(0,RoomP.shape[0],3):
+      if j <0:
+        x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
+        y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
+        z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
+        mlab.plot3d(x,y,z,color= (0, 1, 1),tube_radius=0.05)
+      else:
+        x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
+        y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
+        z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
+        mlab.figure(0)
+        mlab.plot3d(x,y,z,tube_radius=0.005)
+    if not os.path.exists('./ConeFigures'):
+      os.makedirs('./ConeFigures')
+      os.makedirs('./ConeFigures/'+Box)
+    if not os.path.exists('./ConeFigures/'+Box):
+      os.makedirs('./ConeFigures/'+Box)
+    mlab.savefig('ConeFigures/'+Box+'/LOSRoom.jpg',size=(1000,1000))
+    mlab.clf()
+    mlab.close(all=True)
+    return
+
 def PlotRays(plottype=str()):
     ##Plot the obstacles and the room first
 
@@ -59,17 +113,23 @@ def PlotRays(plottype=str()):
     for j in range(1,Nob):
       RoomP=np.concatenate((RoomP,Oblist[j]),axis=0)
     for j in range(0,RoomP.shape[0],3):
-      mlab.figure(0)
-      x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
-      y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
-      z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
-      mlab.plot3d(x,y,z,tube_radius=0.01)
-      if not os.path.exists('./ConeFigures'):
-        os.makedirs('./ConeFigures')
-        os.makedirs('./ConeFigures/'+Box)
-      if not os.path.exists('./ConeFigures/'+Box):
-        os.makedirs('./ConeFigures/'+Box)
-    mlab.savefig('ConeFigures/'+Box+'/Room.jpg',size=(1000,1000))
+      if j == 12 or j==13 or j==14 or j==15 or j==16 or j==17 or j==24 or j==25 or j==26 or j==27 or j==29 or j==28:
+        mlab.figure(0)
+        x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
+        y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
+        z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
+        mlab.plot3d(x,y,z,color= (0, 1, 1),tube_radius=0.02)
+      else:
+        x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
+        y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
+        z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
+        mlab.plot3d(x,y,z,tube_radius=0.005)
+    if not os.path.exists('./ConeFigures'):
+      os.makedirs('./ConeFigures')
+      os.makedirs('./ConeFigures/'+Box)
+    if not os.path.exists('./ConeFigures/'+Box):
+      os.makedirs('./ConeFigures/'+Box)
+    mlab.savefig('ConeFigures/'+Box+'/Ob02Ob04Room.jpg',size=(1000,1000))
     mlab.clf()
     mlab.close(all=True)
     for job in range(numjobs):
@@ -407,14 +467,34 @@ def PlotPolarGains(plottype,index=0):
     delangle     =np.load('Parameters/delangle.npy')
     Nra         =np.load('Parameters/Nra.npy')
     job         =np.load('Parameters/Numjobs.npy')
-    InnerOb     =np.load('Parameters/InnerOb.npy')
-    LOS         =np.load('Parameters/LOS.npy')
-    PerfRef     =np.load('Parameters/PerfRef.npy')
-    refindex    =np.load('Parameters/refindex%03d.npy'%index)
+    InnerOb     =np.load('Parameters/InnerOb%d.npy'%index)
+    LOS         =np.load('Parameters/LOS%d.npy'%index)
+    PerfRef     =np.load('Parameters/PerfRef%d.npy'%index)
+    PerfRef=1
+    Znobrat      =np.load('Parameters/Znobrat%03d.npy'%index)
+    refindex     =np.load('Parameters/refindex%03d.npy'%index)
+    Pol           = np.load('Parameters/Pol%03d.npy'%index)
+    Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
     InnerOb     =np.load('Parameters/InnerOb.npy')
     numjobs     =np.load('Parameters/Numjobs.npy')
+    numjobs=126
     Nrs         =np.load('Parameters/Nrs.npy')
-    Nsur        =np.load('Parameters/Nsur.npy')
+    Oblist        =np.load('Parameters/Obstacles.npy').astype(float)      # The obstacles which are within the outerboundary
+    MaxInter      =np.load('Parameters/MaxInter.npy')             # The number of intersections a single ray can have in the room in one direction.
+    NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
+    Ntri          =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
+    Room=rom.room(Oblist,Ntri)
+    Nob=Room.Nob
+    Room.__set_MaxInter__(MaxInter)
+    Nsur=Room.Nsur
+    Nx=int(Room.maxxleng()/h)
+    Ny=int(Room.maxyleng()/h)
+    Nz=int(Room.maxzleng()/h)
+    Ns=max(Nx,Ny,Nz)
+    if Nre>1:
+      Refstr=nw.num2words(Nre)+'Ref'
+    else:
+      Refstr='NoRef'
     if LOS:
       LOSstr='LOS'
     elif PerfRef:
@@ -446,6 +526,7 @@ def PlotPolarGains(plottype,index=0):
           obnumbers[k]=ob
           k+=1
           Obstr=Obstr+'Ob%02d'%ob
+    foldtype=Refstr+Box
     for job in range(numjobs):
       Tx=np.load('Parameters/Origin_job%03d.npy'%job)
       if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
@@ -465,14 +546,27 @@ def PlotPolarGains(plottype,index=0):
       siphi=0
       for i in range(0,nra):
         Nr=Nra[i]
+        Nr=22
+        meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+        powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
         directionname='Parameters/Directions%03d.npy'%Nra[i]
         data_matrix   =np.load(directionname)         # Matrix of ray directions
-        OptiStr='./Mesh/'+plottype+'/'+Box+Obstr+'OptimalGains%03dRefs%03dm%03d_tx%03d'%(Nr,Nre,index,job)
+        OptiStr=powerfolder+'/'+Box+Obstr+'OptimalGains%03dRefs%03dm%03d_tx%03d'%(Nr,Nre,index,job)
         if os.path.isfile(OptiStr+'.npy'):
           Gt=np.load(OptiStr+'.npy')
           print('plotting gain pattern for Nra=%03d, Nre=%d, Roomnum=%d,Tx_job=%03d'%(Nr,Nre,index,job))
         else:
-          continue
+          meshname=meshfolder+'/DSM_tx%03d'%(job)
+          if os.path.isfile(meshname):
+            Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
+            Gt=DSM.optimum_gains(plottype,Mesh,Room,Znobrat,refindex,Antpar,Pol,Nr,Nre,Ns,LOS,PerfRef)
+            np.save(OptiStr+'.npy',Gt)
+            print('plotting gain pattern for Nra=%03d, Nre=%d, Roomnum=%d,Tx_job=%03d'%(Nr,Nre,index,job))
+          else:
+            Gt=np.zeros(Nra)
+            print('Gains not found')
+            print(OptiStr)
+            continue
         nre=0
         dist=1 #L
         Ncon=ra.no_cones(h,dist,delangle[i],0,nre)
@@ -485,9 +579,11 @@ def PlotPolarGains(plottype,index=0):
         phi_matrix=np.zeros((Nra[i]*(Ncon+1),1))
         polarhoz_matrix=np.zeros((Nra[i]*(Ncon+1),2))
         polarvert_matrix=np.zeros((Nra[i]*(Ncon+1),2))
-        for j in range(0,int(Nra[i])):#int(Nrao)):
+        for j in range(0,int(Nr)):#int(Nrao)):
           d=Gt[j]*data_matrix[j]
           r=np.linalg.norm(d)
+          if all(di==0 for di in d):
+            continue
           if d[0]!=0:
             theta=np.arctan(d[1]/d[0])
           else:
@@ -553,22 +649,27 @@ def PlotPolarGains(plottype,index=0):
             phi_matrix[j*Ncon+k]=phi
             polarhoz_matrix[j*Ncon+k] =theta,abs(cothe)
             polarvert_matrix[j*Ncon+k]=phi  ,abs(siphi)
+        figfolder='ConeFigures/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
         if not os.path.exists('./ConeFigures'):
           os.makedirs('./ConeFigures')
           os.makedirs('./ConeFigures/'+plottype)
+          os.makedirs(figfolder)
         if not os.path.exists('./ConeFigures/'+plottype):
           os.makedirs('./ConeFigures/'+plottype)
+          os.makedirs(figfolder)
+        if not os.path.exists(figfolder):
+          os.makedirs(figfolder)
         mp.figure(2*nra*job+2*i)
         #polarhoz_matrix=np.sort(polarhoz_matrix,0)
         mp.polar(polarhoz_matrix[:,0],polarhoz_matrix[:,1],'+')
-        filename='ConeFigures/'+plottype+'/OptimalGainsPatternHoz%03d.jpg'%Nra[i]
-        mp.title('Horiztonal angle and antenna gain')
+        filename=figfolder+'/OptimalGainsPatternHoz%03d_job%03d.jpg'%(Nra[i],job)
+        mp.title('Horizontal angle and antenna gain')
         mp.savefig(filename)
         mp.clf()
         mp.close()
         mp.figure(2*nra*job+2*i+1)
         mp.polar(polarvert_matrix[:,0],polarvert_matrix[:,1],'+')
-        filename='ConeFigures/'+plottype+'/OptimalGainsPatternVert%03d.jpg'%Nra[i]
+        filename=figfolder+'/OptimalGainsPatternVert%03d_job%03d.jpg'%(Nra[i],job)
         mp.title('Vertical angle and antenna gain')
         mp.savefig(filename)
         mp.clf()
@@ -1495,10 +1596,11 @@ def PlotSingleCone(plottype):
   return
 
 def jobfromTx(Tx,h):
+  Ns=int(1.0/h)
   H=(Tx[2]-0.5*h)//h
   t=(Tx[0]-0.5*h)//h
   u=(Tx[1]-0.5*h)//h
-  return int(H*100+t*10+u)
+  return int(H*(Ns**2)+t*Ns+u)
 
 
 if __name__=='__main__':
@@ -1507,6 +1609,7 @@ if __name__=='__main__':
   myfile.close()
   #PlotSingleCone(plottype)
   #PlotPowerSlice(plottype)
+  #PlotRoom()
   #PlotRays(plottype)
   #PlotDirections(plottype)
   #PlotConesOnSquare(plottype)

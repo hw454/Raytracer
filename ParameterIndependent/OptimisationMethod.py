@@ -8,7 +8,7 @@ the inputs from :py:mod:'ParameterLoad' then runs :py:func:'MeshProgram'
 import io
 import sys
 import os
-import importlib
+import matplotlib.pyplot as mp
 import RayTracerMainProgram as RT
 import Rays as Ra
 import DictionarySparseMatrix as DSM
@@ -144,16 +144,16 @@ def MoreInputs_Run(index=0):
   ##----Retrieve the Raytracing Parameters-----------------------------
   RayPar        =np.load('Parameters/Raytracing.npy')
   Nre,h,L,split =RayPar
-  InnerOb       =np.load('Parameters/InnerOb.npy')              # Whether the innerobjects should be included or not.
-  LOS           =np.load('Parameters/LOS.npy')
+  InnerOb       =np.load('Parameters/InnerOb%d.npy'%index)              # Whether the innerobjects should be included or not.
+  LOS           =np.load('Parameters/LOS%d.npy'%index)
   Nrs           =np.load('Parameters/Nrs.npy')
   Nsur          =np.load('Parameters/Nsur.npy')
-  PerfRef       =np.load('Parameters/PerfRef.npy')
+  PerfRef       =np.load('Parameters/PerfRef%d.npy'%index)
   LOS           =np.load('Parameters/LOS.npy')
   MaxInter      =np.load('Parameters/MaxInter.npy')             # The number of intersections a single ray can have in the room in one direction.
   NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
   Ntri          =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
-  Oblist        =np.load('Parameters/Obstacles.npy').astype(float)      # The obstacles which are within the outerboundary
+  Oblist        =np.load('Parameters/Obstacles%d.npy'%index).astype(float)      # The obstacles which are within the outerboundary
   splitinv=1.0/split
   Nra        =np.load('Parameters/Nra.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
@@ -242,7 +242,7 @@ def MoreInputs_Run(index=0):
     #-----------The input directions changes for each ray number.-------
     directionname='Parameters/Directions%03d.npy'%Nr
     Direc=np.load(directionname)
-    gainname      ='Parameters/Tx%dGains%d.npy'%(Nr,index)
+    gainname      ='Parameters/Tx%dGains%03d.npy'%(Nr,index)
     Gt            = np.load(gainname)
     programterms=np.array([Nr,Nre,AngChan,split,splitinv,delth])
     pars=(Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef,Box,Obstr)
@@ -254,11 +254,11 @@ def MoreInputs_Run(index=0):
     TxOut=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars,options={'xtol':spacetol,'ftol':optTol},bounds=TxB)
     t1=t.time()
     print('Optimal Tx at ',TxOut.x)
-    spacetol=0.025
+    spacetol2=0.025
     optTol2=1e-3
     print('Reduce tolerance')
     t2=t.time()
-    TxOutTolHigh=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars,options={'xtol':spacetol, 'ftol':optTol2},bounds=TxB)
+    TxOutTolHigh=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars,options={'xtol':spacetol2, 'ftol':optTol2},bounds=TxB)
     t3=t.time()
     print('Optimal Tx at ',TxOutTolHigh.x)
     ResultsFolder='./OptimisationResults'
@@ -272,23 +272,26 @@ def MoreInputs_Run(index=0):
       os.makedirs(SpecResultsFolder)
     if not os.path.exists(SpecResultsFolder):
       os.makedirs(SpecResultsFolder)
-    np.save(SpecResultsFolder+'/OptimumOrigin.npy',TxOut.x)
+    np.save(SpecResultsFolder+'/'+Obstr+'OptimumOrigin.npy',TxOut.x)
     print('Full results',TxOut)
-    text_file = open(SpecResultsFolder+'/OptimalGain.txt', 'w')
-    n = text_file.write('Optimal location at ')
+    text_file = open(SpecResultsFolder+'/'+Obstr+'OptimalOrigin.txt', 'w')
+    n = text_file.write('\n Optimal location at ')
     n = text_file.write(str(TxOut.x))
-    n = text_file.write('Number of iterations ')
+    n = text_file.write('\n Number of iterations ')
     n = text_file.write(str(TxOut.nit))
-    n = text_file.write('Time taken ')
+    n = text_file.write('\n Time taken ')
     n = text_file.write(str(t2-t0))
-    n = text_file.write('Tolerance %f'%optTol)
-    n = text_file.write('Optimal location at ')
+    n = text_file.write('\n Function Tolerance %f'%optTol)
+    n = text_file.write('\n Spacial Tolerance %f'%spaceTol)
+    n = text_file.write('\n ---------\n ')
+    n = text_file.write('\n Optimal location at ')
     n = text_file.write(str(TxOutTolHigh.x))
-    n = text_file.write('Number of iterations ')
+    n = text_file.write('\n Number of iterations ')
     n = text_file.write(str(TxOutTolHigh.nit))
-    n = text_file.write('Time taken ')
+    n = text_file.write('\n Time taken ')
     n = text_file.write(str(t3-t2))
-    n = text_file.write('Tolerance %f'%optTol2)
+    n = text_file.write('\n Function Tolerance %f'%optTol2)
+    n = text_file.write('\n Spacial Tolerance %f'%spaceTol2)
     text_file.close()
     meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
     meshname=meshfolder+'/DSM_tx%03dx%03dy%03dz'%(TxOut.x[0],TxOut.x[1],TxOut.x[2])
@@ -296,6 +299,8 @@ def MoreInputs_Run(index=0):
       Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
     else:
       print('The optimal Tx does not have a corresponding Mesh')
+      print(meshname)
+      Quality_MoreInputs(TxOut.x,pars)
     P,_=DSM.power_compute(plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,Ns,LOS,PerfRef)
     np.save(meshfolder+'/'+Box+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03dx%03dy%03dz.npy'%(Nr,Nre,index,TxOut.x[0],TxOut.x[1],TxOut.x[2]),P)
     RadAstr=meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
@@ -312,7 +317,31 @@ def MoreInputs_Run(index=0):
     myfile = open('Parameters/PlotFit.txt', 'rt') # open lorem.txt for reading text
     plotfit= myfile.read()         # read the entire file into a string
     myfile.close()
-    RTplot.plot_mesh(Mesh,Room,Tx,plottype,boxstr,Obstr,Nr,Nre,Ns,plotfit,LOS,index)
+    RTplot.plot_mesh(Mesh,Room,TxOut.x,plottype,boxstr,Obstr,Nr,Nre,Ns,plotfit,LOS,index)
+    meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+    meshname=meshfolder+'/DSM_tx%03dx%03dy%03dz'%(TxOutTolHigh.x[0],TxOutTolHigh.x[1],TxOutTolHigh.x[2])
+    if os.path.isfile(meshname):
+      Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
+    else:
+      print('The optimal Tx does not have a corresponding Mesh')
+      print(meshname)
+    P,_=DSM.power_compute(plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,Ns,LOS,PerfRef)
+    np.save(meshfolder+'/'+Box+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03dx%03dy%03dz.npy'%(Nr,Nre,index,TxOutTolHigh.x[0],TxOutTolHigh.x[1],TxOutTolHigh.x[2]),P)
+    RadAstr=meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
+    if os.path.isfile(RadAstr):
+      os.rename(r''+meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nr,Nre,index),r''+meshfolder+'/'+Box+'RadA_grid%dRefs%dm%d_tx%03dx%03dy%03dz.npy'%(Nr,Nre,index,TxOut.x[0],TxOut.x[1],TxOut.x[2]))
+    if not LOS:
+      Angstr='./Mesh/'+plottype+'/AngNpy.npy'
+      if os.path.isfile(Angstr):
+        os.rename(r''+meshfolder+'/AngNpy.npy',r''+meshfolder+'/'+Box+'AngNpy%03dRefs%03dNs%03d_tx%03dx%03dy%03dz.npy'%(Nr,Nre,Ns,TxOutTolHigh.x[0],TxOutTolHigh.x[1],TxOutTolHigh.x[2]))
+      for su in range(0,Nsur):
+        RadSstr=meshfolder+'/RadS%d_grid%dRefs%dm%d.npy'%(su,Nr,Nre,index)
+        if os.path.isfile(RadSstr):
+          os.rename(r''+meshfolder+'/RadS%d_grid%dRefs%dm%d.npy'%(su,Nr,Nre,index),r''+meshfolder+'/'+Box+'RadS%d_grid%dRefs%dm%d_tx%03dx%03dy%03dz.npy'%(su,Nr,Nre,index,TxOutTolHigh.x[0],TxOutTolHigh.x[1],TxOutTolHigh.x[2]))
+    myfile = open('Parameters/PlotFit.txt', 'rt') # open lorem.txt for reading text
+    plotfit= myfile.read()         # read the entire file into a string
+    myfile.close()
+    RTplot.plot_mesh(Mesh,Room,TxOutTolHigh.x,plottype,boxstr,Obstr,Nr,Nre,Ns,plotfit,LOS,index)
   return 0
 
 
@@ -335,7 +364,8 @@ def main():
   return 0
 
 if __name__=='__main__':
-  #main()
-  MoreInputs_Run()
+  #main
+  index=1
+  MoreInputs_Run(index)
   exit()
 

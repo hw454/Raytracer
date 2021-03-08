@@ -12,7 +12,7 @@ import num2words as nw
 
 epsilon=sys.float_info.epsilon
 
-def DeclareParameters(SN):
+def DeclareParameters(SN,index=0):
   '''All input parameters for the ray-launching method are entered in
   this function which will then save them inside a Parameters folder.
 
@@ -64,7 +64,7 @@ def DeclareParameters(SN):
   deltheta=np.array([])
   nrays=Angspace.max_row-1
 
-  nrays=1
+  nrays=2
   SimPar.cell(row=12,column=3).value=nrays
 
 
@@ -79,6 +79,8 @@ def DeclareParameters(SN):
   l1=SimPar.cell(row=5,column=3).value            # Interior obstacle scale
   l2=SimPar.cell(row=6,column=3).value            # Outer Boundary length scale
   InnerOb=SimPar.cell(row=7,column=3).value       # Indicator of whether the inner obstacles should be used
+  InnerOb=0
+  SimPar.cell(row=7,column=3).value =InnerOb
   NtriOut=np.array([])# This will be the number of triangles forming each plane surface in the outer boundary
   NtriOb=np.array([]) # This will be the number of triangles forming each plane surface in the obstacle list
 
@@ -267,6 +269,8 @@ def DeclareParameters(SN):
 
   LOS=SimPar.cell(row=10,column=3).value     # LOS=1 for LOS propagation, LOS=0 for reflected propagation
   PerfRef=SimPar.cell(row=11,column=3).value # Perfect reflection has no loss and ignores angles.
+  PerfRef=1
+  SimPar.cell(row=11,column=3).value=PerfRef
   AngChan=SimPar.cell(row=23,column=3).value # Switch for whether angles should be correction for the received point.
 
   # -------------------------------------------------------------------
@@ -358,18 +362,17 @@ def DeclareParameters(SN):
     Oblist=np.concatenate((OuterBoundary,Oblist))
   else:
     Oblist=OuterBoundary
-  np.save('Parameters/Obstacles.npy',Oblist)
+  np.save('Parameters/Obstacles%d.npy'%index,Oblist)
   np.save('Parameters/NtriOb.npy',NtriOb)
-  np.save('Parameters/InnerOb.npy',InnerOb)
+  np.save('Parameters/InnerOb%d.npy'%index,InnerOb)
   np.save('Parameters/OuterBoundary.npy',OuterBoundary)
   np.save('Parameters/NtriOut.npy',NtriOut)
-  np.save('Parameters/Nob.npy',Nob)
+  np.save('Parameters/Nob%d.npy'%index,Nob)
   np.save('Parameters/Ns.npy',Ns)
   np.save('Parameters/Nrs.npy',Nrs)
-  np.save('Parameters/Nob.npy',Nob)
   np.save('Parameters/Origin.npy',Tx)
-  np.save('Parameters/LOS.npy',LOS)
-  np.save('Parameters/PerfRef.npy',PerfRef)
+  np.save('Parameters/LOS%d.npy'%index,LOS)
+  np.save('Parameters/PerfRef%d.npy'%index,PerfRef)
   np.save('Parameters/AngChan.npy',AngChan)
 
   nsur=len(NtriOb)
@@ -517,7 +520,7 @@ def ObstacleCoefficients(SN,index=0):
     os.makedirs('./Parameters/')
   RTPar         =np.load('Parameters/Raytracing.npy')
   Nre,h,L,split =RTPar
-  Oblist        =np.load('Parameters/Obstacles.npy')
+  Oblist        =np.load('Parameters/Obstacles%d.npy'%index)
   Nra           =np.load('Parameters/Nra.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       nra=np.array([Nra])
@@ -588,10 +591,10 @@ def ObstacleCoefficients(SN,index=0):
   ObstPar.cell(row=2,column=6).value=str(refindex[-1])
   nre=0
   for j in range(1,Nsur):
-    box=int(OutB.cell(row=j+2,column=3).value)
-    surf=int(OutB.cell(row=j+2,column=4).value)
-    tri=int(OutB.cell(row=j+2,column=5).value)
     if j+1<=NOut:
+      box=int(OutB.cell(row=j+2,column=3).value)
+      surf=int(OutB.cell(row=j+2,column=4).value)
+      tri=int(OutB.cell(row=j+2,column=5).value)
       for i in range(1,6*box+2*surf+tri):
         murj =complex(ObstPar.cell(row=j+2,column=2).value)
         epsrj=complex(ObstPar.cell(row=j+2,column=3).value)
@@ -608,7 +611,7 @@ def ObstacleCoefficients(SN,index=0):
           Znob   =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
         Znobrat=np.append(Znobrat,Znob/Z0)
         ObstPar.cell(row=j+2,column=5).value=str(Znob/Z0)
-        if nre > Nrs+1:
+        if nre > Nrs:
           refindex=np.append(refindex,0+0j)
           ObstPar.cell(row=j+2,column=6).value=str(0+0j)
         else:
@@ -619,6 +622,9 @@ def ObstacleCoefficients(SN,index=0):
             refindex=np.append(refindex,murj*epsrj)
             ObstPar.cell(row=j+2,column=6).value=str(murj*epsrj)
     if NOut+Nobst+1>j+1>NOut:
+      box=int(Obst.cell(row=j+2-NOut,column=3).value)
+      surf=int(Obst.cell(row=j+2-NOut,column=4).value)
+      tri=int(OutB.cell(row=j+2-NOut,column=5).value)
       for i in range(1,box*6+surf*2+tri):
         murj =complex(ObstPar.cell(row=j+2,column=2).value)
         epsrj=complex(ObstPar.cell(row=j+2,column=3).value)
@@ -635,7 +641,7 @@ def ObstacleCoefficients(SN,index=0):
           Znob   =np.sqrt(top/bottom)
         Znobrat=np.append(Znobrat,Znob/Z0)
         ObstPar.cell(row=j+2,column=5).value=str(Znob/Z0)
-        if nre>Nrs+1:
+        if nre>Nrs:
           refindex=np.append(refindex,0+0j)
           ObstPar.cell(row=j+2,column=6).value=str(0+0j)
         else:
@@ -722,13 +728,13 @@ def BoxBuild(xmi,xma,ymi,yma,zmi,zma):
 
 def initialload(index=0):
   mu0,eps0,Z0,c=np.load('Parameters/Freespace%03d.npy'%index)
-  freq     =np.load('Parameters/frequency%03d.npy'%index)
-  lam=np.load('Parameters/lam%03d.npy'%index)
-  khat=np.load('Parameters/khat%03d.npy'%index)
-  _,_,L=np.load('Parameters/Antpar%03d.npy'%index)
-  Znobrat=np.load('Parameters/Znobrat%03d.npy'%index)
-  refindex=np.load('Parameters/refindex%03d.npy'%index)
-  Pol=np.load('Parameters/Pol%03d.npy'%index)
+  freq         =np.load('Parameters/frequency%03d.npy'%index)
+  lam          =np.load('Parameters/lam%03d.npy'%index)
+  khat         =np.load('Parameters/khat%03d.npy'%index)
+  _,_,L        =np.load('Parameters/Antpar%03d.npy'%index)
+  Znobrat      =np.load('Parameters/Znobrat%03d.npy'%index)
+  refindex     =np.load('Parameters/refindex%03d.npy'%index)
+  Pol          =np.load('Parameters/Pol%03d.npy'%index)
 
   ResOn                       =np.load('Parameters/ResOn.npy')
   logon                       =np.load('Parameters/logon.npy')
@@ -739,17 +745,17 @@ def initialload(index=0):
   Nre,h,roomlengthscale,split =np.load('Parameters/Raytracing.npy')
   Nra                         =np.load('Parameters/Nra.npy')
   deltheta                    =np.load('Parameters/delangle.npy')
-  Oblist                      =np.load('Parameters/Obstacles.npy')
+  Oblist                      =np.load('Parameters/Obstacles%d.npy'%index)
   NtriOb                      =np.load('Parameters/NtriOb.npy')
-  InnerOb                     =np.load('Parameters/InnerOb.npy')
+  InnerOb                     =np.load('Parameters/InnerOb%d.npy'%index)
   OutBoundary                 =np.load('Parameters/OuterBoundary.npy')
   NtriOut                     =np.load('Parameters/NtriOut.npy')
   Nob                         =np.load('Parameters/Nob.npy')
   Ns                          =np.load('Parameters/Ns.npy')
   Nrs                         =np.load('Parameters/Nrs.npy')
   Tx                          =np.load('Parameters/Origin.npy')
-  LOS                         =np.load('Parameters/LOS.npy')
-  PerfRef                     =np.load('Parameters/PerfRef.npy')
+  LOS                         =np.load('Parameters/LOS%d.npy'%index)
+  PerfRef                     =np.load('Parameters/PerfRef%d.npy'%index)
   AngChan                     =np.load('Parameters/AngChan.npy')
   myfile = open('Parameters/runplottype.txt', 'rt') # open lorem.txt for reading text
   plottype= myfile.read()         # read the entire file into a string
@@ -861,9 +867,10 @@ if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   Sheetname='InputSheet.xlsx'
-  out=DeclareParameters(Sheetname)
-  out=ObstacleCoefficients(Sheetname)
-  initialload()
+  index=1
+  out=DeclareParameters(Sheetname,index)
+  out=ObstacleCoefficients(Sheetname,index)
+  initialload(index)
 
   exit()
 
