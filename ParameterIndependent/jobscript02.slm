@@ -9,8 +9,8 @@
 #
 # Choose name of job (name of executable)
 #SBATCH --job-name=TransmitterOptimising1
-#SBATCH --output=TXmove1.out
-#SBATCH --error=TXMove1.err
+#SBATCH --output=TXmove2.out
+#SBATCH --error=TXMove2.err
 #SBATCH --partition=batch
 #
 # Choose the number of nodes & processors per node:

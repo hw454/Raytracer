@@ -1925,7 +1925,7 @@ if __name__=='__main__':
   Mesh=centre_dist_test()
   #power_singleray_test(Mesh)
   #singleray_test()
-  dup_check_test()
-  removedouble_test()
+ # dup_check_test()
+  #removedouble_test()
 
   exit()
