@@ -327,7 +327,6 @@ def MeshProgram(SN,Roomnum=1,repeat=0,plottype=str(),job=0):
     Ns=max(Nx,Ny,Nz)
     for j in range(0,nra):
       Nr=Nra[j]
-      Nr=22
       meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
       meshname=meshfolder+'/DSM_tx%03d'%(job)
       print(meshname+'%02dx%02dy%02dz.npz'%(0,0,0))
@@ -916,6 +915,7 @@ def optimum_gains(SN,room,Mesh,repeat=0,plottype=str(),Roomnum=0,job=0):
 def Residual(plottype=str(),box=str(),Roomnum=0,job=0):
   ''' Compute the residual between the computed mesh and the true mesh summed over x,y,z and averaged
   '''
+  Tx            =np.load('Parameters/Origin_job%03d.npy'%job).astype(float)# The location of the source antenna (origin of every ray)
   Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
   Nra        =np.load('Parameters/Nra.npy')
   Nrs        =np.load('Parameters/Nrs.npy')
@@ -928,6 +928,14 @@ def Residual(plottype=str(),box=str(),Roomnum=0,job=0):
   else:
       nra=len(Nra)
   err=np.zeros(nra)
+  if Nre>1:
+    Refstr=nw.num2words(Nre)+'Ref'
+  else:
+    Refstr='NoRef'
+  if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
+    loca='Centre'
+  else:
+    loca='OffCentre'
   for index in range(0,Roomnum):
     Nsur    =np.load('Parameters/Nsur%d.npy'%index)
     refindex=np.load('Parameters/refindex%03d.npy'%index)
