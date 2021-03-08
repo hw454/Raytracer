@@ -929,6 +929,7 @@ def Residual(plottype=str(),box=str(),Roomnum=0,job=0):
       nra=len(Nra)
   err=np.zeros(nra)
   for index in range(0,Roomnum):
+    Nsur    =np.load('Parameters/Nsur%d.npy'%index)
     refindex=np.load('Parameters/refindex%03d.npy'%index)
     Obstr=''
     if Nrs<Nsur:
