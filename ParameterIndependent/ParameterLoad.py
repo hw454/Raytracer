@@ -64,7 +64,7 @@ def DeclareParameters(SN,index=0):
   deltheta=np.array([])
   nrays=Angspace.max_row-1
 
-  nrays=2
+  nrays=1
   SimPar.cell(row=12,column=3).value=nrays
 
 
@@ -527,7 +527,7 @@ def ObstacleCoefficients(SN,index=0):
   else:
       nra=len(Nra)
   Nre=int(RTPar[0])                           # Number of reflections
-  Nob=np.load('Parameters/Nob.npy')           # The Number of obstacle.
+  Nob=np.load('Parameters/Nob%d.npy'%index)           # The Number of obstacle.
   Nrs =SimPar.cell(row=13,column=3).value
 
   # -------------------------------------------------------------------
@@ -750,7 +750,7 @@ def initialload(index=0):
   InnerOb                     =np.load('Parameters/InnerOb%d.npy'%index)
   OutBoundary                 =np.load('Parameters/OuterBoundary.npy')
   NtriOut                     =np.load('Parameters/NtriOut.npy')
-  Nob                         =np.load('Parameters/Nob.npy')
+  Nob                         =np.load('Parameters/Nob%d.npy'%index)
   Ns                          =np.load('Parameters/Ns.npy')
   Nrs                         =np.load('Parameters/Nrs.npy')
   Tx                          =np.load('Parameters/Origin.npy')
