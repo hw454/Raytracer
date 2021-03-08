@@ -124,7 +124,7 @@ def RayTracer(job=0):
       nra=np.array([Nra])
   else:
       nra=len(Nra)
-
+  nra=1
   ##----Retrieve the environment--------------------------------------
   Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
   Tx            =np.load('Parameters/Origin_job%03d.npy'%job) # The location of the source antenna (origin of every ray)
@@ -246,6 +246,7 @@ def MeshProgram(SN,Roomnum=1,repeat=0,plottype=str(),job=0):
       nra=1
   else:
       nra=len(Nra)
+  nra=1  
   Nre=int(Nre)
   timesmat=np.zeros(nra)
 
@@ -464,6 +465,7 @@ def StdProgram(SN,Roomnum=1,repeat=0,plottype=str(),job=0):
       nra=1
   else:
       nra=len(Nra)
+  nra=1 
   Nre=int(Nre)
   timesmat=np.zeros(nra)
 
@@ -604,7 +606,7 @@ def power_grid(SN,room,Mesh,repeat=0,plottype=str(),Roomnum=0,job=0):
       nra=np.array([Nra])
   else:
       nra=len(Nra)
-
+  nra=1
   timemat=np.zeros(nra)
   Nre=int(Nre)
   if Nre>1:
@@ -927,6 +929,7 @@ def Residual(plottype=str(),box=str(),Roomnum=0,job=0):
       nra=1
   else:
       nra=len(Nra)
+  nra=1
   err=np.zeros(nra)
   if Nre>1:
     Refstr=nw.num2words(Nre)+'Ref'
@@ -1066,6 +1069,7 @@ def Quality(SN,Room,repeat=0,plottype=str(),Roomnum=0,job=0):
       nra=np.array([Nra])
   else:
       nra=len(Nra)
+  nra=1  
   Qmat=np.zeros((nra,3))
   timemat=np.zeros(nra)
   Nre=int(Nre)
@@ -1259,6 +1263,7 @@ def main(argv,scriptcall=False):
       nra=1
   else:
       nra=len(Nra)
+  nra=1
   # Call another function which moves the transmitter using job.
   if scriptcall:
     Tx=MoveTx(job,Nx,Ny,Nz,h,L)
@@ -1306,7 +1311,7 @@ def main(argv,scriptcall=False):
       Mesh1,timemesh,Room=MeshProgram(Sheetname,Roomnum,repeat,plottype,job) # Shoot the rays and store the information
       mid=t.time()
       Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
-      Gtout,timeo=optimum_gains(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)
+     # Gtout,timeo=optimum_gains(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)
       # repeat=1
       # #G_zeros[count,:]=G_z
       Q             =Quality(Sheetname,Room,repeat,plottype,Roomnum,job)
@@ -1328,7 +1333,7 @@ def main(argv,scriptcall=False):
       repeat=1
       end2=t.time()
       Timemat[count,:,6]+=Roomnum
-      Timemat[count,:,7]+=timeo
+      #Timemat[count,:,7]+=timeo
   Timemat[:,:,2]/=(testnum)
   Timemat[:,:,5]/=(testnum)
   Timemat/=(timetest)

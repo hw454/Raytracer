@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# Specify the queue
+#SBATCH --account=free
+#
+##############################################################
+## IMPORTANT:  You need to change the following options     ##
+##############################################################
+#
+# Choose name of job (name of executable)
+#SBATCH --job-name=TransmitterOptimising8
+#SBATCH --output=TXmove8.out
+#SBATCH --error=TXMove8.err
+#SBATCH --partition=batch
+#
+# Choose the number of nodes & processors per node:
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#
+# Choose the time your code will need at most:
+#SBATCH --time=3:00:00
+#
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=END
+#
+# send mail to this address
+#SBATCH --mail-user=hw454@bath.ac.uk
+
+# set up environment
+module load python3/2019.x
+source activate py3
+
+./Raytracer_transmittermover08.sh 
+echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 250"
+echo "Starting job..."
+
+
+
+
+

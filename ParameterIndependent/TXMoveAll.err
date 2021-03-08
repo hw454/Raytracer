@@ -1,0 +1,141 @@
+
+real	4m46.317s
+user	2m40.896s
+sys	0m0.616s
+
+real	4m16.791s
+user	2m44.775s
+sys	0m0.634s
+
+real	4m31.385s
+user	2m45.602s
+sys	0m0.608s
+
+real	4m40.448s
+user	2m43.165s
+sys	0m0.570s
+
+real	4m18.217s
+user	2m41.440s
+sys	0m0.609s
+
+real	4m20.775s
+user	2m41.854s
+sys	0m0.624s
+
+real	4m13.287s
+user	2m39.372s
+sys	0m0.604s
+
+real	4m16.416s
+user	2m52.397s
+sys	0m0.623s
+
+real	4m8.334s
+user	2m48.028s
+sys	0m0.539s
+
+real	3m59.969s
+user	2m42.163s
+sys	0m0.627s
+
+real	4m3.650s
+user	2m37.278s
+sys	0m0.591s
+
+real	4m0.377s
+user	2m46.600s
+sys	0m0.613s
+
+real	3m44.906s
+user	2m34.494s
+sys	0m0.557s
+
+real	3m45.008s
+user	2m46.637s
+sys	0m0.626s
+
+real	3m25.209s
+user	2m37.715s
+sys	0m0.573s
+
+real	3m37.651s
+user	2m41.745s
+sys	0m0.600s
+
+real	3m25.402s
+user	2m43.126s
+sys	0m0.533s
+
+real	3m47.297s
+user	2m51.139s
+sys	0m0.589s
+
+real	3m26.373s
+user	2m35.775s
+sys	0m0.567s
+
+real	3m36.456s
+user	2m41.414s
+sys	0m0.581s
+
+real	3m21.961s
+user	2m34.054s
+sys	0m0.580s
+
+real	3m31.159s
+user	2m43.841s
+sys	0m0.599s
+
+real	3m44.324s
+user	2m46.648s
+sys	0m0.586s
+
+real	4m20.338s
+user	2m44.211s
+sys	0m0.562s
+
+real	4m25.054s
+user	2m35.625s
+sys	0m0.597s
+
+real	3m35.875s
+user	2m43.461s
+sys	0m0.640s
+
+real	8m14.005s
+user	6m56.100s
+sys	0m0.972s
+
+real	7m45.902s
+user	6m59.925s
+sys	0m0.903s
+
+real	7m25.420s
+user	6m55.074s
+sys	0m0.840s
+
+real	7m51.581s
+user	6m55.141s
+sys	0m0.858s
+
+real	8m3.418s
+user	7m3.866s
+sys	0m0.954s
+
+real	7m43.839s
+user	6m44.519s
+sys	0m0.859s
+
+real	8m44.936s
+user	6m55.957s
+sys	0m0.927s
+
+real	8m2.826s
+user	6m53.340s
+sys	0m0.945s
+
+real	8m45.298s
+user	7m4.476s
+sys	0m0.788s
+slurmstepd: error: *** JOB 3997499 ON node-sw-006 CANCELLED AT 2021-03-06T21:09:08 DUE TO TIME LIMIT ***
