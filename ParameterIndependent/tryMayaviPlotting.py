@@ -7,6 +7,7 @@ import os
 import math as ma
 import Room as rom
 import Rays as ra
+import DictionarySparseMatrix as DSM
 from mayavi.core.api import Engine
 from mayavi.sources.vtk_file_reader import VTKFileReader
 from mayavi.modules.surface import Surface
@@ -458,19 +459,18 @@ def PlotPolarTheoryGains(plottype):
     mp.clf()
     return
 
-def PlotPolarGains(plottype,index=0):
+def PlotPolarGains(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
     '''Plot the cone calculations.'''
 
     ##----Retrieve the Raytracing Parameters-----------------------------
-    Nre,h ,L =np.load('Parameters/Raytracing.npy')[0:3]
+    _,_ ,L =np.load('Parameters/Raytracing.npy')[0:3]
     # Take Tx to be 0,0,0
     delangle     =np.load('Parameters/delangle.npy')
-    Nra         =np.load('Parameters/Nra.npy')
-    job         =np.load('Parameters/Numjobs.npy')
-    InnerOb     =np.load('Parameters/InnerOb%d.npy'%index)
-    LOS         =np.load('Parameters/LOS%d.npy'%index)
-    PerfRef     =np.load('Parameters/PerfRef%d.npy'%index)
-    PerfRef=1
+    #Nra         =np.load('Parameters/Nra.npy')
+    #job         =np.load('Parameters/Numjobs.npy')
+    _     =np.load('Parameters/InnerOb%d.npy'%index)
+    _         =np.load('Parameters/LOS%d.npy'%index)
+    _     =np.load('Parameters/PerfRef%d.npy'%index)
     Znobrat      =np.load('Parameters/Znobrat%03d.npy'%index)
     refindex     =np.load('Parameters/refindex%03d.npy'%index)
     Pol           = np.load('Parameters/Pol%03d.npy'%index)
@@ -478,11 +478,12 @@ def PlotPolarGains(plottype,index=0):
     InnerOb     =np.load('Parameters/InnerOb.npy')
     numjobs     =np.load('Parameters/Numjobs.npy')
     numjobs=126
-    Nrs         =np.load('Parameters/Nrs.npy')
-    Oblist        =np.load('Parameters/Obstacles.npy').astype(float)      # The obstacles which are within the outerboundary
+    #Nrs         =np.load('Parameters/Nrs.npy')
+    Oblist        =np.load('Parameters/Obstacles%d.npy'%index).astype(float)      # The obstacles which are within the outerboundary
     MaxInter      =np.load('Parameters/MaxInter.npy')             # The number of intersections a single ray can have in the room in one direction.
     NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
     Ntri          =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
+    h=1.0/Ns
     Room=rom.room(Oblist,Ntri)
     Nob=Room.Nob
     Room.__set_MaxInter__(MaxInter)
@@ -491,6 +492,7 @@ def PlotPolarGains(plottype,index=0):
     Ny=int(Room.maxyleng()/h)
     Nz=int(Room.maxzleng()/h)
     Ns=max(Nx,Ny,Nz)
+    plotfit='tight'
     if Nre>1:
       Refstr=nw.num2words(Nre)+'Ref'
     else:
@@ -518,7 +520,7 @@ def PlotPolarGains(plottype,index=0):
     else:
       Box='NoBox'
     Obstr=''
-    if Nrs<Nsur:
+    if 0<Nrs<Nsur:
       obnumbers=np.zeros((Nrs,1))
       k=0
       for ob, refin in enumerate(refindex):
@@ -526,30 +528,34 @@ def PlotPolarGains(plottype,index=0):
           obnumbers[k]=ob
           k+=1
           Obstr=Obstr+'Ob%02d'%ob
+    Znobrat=np.tile(Znobrat,(Nre,1))          # The number of rows is Nsur*Nre+1. Repeat Znobrat to match Mesh dimensions
+    Znobrat=np.insert(Znobrat,0,1.0+0.0j)     # Use a 1 for placement in the LOS row
+    refindex=np.tile(refindex,(Nre,1))        # The number of rows is Nsur*Nre+1. Repeat refindex to match Mesh dimensions
+    refindex=np.insert(refindex,0,1.0+0.0j)   # Use a 1 for placement in the LOS row
     foldtype=Refstr+Box
     for job in range(numjobs):
+      if not job==51:
+        continue
       Tx=np.load('Parameters/Origin_job%03d.npy'%job)
       if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
         loca='Centre'
       else:
         loca='OffCentre'
       plottype=LOSstr+Box+loca
-      if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
-        Nra=np.array([Nra])
-        nra=1
-      else:
-        nra=len(Nra)
+      nra=1
       mulfac=1
       cothe=0
       sithe=0
       cophi=0
       siphi=0
-      for i in range(0,nra):
-        Nr=Nra[i]
-        Nr=22
+      for j in range(0,nra):
+        if Nr==22:
+          i=0
+        else:
+          i=1
         meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
         powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
-        directionname='Parameters/Directions%03d.npy'%Nra[i]
+        directionname='Parameters/Directions%03d.npy'%Nr
         data_matrix   =np.load(directionname)         # Matrix of ray directions
         OptiStr=powerfolder+'/'+Box+Obstr+'OptimalGains%03dRefs%03dm%03d_tx%03d'%(Nr,Nre,index,job)
         if os.path.isfile(OptiStr+'.npy'):
@@ -557,13 +563,15 @@ def PlotPolarGains(plottype,index=0):
           print('plotting gain pattern for Nra=%03d, Nre=%d, Roomnum=%d,Tx_job=%03d'%(Nr,Nre,index,job))
         else:
           meshname=meshfolder+'/DSM_tx%03d'%(job)
-          if os.path.isfile(meshname):
+          mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
+          if os.path.isfile(mesheg):
             Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
             Gt=DSM.optimum_gains(plottype,Mesh,Room,Znobrat,refindex,Antpar,Pol,Nr,Nre,Ns,LOS,PerfRef)
             np.save(OptiStr+'.npy',Gt)
             print('plotting gain pattern for Nra=%03d, Nre=%d, Roomnum=%d,Tx_job=%03d'%(Nr,Nre,index,job))
           else:
-            Gt=np.zeros(Nra)
+            print('No Mesh found'+meshname)
+            Gt=np.zeros(Nr)
             print('Gains not found')
             print(OptiStr)
             continue
@@ -572,13 +580,13 @@ def PlotPolarGains(plottype,index=0):
         Ncon=ra.no_cones(h,dist,delangle[i],0,nre)
         anglevec=np.linspace(0.0,2*ma.pi,num=int(Ncon), endpoint=False) # Create an array of all the angles
         Norm=np.zeros((Ncon,3),dtype=np.float) # Initialise the matrix of normals
-        Cones=np.zeros((int(Nra[i])*Ncon,2,3))
-        radhoz_matrix=np.zeros((Nra[i]*(Ncon+1),1))
-        radvert_matrix=np.zeros((Nra[i]*(Ncon+1),1))
-        theta_matrix=np.zeros((Nra[i]*(Ncon+1),1))
-        phi_matrix=np.zeros((Nra[i]*(Ncon+1),1))
-        polarhoz_matrix=np.zeros((Nra[i]*(Ncon+1),2))
-        polarvert_matrix=np.zeros((Nra[i]*(Ncon+1),2))
+        Cones=np.zeros((int(Nr)*Ncon,2,3))
+        radhoz_matrix=np.zeros((Nr*(Ncon+1),1))
+        radvert_matrix=np.zeros((Nr*(Ncon+1),1))
+        theta_matrix=np.zeros((Nr*(Ncon+1),1))
+        phi_matrix=np.zeros((Nr*(Ncon+1),1))
+        polarhoz_matrix=np.zeros((Nr*(Ncon+1),2))
+        polarvert_matrix=np.zeros((Nr*(Ncon+1),2))
         for j in range(0,int(Nr)):#int(Nrao)):
           d=Gt[j]*data_matrix[j]
           r=np.linalg.norm(d)
@@ -662,16 +670,16 @@ def PlotPolarGains(plottype,index=0):
         mp.figure(2*nra*job+2*i)
         #polarhoz_matrix=np.sort(polarhoz_matrix,0)
         mp.polar(polarhoz_matrix[:,0],polarhoz_matrix[:,1],'+')
-        filename=figfolder+'/OptimalGainsPatternHoz%03d_job%03d.jpg'%(Nra[i],job)
+        filename=figfolder+'/OptimalGainsPatternHoz%03d_job%03d.jpg'%(Nr,job)
         mp.title('Horizontal angle and antenna gain')
-        mp.savefig(filename)
+        mp.savefig(filename,bbox_inches=plotfit)
         mp.clf()
         mp.close()
         mp.figure(2*nra*job+2*i+1)
         mp.polar(polarvert_matrix[:,0],polarvert_matrix[:,1],'+')
-        filename=figfolder+'/OptimalGainsPatternVert%03d_job%03d.jpg'%(Nra[i],job)
+        filename=figfolder+'/OptimalGainsPatternVert%03d_job%03d.jpg'%(Nr,job)
         mp.title('Vertical angle and antenna gain')
-        mp.savefig(filename)
+        mp.savefig(filename,bbox_inches=plotfit)
         mp.clf()
         mp.close()
     return
@@ -1615,7 +1623,11 @@ if __name__=='__main__':
   #PlotConesOnSquare(plottype)
   #PlotConesGains(plottype)
   #PlotPolarTheoryGains(plottype)
-  PlotPolarGains(plottype)
+  parameters=  np.load('Parameters/Parameterarray.npy')
+  _,_,L,split    =np.load('Parameters/Raytracing.npy')
+  for arr in parameters:
+    InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index=arr.astype(int)
+    PlotPolarGains(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index)
   print('Running  on python version')
   print(sys.version)
 exit()
