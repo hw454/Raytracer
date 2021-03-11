@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Specify the queue
-#SBATCH --account=free
+#SBATCH --account=prj-smb014
 
 ##############################################################
 ## IMPORTANT:  You need to change the following options     ##
@@ -32,7 +32,7 @@ echo "Starting job..."
 module load python3/2019.x
 source activate py3
 
-for ((job=0; job>125; job++)); do
+for ((job=50; job>125; job++)); do
   echo "job=${job}"
   time python RayTracerMainProgram.py "${job}"
 done 

@@ -1,0 +1,1324 @@
+Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 10
+Starting job...
+job=75
+main called with job= 75, using output filename=ray_trace_output_075.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx07500x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.1 0.1 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 165.82302808761597
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx075.npy
+-------------------------------
+Job number 75
+Power from DSM complete
+Time taken [92.992]
+-------------------------------
+-------------------------------
+Job number 75
+Quality from DSM complete [[-23.389 -23.389 -32.34 ]]
+Time taken [0.022]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[  1.    165.823  92.992  92.992 258.815 258.815   1.      0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=76
+main called with job= 76, using output filename=ray_trace_output_076.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx07600x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.1 0.3 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 167.11066675186157
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx076.npy
+-------------------------------
+Job number 76
+Power from DSM complete
+Time taken [92.283]
+-------------------------------
+-------------------------------
+Job number 76
+Quality from DSM complete [[-23.481 -23.481 -31.653]]
+Time taken [0.022]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[  1.    167.111  92.283  92.283 259.394 259.394   1.      0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=77
+main called with job= 77, using output filename=ray_trace_output_077.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx07700x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.1 0.5 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 166.4816541671753
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx077.npy
+-------------------------------
+Job number 77
+Power from DSM complete
+Time taken [92.356]
+-------------------------------
+-------------------------------
+Job number 77
+Quality from DSM complete [[-23.455 -23.455 -32.158]]
+Time taken [0.025]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[  1.    166.482  92.356  92.356 258.838 258.838   1.      0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=78
+main called with job= 78, using output filename=ray_trace_output_078.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx07800x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.1 0.7 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 166.41736006736755
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx078.npy
+job=79
+main called with job= 79, using output filename=ray_trace_output_079.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx07900x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.1 0.9 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 165.28980946540833
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx079.npy
+-------------------------------
+Job number 79
+Power from DSM complete
+Time taken [91.239]
+-------------------------------
+-------------------------------
+Job number 79
+Quality from DSM complete [[-26.425 -26.425 -35.15 ]]
+Time taken [0.023]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[  1.    165.29   91.239  91.239 256.529 256.529   1.      0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=80
+main called with job= 80, using output filename=ray_trace_output_080.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx08000x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.3 0.1 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 168.91961693763733
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx080.npy
+job=81
+main called with job= 81, using output filename=ray_trace_output_081.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx08100x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.3 0.3 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 162.03823518753052
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx081.npy
+job=82
+main called with job= 82, using output filename=ray_trace_output_082.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx08200x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.3 0.5 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 167.0843369960785
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx082.npy
+job=83
+main called with job= 83, using output filename=ray_trace_output_083.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx08300x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.3 0.7 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 167.31730008125305
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx083.npy
+job=84
+main called with job= 84, using output filename=ray_trace_output_084.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx08400x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.3 0.9 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 168.37698888778687
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx084.npy
+job=85
+main called with job= 85, using output filename=ray_trace_output_085.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx08500x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.5 0.1 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 167.5303659439087
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx085.npy
+job=86
+main called with job= 86, using output filename=ray_trace_output_086.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx08600x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.5 0.3 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 168.3731026649475
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx086.npy
+job=87
+main called with job= 87, using output filename=ray_trace_output_087.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx08700x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.5 0.5 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 158.7548213005066
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx087.npy
+job=88
+main called with job= 88, using output filename=ray_trace_output_088.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx08800x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.5 0.7 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 168.2184236049652
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx088.npy
+job=89
+main called with job= 89, using output filename=ray_trace_output_089.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx08900x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.5 0.9 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 168.46328735351562
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx089.npy
+job=90
+main called with job= 90, using output filename=ray_trace_output_090.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx09000x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.7 0.1 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 168.19704246520996
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx090.npy
+job=91
+main called with job= 91, using output filename=ray_trace_output_091.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx09100x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.7 0.3 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 158.17031979560852
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx091.npy
+job=92
+main called with job= 92, using output filename=ray_trace_output_092.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx09200x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.7 0.5 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 167.2909812927246
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx092.npy
+job=93
+main called with job= 93, using output filename=ray_trace_output_093.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx09300x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.7 0.7 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 158.28841829299927
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx093.npy
+job=94
+main called with job= 94, using output filename=ray_trace_output_094.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx09400x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.7 0.9 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 168.78288578987122
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx094.npy
+job=95
+main called with job= 95, using output filename=ray_trace_output_095.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx09500x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.9 0.1 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 156.35881161689758
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx095.npy
+-------------------------------
+Job number 95
+Power from DSM complete
+Time taken [88.355]
+-------------------------------
+-------------------------------
+Job number 95
+Quality from DSM complete [[-26.29  -26.29  -35.757]]
+Time taken [0.024]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[  1.    156.359  88.355  88.355 244.714 244.714   1.      0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=96
+main called with job= 96, using output filename=ray_trace_output_096.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx09600x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.9 0.3 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 166.0327570438385
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx096.npy
+-------------------------------
+Job number 96
+Power from DSM complete
+Time taken [91.274]
+-------------------------------
+-------------------------------
+Job number 96
+Quality from DSM complete [[-24.669 -24.669 -31.833]]
+Time taken [0.024]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[  1.    166.033  91.274  91.274 257.306 257.306   1.      0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=97
+main called with job= 97, using output filename=ray_trace_output_097.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx09700x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.9 0.5 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 165.9379687309265
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx097.npy
+job=98
+main called with job= 98, using output filename=ray_trace_output_098.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx09800x00y00z.npz
+-------------------------------
+Starting the ray bouncing and information storage
+-------------------------------
+Tx [0.9 0.7 0.7]
+-------------------------------
+Ray-launching complete
+Time taken 165.84860229492188
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx098.npy
+job=99
+main called with job= 99, using output filename=ray_trace_output_099.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx09900x00y00z.npz
+Tx [0.9 0.9 0.7]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.596851110458374
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx099.npy
+-------------------------------
+Job number 99
+Power from DSM complete
+Time taken [0.015]
+-------------------------------
+-------------------------------
+Job number 99
+Quality from DSM complete [[-25.921 -25.921 -34.229]]
+Time taken [0.021]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.597 0.015 0.015 0.612 0.612 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=100
+main called with job=100, using output filename=ray_trace_output_100.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx10000x00y00z.npz
+Tx [0.1 0.1 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.7150442600250244
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx100.npy
+-------------------------------
+Job number 100
+Power from DSM complete
+Time taken [0.014]
+-------------------------------
+-------------------------------
+Job number 100
+Quality from DSM complete [[-23.579 -23.579 -31.256]]
+Time taken [0.02]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.715 0.014 0.014 0.73  0.73  1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=101
+main called with job=101, using output filename=ray_trace_output_101.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx10100x00y00z.npz
+Tx [0.1 0.3 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.5969977378845215
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx101.npy
+-------------------------------
+Job number 101
+Power from DSM complete
+Time taken [0.014]
+-------------------------------
+-------------------------------
+Job number 101
+Quality from DSM complete [[-24.395 -24.395 -31.797]]
+Time taken [0.022]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.597 0.014 0.014 0.611 0.611 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=102
+main called with job=102, using output filename=ray_trace_output_102.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx10200x00y00z.npz
+Tx [0.1 0.5 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.5757577419281006
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx102.npy
+-------------------------------
+Job number 102
+Power from DSM complete
+Time taken [0.014]
+-------------------------------
+-------------------------------
+Job number 102
+Quality from DSM complete [[-24.625 -24.625 -31.57 ]]
+Time taken [0.019]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.576 0.014 0.014 0.59  0.59  1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=103
+main called with job=103, using output filename=ray_trace_output_103.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx10300x00y00z.npz
+Tx [0.1 0.7 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.6409287452697754
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx103.npy
+-------------------------------
+Job number 103
+Power from DSM complete
+Time taken [0.015]
+-------------------------------
+-------------------------------
+Job number 103
+Quality from DSM complete [[-26.313 -26.313 -35.691]]
+Time taken [0.027]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.641 0.015 0.015 0.656 0.656 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=104
+main called with job=104, using output filename=ray_trace_output_104.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx10400x00y00z.npz
+Tx [0.1 0.9 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.5833475589752197
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx104.npy
+-------------------------------
+Job number 104
+Power from DSM complete
+Time taken [0.014]
+-------------------------------
+-------------------------------
+Job number 104
+Quality from DSM complete [[-25.978 -25.978 -34.096]]
+Time taken [0.019]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.583 0.014 0.014 0.597 0.597 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=105
+main called with job=105, using output filename=ray_trace_output_105.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx10500x00y00z.npz
+Tx [0.3 0.1 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.5971565246582031
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx105.npy
+-------------------------------
+Job number 105
+Power from DSM complete
+Time taken [0.013]
+-------------------------------
+-------------------------------
+Job number 105
+Quality from DSM complete [[-25.487 -25.487 -35.981]]
+Time taken [0.018]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.597 0.013 0.013 0.61  0.61  1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=106
+main called with job=106, using output filename=ray_trace_output_106.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx10600x00y00z.npz
+Tx [0.3 0.3 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.627861738204956
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx106.npy
+-------------------------------
+Job number 106
+Power from DSM complete
+Time taken [0.014]
+-------------------------------
+-------------------------------
+Job number 106
+Quality from DSM complete [[-24.382 -24.382 -33.814]]
+Time taken [0.018]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.628 0.014 0.014 0.642 0.642 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=107
+main called with job=107, using output filename=ray_trace_output_107.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx10700x00y00z.npz
+Tx [0.3 0.5 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.6033775806427002
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx107.npy
+-------------------------------
+Job number 107
+Power from DSM complete
+Time taken [0.014]
+-------------------------------
+-------------------------------
+Job number 107
+Quality from DSM complete [[-23.693 -23.693 -30.568]]
+Time taken [0.018]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.603 0.014 0.014 0.618 0.618 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=108
+main called with job=108, using output filename=ray_trace_output_108.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx10800x00y00z.npz
+Tx [0.3 0.7 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.742725133895874
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx108.npy
+-------------------------------
+Job number 108
+Power from DSM complete
+Time taken [0.013]
+-------------------------------
+-------------------------------
+Job number 108
+Quality from DSM complete [[-23.377 -23.377 -30.905]]
+Time taken [0.018]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.743 0.013 0.013 0.756 0.756 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=109
+main called with job=109, using output filename=ray_trace_output_109.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx10900x00y00z.npz
+Tx [0.3 0.9 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.8424787521362305
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx109.npy
+-------------------------------
+Job number 109
+Power from DSM complete
+Time taken [0.014]
+-------------------------------
+-------------------------------
+Job number 109
+Quality from DSM complete [[-24.642 -24.642 -31.736]]
+Time taken [0.018]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.842 0.014 0.014 0.857 0.857 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=110
+main called with job=110, using output filename=ray_trace_output_110.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx11000x00y00z.npz
+Tx [0.5 0.1 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.6289849281311035
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx110.npy
+-------------------------------
+Job number 110
+Power from DSM complete
+Time taken [0.014]
+-------------------------------
+-------------------------------
+Job number 110
+Quality from DSM complete [[-26.654 -26.654 -36.661]]
+Time taken [0.018]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.629 0.014 0.014 0.643 0.643 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=111
+main called with job=111, using output filename=ray_trace_output_111.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=112
+main called with job=112, using output filename=ray_trace_output_112.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx11200x00y00z.npz
+Tx [0.5 0.5 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.5859968662261963
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx112.npy
+-------------------------------
+Job number 112
+Power from DSM complete
+Time taken [0.015]
+-------------------------------
+-------------------------------
+Job number 112
+Quality from DSM complete [[-23.205 -23.205 -30.354]]
+Time taken [0.019]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.586 0.015 0.015 0.601 0.601 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=113
+main called with job=113, using output filename=ray_trace_output_113.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx11300x00y00z.npz
+Tx [0.5 0.7 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.7922959327697754
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx113.npy
+-------------------------------
+Job number 113
+Power from DSM complete
+Time taken [0.023]
+-------------------------------
+-------------------------------
+Job number 113
+Quality from DSM complete [[-23.576 -23.576 -31.55 ]]
+Time taken [0.032]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.792 0.023 0.023 0.815 0.815 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=114
+main called with job=114, using output filename=ray_trace_output_114.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx11400x00y00z.npz
+Tx [0.5 0.9 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.6331751346588135
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx114.npy
+-------------------------------
+Job number 114
+Power from DSM complete
+Time taken [0.019]
+-------------------------------
+-------------------------------
+Job number 114
+Quality from DSM complete [[-24.649 -24.649 -32.151]]
+Time taken [0.025]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.633 0.019 0.019 0.652 0.652 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=115
+main called with job=115, using output filename=ray_trace_output_115.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx11500x00y00z.npz
+Tx [0.7 0.1 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.6015541553497314
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx115.npy
+-------------------------------
+Job number 115
+Power from DSM complete
+Time taken [0.015]
+-------------------------------
+-------------------------------
+Job number 115
+Quality from DSM complete [[-26.083 -26.083 -37.12 ]]
+Time taken [0.021]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.602 0.015 0.015 0.617 0.617 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=116
+main called with job=116, using output filename=ray_trace_output_116.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx11600x00y00z.npz
+Tx [0.7 0.3 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.6264996528625488
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx116.npy
+-------------------------------
+Job number 116
+Power from DSM complete
+Time taken [0.014]
+-------------------------------
+-------------------------------
+Job number 116
+Quality from DSM complete [[-24.264 -24.264 -31.437]]
+Time taken [0.019]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.626 0.014 0.014 0.64  0.64  1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=117
+main called with job=117, using output filename=ray_trace_output_117.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx11700x00y00z.npz
+Tx [0.7 0.5 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.6554133892059326
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx117.npy
+-------------------------------
+Job number 117
+Power from DSM complete
+Time taken [0.014]
+-------------------------------
+-------------------------------
+Job number 117
+Quality from DSM complete [[-23.922 -23.922 -31.707]]
+Time taken [0.02]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.655 0.014 0.014 0.669 0.669 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=118
+main called with job=118, using output filename=ray_trace_output_118.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx11800x00y00z.npz
+Tx [0.7 0.7 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.5758264064788818
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx118.npy
+-------------------------------
+Job number 118
+Power from DSM complete
+Time taken [0.014]
+-------------------------------
+-------------------------------
+Job number 118
+Quality from DSM complete [[-23.948 -23.948 -32.919]]
+Time taken [0.02]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.576 0.014 0.014 0.59  0.59  1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=119
+main called with job=119, using output filename=ray_trace_output_119.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx11900x00y00z.npz
+Tx [0.7 0.9 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.6600151062011719
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx119.npy
+-------------------------------
+Job number 119
+Power from DSM complete
+Time taken [0.014]
+-------------------------------
+-------------------------------
+Job number 119
+Quality from DSM complete [[-25.661 -25.661 -33.302]]
+Time taken [0.185]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.66  0.014 0.014 0.674 0.674 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=120
+main called with job=120, using output filename=ray_trace_output_120.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx12000x00y00z.npz
+Tx [0.9 0.1 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.6219494342803955
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx120.npy
+-------------------------------
+Job number 120
+Power from DSM complete
+Time taken [0.013]
+-------------------------------
+-------------------------------
+Job number 120
+Quality from DSM complete [[-26.569 -26.569 -34.646]]
+Time taken [0.02]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.622 0.013 0.013 0.635 0.635 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=121
+main called with job=121, using output filename=ray_trace_output_121.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx12100x00y00z.npz
+Tx [0.9 0.3 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.5754303932189941
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx121.npy
+-------------------------------
+Job number 121
+Power from DSM complete
+Time taken [0.014]
+-------------------------------
+-------------------------------
+Job number 121
+Quality from DSM complete [[-25.488 -25.488 -33.694]]
+Time taken [0.033]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.575 0.014 0.014 0.589 0.589 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=122
+main called with job=122, using output filename=ray_trace_output_122.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx12200x00y00z.npz
+Tx [0.9 0.5 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.5728418827056885
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx122.npy
+-------------------------------
+Job number 122
+Power from DSM complete
+Time taken [0.014]
+-------------------------------
+-------------------------------
+Job number 122
+Quality from DSM complete [[-25.505 -25.505 -33.089]]
+Time taken [0.037]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.573 0.014 0.014 0.587 0.587 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=123
+main called with job=123, using output filename=ray_trace_output_123.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx12300x00y00z.npz
+Tx [0.9 0.7 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.5794272422790527
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx123.npy
+-------------------------------
+Job number 123
+Power from DSM complete
+Time taken [0.014]
+-------------------------------
+-------------------------------
+Job number 123
+Quality from DSM complete [[-25.364 -25.364 -32.851]]
+Time taken [0.037]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.579 0.014 0.014 0.594 0.594 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+job=124
+main called with job=124, using output filename=ray_trace_output_124.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx12400x00y00z.npz
+Tx [0.9 0.9 0.9]
+Mesh loaded from store
+-------------------------------
+Ray-launching complete
+Time taken 0.5733706951141357
+-------------------------------
+---------------------------------
+Starting the power calculation
+Power loaded from store
+Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx124.npy
+-------------------------------
+Job number 124
+Power from DSM complete
+Time taken [0.014]
+-------------------------------
+-------------------------------
+Job number 124
+Quality from DSM complete [[-27.044 -27.044 -35.555]]
+Time taken [0.019]
+-------------------------------
+-------------------------------
+Time to complete program
+[[[1.    0.573 0.014 0.014 0.587 0.587 1.    0.   ]]]
+-------------------------------
+-------------------------------
+-------------------------------
+
+########################################################################
+----------------------! Balena Job Details !----------------------------
+
+JobID          : 4026661
+No. of nodes   : 1
+No. of CPUs    : 16
+Timelimit      : 03:00:00
+Elapsed time   : 01:43:55
+Nodelist       : node-sw-121
+
+########################################################################
+

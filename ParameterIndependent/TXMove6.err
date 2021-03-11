@@ -1,0 +1,504 @@
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx050.npz'
+
+real	4m19.196s
+user	4m16.518s
+sys	0m0.332s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx051.npz'
+
+real	4m15.886s
+user	4m14.495s
+sys	0m0.332s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx052.npz'
+
+real	4m16.309s
+user	4m14.427s
+sys	0m0.285s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx053.npz'
+
+real	4m15.751s
+user	4m14.040s
+sys	0m0.316s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx054.npz'
+
+real	4m16.857s
+user	4m14.973s
+sys	0m0.262s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx055.npz'
+
+real	4m23.400s
+user	4m21.640s
+sys	0m0.308s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx056.npz'
+
+real	4m10.026s
+user	4m8.014s
+sys	0m0.246s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 744, in power_grid
+    os.rename(r''+rfilename,r''+meshfolder+'/'+boxstr+rstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/rad22Refs6Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxrad22Refs6Ns500x00y00z_tx057.npz'
+
+real	4m13.056s
+user	4m11.720s
+sys	0m0.288s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 744, in power_grid
+    os.rename(r''+rfilename,r''+meshfolder+'/'+boxstr+rstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/rad22Refs6Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxrad22Refs6Ns500x00y00z_tx058.npz'
+
+real	4m16.027s
+user	4m14.650s
+sys	0m0.260s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 744, in power_grid
+    os.rename(r''+rfilename,r''+meshfolder+'/'+boxstr+rstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/rad22Refs6Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxrad22Refs6Ns500x00y00z_tx059.npz'
+
+real	4m21.816s
+user	4m20.411s
+sys	0m0.294s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx060.npz'
+
+real	4m23.163s
+user	4m21.568s
+sys	0m0.364s
+
+real	4m22.067s
+user	4m20.038s
+sys	0m0.282s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx062.npz'
+
+real	4m4.455s
+user	4m2.600s
+sys	0m0.313s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx063.npz'
+
+real	4m22.387s
+user	4m19.704s
+sys	0m0.259s
+
+real	4m25.365s
+user	4m23.295s
+sys	0m0.346s
+
+real	4m23.196s
+user	4m21.526s
+sys	0m0.276s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx066.npz'
+
+real	4m3.714s
+user	4m2.127s
+sys	0m0.274s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx067.npz'
+
+real	4m13.886s
+user	4m12.205s
+sys	0m0.289s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx068.npz'
+
+real	4m3.739s
+user	4m1.979s
+sys	0m0.299s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx069.npz'
+
+real	4m23.042s
+user	4m21.749s
+sys	0m0.313s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx070.npz'
+
+real	4m4.383s
+user	4m2.923s
+sys	0m0.288s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 744, in power_grid
+    os.rename(r''+rfilename,r''+meshfolder+'/'+boxstr+rstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/rad22Refs6Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxrad22Refs6Ns500x00y00z_tx071.npz'
+
+real	4m16.578s
+user	4m15.001s
+sys	0m0.332s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx072.npz'
+
+real	4m14.569s
+user	4m12.939s
+sys	0m0.249s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 744, in power_grid
+    os.rename(r''+rfilename,r''+meshfolder+'/'+boxstr+rstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/rad22Refs6Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxrad22Refs6Ns500x00y00z_tx073.npz'
+
+real	4m15.043s
+user	4m13.675s
+sys	0m0.271s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 744, in power_grid
+    os.rename(r''+rfilename,r''+meshfolder+'/'+boxstr+rstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/rad22Refs6Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxrad22Refs6Ns500x00y00z_tx074.npz'
+
+real	4m4.593s
+user	4m3.012s
+sys	0m0.276s
+
+real	0m2.143s
+user	0m1.260s
+sys	0m0.151s
+
+real	0m1.717s
+user	0m1.258s
+sys	0m0.126s
+
+real	0m1.701s
+user	0m1.271s
+sys	0m0.109s
+
+real	0m1.660s
+user	0m1.280s
+sys	0m0.102s
+
+real	0m1.762s
+user	0m1.249s
+sys	0m0.134s
+
+real	0m1.724s
+user	0m1.258s
+sys	0m0.127s
+
+real	0m1.879s
+user	0m1.260s
+sys	0m0.126s
+
+real	0m1.747s
+user	0m1.277s
+sys	0m0.112s
+
+real	0m1.688s
+user	0m1.273s
+sys	0m0.102s
+
+real	0m1.889s
+user	0m1.260s
+sys	0m0.133s
+
+real	0m1.874s
+user	0m1.262s
+sys	0m0.123s
+
+real	0m1.779s
+user	0m1.250s
+sys	0m0.137s
+
+real	0m1.720s
+user	0m1.246s
+sys	0m0.130s
+
+real	0m1.701s
+user	0m1.261s
+sys	0m0.122s
+
+real	0m2.094s
+user	0m1.238s
+sys	0m0.147s
+
+real	0m1.957s
+user	0m1.257s
+sys	0m0.135s
+
+real	0m1.815s
+user	0m1.256s
+sys	0m0.123s
+
+real	0m1.738s
+user	0m1.266s
+sys	0m0.120s
+
+real	0m1.800s
+user	0m1.251s
+sys	0m0.127s
+
+real	0m1.856s
+user	0m1.257s
+sys	0m0.130s
+
+real	0m1.928s
+user	0m1.261s
+sys	0m0.126s
+
+real	0m1.761s
+user	0m1.264s
+sys	0m0.119s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx097.npz'
+
+real	1m39.448s
+user	1m38.266s
+sys	0m0.250s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1320, in main
+    Grid,G_z,timep=power_grid(Sheetname,Room,Mesh1,repeat,plottype,Roomnum,job)  # Use the ray information to compute the power
+  File "RayTracerMainProgram.py", line 745, in power_grid
+    os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
+FileNotFoundError: [Errno 2] No such file or directory: './Mesh/sixNoBox/Nra022Refs006Ns5/ang022Refs006Ns500x00y00z.npz' -> './Mesh/sixNoBox/Nra022Refs006Ns5/NoBoxang022Refs006Ns500x00y00z_tx098.npz'
+
+real	4m18.608s
+user	4m17.092s
+sys	0m0.326s
+
+real	0m2.041s
+user	0m1.271s
+sys	0m0.134s
+
+real	0m1.707s
+user	0m1.254s
+sys	0m0.125s
+
+real	0m1.830s
+user	0m1.276s
+sys	0m0.116s
+
+real	0m1.949s
+user	0m1.266s
+sys	0m0.125s
+
+real	0m1.750s
+user	0m1.262s
+sys	0m0.121s
+Traceback (most recent call last):
+  File "RayTracerMainProgram.py", line 1373, in <module>
+    main(sys.argv)
+  File "RayTracerMainProgram.py", line 1318, in main
+    Mesh1,timemesh,Room=MeshProgram(Sheetname,Roomnum,repeat,plottype,job) # Shoot the rays and store the information
+  File "RayTracerMainProgram.py", line 273, in MeshProgram
+    Nsur       =np.load('Parameters/Nsur%d.npy'%index)
+  File "/home/m/hw454/.conda/envs/py3/lib/python3.6/site-packages/numpy/lib/npyio.py", line 440, in load
+    pickle_kwargs=pickle_kwargs)
+  File "/home/m/hw454/.conda/envs/py3/lib/python3.6/site-packages/numpy/lib/format.py", line 771, in read_array
+    array.shape = shape
+ValueError: cannot reshape array of size 0 into shape ()
+
+real	0m1.096s
+user	0m0.777s
+sys	0m0.098s
+
+real	0m1.701s
+user	0m1.265s
+sys	0m0.113s
+
+real	0m1.977s
+user	0m1.280s
+sys	0m0.111s
+
+real	0m1.877s
+user	0m1.277s
+sys	0m0.113s
+
+real	0m1.743s
+user	0m1.254s
+sys	0m0.129s
+
+real	0m1.808s
+user	0m1.270s
+sys	0m0.114s
+
+real	0m1.819s
+user	0m1.255s
+sys	0m0.130s
+
+real	0m1.736s
+user	0m1.259s
+sys	0m0.125s
+
+real	0m1.895s
+user	0m1.265s
+sys	0m0.115s
+
+real	0m1.727s
+user	0m1.252s
+sys	0m0.131s
+
+real	0m1.687s
+user	0m1.256s
+sys	0m0.121s
+
+real	0m1.686s
+user	0m1.238s
+sys	0m0.146s
+
+real	0m1.680s
+user	0m1.273s
+sys	0m0.103s
+
+real	0m1.663s
+user	0m1.265s
+sys	0m0.117s
+
+real	0m1.709s
+user	0m1.261s
+sys	0m0.115s
+
+real	0m1.702s
+user	0m1.231s
+sys	0m0.147s
+
+real	0m1.707s
+user	0m1.251s
+sys	0m0.124s
+
+real	0m1.726s
+user	0m1.268s
+sys	0m0.118s
+
+real	0m2.050s
+user	0m1.252s
+sys	0m0.137s
+
+real	0m1.810s
+user	0m1.262s
+sys	0m0.122s
+
+real	0m1.692s
+user	0m1.251s
+sys	0m0.128s
