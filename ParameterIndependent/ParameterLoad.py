@@ -58,7 +58,6 @@ def DeclareParameters(SN,index=0):
   roomnumstat=SimPar.cell(row=18,column=3).value
   timetest   =SimPar.cell(row=19,column=3).value
   ResOn      =SimPar.cell(row=20,column=3).value
-  MaxInter   =SimPar.cell(row=21,column=3).value
   logon      =SimPar.cell(row=25,column=3).value
 
   deltheta=np.array([])
@@ -73,14 +72,21 @@ def DeclareParameters(SN,index=0):
     #np.pi*np.array([1/3])#,1/5,1/7,1/8,1/9,1/12,1/14,1/16,1/18,1/19,1/20,1/22,1/25,1/36])
   Nra=np.ones(nrays,dtype=int)
   Nrs =SimPar.cell(row=13,column=3).value
+  Nrs=2
+  SimPar.cell(row=13,column=3).value=Nrs
   Nre=int(SimPar.cell(row=2,column=3).value )     # Number of reflections
   Ns=int(SimPar.cell(row=3,column=3).value )      # Number of steps on longest axis.
   split=SimPar.cell(row=4,column=3).value         # Number of steps through each mesh square
   l1=SimPar.cell(row=5,column=3).value            # Interior obstacle scale
   l2=SimPar.cell(row=6,column=3).value            # Outer Boundary length scale
   InnerOb=SimPar.cell(row=7,column=3).value       # Indicator of whether the inner obstacles should be used
-  InnerOb=0
+  if index==7 or index==2:
+    InnerOb=1
+  else:
+    InnerOb=0
   SimPar.cell(row=7,column=3).value =InnerOb
+  MaxInter   =SimPar.cell(row=21,column=3).value
+  MaxInter= 2*InnerOb+2
   NtriOut=np.array([])# This will be the number of triangles forming each plane surface in the outer boundary
   NtriOb=np.array([]) # This will be the number of triangles forming each plane surface in the obstacle list
 
@@ -269,8 +275,6 @@ def DeclareParameters(SN,index=0):
 
   LOS=SimPar.cell(row=10,column=3).value     # LOS=1 for LOS propagation, LOS=0 for reflected propagation
   PerfRef=SimPar.cell(row=11,column=3).value # Perfect reflection has no loss and ignores angles.
-  PerfRef=1
-  SimPar.cell(row=11,column=3).value=PerfRef
   AngChan=SimPar.cell(row=23,column=3).value # Switch for whether angles should be correction for the received point.
 
   # -------------------------------------------------------------------
@@ -351,7 +355,7 @@ def DeclareParameters(SN,index=0):
   # --------------------------------------------------------------------
   np.save('Parameters/ResOn.npy',ResOn)
   np.save('Parameters/logon.npy',logon)
-  np.save('Parameters/MaxInter.npy',MaxInter)
+  np.save('Parameters/MaxInter%d.npy'%index,MaxInter)
   np.save('Parameters/testnum.npy',testnum)
   np.save('Parameters/roomnumstat.npy',roomnumstat)
   np.save('Parameters/timetest.npy',timetest)
@@ -376,6 +380,7 @@ def DeclareParameters(SN,index=0):
   np.save('Parameters/AngChan.npy',AngChan)
 
   nsur=len(NtriOb)
+  np.save('Parameters/Nsur%d.npy'%index,nsur)
 
   if LOS:
     LOSstr='LOS'
@@ -527,8 +532,20 @@ def ObstacleCoefficients(SN,index=0):
   else:
       nra=len(Nra)
   Nre=int(RTPar[0])                           # Number of reflections
-  Nob=np.load('Parameters/Nob.npy')           # The Number of obstacle.
-  Nrs =SimPar.cell(row=13,column=3).value
+  Nob=np.load('Parameters/Nob%d.npy'%index)           # The Number of obstacle.
+  if index==1 or index==2:
+    Nrs=0
+  if index==3:
+    Nrs=1
+  if index==6 or index==5:
+    Nrs=2
+  if index==7:
+    Nrs=12
+  if index==4:
+    Nrs=6
+  else:
+    Nrs=0
+  SimPar.cell(row=13,column=3).value=Nrs
 
   # -------------------------------------------------------------------
   # INPUT PARAMETERS FOR POWER CALCULATIONS----------------------------
@@ -571,23 +588,29 @@ def ObstacleCoefficients(SN,index=0):
   InOb=SimPar.cell(row=7,column=3).value
   NOut=OutB.max_row-1
   Nobst=Obst.max_row-1
-  Nsur=Nobst*InOb+NOut
+  for j in range(Obst.max_row):
+    Nbox=Obst.cell(row=2,column=3).value
+  Nobstsur=Nobst*max(1,6*Obst.cell(row=2,column=3).value)
+  Nsur=Nobstsur*InOb+NOut
+  print('Number of surfaces',Nsur)
   mur   =np.array([complex(ObstPar.cell(row=2,column=2).value)])
   epsr  =np.array([complex(ObstPar.cell(row=2,column=3).value)])
   sigma =np.array([complex(ObstPar.cell(row=2,column=4).value)])
+  refindex=np.zeros(Nsur,dtype=np.complex128)
+  Znobrat=np.zeros(Nsur,dtype=np.complex128)
   top=frequency*mu0*mur[-1]*1j
   bottom=sigma[-1]+eps0*frequency*epsr[-1]*1j
   if bottom==0:
     Znob=0
   else:
     Znob =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
-  Znobrat=np.array([Znob/Z0])
+  Znobrat[0]=np.array([Znob/Z0])
   ObstPar.cell(row=2,column=5).value=str(Znob/Z0)
   PerfRef=SimPar.cell(row=11,column=3).value
   if PerfRef and Znob!=0:
-    refindec=np.array([1+0j])
+    refindec[0]=1+0j
   else:
-    refindex=np.array([mur[-1]*epsr[-1]])
+    refindex[0]=mur[-1]*epsr[-1]
   ObstPar.cell(row=2,column=6).value=str(refindex[-1])
   nre=0
   for j in range(1,Nsur):
@@ -596,9 +619,33 @@ def ObstacleCoefficients(SN,index=0):
       surf=int(OutB.cell(row=j+2,column=4).value)
       tri=int(OutB.cell(row=j+2,column=5).value)
       for i in range(1,6*box+2*surf+tri):
-        murj =complex(ObstPar.cell(row=j+2,column=2).value)
-        epsrj=complex(ObstPar.cell(row=j+2,column=3).value)
-        sigj =complex(ObstPar.cell(row=j+2,column=4).value)
+        murj =0j
+        epsrj=0j
+        sigj =0j
+        if index==3 and j+2==6:
+          murj =complex(ObstPar.cell(row=11,column=2).value)
+          epsrj=complex(ObstPar.cell(row=11,column=3).value)
+          sigj =complex(ObstPar.cell(row=11,column=4).value)
+        elif index==6:
+          if j+2==4 and j+2==4:
+            murj =complex(ObstPar.cell(row=11,column=2).value)
+            epsrj=complex(ObstPar.cell(row=11,column=3).value)
+            sigj =complex(ObstPar.cell(row=11,column=4).value)
+        if index==5:
+          if j+2==5 or j+2==6:
+            murj =complex(ObstPar.cell(row=11,column=2).value)
+            epsrj=complex(ObstPar.cell(row=11,column=3).value)
+            sigj =complex(ObstPar.cell(row=11,column=4).value)
+        elif index==7:
+          murj =complex(ObstPar.cell(row=11,column=2).value)
+          epsrj=complex(ObstPar.cell(row=11,column=3).value)
+          sigj =complex(ObstPar.cell(row=11,column=4).value)
+        ObstPar.cell(row=j+2,column=2).value=str(murj)
+        ObstPar.cell(row=j+2,column=3).value=str(epsrj)
+        ObstPar.cell(row=j+2,column=4).value=str(sigj)
+          #murj =complex(ObstPar.cell(row=j+2,column=2).value)
+          #epsrj=complex(ObstPar.cell(row=j+2,column=3).value)
+          #sigj =complex(ObstPar.cell(row=j+2,column=4).value)
         mur   =np.append(mur  ,murj)
         epsr  =np.append(epsr ,epsrj)
         sigma =np.append(sigma,sigj)
@@ -609,26 +656,30 @@ def ObstacleCoefficients(SN,index=0):
         else:
           nre+=1
           Znob   =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
-        Znobrat=np.append(Znobrat,Znob/Z0)
+        Znobrat[j]=Znob/Z0
         ObstPar.cell(row=j+2,column=5).value=str(Znob/Z0)
         if nre > Nrs:
-          refindex=np.append(refindex,0+0j)
+          refindex[j]=0+0j
           ObstPar.cell(row=j+2,column=6).value=str(0+0j)
         else:
           if PerfRef and Znob!=0:
-            refindex=np.append(refindex,1)
+            refindex[j]=1
             ObstPar.cell(row=j+2,column=6).value=str(1+0j)
           else:
-            refindex=np.append(refindex,murj*epsrj)
+            refindex[j]=murj*epsrj
             ObstPar.cell(row=j+2,column=6).value=str(murj*epsrj)
-    if NOut+Nobst+1>j+1>NOut:
+    if Nobst+1>=j+1>NOut:
       box=int(Obst.cell(row=j+2-NOut,column=3).value)
       surf=int(Obst.cell(row=j+2-NOut,column=4).value)
       tri=int(OutB.cell(row=j+2-NOut,column=5).value)
       for i in range(1,box*6+surf*2+tri):
-        murj =complex(ObstPar.cell(row=j+2,column=2).value)
-        epsrj=complex(ObstPar.cell(row=j+2,column=3).value)
-        sigj =complex(ObstPar.cell(row=j+2,column=4).value)
+        murj =0j
+        epsrj=0j
+        sigj =0j
+        if index==7:
+          murj =complex(ObstPar.cell(row=11,column=2).value)
+          epsrj=complex(ObstPar.cell(row=11,column=3).value)
+          sigj =complex(ObstPar.cell(row=11,column=4).value)
         mur   =np.append(mur  ,murj)
         epsr  =np.append(epsr ,epsrj)
         sigma =np.append(sigma,sigj)
@@ -639,19 +690,18 @@ def ObstacleCoefficients(SN,index=0):
         else:
           nre+=1
           Znob   =np.sqrt(top/bottom)
-        Znobrat=np.append(Znobrat,Znob/Z0)
+        Znobrat[j]=Znob/Z0
         ObstPar.cell(row=j+2,column=5).value=str(Znob/Z0)
         if nre>Nrs:
-          refindex=np.append(refindex,0+0j)
+          refindex[j]=0+0j
           ObstPar.cell(row=j+2,column=6).value=str(0+0j)
         else:
           if PerfRef and Znob!=0:
-            refindex=np.append(refindex,1)
+            refindex[j]=1
             ObstPar.cell(row=j+2,column=6).value=str(1+0j)
           else:
-            refindex=np.append(refindex,murj*epsrj)
+            refindex[j]=murj*epsrj
             ObstPar.cell(row=j+2,column=6).value=str(murj*epsrj)
-
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS
   # --------------------------------------------------------------------
@@ -738,7 +788,7 @@ def initialload(index=0):
 
   ResOn                       =np.load('Parameters/ResOn.npy')
   logon                       =np.load('Parameters/logon.npy')
-  MaxInter                    =np.load('Parameters/MaxInter.npy')
+  MaxInter                    =np.load('Parameters/MaxInter%d.npy'%index)
   testnum                     =np.load('Parameters/testnum.npy')
   roomnumstat                 =np.load('Parameters/roomnumstat.npy')
   timetest                    =np.load('Parameters/timetest.npy')
@@ -757,6 +807,8 @@ def initialload(index=0):
   LOS                         =np.load('Parameters/LOS%d.npy'%index)
   PerfRef                     =np.load('Parameters/PerfRef%d.npy'%index)
   AngChan                     =np.load('Parameters/AngChan.npy')
+  if InnerOb:
+    print(refindex,refindex.shape)
   myfile = open('Parameters/runplottype.txt', 'rt') # open lorem.txt for reading text
   plottype= myfile.read()         # read the entire file into a string
   myfile.close()
@@ -867,10 +919,10 @@ if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   Sheetname='InputSheet.xlsx'
-  index=1
-  out=DeclareParameters(Sheetname,index)
-  out=ObstacleCoefficients(Sheetname,index)
-  initialload(index)
+  for index in range(10):
+    out=DeclareParameters(Sheetname,index)
+    out=ObstacleCoefficients(Sheetname,index)
+    initialload(index)
 
   exit()
 
