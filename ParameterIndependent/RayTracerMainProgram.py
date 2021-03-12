@@ -858,6 +858,7 @@ def Residual(Room,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,Nrs=2,Ns=5):
   myfile.close()
   h=1.0/Ns
   Obstr=''
+  Nsur=Room.Nsur
   if 0<Nrs<Nsur:
     obnumbers=np.zeros((Nrs,1))
     k=0
@@ -1145,7 +1146,7 @@ def main(argv,scriptcall=False):
     Grid,G_z,timep     =power_grid(Room,Mesh1,index,job,Nre,PerfRef,LOS,InnerOb,Nrs,Ns)  # Use the ray information to compute the power
     if job==51:
       Gtout,timeo      =optimum_gains(Room,Mesh1,index,job,Nre,PerfRef,LOS,InnerOb,Nrs,Ns)
-    Q=Quality(Room,index,job,Nre,PerfRef,LOS,InnerOb)
+    Q=Quality(Room,index,job,Nre,PerfRef,LOS,InnerOb,Nrs,Ns)
     if ResOn:
       Residual(Room,index,job,Nre,PerfRef,LOS,InnerOb,Nrs,Ns)
     print('-------------------------------')

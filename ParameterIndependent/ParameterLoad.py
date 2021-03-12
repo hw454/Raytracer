@@ -532,7 +532,6 @@ def ObstacleCoefficients(SN,index=0):
   else:
       nra=len(Nra)
   Nre=int(RTPar[0])                           # Number of reflections
-<<<<<<< HEAD
   Nob=np.load('Parameters/Nob%d.npy'%index)           # The Number of obstacle.
   if index==1 or index==2:
     Nrs=0
