@@ -102,7 +102,7 @@ def Quality_MoreInputs(Tx,Direc,programterms,RayPar,foldtype,Room,Znobrat,refind
   Nsur                        =Room.Nsur
   if not 0<=Tx[0]<Room.maxxleng() and not 0<=Tx[1]<Room.maxyleng() and not 0<=Tx[2]<Room.maxzleng():
     print('Invalid Tx')
-    return -1000
+    return np.nan
   if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
     loca='Centre'
   else:
@@ -125,20 +125,27 @@ def Quality_MoreInputs(Tx,Direc,programterms,RayPar,foldtype,Room,Znobrat,refind
     os.makedirs(meshfolder)
   meshname=meshfolder+'/DSM_tx%03dx%03dy%03dz'%(Tx[0]*1e+3,Tx[1]*1e+3,Tx[2]*1e+3)
   mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
-  if os.path.isfile(mesheg):
-    Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
-  else:
-    ##----Retrieve the environment--------------------------------------
-    ##----The lengths are non-dimensionalised---------------------------
-    # -------------Find the number of cells in the x, y and z axis.-------
-    #------------Initialise the Mesh------------------------------------
-    Mesh=DSM.DS(Nx,Ny,Nz,Nsur*Nre+1,Nr*(Nre+1),np.complex128,split)
-    if not Room.CheckTxInner(Tx):
-      return 0
-    #-----------The input directions changes for each ray number.-------
-    Rays, Mesh=Room.ray_mesh_bounce(Tx,Direc,Mesh,programterms)
-    Mesh.save_dict(meshname)
+  # if os.path.isfile(mesheg):
+    # Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
+  # else:
+    # ##----Retrieve the environment--------------------------------------
+    # ##----The lengths are non-dimensionalised---------------------------
+    # # -------------Find the number of cells in the x, y and z axis.-------
+    # #------------Initialise the Mesh------------------------------------
+    # Mesh=DSM.DS(Nx,Ny,Nz,Nsur*Nre+1,Nr*(Nre+1),np.complex128,split)
+    # if not Room.CheckTxInner(Tx):
+      # return 0
+    # #-----------The input directions changes for each ray number.-------
+    # Rays, Mesh=Room.ray_mesh_bounce(Tx,Direc,Mesh,programterms)
+    # Mesh.save_dict(meshname)
   # Initialise Grid For Power-------------------------------------
+  Mesh=DSM.DS(Nx,Ny,Nz,Nsur*Nre+1,Nr*(Nre+1),np.complex128,split)
+  if not Room.CheckTxInner(Tx):
+    return np.nan
+    #-----------The input directions changes for each ray number.-------
+  Rays, Mesh=Room.ray_mesh_bounce(Tx,Direc,Mesh,programterms)
+  Mesh.save_dict(meshname)
+  print('Mesh saved at',meshname)
   Ns=max(Nx,Ny,Nz)
   Grid=np.zeros((Nx,Ny,Nz))
   #Gt=DSM.optimum_gains(plottype,Mesh,Room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS,PerfRef)
@@ -158,7 +165,7 @@ def MoreInputs_Run(index=0):
   deltheta      =np.load('Parameters/delangle.npy')             # Array of
   AngChan       =np.load('Parameters/AngChan.npy')              # switch for whether angles should be corrected for the received points on cones and voxel centre.
   NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
-  Ntri          =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
+  NtriOut          =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
 
   ##----Retrieve the Raytracing Parameters-----------------------------
   RayPar        =np.load('Parameters/Raytracing.npy')
@@ -167,11 +174,27 @@ def MoreInputs_Run(index=0):
   for arr in parameters:
     InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index=arr.astype(int)
     print('Parameter set',arr)
-    if Nr==0:
+    if Nr==0 or Nr==337:
       print('Ray number invalid')
+      continue
+    if Nre==6:
+      print('Only interested in 3 reflections case')
+      continue
+    if Nrs==1:
+      print('Not interested in single reflective case')
+      continue
+    if InnerOb and LOS:
+      print('Not interested in LOS with box')
+      continue
+    if Nrs==2 and Par:
+      print('Not interested in parallel reflective surfaces only corner')
+      continue
+    if Ns==10:
+      print('Only optimise with the 5x5x5 meshes not 10x10x10')
       continue
     MaxInter      =np.load('Parameters/MaxInter%d.npy'%index)             # The number of intersections a single ray can have in the room in one direction.
     Oblist        =np.load('Parameters/Obstacles%d.npy'%index).astype(float)      # The obstacles which are within the outerboundary
+    refindex     =np.load('Parameters/refindex%03d.npy'%index)
     h=1.0/Ns
     splitinv=1.0/split
     if Nr==22:
@@ -179,7 +202,9 @@ def MoreInputs_Run(index=0):
     else:
       i=1
     if InnerOb:
-      Ntri=np.append(Ntri,NtriOb)
+      Ntri=np.append(NtriOut,NtriOb)
+    else:
+      Ntri=NtriOut
       # Room contains all the obstacles and walls.
     Room=rom.room(Oblist,Ntri)
     Nob=Room.Nob
@@ -218,15 +243,6 @@ def MoreInputs_Run(index=0):
           LOSstr='MultiRef'
       else:
         LOSstr='SingleRef'
-    foldtype=Refstr+Box
-    plottype=LOSstr+Box
-    delth=deltheta[i]
-      ##----Retrieve the environment--------------------------------------
-    ##----Retrieve the antenna parameters--------------------------------------
-    Pol           = np.load('Parameters/Pol%03d.npy'%index)
-    ##----Retrieve the Obstacle Parameters--------------------------------------
-    Znobrat      =np.load('Parameters/Znobrat%03d.npy'%index)
-    refindex     =np.load('Parameters/refindex%03d.npy'%index)
     Obstr=''
     if Nrs<Nsur:
       obnumbers=np.zeros((Nrs,1))
@@ -236,24 +252,8 @@ def MoreInputs_Run(index=0):
           obnumbers[k]=ob
           k+=1
           Obstr=Obstr+'Ob%02d'%ob
-    # Make the refindex, impedance and gains vectors the right length to
-    # match the matrices.
-    Znobrat=np.tile(Znobrat,(Nre,1))          # The number of rows is Nsur*Nre+1. Repeat Znobrat to match Mesh dimensions
-    Znobrat=np.insert(Znobrat,0,1.0+0.0j)     # Use a 1 for placement in the LOS row
-    refindex=np.tile(refindex,(Nre,1))        # The number of rows is Nsur*Nre+1. Repeat refindex to match Mesh dimensions
-    refindex=np.insert(refindex,0,1.0+0.0j)   # Use a 1 for placement in the LOS row
-    # Calculate the necessry parameters for the power calculation.
-    Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
-    Tx0=np.array([0.4,0.4,0.4])
-    #-----------The input directions changes for each ray number.-------
-    directionname='Parameters/Directions%03d.npy'%Nr
-    Direc=np.load(directionname)
-    gainname      ='Parameters/Tx%03dGains%03d.npy'%(Nr,index)
-    Gt            = np.load(gainname)
-    programterms=np.array([Nr,Nre,AngChan,split,splitinv,delth])
-    pars=(Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef,Box,Obstr)
-    TxB=np.array([(0,h*Nx),(0,h*Ny),(0,h*Nz)])
-    Tx=Tx0
+    foldtype=Refstr+Box
+    plottype=LOSstr+Box
     ResultsFolder='./OptimisationResults'
     SpecResultsFolder=ResultsFolder+'/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
     if not os.path.exists(ResultsFolder):
@@ -265,36 +265,75 @@ def MoreInputs_Run(index=0):
       os.makedirs(SpecResultsFolder)
     if not os.path.exists(SpecResultsFolder):
       os.makedirs(SpecResultsFolder)
+    ExSeStr=SpecResultsFolder+'/'+Obstr+'OptimumExhaustOriginAverage.npy'
+    if os.path.isfile(ExSeStr):
+      Tx0=np.load(ExSeStr)
+    else:
+      print('Intial Tx position not yet found')
+      continue
+    delth=deltheta[i]
+      ##----Retrieve the environment--------------------------------------
+    ##----Retrieve the antenna parameters--------------------------------------
+    Pol           = np.load('Parameters/Pol%03d.npy'%index)
+    ##----Retrieve the Obstacle Parameters--------------------------------------
+    Znobrat      =np.load('Parameters/Znobrat%03d.npy'%index)
+    # Make the refindex, impedance and gains vectors the right length to
+    # match the matrices.
+    Znobrat=np.tile(Znobrat,(Nre,1))          # The number of rows is Nsur*Nre+1. Repeat Znobrat to match Mesh dimensions
+    Znobrat=np.insert(Znobrat,0,1.0+0.0j)     # Use a 1 for placement in the LOS row
+    refindex=np.tile(refindex,(Nre,1))        # The number of rows is Nsur*Nre+1. Repeat refindex to match Mesh dimensions
+    refindex=np.insert(refindex,0,1.0+0.0j)   # Use a 1 for placement in the LOS row
+    # Calculate the necessry parameters for the power calculation.
+    Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
+    #-----------The input directions changes for each ray number.-------
+    directionname='Parameters/Directions%03d.npy'%Nr
+    Direc=np.load(directionname)
+    gainname      ='Parameters/Tx%03dGains%03d.npy'%(Nr,index)
+    Gt            = np.load(gainname)
+    programterms=np.array([Nr,Nre,AngChan,split,splitinv,delth])
+    pars=(Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef,Box,Obstr)
+    TxB=np.array([(0,h*Nx),(0,h*Ny),(0,h*Nz)])
+    Tx=Tx0
     Optfile   =SpecResultsFolder+'/'+Obstr+'OptimumOrigin.npy'
     OptfileLow=SpecResultsFolder+'/'+Obstr+'OptimumOriginLowerTol.npy'
     optTol=1e-1
     spacetol=0.075
     t0=t.time()
-    if not os.path.isfile(Optfile):
-      TxOut=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars,options={'xtol':spacetol,'ftol':optTol},bounds=TxB)
-      np.save(Optfile,TxOut.x)
-      TxHighTol=TxOut.x
-      HighTolnit=TxOut.nit
-      print('Optimal Tx at ',TxOut.x)
-    else:
-      TxHighTol=np.load(Optfile)
-      print('Opt loaded',TxHighTol)
-      HighTolnit=np.nan
+    TxOut=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars,options={'xtol':spacetol,'ftol':optTol},bounds=TxB)
+    np.save(Optfile,TxOut.x)
+    TxHighTol=TxOut.x
+    HighTolnit=TxOut.nit
+    print('Optimal Tx at ',TxOut.x)
+    # if not os.path.isfile(Optfile):
+      # TxOut=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars,options={'xtol':spacetol,'ftol':optTol},bounds=TxB)
+      # np.save(Optfile,TxOut.x)
+      # TxHighTol=TxOut.x
+      # HighTolnit=TxOut.nit
+      # print('Optimal Tx at ',TxOut.x)
+    # else:
+      # TxHighTol=np.load(Optfile)
+      # print('Opt loaded',TxHighTol)
+      # HighTolnit=np.nan
     t1=t.time()
-    spacetol2=0.025
-    optTol2=1e-3
+    spacetol2=0.005
+    optTol2=1e-4
     print('Reduce tolerance')
     t2=t.time()
-    if not os.path.isfile(OptfileLow):
-      TxOutTolLow=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars,options={'xtol':spacetol2, 'ftol':optTol2},bounds=TxB)
-      np.save(OptfileLow,TxOutTolLow.x)
-      TxLowTol=TxOutTolLow.x
-      LowTolnit=TxOutTolLow.nit
-      print('Optimal Tx at ',TxOutTolLow.x)
-    else:
-      TxLowTol=np.load(OptfileLow)
-      print('Opt Loaded',TxLowTol)
-      LowTolnit=np.nan
+    TxOutTolLow=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars,options={'xtol':spacetol2, 'ftol':optTol2},bounds=TxB)
+    np.save(OptfileLow,TxOutTolLow.x)
+    TxLowTol=TxOutTolLow.x
+    LowTolnit=TxOutTolLow.nit
+    print('Optimal Tx at ',TxOutTolLow.x)
+    # if not os.path.isfile(OptfileLow):
+      # TxOutTolLow=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars,options={'xtol':spacetol2, 'ftol':optTol2},bounds=TxB)
+      # np.save(OptfileLow,TxOutTolLow.x)
+      # TxLowTol=TxOutTolLow.x
+      # LowTolnit=TxOutTolLow.nit
+      # print('Optimal Tx at ',TxOutTolLow.x)
+    # else:
+      # TxLowTol=np.load(OptfileLow)
+      # print('Opt Loaded',TxLowTol)
+      # LowTolnit=np.nan
     t3=t.time()
     txtstr=SpecResultsFolder+'/'+Obstr+'OptimalOrigin.txt'
     if not os.path.isfile(txtstr):
