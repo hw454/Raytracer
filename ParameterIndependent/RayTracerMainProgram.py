@@ -1122,6 +1122,8 @@ def main(argv,scriptcall=False):
     InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index=arr.astype(int)
     if not Nr==22:
       continue
+    if Ns==10 and not all(job==444, job==432):
+      continue
     #Tx=np.load('Parameters/Origin.npy')
     ##----Retrieve the environment--------------------------------------
     h=1.0/Ns
