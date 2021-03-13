@@ -28,7 +28,10 @@ def plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
   values at the (x,y) position.
   '''
   numjobs    =np.load('Parameters/Numjobs.npy')
-  numjobs=126
+  if Ns==5:
+    numjobs=126
+  else:
+    numjobs=500
   roomnumstat=np.load('Parameters/roomnumstat.npy')
   _,h,L,split    =np.load('Parameters/Raytracing.npy')
   Nra           =np.load('Parameters/Nra.npy')
@@ -112,13 +115,15 @@ def plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
   refindex=np.insert(refindex,0,1.0+0.0j)   # Use a 1 for placement in the LOS row
   # Calculate the necessry parameters for the power calculation.
   for j in range(0,nra):
-    Nr=int(Nra[j])
-    gainname      ='Parameters/Tx%03dGains%03d.npy'%(Nr,index)
-    Gt            = np.load(gainname)
-    for job in range(0,numjobs+1):
-      Txstr='Parameters/Origin_job%03d.npy'%job
-      if os.path.isfile(Txstr):
-        Tx=np.load(Txstr)
+   Nr=int(Nra[j])
+   gainname      ='Parameters/Tx%03dGains%03d.npy'%(Nr,index)
+   Gt            = np.load(gainname)
+   for job in range(0,numjobs+1):
+      if Ns==10:
+        if not job==444 and not job==432:
+          continue
+      else:
+        Tx=RTM.MoveTx(job,Nx,Ny,Nz,h)
         if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
           loca='Centre'
         else:
@@ -533,276 +538,290 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
     rom.FindInnerPoints(Room,Mesh)
     #pstr       =meshfolder+'/'+Box+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,0,432)
     #P   =np.load(pstr)
-    Qmesh=-50*np.ones((Nx,Ny,Nz))
-    Q2mesh=-50*np.ones((Nx,Ny,Nz))
-    QP2mesh=-50*np.ones((Nx,Ny,Nz))
-    QPmesh=-50*np.ones((Nx,Ny,Nz))
-    QMmesh=-50*np.ones((Nx,Ny,Nz))
-    QM2mesh=-50*np.ones((Nx,Ny,Nz))
-    Tmesh=100*np.ones((Nx,Ny,Nz))
-    T2mesh=100*np.ones((Nx,Ny,Nz))
+    qualtype=Refstr+LOSstr+boxstr
+    meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+    qfolder   ='./Mesh/'+qualtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+    Qmeshstr=meshfolder+'/'+boxstr+Obstr+'QualityAverage%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,index)
+    QPmeshstr=meshfolder+'/'+boxstr+Obstr+'QualityPercentile%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,index)
+    QMmeshstr=meshfolder+'/'+boxstr+Obstr+'QualityMin%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,index)
+    check=0
+    if not os.path.exists('./Mesh'):
+      os.makedirs('./Mesh')
+      os.makedirs('./Mesh/'+foldtype)
+      os.makedirs(meshfolder)
+    if not os.path.exists('./Mesh/'+foldtype):
+      os.makedirs('./Mesh/'+foldtype)
+      os.makedirs(meshfolder)
+    if not os.path.exists(meshfolder):
+      os.makedirs(meshfolder)
+    if os.path.isfile(Qmeshstr):
+      Qmesh=np.load(Qmeshstr)
+      print('Q loaded from ',Qmeshstr)
+      check=0
+    if os.path.isfile(QPmeshstr):
+      print('QP loaded from ',QPmeshstr)
+      QPmesh=np.load(QPmeshstr)
+      check+=0
+    if os.path.isfile(QMmeshstr):
+      print('QM loaded from ',QMmeshstr)
+      QMmesh=np.load(QMmeshstr)
+      check+=0
     feature_x = L*np.linspace(0.0,Nx*h,Nx)
     feature_y = L*np.linspace(0.0,Ny*h,Ny)
     [X, Y] = np.meshgrid(feature_y,feature_x )
-    for job in range(numjobs):
-      Tx=np.load('Parameters/Origin_job%03d.npy'%job)
-      if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
-        loca='Centre'
-      else:
-        loca='OffCentre'
-      plottype=LOSstr+boxstr+loca
-      meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
-      powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
-      Txind=Room.position(Tx,h)
-      if not Room.CheckTxInner(Tx):
-        if any(t>1.0 or t<0 for t in Tx):
-          print('Tx outside room',Tx)
-          continue
+    if check<3:
+      Qmesh=ma.nan*np.ones((Nx,Ny,Nz))
+      QPmesh=ma.nan*np.ones((Nx,Ny,Nz))
+      QMmesh=ma.nan*np.ones((Nx,Ny,Nz))
+      for job in range(numjobs):
+        #Tx=np.load('Parameters/Origin_job%03d.npy'%job)
+        Tx=RTM.MoveTx(job,Nx,Ny,Nz,h)
+        if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
+          loca='Centre'
         else:
-          print('Tx inside an obstacle',Tx)
-          Qmesh[Txind] =ma.nan
-          QPmesh[Txind]=ma.nan
-          QMmesh[Txind]=ma.nan
-          Tmesh[Txind] =ma.nan
-      if job<numjobs+1:# and job!=35:# and job!=36 and job!=37 and job!=38:
-        print('job',job)
-        print('Tx',Tx,Txind)
-        qualityname='./Quality/'+plottype+'/'+boxstr+Obstr+'Quality%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
-        if os.path.isfile(qualityname):
-          Qu=np.load(qualityname)
-          Qmesh[Txind]=Qu
-        else:
-          pstr       =powerfolder+'/'+boxstr+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
-          if os.path.isfile(pstr):
-            P=np.load(pstr)
-            Qu=DSM.QualityFromPower(P)
-            if not os.path.exists('./Quality'):
-              os.makedirs('./Quality')
-              os.makedirs('./Quality/'+plottype)
-            if not os.path.exists('./Quality/'+plottype):
-              os.makedirs('./Quality/'+plottype)
-            np.save(qualityname,Qu)
+          loca='OffCentre'
+        plottype=LOSstr+boxstr+loca
+        meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+        powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+        Txind=Room.position(Tx,h)
+        if not Room.CheckTxInner(Tx):
+          if any(t>1.0 or t<0 for t in Tx):
+            print('Tx outside room',Tx)
+            continue
+          else:
+            print('Tx inside an obstacle',Tx)
+            Qmesh[Txind] =ma.nan
+            QPmesh[Txind]=ma.nan
+            QMmesh[Txind]=ma.nan
+        if job<numjobs+1:# and job!=35:# and job!=36 and job!=37 and job!=38:
+          print('job',job)
+          print('Tx',Tx,Txind)
+          qualityname='./Quality/'+plottype+'/'+boxstr+Obstr+'Quality%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
+          if os.path.isfile(qualityname):
+            Qu=np.load(qualityname)
             Qmesh[Txind]=Qu
           else:
-            print('Power file not found')
-            print(pstr)
-            meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
-            meshname=meshfolder+'/DSM_tx%03d'%(job)
-            mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
-            if os.path.isfile(mesheg):
-              Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
-              P,ind=DSM.power_compute(foldtype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Ns,LOS,PerfRef)
-              if not os.path.exists('./Mesh'):
-                os.makedirs('./Mesh')
-                os.makedirs('./Mesh/'+plottype)
-                os.makedirs(powerfolder)
-              if not os.path.exists('./Mesh/'+plottype):
-                os.makedirs('./Mesh/'+plottyep)
-                os.makedirs(powerfolder)
-              if not os.path.exists(powerfolder):
-                os.makedirs(powerfolder)
+            pstr       =powerfolder+'/'+boxstr+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
+            if os.path.isfile(pstr):
+              P=np.load(pstr)
+              Qu=DSM.QualityFromPower(P)
               if not os.path.exists('./Quality'):
                 os.makedirs('./Quality')
                 os.makedirs('./Quality/'+plottype)
               if not os.path.exists('./Quality/'+plottype):
                 os.makedirs('./Quality/'+plottype)
-              np.save(pstr,P)
-              Qu=DSM.QualityFromPower(P)
               np.save(qualityname,Qu)
               Qmesh[Txind]=Qu
             else:
-              Qmesh[Txind]=ma.nan
-              print('Mesh file not found')
-              print(meshname)
-              print('Quality Average not found')
-              print(qualityname)
-        qualityPname='./Quality/'+plottype+'/'+boxstr+Obstr+'QualityPercentile%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
-        if os.path.isfile(qualityPname):
-          QuP=np.load(qualityPname)
-          QPmesh[Txind]=QuP
-        else:
-          pstr       =powerfolder+'/'+boxstr+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
-          if os.path.isfile(pstr):
-            P=np.load(pstr)
-            Qu=DSM.QualityPercentileFromPower(P)
-            if not os.path.exists('./Quality'):
-              os.makedirs('./Quality')
-              os.makedirs('./Quality/'+plottype)
-            if not os.path.exists('./Quality/'+plottype):
-              os.makedirs('./Quality/'+plottype)
-            np.save(qualityPname,Qu)
-            Qmesh[Txind]=Qu
+              print('Power file not found')
+              print(pstr)
+              meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+              meshname=meshfolder+'/DSM_tx%03d'%(job)
+              mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
+              if os.path.isfile(mesheg):
+                Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
+                P,ind=DSM.power_compute(foldtype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Ns,LOS,PerfRef)
+                if not os.path.exists('./Mesh'):
+                  os.makedirs('./Mesh')
+                  os.makedirs('./Mesh/'+plottype)
+                  os.makedirs(powerfolder)
+                if not os.path.exists('./Mesh/'+plottype):
+                  os.makedirs('./Mesh/'+plottype)
+                  os.makedirs(powerfolder)
+                if not os.path.exists(powerfolder):
+                  os.makedirs(powerfolder)
+                if not os.path.exists('./Quality'):
+                  os.makedirs('./Quality')
+                  os.makedirs('./Quality/'+plottype)
+                if not os.path.exists('./Quality/'+plottype):
+                  os.makedirs('./Quality/'+plottype)
+                np.save(pstr,P)
+                Qu=DSM.QualityFromPower(P)
+                np.save(qualityname,Qu)
+                Qmesh[Txind]=Qu
+              else:
+                Qmesh[Txind]=ma.nan
+                print('Mesh file not found')
+                print(meshname)
+                print('Quality Average not found')
+                print(qualityname)
+          qualityPname='./Quality/'+plottype+'/'+boxstr+Obstr+'QualityPercentile%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
+          if os.path.isfile(qualityPname):
+            QuP=np.load(qualityPname)
+            QPmesh[Txind]=QuP
           else:
-            print('Power not found')
-            print(pstr)
-            meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
-            meshname=meshfolder+'/DSM_tx%03d'%(job)
-            mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
-            if os.path.isfile(mesheg):
-              Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
-              P,ind=DSM.power_compute(foldtype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Ns,LOS,PerfRef)
-              if not os.path.exists('./Mesh'):
-                os.makedirs('./Mesh')
-                os.makedirs('./Mesh/'+plottype)
-                os.makedirs(powerfolder)
-              if not os.path.exists('./Mesh/'+plottype):
-                os.makedirs('./Mesh/'+plottyep)
-                os.makedirs(powerfolder)
-              if not os.path.exists(powerfolder):
-                os.makedirs(powerfolder)
+            pstr       =powerfolder+'/'+boxstr+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
+            if os.path.isfile(pstr):
+              P=np.load(pstr)
+              Qu=DSM.QualityPercentileFromPower(P)
               if not os.path.exists('./Quality'):
                 os.makedirs('./Quality')
                 os.makedirs('./Quality/'+plottype)
               if not os.path.exists('./Quality/'+plottype):
                 os.makedirs('./Quality/'+plottype)
-              np.save(pstr,P)
-              Qu=DSM.QualityPercentileFromPower(P)
               np.save(qualityPname,Qu)
               Qmesh[Txind]=Qu
             else:
-              print('Mesh not found')
-              print(meshname)
-              Qmesh[Txind]=ma.nan
-              print('Quality Percentile not found')
-              print(qualityname)
-        qualityMname='./Quality/'+plottype+'/'+boxstr+Obstr+'QualityMin%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
-        if os.path.isfile(qualityMname):
-          QuM=np.load(qualityMname)
-          QMmesh[Txind]=QuM
-        else:
-          pstr       =powerfolder+'/'+boxstr+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
-          if os.path.isfile(pstr):
-            P=np.load(pstr)
-            Qu=DSM.QualityMinFromPower(P)
-            if not os.path.exists('./Quality'):
-              os.makedirs('./Quality')
-              os.makedirs('./Quality/'+plottype)
-            if not os.path.exists('./Quality/'+plottype):
-              os.makedirs('./Quality/'+plottype)
-            np.save(qualityMname,Qu)
-            QMmesh[Txind]=Qu
+              print('Power not found')
+              print(pstr)
+              meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+              meshname=meshfolder+'/DSM_tx%03d'%(job)
+              mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
+              if os.path.isfile(mesheg):
+                Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
+                P,ind=DSM.power_compute(foldtype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Ns,LOS,PerfRef)
+                if not os.path.exists('./Mesh'):
+                  os.makedirs('./Mesh')
+                  os.makedirs('./Mesh/'+plottype)
+                  os.makedirs(powerfolder)
+                if not os.path.exists('./Mesh/'+plottype):
+                  os.makedirs('./Mesh/'+plottype)
+                  os.makedirs(powerfolder)
+                if not os.path.exists(powerfolder):
+                  os.makedirs(powerfolder)
+                if not os.path.exists('./Quality'):
+                  os.makedirs('./Quality')
+                  os.makedirs('./Quality/'+plottype)
+                if not os.path.exists('./Quality/'+plottype):
+                  os.makedirs('./Quality/'+plottype)
+                np.save(pstr,P)
+                Qu=DSM.QualityPercentileFromPower(P)
+                np.save(qualityPname,Qu)
+                Qmesh[Txind]=Qu
+              else:
+                print('Mesh not found')
+                print(meshname)
+                Qmesh[Txind]=ma.nan
+                print('Quality Percentile not found')
+                print(qualityname)
+          qualityMname='./Quality/'+plottype+'/'+boxstr+Obstr+'QualityMin%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
+          if os.path.isfile(qualityMname):
+            QuM=np.load(qualityMname)
+            QMmesh[Txind]=QuM
           else:
-            print('Power not found')
-            print(pstr)
-            meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
-            meshname=meshfolder+'/DSM_tx%03d'%(job)
-            mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
-            if os.path.isfile(mesheg):
-              Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
-              P,ind=DSM.power_compute(foldtype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Ns,LOS,PerfRef)
-              if not os.path.exists('./Mesh'):
-                os.makedirs('./Mesh')
-                os.makedirs('./Mesh/'+plottype)
-                os.makedirs(powerfolder)
-              if not os.path.exists('./Mesh/'+plottype):
-                os.makedirs('./Mesh/'+plottyep)
-                os.makedirs(powerfolder)
-              if not os.path.exists(powerfolder):
-                os.makedirs(powerfolder)
+            pstr       =powerfolder+'/'+boxstr+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
+            if os.path.isfile(pstr):
+              P=np.load(pstr)
+              Qu=DSM.QualityMinFromPower(P)
               if not os.path.exists('./Quality'):
                 os.makedirs('./Quality')
                 os.makedirs('./Quality/'+plottype)
               if not os.path.exists('./Quality/'+plottype):
                 os.makedirs('./Quality/'+plottype)
-              np.save(pstr,P)
-              Qu=DSM.QualityMinFromPower(P)
               np.save(qualityMname,Qu)
-              Qmesh[Txind]=Qu
+              QMmesh[Txind]=Qu
             else:
-              print('Mesh not found')
-              print(meshname)
-              Qmesh[Txind]=ma.nan
-              print('Quality Min not found')
-              print(qualityname)
-    if any(not ma.isnan(q) for q in Qmesh.flatten()):
-      print(any(not ma.isnan(q) for q in Qmesh.flatten()))
-      ResultsFolder='./OptimisationResults'
-      SpecResultsFolder=ResultsFolder+'/'+LOSstr+boxstr+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
-      if not os.path.exists(ResultsFolder):
-        os.makedirs(ResultsFolder)
-        os.makedirs(ResultsFolder+'/'+LOSstr+boxstr)
-        os.makedirs(SpecResultsFolder)
-      if not os.path.exists(ResultsFolder+'/'+LOSstr+boxstr):
-        os.makedirs(ResultsFolder+'/'+LOSstr+boxstr)
-        os.makedirs(SpecResultsFolder)
-      if not os.path.exists(SpecResultsFolder):
-        os.makedirs(SpecResultsFolder)
-      TxOpt=np.unravel_index(np.argmax(Qmesh),Qmesh.shape) #np.where(Qmesh==np.amax(Qmesh))
-      TxOpt=Room.coordinate(h,TxOpt[0],TxOpt[1],TxOpt[2])
-      print('Optimal T for Q ave from Exhaust:',TxOpt)
-      np.save(SpecResultsFolder+'/'+Obstr+'OptimumExhaustOriginAverage.npy',TxOpt)
-      TxOptM=np.unravel_index(np.argmax(QMmesh),QMmesh.shape) #np.where(QMmesh==np.amax(QMmesh))
-      TxOptM=Room.coordinate(h,TxOptM[0],TxOptM[1],TxOptM[2])
-      print('Optimal T for Q min from Exhaust:',TxOptM)
-      np.save(SpecResultsFolder+'/'+Obstr+'OptimumExhaustOriginMin.npy',TxOptM)
-      TxOptP=np.unravel_index(np.argmax(QPmesh),QPmesh.shape)
-      TxOptP=Room.coordinate(h,TxOptP[0],TxOptP[1],TxOptP[2])
-      print('Optimal T for Q percentile from Exhaust:',TxOptP)
-      np.save(SpecResultsFolder+'/'+Obstr+'OptimumExhaustOriginPercentile.npy',TxOpt)
-      text_file = open(SpecResultsFolder+'/'+Obstr+'OptimalGainExhaust.txt', 'w')
-      n = text_file.write('\n Optimal location for exhaustive search of average power is at ')
+              print('Power not found')
+              print(pstr)
+              meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+              meshname=meshfolder+'/DSM_tx%03d'%(job)
+              mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
+              if os.path.isfile(mesheg):
+                Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
+                P,ind=DSM.power_compute(foldtype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Ns,LOS,PerfRef)
+                if not os.path.exists('./Mesh'):
+                  os.makedirs('./Mesh')
+                  os.makedirs('./Mesh/'+plottype)
+                  os.makedirs(powerfolder)
+                if not os.path.exists('./Mesh/'+plottype):
+                  os.makedirs('./Mesh/'+plottype)
+                  os.makedirs(powerfolder)
+                if not os.path.exists(powerfolder):
+                  os.makedirs(powerfolder)
+                if not os.path.exists('./Quality'):
+                  os.makedirs('./Quality')
+                  os.makedirs('./Quality/'+plottype)
+                if not os.path.exists('./Quality/'+plottype):
+                  os.makedirs('./Quality/'+plottype)
+                np.save(pstr,P)
+                Qu=DSM.QualityMinFromPower(P)
+                np.save(qualityMname,Qu)
+                Qmesh[Txind]=Qu
+              else:
+                print('Mesh not found')
+                print(meshname)
+                Qmesh[Txind]=ma.nan
+                print('Quality Min not found')
+                print(qualityname)
+    #if any(not ma.isnan(q) for q in Qmesh.flatten()):
+    #  print(any(not ma.isnan(q) for q in Qmesh.flatten()))
+    ResultsFolder='./OptimisationResults'
+    SpecResultsFolder=ResultsFolder+'/'+LOSstr+boxstr+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+    if not os.path.exists(ResultsFolder):
+      os.makedirs(ResultsFolder)
+      os.makedirs(ResultsFolder+'/'+LOSstr+boxstr)
+      os.makedirs(SpecResultsFolder)
+    if not os.path.exists(ResultsFolder+'/'+LOSstr+boxstr):
+      os.makedirs(ResultsFolder+'/'+LOSstr+boxstr)
+      os.makedirs(SpecResultsFolder)
+    if not os.path.exists(SpecResultsFolder):
+      os.makedirs(SpecResultsFolder)
+    TxOpt=np.unravel_index(np.argmax(Qmesh),Qmesh.shape) #np.where(Qmesh==np.amax(Qmesh))
+    TxOpt=Room.coordinate(h,TxOpt[0],TxOpt[1],TxOpt[2])
+    print('Optimal T for Q ave from Exhaust:',TxOpt)
+    np.save(SpecResultsFolder+'/'+Obstr+'OptimumExhaustOriginAverage.npy',TxOpt)
+    TxOptM=np.unravel_index(np.argmax(QMmesh),QMmesh.shape) #np.where(QMmesh==np.amax(QMmesh))
+    TxOptM=Room.coordinate(h,TxOptM[0],TxOptM[1],TxOptM[2])
+    print('Optimal T for Q min from Exhaust:',TxOptM)
+    np.save(SpecResultsFolder+'/'+Obstr+'OptimumExhaustOriginMin.npy',TxOptM)
+    TxOptP=np.unravel_index(np.argmax(QPmesh),QPmesh.shape)
+    TxOptP=Room.coordinate(h,TxOptP[0],TxOptP[1],TxOptP[2])
+    print('Optimal T for Q percentile from Exhaust:',TxOptP)
+    np.save(SpecResultsFolder+'/'+Obstr+'OptimumExhaustOriginPercentile.npy',TxOpt)
+    text_file = open(SpecResultsFolder+'/'+Obstr+'OptimalGainExhaust.txt', 'w')
+    n = text_file.write('\n Optimal location for exhaustive search of average power is at ')
+    n = text_file.write(str(TxOpt))
+    n = text_file.write('\n Optimal location for exhaustive search of min power is at ')
+    n = text_file.write(str(TxOptM))
+    n = text_file.write('\n Optimal location for exhaustive search of 10th percentile power is at ')
+    n = text_file.write(str(TxOptP))
+    text_file.close()
+    print('Optimal saved to '+SpecResultsFolder+'/'+Obstr+'OptimalGainExhaust.txt')
+    Qterms=np.array([q for q in Qmesh.flatten() if not ma.isnan(q)])
+    QPterms=np.array([q for q in QPmesh.flatten() if not ma.isnan(q) ])
+    QMterms=np.array([q for q in QMmesh.flatten() if not ma.isnan(q) ])
+    Qmin=min(np.amin(Qterms),np.amin(QPterms),np.amin(QMterms))
+    Qmax=max(np.amax(Qterms),np.amax(QPterms),np.amax(QMterms))
+    if Qmin==Qmax:
+      print('Q is the same everywhere')
+      print(Qmesh)
+    else:
+      norm=matplotlib.colors.Normalize(vmin=Qmin, vmax=Qmax)
+      print('Q ave range',np.amin(Qterms),np.amax(Qterms))
+      print('QP range',np.amin(QPterms),np.amax(QPterms))
+      print('Q min range', np.amin(QMterms),np.amax(QMterms))
+      if not os.path.exists('./Mesh/'+qualtype):
+        os.mkdir('./Mesh/'+qualtype)
+      if not os.path.exists('./Quality'):
+        os.mkdir('./Quality')
+        os.mkdir('./Quality/'+qualtype)
+      if not os.path.exists('./Quality/'+qualtype):
+        os.mkdir('./Quality/'+qualtype)
+      np.save(Qmeshstr,Qmesh)
+      np.save(QPmeshstr,QPmesh)
+      np.save(QMmeshstr,QMmesh)
+      Qstr='Quality/'+qualtype+'/'+boxstr+Obstr+'OptimalLocationAverage%03dRefs%03dm%03d'%(Nr,Nre,index)
+      TxOpt=np.argmax(Qmesh)
+      np.save(Qstr+'.npy',TxOpt)
+      text_file = open(Qstr+'.txt', 'w')
+      n = text_file.write('Optimal transmitter location at ')
       n = text_file.write(str(TxOpt))
-      n = text_file.write('\n Optimal location for exhaustive search of min power is at ')
-      n = text_file.write(str(TxOptM))
-      n = text_file.write('\n Optimal location for exhaustive search of 10th percentile power is at ')
-      n = text_file.write(str(TxOptP))
       text_file.close()
-      Qterms=np.array([q for q in Qmesh.flatten() if not ma.isnan(q)])
-      QPterms=np.array([q for q in QPmesh.flatten() if not ma.isnan(q) ])
-      QMterms=np.array([q for q in QMmesh.flatten() if not ma.isnan(q) ])
-      Qmin=min(np.amin(Qterms),np.amin(QPterms),np.amin(QMterms))
-      Qmax=max(np.amax(Qterms),np.amax(QPterms),np.amax(QMterms))
-      if Qmin==Qmax:
-        print('Q is the same everywhere')
-        print(Qmesh)
-      else:
-        norm=matplotlib.colors.Normalize(vmin=Qmin, vmax=Qmax)
-        print('Q ave range',np.amin(Qmesh),np.amax(Qmesh))
-        print('QP range',np.amin(QPmesh),np.amax(QPmesh))
-        print('Q min range', np.amin(QMmesh),np.amax(QMmesh))
-        qualtype=Refstr+LOSstr+boxstr
-        if not os.path.exists('./Mesh'):
-          os.mkdir('./Mesh')
-          os.mkdir('./Mesh/'+qualtype)
-          os.mkdir('./Mesh/'+plottype)
-          os.mkdir(meshfolder)
-        if not os.path.exists('./Mesh/'+qualtype):
-          os.mkdir('./Mesh/'+qualtype)
-        if not os.path.exists('./Mesh/'+plottype):
-          os.mkdir('./Mesh/'+plottype)
-          os.mkdir(meshfolder)
-        if not os.path.exists(meshfolder):
-          os.mkdir(meshfolder)
-        if not os.path.exists('./Quality'):
-          os.mkdir('./Quality')
-          os.mkdir('./Quality/'+qualtype)
-        if not os.path.exists('./Quality/'+qualtype):
-          os.mkdir('./Quality/'+qualtype)
-        np.save(meshfolder+'/'+boxstr+Obstr+'QualityAverage%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,index),Qmesh)
-        np.save(meshfolder+'/'+boxstr+Obstr+'QualityPercentile%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,index),QPmesh)
-        np.save(meshfolder+'/'+boxstr+Obstr+'QualityMin%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,index),QMmesh)
-        Qstr='Quality/'+qualtype+'/'+boxstr+Obstr+'OptimalLocationAverage%03dRefs%03dm%03d'%(Nr,Nre,index)
-        TxOpt=np.argmax(Qmesh)
-        np.save(Qstr+'.npy',TxOpt)
-        text_file = open(Qstr+'.txt', 'w')
-        n = text_file.write('Optimal transmitter location at ')
-        n = text_file.write(str(TxOpt))
-        text_file.close()
-        Qstr='Quality/'+qualtype+'/'+boxstr+Obstr+'OptimalLocationPercentile%03dRefs%03dm%03d'%(Nr,Nre,index)
-        TxOpt=np.argmax(QPmesh)
-        np.save(Qstr+'.npy',TxOpt)
-        text_file = open(Qstr+'.txt', 'w')
-        n = text_file.write('Optimal transmitter location at ')
-        n = text_file.write(str(TxOpt))
-        text_file.close()
-        Qstr='Quality/'+qualtype+'/'+boxstr+Obstr+'OptimalLocationMinimum%03dRefs%03dm%03d'%(Nr,Nre,index)
-        TxOpt=np.argmax(QMmesh)
-        np.save(Qstr+'.npy',TxOpt)
-        text_file = open(Qstr+'.txt', 'w')
-        n = text_file.write('Optimal transmitter location at ')
-        n = text_file.write(str(TxOpt))
-        text_file.close()
-        for k in range(0,Nz):
+      Qstr='Quality/'+qualtype+'/'+boxstr+Obstr+'OptimalLocationPercentile%03dRefs%03dm%03d'%(Nr,Nre,index)
+      TxOpt=np.argmax(QPmesh)
+      np.save(Qstr+'.npy',TxOpt)
+      text_file = open(Qstr+'.txt', 'w')
+      n = text_file.write('Optimal transmitter location at ')
+      n = text_file.write(str(TxOpt))
+      text_file.close()
+      Qstr='Quality/'+qualtype+'/'+boxstr+Obstr+'OptimalLocationMinimum%03dRefs%03dm%03d'%(Nr,Nre,index)
+      TxOpt=np.argmax(QMmesh)
+      np.save(Qstr+'.npy',TxOpt)
+      text_file = open(Qstr+'.txt', 'w')
+      n = text_file.write('Optimal transmitter location at ')
+      n = text_file.write(str(TxOpt))
+      text_file.close()
+      for k in range(0,Nz):
           fig = mp.figure()
           ax = fig.add_subplot(111, projection='3d')
           ax.set_ylim(0, L*Nx*h)
@@ -882,7 +901,7 @@ def main():
   _,_,L,split    =np.load('Parameters/Raytracing.npy')
   for arr in parameters:
     InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index=arr.astype(int)
-    if not Nr==22 and Q==0:
+    if not Nr==22 or not Q==0:
       continue
     #plot_times(plottype,testnum,roomnumstat)
     if Par==0 and Ns==5:
