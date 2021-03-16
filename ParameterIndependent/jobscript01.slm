@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Specify the queue
-#SBATCH --account=prj-smb014
+#SBATCH --account=free
 
 ##############################################################
 ## IMPORTANT:  You need to change the following options     ##
@@ -32,9 +32,13 @@ echo "Starting job..."
 module load python3/2019.x
 source activate py3
 
-for ((job=50; job>125; job++)); do
+for ((job=30; job>125; job++)); do
   echo "job=${job}"
+  git pull git@github.com:/hw454/Raytracer.git
   time python RayTracerMainProgram.py "${job}"
+  git add Mesh
+  git commit -m "Mesh files to be shared with server"
+  git push git@github.com:/hw454/Raytracer.git
 done 
 
 
