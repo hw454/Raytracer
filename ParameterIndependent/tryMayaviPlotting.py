@@ -8,6 +8,7 @@ import math as ma
 import Room as rom
 import Rays as ra
 import DictionarySparseMatrix as DSM
+import RayTracerMainProgram as RTM
 from mayavi.core.api import Engine
 from mayavi.sources.vtk_file_reader import VTKFileReader
 from mayavi.modules.surface import Surface
@@ -468,16 +469,12 @@ def PlotPolarGains(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
     delangle     =np.load('Parameters/delangle.npy')
     #Nra         =np.load('Parameters/Nra.npy')
     #job         =np.load('Parameters/Numjobs.npy')
-    _     =np.load('Parameters/InnerOb%d.npy'%index)
-    _         =np.load('Parameters/LOS%d.npy'%index)
-    _     =np.load('Parameters/PerfRef%d.npy'%index)
     Znobrat      =np.load('Parameters/Znobrat%03d.npy'%index)
     refindex     =np.load('Parameters/refindex%03d.npy'%index)
     Pol           = np.load('Parameters/Pol%03d.npy'%index)
     Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
-    InnerOb     =np.load('Parameters/InnerOb.npy')
     numjobs     =np.load('Parameters/Numjobs.npy')
-    numjobs=126
+    numjobs=int(Ns**3)
     #Nrs         =np.load('Parameters/Nrs.npy')
     Oblist        =np.load('Parameters/Obstacles%d.npy'%index).astype(float)      # The obstacles which are within the outerboundary
     MaxInter      =np.load('Parameters/MaxInter.npy')             # The number of intersections a single ray can have in the room in one direction.
@@ -534,7 +531,7 @@ def PlotPolarGains(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
     refindex=np.insert(refindex,0,1.0+0.0j)   # Use a 1 for placement in the LOS row
     foldtype=Refstr+Box
     for job in range(numjobs):
-      if not job==51:
+      if not job==55:
         continue
       Tx=np.load('Parameters/Origin_job%03d.npy'%job)
       if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
@@ -560,7 +557,7 @@ def PlotPolarGains(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
         OptiStr=powerfolder+'/'+Box+Obstr+'OptimalGains%03dRefs%03dm%03d_tx%03d'%(Nr,Nre,index,job)
         if os.path.isfile(OptiStr+'.npy'):
           Gt=np.load(OptiStr+'.npy')
-          print('plotting gain pattern for Nra=%03d, Nre=%d, Roomnum=%d,Tx_job=%03d'%(Nr,Nre,index,job))
+          print('plotting gain pattern for '+plottype+Obstr)
         else:
           meshname=meshfolder+'/DSM_tx%03d'%(job)
           mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
@@ -1164,7 +1161,7 @@ def PlotDirections(plottype=str()):
       #mlab.close(all=True)
     return
 
-def PlotPowerSlice(plottype):
+def PlotPowerSlice(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
     '''Plot slices through the environment showing heatmaps of the power.
     Step through the xx, y, and z axis and plot the power. The error residual,
     and the distances of the rays.
@@ -1173,27 +1170,18 @@ def PlotPowerSlice(plottype):
     cmapopt= myfile.read()         # read the entire file into a string
     myfile.close()
     ##----Retrieve the Raytracing Parameters-----------------------------
-    Nra         =np.load('Parameters/Nra.npy')
-    Nob         =np.load('Parameters/Nob.npy')
-    Nsur        =np.load('Parameters/Nsur.npy')
-    Tx          =np.load('Parameters/Origin.npy')
-    LOS         =np.load('Paramerts/LOS.npy')
-    PerfRef     =np.load('Parameters/PerfRef.npy')
+    Nob         =np.load('Parameters/Nob%d.npy'%index)
     Nrs         =np.load('Parameters/Nrs.npy')
-    Nsur        =np.load('Parameters/Nsur.npy')
-    Nre,h,L,_   =np.load('Parameters/Raytracing.npy')
-    Ns          =np.load('Parameters/Ns.npy')
-    if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
-      Nra=np.array([Nra])
-      nra=1
-    else:
-      nra=len(Nra)
-    job=jobfromTx(Tx,h)
+    Nsur        =np.load('Parameters/Nsur%d.npy'%index)
+    _,_,L,_   =np.load('Parameters/Raytracing.npy')
+    h=1.0/Ns
+    numjobs=int(Ns**3)
         ##----Retrieve the environment--------------------------------------
-    Oblist        =np.load('Parameters/Obstacles.npy')          # The obstacles which are within the outerboundary
+    Oblist        =np.load('Parameters/Obstacles%d.npy'%index)          # The obstacles which are within the outerboundary
     OuterBoundary =np.load('Parameters/OuterBoundary.npy')      # The Obstacles forming the outer boundary of the room
+    refindex      =np.load('Parameters/refindex%03d.npy'%index)
     #Oblist        =OuterBoundary #np.concatenate((Oblist,OuterBoundary),axis=0)# Oblist is the list of all the obstacles in the domain
-
+    plotfit='tight'
     # Room contains all the obstacles and walls.
     Room=rom.room(Oblist)
 
@@ -1207,27 +1195,6 @@ def PlotPowerSlice(plottype):
     ymax=Room.bounds[1][1]
     zmin=Room.bounds[0][2]
     zmax=Room.bounds[1][2]
-    if Nre>1:
-      Refstr=nw.num2words(Nre)+''
-    else:
-      Refstr='NoRef'
-    if InnerOb:
-      Box='Box'
-    else:
-      Box='NoBox'
-    if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
-      loca='Centre'
-    else:
-      loca='OffCentre'
-    foldtype=Refstr+Box+loca
-    if not os.path.exists('./ConeFigures'):
-        os.makedirs('./ConeFigures')
-        os.makedirs('./ConeFigures/'+plottype)
-        os.makedirs('./ConeFigures/'+foldtype)
-    if not os.path.exists('./ConeFigures/'+plottype):
-        os.makedirs('./ConeFigures/'+plottype)
-    if not os.path.exists('./ConeFigures/'+foldtype):
-        os.makedirs('./ConeFigures/'+foldtype)
     xgrid=np.linspace(xmin,xmax,Nx)
     # Generate co-ordinates fot the grid
     for yp in range(0,Ny):
@@ -1240,11 +1207,9 @@ def PlotPowerSlice(plottype):
       zt=np.tile(zmin+(zp/Nz)*(zmax-zmin),(Nx*Ny,1))
       xyz=np.hstack((xygrid,zt))
       if zp==0:
-          cubep=xyz
+        cubep=xyz
       else:
-          cubep=np.vstack((cubep,xyz))
-    #TrueGrid=np.load('Parameters/'+plottype+'/True.npy')
-    RoomP=OuterBoundary[0]#Oblist[0]
+        cubep=np.vstack((cubep,xyz))
     if Nre>1:
       Refstr=nw.num2words(Nre)+''
     else:
@@ -1253,237 +1218,139 @@ def PlotPowerSlice(plottype):
       Box='Box'
     else:
       Box='NoBox'
-    if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
-      loca='Centre'
+    if LOS:
+      LOSstr='LOS'
+    elif PerfRef:
+      if Nre>2:
+        if Nrs<Nsur:
+          LOSstr=nw.num2words(Nrs)+'PerfRef'
+        else:
+          LOSstr='MultiPerfRef'
+      else:
+        LOSstr='SinglePerfRef'
     else:
-      loca='OffCentre'
-    foldtype=Refstr+Box+loca
-    for j in range(1,Nob):
-      RoomP=np.concatenate((RoomP,Oblist[j]),axis=0)
-    for i in range(0,nra):
+      if Nre>2 and Nrs>1:
+        if Nrs<Nsur:
+          LOSstr=nw.num2words(Nrs)+'Ref'
+        else:
+          LOSstr='MultiRef'
+      else:
+        LOSstr='SingleRef'
+    Obstr=''
+    if 0<Nrs<Nsur:
+      obnumbers=np.zeros((Nrs,1))
+      k=0
+      for ob, refin in enumerate(refindex):
+        if abs(refin)>epsilon:
+          obnumbers[k]=ob
+          k+=1
+          Obstr=Obstr+'Ob%02d'%ob
+
+    foldtype=Refstr+Box
+    for job in range(numjobs):
+      Tx=RTM.MoveTx(job,Nx,Ny,Nz,h)
+      if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
+        loca='Centre'
+      else:
+        loca='OffCentre'
+      plottype=LOSstr+Box+loca
+      slicefolder='./ConeFigures/'+plottype+'/Nra%03dRefs%03dNs%0d/Tx%03d'%(Nr,Nre,Ns,job)
+      if not os.path.exists('./ConeFigures'):
+        os.makedirs('./ConeFigures')
+        os.makedirs('./ConeFigures/'+plottype)
+        os.makedirs('./ConeFigures/'+foldtype)
+        os.makedirs('./ConeFigures/'+plottype+'/Nra%03dRefs%03dNs%0d')
+        os.makedirs(slicefolder)
+      if not os.path.exists('./ConeFigures/'+plottype):
+        os.makedirs('./ConeFigures/'+plottype)
+        os.makedirs('./ConeFigures/'+plottype+'/Nra%03dRefs%03dNs%0d/')
+        os.makedirs(slicefolder)
+      if not os.path.exists('./ConeFigures/'+foldtype):
+        os.makedirs('./ConeFigures/'+foldtype)
+      if not os.path.exists('./ConeFigures/'+plottype+'/Nra%03dRefs%03dNs%0d/'):
+        os.makedirs('./ConeFigures/'+plottype+'/Nra%03dRefs%03dNs%0d/')
+        os.makedirs(slicefolder)
+      if not os.path.exists(slicefolder):
+        os.makedirs(slicefolder)
       meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
       powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
-      Power=np.load(powerfolder+'/Power_grid%dRefs%dm%d.npy'%(Nra[i],Nre,0))
-      RadA=np.load(meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nra[i],Nre,0))
-      RadS=np.zeros((Nob,Nx,Ny,Nz))
-      for j in range(0,Nsur):
-        RadS[j]=np.load(meshfolder+'/RadS%d_grid%dRefs%dm%d.npy'%(j,Nra[i],Nre,0))
-      Powx,Powy,Powz=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
-      Pmin=np.amin(Power)
-      Pmax=np.amax(Power)
-      Radmax=max(np.amax(RadA),np.amax(RadS))
-      Radmin=min(np.amin(RadA),np.amin(RadS))
-      x,y,z=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
-      mlab.volume_slice(x,y,z,Power, plane_orientation='x_axes', slice_index=10)
-      #mlab.outline()
-      #mlab.show()
-      mlab.clf()
-      mlab.figure()
-      for l in range(0,Nx):
-        mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
-        for j in range(0,RoomP.shape[0],3):
-          x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
-          y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
-          z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
-          for zi in range(4):
-            if y[zi]==0 or y[zi]==2:
-              pass
-            else:
-              print(zi,y[zi])
-          mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.2)
-        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
+      Pstr=powerfolder+'/'+Box+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
+      meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+      meshname=meshfolder+'/DSM_tx%03d'%(job)
+      #TrueGrid=np.load('Parameters/'+plottype+'/True.npy')
+      RoomP=OuterBoundary[0]#Oblist[0]
+      for j in range(1,Nob):
+        RoomP=np.concatenate((RoomP,Oblist[j]),axis=0)
+      if os.path.isfile(Pstr):
+        Power=np.load(Pstr)
+        Powx,Powy,Powz=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
+        Pterms=np.array([p for p in Power.flatten() if not ma.isnan(p)])
+        Pmin=np.amin(Pterms)
+        Pmax=np.amax(Pterms)
+        x,y,z=np.mgrid[xmin:xmax:Nx*1.0j,ymin:ymax:Ny*1.0j,zmin:zmax:Nz*1.0j]
+        mlab.volume_slice(x,y,z,Power, plane_orientation='x_axes', slice_index=10)
+        #mlab.outline()
+        #mlab.show()
+        mlab.clf()
+        mlab.close(all=True)
+        for l in range(0,Nx):
+          mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
+          for j in range(0,RoomP.shape[0],3):
+            x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
+            y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
+            z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
+            mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.2)
+          mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
+          mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='x_axes',
                             slice_index=int(l),
                             colormap=cmapopt,
                             vmax=Pmax,
                             vmin=Pmin
                         )
-        filename='ConeFigures/'+plottype+'/Cone%dPowersliceX%d.jpg'%(Nra[i],l)
-        mlab.savefig(filename,size=(1000,1000))
-        mlab.clf()
-        mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
-        for j in range(0,RoomP.shape[0],3):
-          x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
-          y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
-          z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
-          mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
-          for zi in range(4):
-            if y[zi]==0 or y[zi]==2:
-              pass
-            else:
-              print(zi,y[zi])
-        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadA),
-                            plane_orientation='x_axes',
-                            slice_index=int(l),
-                            colormap=cmapopt,
-                            vmax=Radmax,
-                            vmin=Radmin
-                        )
-        filename='ConeFigures/'+foldtype+'/Cone%dRadAX%d.jpg'%(Nra[i],l)
-        mlab.savefig(filename,size=(1000,1000))
-        mlab.clf()
-        for j in range(0,Nsur):
-          mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
-          for k in range(0,RoomP.shape[0],3):
-            x=np.array([RoomP[k][0],RoomP[k+1][0],RoomP[k+2][0],RoomP[k][0]])
-            y=np.array([RoomP[k][1],RoomP[k+1][1],RoomP[k+2][1],RoomP[k][1]])
-            z=np.array([RoomP[k][2],RoomP[k+1][2],RoomP[k+2][2],RoomP[k][2]])
-            mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
-            for zi in range(4):
-              if y[zi]==0 or y[zi]==2:
-                pass
-              else:
-                print(zi,y[zi])
-          mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-          mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadS[j]),
-                            plane_orientation='x_axes',
-                            slice_index=int(l),
-                            colormap=cmapopt,
-                            vmax=Radmax,
-                            vmin=Radmin
-                        )
-          filename='ConeFigures/'+foldtype+'/Cone%dRadS%dX%d.jpg'%(Nra[i],j,l)
+          filename=slicefolder+'/Cone%dPowersliceX%d.jpg'%(Nr,l)
           mlab.savefig(filename,size=(1000,1000))
           mlab.clf()
-      for l in range(0,Ny):
-        mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
-        for j in range(0,RoomP.shape[0],3):
-          x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
-          y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
-          z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
-          mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
-          for zi in range(4):
-            if y[zi]==0 or y[zi]==2:
-              pass
-            else:
-              print(zi,y[zi])
-        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
+          mlab.close(all=True)
+        for l in range(0,Ny):
+          mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
+          for j in range(0,RoomP.shape[0],3):
+            x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
+            y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
+            z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
+            mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
+          mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
+          mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
                             plane_orientation='y_axes',
                             slice_index=int(l),
                             colormap=cmapopt,
                             vmax=Pmax,
                             vmin=Pmin
                         )
-        filename='ConeFigures/'+plottype+'/Cone%dPowersliceY%d.jpg'%(Nra[i],l)
-        mlab.savefig(filename,size=(1000,1000))
-        mlab.clf()
-        mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
-        for j in range(0,RoomP.shape[0],3):
-          x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
-          y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
-          z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
-          mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
-          for zi in range(4):
-            if y[zi]==0 or y[zi]==2:
-              pass
-            else:
-              print(zi,y[zi])
-        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadA),
-                            plane_orientation='y_axes',
-                            slice_index=int(l),
-                            colormap=cmapopt,
-                            vmax=Radmax,
-                            vmin=Radmin
-                        )
-        filename='ConeFigures/'+foldtype+'/Cone%dRadAY%d.jpg'%(Nra[i],l)
-        mlab.savefig(filename,size=(1000,1000))
-        mlab.clf()
-        for j in range(0,Nsur):
-          mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
-          for k in range(0,RoomP.shape[0],3):
-            x=np.array([RoomP[k][0],RoomP[k+1][0],RoomP[k+2][0],RoomP[k][0]])
-            y=np.array([RoomP[k][1],RoomP[k+1][1],RoomP[k+2][1],RoomP[k][1]])
-            z=np.array([RoomP[k][2],RoomP[k+1][2],RoomP[k+2][2],RoomP[k][2]])
-            mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
-            for zi in range(4):
-              if y[zi]==0 or y[zi]==2:
-                pass
-              else:
-                print(zi,y[zi])
-          mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-          mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadS[j]),
-                            plane_orientation='y_axes',
-                            slice_index=int(l),
-                            colormap=cmapopt,
-                            vmax=Radmax,
-                            vmin=Radmin
-                        )
-          filename='ConeFigures/'+foldtype+'/Cone%dRadS%dY%d.jpg'%(Nra[i],j,l)
+          filename=slicefolder+'/Cone%dPowersliceY%d.jpg'%(Nr,l)
           mlab.savefig(filename,size=(1000,1000))
           mlab.clf()
-      for l in range(0,Nz):
-        mlab.clf()
-        mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
-        for j in range(0,RoomP.shape[0],3):
-          x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
-          y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
-          z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
-          mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
-          for zi in range(4):
-            if y[zi]==0 or y[zi]==2:
-              pass
-            else:
-              print(zi,y[zi])
-        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
-                            plane_orientation='z_axes',
-                            slice_index=int(l),
-                            colormap=cmapopt,
-                            vmax=Pmax,
-                            vmin=Pmin
-                        )
-        filename='ConeFigures/'+plottype+'/Cone%dPowersliceZ%d.jpg'%(Nra[i],l)
-        mlab.savefig(filename,size=(1000,1000))
-        mlab.clf()
-        mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
-        for j in range(0,RoomP.shape[0],3):
-          x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
-          y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
-          z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
-          mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
-          for zi in range(4):
-            if y[zi]==0 or y[zi]==2:
-              pass
-            else:
-              print(zi,y[zi])
-        mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-        mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadA),
-                            plane_orientation='z_axes',
-                            slice_index=int(l),
-                            colormap=cmapopt,
-                            vmax=Radmax,
-                            vmin=Radmin
-                        )
-        filename='ConeFigures/'+foldtype+'/Cone%dRadAZ%d.jpg'%(Nra[i],l)
-        mlab.savefig(filename,size=(1000,1000))
-        mlab.clf()
-        for j in range(0,Nsur):
+          mlab.close(all=True)
+        for l in range(0,Nz):
+          mlab.clf()
           mlab.points3d(Tx[0],Tx[1],Tx[2],scale_factor=0.1)
-          for k in range(0,RoomP.shape[0],3):
-            x=np.array([RoomP[k][0],RoomP[k+1][0],RoomP[k+2][0],RoomP[k][0]])
-            y=np.array([RoomP[k][1],RoomP[k+1][1],RoomP[k+2][1],RoomP[k][1]])
-            z=np.array([RoomP[k][2],RoomP[k+1][2],RoomP[k+2][2],RoomP[k][2]])
+          for j in range(0,RoomP.shape[0],3):
+            x=np.array([RoomP[j][0],RoomP[j+1][0],RoomP[j+2][0],RoomP[j][0]])
+            y=np.array([RoomP[j][1],RoomP[j+1][1],RoomP[j+2][1],RoomP[j][1]])
+            z=np.array([RoomP[j][2],RoomP[j+1][2],RoomP[j+2][2],RoomP[j][2]])
             mlab.plot3d(x,y,z,color=(0.75,0.75,0.75),opacity=0.05)
-            for zi in range(4):
-              if y[zi]==0 or y[zi]==2:
-                pass
-              else:
-                print(zi,y[zi])
           mlab.plot3d(cubep[:,0],cubep[:,1],cubep[:,2],color=(0.75,0.75,0.75),opacity=0.05)
-          mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,RadS[j]),
-                            plane_orientation='z_axes',
-                            slice_index=int(l),
-                            colormap=cmapopt,
-                            vmax=Radmax,
-                            vmin=Radmin
-                        )
-          filename='ConeFigures/'+foldtype+'/Cone%dRadS%dZ%d.jpg'%(Nra[i],j,l)
+          mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(Powx,Powy,Powz,Power),
+                              plane_orientation='z_axes',
+                              slice_index=int(l),
+                              colormap=cmapopt,
+                              vmax=Pmax,
+                              vmin=Pmin
+                          )
+          filename=slicefolder+'/Cone%dPowersliceZ%d.jpg'%(Nr,l)
           mlab.savefig(filename,size=(1000,1000))
           mlab.clf()
+          mlab.close(all=True)
     return Power
 
 def PlotSingleCone(plottype):
@@ -1624,10 +1491,11 @@ if __name__=='__main__':
   #PlotConesGains(plottype)
   #PlotPolarTheoryGains(plottype)
   parameters=  np.load('Parameters/Parameterarray.npy')
-  _,_,L,split    =np.load('Parameters/Raytracing.npy')
+  #_,_,L,split    =np.load('Parameters/Raytracing.npy')
   for arr in parameters:
     InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index=arr.astype(int)
     PlotPolarGains(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index)
+    #PlotPowerSlice(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index)
   print('Running  on python version')
   print(sys.version)
 exit()
