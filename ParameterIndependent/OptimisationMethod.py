@@ -169,7 +169,7 @@ def MoreInputs_Run(index=0):
 
   ##----Retrieve the Raytracing Parameters-----------------------------
   RayPar        =np.load('Parameters/Raytracing.npy')
-  N_,_,L,split =RayPar
+  _,_,L,split =RayPar
   parameters=  np.load('Parameters/Parameterarray.npy')
   for arr in parameters:
     InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index=arr.astype(int)
@@ -191,6 +191,9 @@ def MoreInputs_Run(index=0):
       continue
     if Ns==10:
       print('Only optimise with the 5x5x5 meshes not 10x10x10')
+      continue
+    if Q==1 or Q==2:
+      print('Only consider average power in optimisation')
       continue
     MaxInter      =np.load('Parameters/MaxInter%d.npy'%index)             # The number of intersections a single ray can have in the room in one direction.
     Oblist        =np.load('Parameters/Obstacles%d.npy'%index).astype(float)      # The obstacles which are within the outerboundary
