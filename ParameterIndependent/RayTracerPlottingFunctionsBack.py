@@ -777,6 +777,8 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
     n = text_file.write(str(TxOptP))
     text_file.close()
     print('Optimal saved to '+SpecResultsFolder+'/'+Obstr+'OptimalGainExhaust.txt')
+    if all(ma.isnan(q) for q in Qmesh):
+      continue
     Qterms=np.array([q for q in Qmesh.flatten() if not ma.isnan(q)])
     QPterms=np.array([q for q in QPmesh.flatten() if not ma.isnan(q) ])
     QMterms=np.array([q for q in QMmesh.flatten() if not ma.isnan(q) ])
