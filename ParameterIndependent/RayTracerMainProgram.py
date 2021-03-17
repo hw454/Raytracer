@@ -673,7 +673,7 @@ def power_grid(Room,Mesh,Nr=22,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,Nrs
       Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
       gainname      ='Parameters/Tx%03dGains%03d.npy'%(Nr,index)
       Gt            = np.load(gainname)
-      Grid,ind=DSM.power_compute(foldtype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Ns,LOS,PerfRef)
+      Grid,ind=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,job,index,LOS,PerfRef)
       if not os.path.exists('./Mesh'):
         os.makedirs('./Mesh')
         os.makedirs('./Mesh/'+plottype)
@@ -689,22 +689,10 @@ def power_grid(Room,Mesh,Nr=22,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,Nrs
       if os.path.isfile(RadAstr):
         os.rename(r''+meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nr,Nre,0),r''+meshfolder+'/'+boxstr+'RadA_grid%dRefs%dm%d_tx%03d.npy'%(Nr,Nre,index,job))
       if not LOS:
-        Angstr=meshfolder+'/AngNpy.npy'
-        if os.path.isfile(Angstr):
-          os.rename(r''+meshfolder+'/AngNpy.npy',r''+powerfolder+'/'+boxstr+'AngNpy%03dRefs%03dNs%03d_tx%03d.npy'%(Nr,Nre,Ns,job))
         for su in range(0,Nsur):
           RadSstr=meshfolder+'/RadS%d_grid%dRefs%dm%d.npy'%(su,Nr,Nre,0)
           if os.path.isfile(RadSstr):
             os.rename(r''+meshfolder+'/RadS%d_grid%dRefs%dm%d.npy'%(su,Nr,Nre,0),r''+meshfolder+'/'+boxstr+'RadS%d_grid%dRefs%dm%d_tx%03d.npy'%(su,Nr,Nre,index,job))
-        rstr='rad%dRefs%dNs%d'%(Nr,Nre,Ns)
-        rfile=meshfolder+'/'+rstr
-        angstr='ang%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
-        angfile=meshfolder+'/'+angstr
-        for (x,y,z) in product(range(Nx),range(Ny),range(Nz)):
-          rfilename=rfile+'%02dx%02dy%02dz.npz'%(x,y,z)
-          angfilename=angfile+'%02dx%02dy%02dz.npz'%(x,y,z)
-          os.rename(r''+rfilename,r''+meshfolder+'/'+boxstr+rstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
-          os.rename(r''+angfilename,r''+meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz_tx%03d.npz'%(x,y,z,job))
   G_z[0,0]=np.count_nonzero((Grid==0))
   t1=t.time()
   timemat[0]=t1-t0
@@ -836,7 +824,7 @@ def optimum_gains(Room,Mesh,Nr=22,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,
   refindex=np.insert(refindex,0,1.0+0.0j)   # Use a 1 for placement in the LOS row
   # Calculate the necessry parameters for the power calculation.
   Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
-  Gt=DSM.optimum_gains(plottype,Mesh,Room,Znobrat,refindex,Antpar,Pol,Nr,Nre,Ns)
+  Gt=DSM.optimum_gains(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Pol,Nr,Nre,job,index)
   if not os.path.exists('./Mesh'):
       os.makedirs('./Mesh')
       os.makedirs('./Mesh/'+plottype)

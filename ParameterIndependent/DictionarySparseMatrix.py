@@ -52,6 +52,7 @@ import timeit
 import os
 import logging
 import pdb
+import RayTracerMainProgram as RTM
 #from collections import defaultdict
 
 epsilon=sys.float_info.epsilon
@@ -2271,7 +2272,7 @@ def stopchecklist(ps,p3,h,Nx,Ny,Nz):
         pass
       j+=1
     return start, newps, newp3, newn
-def optimum_gains(foldtype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS=0,PerfRef=0,ind=-1):
+def optimum_gains(foldtype,plottype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,Nre,job,index,LOS=0,PerfRef=0,ind=-1):
   ''' Compute the optimal transmitter gains from a Mesh of ray information and the physical \
   parameters.
 
@@ -2332,24 +2333,35 @@ def optimum_gains(foldtype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS
   else:
     ind=ind.T
     indout=ind
+  Ns=max(Nx,Ny,Nz)
+  h=1.0/Ns
+
   meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
     os.makedirs('./Mesh/'+foldtype)
     os.makedirs(meshfolder)
+    os.makedirs('./Mesh'+plottype)
+    os.makedirs(powerfolder)
   if not os.path.exists('./Mesh/'+foldtype):
     os.makedirs('./Mesh/'+foldtype)
     os.makedirs(meshfolder)
   if not os.path.exists(meshfolder):
     os.makedirs(meshfolder)
+  if not os.path.exists('./Mesh'+plottype):
+      os.makedirs('./Mesh'+plottype)
+      os.makedirs(powerfolder)
+  if not os.path.exists(powerfolder):
+      os.makedirs(powerfolder)
   # Check if the reflections angles are saved, if not then find them.
-  angfile=meshfolder+'/ang'
-  afile=Path(angfile)
+  angstr='ang%03dRefs%03dNs%0d_tx%03d'%(Nra,Nre,Ns,job)
+  angfile=meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz.npz'
+  angeg=angfile+'%02dx%02dy%02dz.npz'%(0,0,0)
   if newvar:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
     AngDSM.save_dict(angfile)
   else:
-    if afile.is_file():
+    if os.path.isfile(angeg):
       AngDSM=load_dict(angfile,Nx,Ny,Nz)
     else:
       AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
@@ -2368,29 +2380,28 @@ def optimum_gains(foldtype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS
   if not LOS:
     #print(Mesh)
     Theta=AngDSM.togrid(ind)
-    np.save(meshfolder+'/AngNpy.npy',Theta)
-  rfile=meshfolder+'rad'
+    np.save(powerfolder+'/'+boxstr+'AngNpy%03dRefs%03dNs%03d_tx%03d.npy'%(Nra,Nre,Ns,job),Theta)
+  rstr='rad%dRefs%dNs%d'%(Nra,Nre,Ns)
+  rfile=meshfolder+'/'+boxstr+rstr+'tx%03d'%(job)
+  reg=rfile+'%02dx%02dy%02dz.npy'%(0,0,0)
   Nob=room.Nob
   Nsur=room.Nsur
-  h=room.get_meshwidth(Mesh)
-  #print('before rad')
-  #print(Mesh[3,3,3])
   if newvar:
-    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype)
+    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre)
     RadMesh.save_dict(rfile)
   else:
-    if Path(rfile).is_file():
-      RadMesh=load_dict(rfile,Nx,Ny,Nx)
+    if os.path.isfile(reg):
+      RadMesh=load_dict(rfile,Nx,Ny,Nz)
       ind=RadMesh.nonzero()
     else:
-      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype)
+      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre)
       RadMesh.save_dict(rfile)
   t4=t.time()
   Hx,Fx=RadMesh.opti_func_mats(Realper,Realpar,Imageper,Imagepar,khat,L,lam,Pol,Nra,ind)
   Gt=Hx.opti_combo_inverse(Fx,Nra)
   Gt=np.power(Gt,2)
   return Gt
-def power_compute(foldtype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS=0,PerfRef=0,ind=-1):
+def power_compute(foldtype,plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,job,index,LOS=0,PerfRef=0,ind=-1):
   ''' Compute the field from a Mesh of ray information and the physical \
   parameters.
 
@@ -2455,26 +2466,38 @@ def power_compute(foldtype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
   else:
     ind=ind.T
     indout=ind
+  Ns=max(Nx,Ny,Nz)
+  h=1.0/Ns
+
+  powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
   meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
     os.makedirs('./Mesh/'+foldtype)
     os.makedirs(meshfolder)
+    os.makedirs('./Mesh'+plottype)
+    os.makedirs(powerfolder)
   if not os.path.exists('./Mesh/'+foldtype):
     os.makedirs('./Mesh/'+foldtype)
     os.makedirs(meshfolder)
   if not os.path.exists(meshfolder):
     os.makedirs(meshfolder)
+  if not os.path.exists('./Mesh'+plottype):
+      os.makedirs('./Mesh'+plottype)
+      os.makedirs(powerfolder)
+  if not os.path.exists(powerfolder):
+      os.makedirs(powerfolder)
   # Check if the reflections angles are saved, if not then find them.
-  angfile=meshfolder+'/ang%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
-  #afile=Path(angfile)
+  angstr='ang%03dRefs%03dNs%0d_tx%03d'%(Nra,Nre,Ns,job)
+  angfile=meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz.npz'
+  angeg=angfile+'%02dx%02dy%02dz.npz'%(0,0,0)
   if newvar:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
     AngDSM.save_dict(angfile)
   else:
-    try:
+    if os.path.isfile(angeg):
       AngDSM=load_dict(angfile,Nx,Ny,Nz)
-    except:
+    else:
       AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
       AngDSM.save_dict(angfile)
   Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,LOS,PerfRef,ind)
@@ -2508,18 +2531,20 @@ def power_compute(foldtype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
   if not LOS:
     #print(Mesh)
     Theta=AngDSM.togrid(ind)
-    np.save(meshfolder+'/AngNpy.npy',Theta)
-  rfile=meshfolder+'/rad%dRefs%dNs%d'%(Nra,Nre,Ns)
+    np.save(powerfolder+'/'+boxstr+'AngNpy%03dRefs%03dNs%03d_tx%03d.npy'%(Nra,Nre,Ns,job),Theta)
+  rstr='rad%dRefs%dNs%d'%(Nra,Nre,Ns)
+  rfile=meshfolder+'/'+boxstr+rstr+'tx%03d'%(job)
+  reg=rfile+'%02dx%02dy%02dz.npy'%(0,0,0)
   Nob=room.Nob
   Nsur=room.Nsur
   if newvar:
     RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre)
     RadMesh.save_dict(rfile)
   else:
-    try:
+    if os.path.isfile(reg):
       RadMesh=load_dict(rfile,Nx,Ny,Nz)
       ind=RadMesh.nonzero()
-    except:
+    else:
       RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre)
       RadMesh.save_dict(rfile)
   t4=t.time()
@@ -2535,7 +2560,7 @@ def power_compute(foldtype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,
   return P,indout
 
 
-def quality_compute(foldtype,Mesh,Grid,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,Ns,LOS,PerfRef,ind=-1):
+def quality_compute(foldtype,plottype,Mesh,Grid,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,Nre,job,index,LOS,PerfRef,ind=-1):
   ''' Compute the field from a Mesh of ray information and the physical \
   parameters.
 
@@ -2596,37 +2621,62 @@ def quality_compute(foldtype,Mesh,Grid,room,Znobrat,refindex,Antpar,Gt, Pol,Nra,
     os.makedirs('./Mesh')
   Nra=int(Nra)
   Nre=int(Nre)
-  Ns=int(Ns)
+  Ns=max(Mesh.Nx,Mesh.Ny,Mesh.Nz)
+  h=1.0/Ns
+
+  Tx=RTM.MoveTx(job,Nx,Ny,Nz,h)
+  if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
+    loca='Centre'
+  else:
+    loca='OffCentre'
+  plottype=LOSstr+boxstr+loca
+  powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
   meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
     os.makedirs('./Mesh/'+foldtype)
     os.makedirs(meshfolder)
+    os.makedirs('./Mesh'+plottype)
+    os.makedirs(powerfolder)
   if not os.path.exists('./Mesh/'+foldtype):
     os.makedirs('./Mesh/'+foldtype)
     os.makedirs(meshfolder)
   if not os.path.exists(meshfolder):
     os.makedirs(meshfolder)
+  if not os.path.exists('./Mesh'+plottype):
+      os.makedirs('./Mesh'+plottype)
+      os.makedirs(powerfolder)
+  if not os.path.exists(powerfolder):
+      os.makedirs(powerfolder)
   # Check if the reflections angles are saved, if not then find them.
-  angfile=meshfolder+'/ang%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
-  try:
-    AngDSM=load_dict(angfile,Nx,Ny,Nz)
-  except:
+  angstr='ang%03dRefs%03dNs%0d_tx%03d'%(Nra,Nre,Ns,job)
+  angfile=meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz.npz'
+  angeg=angfile+'%02dx%02dy%02dz.npz'%(0,0,0)
+  if newvar:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
     AngDSM.save_dict(angfile)
+  else:
+    if os.path.isfile(angeg):
+      AngDSM=load_dict(angfile,Nx,Ny,Nz)
+    else:
+      AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
+      AngDSM.save_dict(angfile)
   Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,LOS,PerfRef,ind)
   rfile=meshfolder+'/rad%dRefs%dNs%d'%(Nra,Nre,Ns)
-  h=1/Mesh.Nx
+  rstr='rad%dRefs%dNs%d'%(Nra,Nre,Ns)
+  rfile=meshfolder+'/'+boxstr+rstr+'tx%03d'%(job)
+  reg=rfile+'%02dx%02dy%02dz.npy'%(0,0,0)
+  Nob=room.Nob
   Nsur=room.Nsur
   if newvar:
-    RadMesh,ind=Mesh.__get_rad__(Nsur,ind)
+    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre)
     RadMesh.save_dict(rfile)
   else:
-    try:
+    if os.path.isfile(reg):
       RadMesh=load_dict(rfile,Nx,Ny,Nz)
       ind=RadMesh.nonzero()
-    except:
-      RadMesh,ind=Mesh.__get_rad__(Nsur,ind, foldtype)
+    else:
+      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre)
       RadMesh.save_dict(rfile)
   t4=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,Nra,ind)
