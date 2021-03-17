@@ -29,7 +29,7 @@ def plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
   '''
   numjobs    =np.load('Parameters/Numjobs.npy')
   if Ns==5:
-    numjobs=126
+    numjobs=125
   else:
     numjobs=500
   roomnumstat=np.load('Parameters/roomnumstat.npy')
@@ -447,7 +447,7 @@ def plot_quality(plottype,testnum,roomnumstat,job=0):
 
 def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
   numjobs    =np.load('Parameters/Numjobs.npy')
-  numjobs=126
+  numjobs=125
   roomnumstat=np.load('Parameters/roomnumstat.npy')
   _,_,L,split    =np.load('Parameters/Raytracing.npy')
   Nra        =np.load('Parameters/Nra.npy')

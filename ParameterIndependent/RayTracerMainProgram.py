@@ -324,11 +324,11 @@ def MeshProgram(Nr=22,index=1,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,Nrs=2,Ns=5):
   meshname=meshfolder+'/DSM_tx%03d'%(job)
   print(meshname+'%02dx%02dy%02dz.npz'%(0,0,0))
   if os.path.isfile(meshname+'%02dx%02dy%02dz.npz'%(0,0,0)):
-      Mesh=DSM.load_dict(meshname,Nx,Ny,Nz)
-      print('Tx',Tx)
-      print('Mesh loaded from store')
-      timemat=t.time()-t0
-      return Mesh,timesmat,Room
+    Mesh=DSM.load_dict(meshname,Nx,Ny,Nz)
+    print('Tx',Tx)
+    print('Mesh loaded from store')
+    timemat=t.time()-t0
+    return Mesh,timesmat,Room
   #------------Initialise the Mesh------------------------------------
   Mesh=DSM.DS(Nx,Ny,Nz,Nsur*Nre+1,Nr*(Nre+1),np.complex128,split)
   if not Room.CheckTxInner(Tx):
@@ -1135,11 +1135,6 @@ def main(argv,scriptcall=False):
   _,_,L,split    =np.load('Parameters/Raytracing.npy')
   for arr in parameters:
     InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index=arr.astype(int)
-    if Ns==10:
-      if job==444 or job==432:
-        pass
-      else:
-        continue
     #Tx=np.load('Parameters/Origin.npy')
     ##----Retrieve the environment--------------------------------------
     h=1.0/Ns
@@ -1162,6 +1157,13 @@ def main(argv,scriptcall=False):
     #SimParstr  ='SimulationParameters'
     #SimPar     =InBook.sheet_by_name(SimParstr)
     #InBook.save(filename=Sheetname)
+    if Ns==10:
+      if job==444 or job==432:
+        pass
+      else:
+        continue
+    if job>125 and Ns==5:
+        continue
     if Nr==337 and Nre==6:
       if not job==55:
           continue
