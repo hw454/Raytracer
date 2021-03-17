@@ -2355,7 +2355,7 @@ def optimum_gains(foldtype,plottype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,N
       os.makedirs(powerfolder)
   # Check if the reflections angles are saved, if not then find them.
   angstr='ang%03dRefs%03dNs%0d_tx%03d'%(Nra,Nre,Ns,job)
-  angfile=meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz.npz'
+  angfile=meshfolder+'/'+boxstr+angstr
   angeg=angfile+'%02dx%02dy%02dz.npz'%(0,0,0)
   if newvar:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
@@ -2382,7 +2382,7 @@ def optimum_gains(foldtype,plottype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,N
     Theta=AngDSM.togrid(ind)
     np.save(powerfolder+'/'+boxstr+'AngNpy%03dRefs%03dNs%03d_tx%03d.npy'%(Nra,Nre,Ns,job),Theta)
   rstr='rad%dRefs%dNs%d'%(Nra,Nre,Ns)
-  rfile=meshfolder+'/'+boxstr+rstr+'tx%03d'%(job)
+  rfile=meshfolder+'/'+boxstr+rstr+'_tx%03d'%(job)
   reg=rfile+'%02dx%02dy%02dz.npy'%(0,0,0)
   Nob=room.Nob
   Nsur=room.Nsur
@@ -2489,7 +2489,7 @@ def power_compute(foldtype,plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nr
       os.makedirs(powerfolder)
   # Check if the reflections angles are saved, if not then find them.
   angstr='ang%03dRefs%03dNs%0d_tx%03d'%(Nra,Nre,Ns,job)
-  angfile=meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz.npz'
+  angfile=meshfolder+'/'+boxstr+angstr
   angeg=angfile+'%02dx%02dy%02dz.npz'%(0,0,0)
   if newvar:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
@@ -2533,7 +2533,7 @@ def power_compute(foldtype,plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nr
     Theta=AngDSM.togrid(ind)
     np.save(powerfolder+'/'+boxstr+'AngNpy%03dRefs%03dNs%03d_tx%03d.npy'%(Nra,Nre,Ns,job),Theta)
   rstr='rad%dRefs%dNs%d'%(Nra,Nre,Ns)
-  rfile=meshfolder+'/'+boxstr+rstr+'tx%03d'%(job)
+  rfile=meshfolder+'/'+boxstr+rstr+'_tx%03d'%(job)
   reg=rfile+'%02dx%02dy%02dz.npy'%(0,0,0)
   Nob=room.Nob
   Nsur=room.Nsur
@@ -2650,7 +2650,7 @@ def quality_compute(foldtype,plottype,Mesh,Grid,room,Znobrat,refindex,Antpar,Gt,
       os.makedirs(powerfolder)
   # Check if the reflections angles are saved, if not then find them.
   angstr='ang%03dRefs%03dNs%0d_tx%03d'%(Nra,Nre,Ns,job)
-  angfile=meshfolder+'/'+boxstr+angstr+'%02dx%02dy%02dz.npz'
+  angfile=meshfolder+'/'+boxstr+angstr
   angeg=angfile+'%02dx%02dy%02dz.npz'%(0,0,0)
   if newvar:
     AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
@@ -2664,7 +2664,7 @@ def quality_compute(foldtype,plottype,Mesh,Grid,room,Znobrat,refindex,Antpar,Gt,
   Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,LOS,PerfRef,ind)
   rfile=meshfolder+'/rad%dRefs%dNs%d'%(Nra,Nre,Ns)
   rstr='rad%dRefs%dNs%d'%(Nra,Nre,Ns)
-  rfile=meshfolder+'/'+boxstr+rstr+'tx%03d'%(job)
+  rfile=meshfolder+'/'+boxstr+rstr+'_tx%03d'%(job)
   reg=rfile+'%02dx%02dy%02dz.npy'%(0,0,0)
   Nob=room.Nob
   Nsur=room.Nsur
