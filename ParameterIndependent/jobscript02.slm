@@ -32,7 +32,7 @@ echo "Starting job..."
 module load python3/2019.x
 source activate py3
 
-for ((job=125; job>0; job--)); do
+for ((job=100; job>0; job--)); do
   echo "job=${job}"
   time python RayTracerMainProgram.py "${job}"
 done 

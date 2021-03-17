@@ -2,1415 +2,418 @@ Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
 InputSheet.xlsx
-Residual to be calculated
-logging turned off for speed.
-Only the bounding walls included
-LOS and refelected paths included
-Reflections are modelled as perfect with no loss
-Angles of reflection are corrected when the receiver is moved through cones or centre point
-Permittivity in air (1.25663706143592e-05+0j)
-Permeability in air (8.85418781762037e-13+0j)
-Impedance of air (3767.303134617715+0j)
-Speed of light (299792458+0j)
-Frequency of EM wave 2400000000.0
-Wavelength 0.2616182732373407
-Non-dimensional wave number 24.016614854266948
-Environment lengthscale 3.0
-Ratio of impedance of obstacles over impedance of air [0.   +0.j    0.   +0.j    0.886+0.004j 0.   +0.j    0.886+0.004j
- 0.   +0.j   ]
-Refractive index of the obstacles [0.+0.j 0.+0.j 1.+0.j 0.+0.j 1.+0.j 0.+0.j]
-Polarisation [1 1]
-Maximum number of intersections for any ray  2
-Number of runs of the algorithm for roomtypes  1
-Starting number of different rooms  1
-Number of times to repeat the algorithm for testing times  1
-Number of reflections  6.0
-Mesh width  0.2
-Room lengthscale  3.0
-Steps through each voxel  3.0
-Number of rays  [ 22 337]
-Angle spacing  [0.698 0.19 ]
-All obstacles in the environment  [[[0. 0. 0.]
-  [0. 1. 0.]
-  [1. 1. 0.]]
-
- [[0. 0. 0.]
-  [1. 0. 0.]
-  [1. 1. 0.]]
-
- [[0. 0. 1.]
-  [0. 1. 1.]
-  [1. 1. 1.]]
-
- [[0. 0. 1.]
-  [1. 0. 1.]
-  [1. 1. 1.]]
-
- [[0. 0. 0.]
-  [0. 1. 0.]
-  [0. 1. 1.]]
-
- [[0. 1. 1.]
-  [0. 0. 1.]
-  [0. 0. 0.]]
-
- [[1. 0. 0.]
-  [1. 1. 0.]
-  [1. 1. 1.]]
-
- [[1. 1. 1.]
-  [1. 0. 1.]
-  [1. 0. 0.]]
-
- [[0. 0. 0.]
-  [1. 0. 0.]
-  [1. 0. 1.]]
-
- [[0. 0. 0.]
-  [0. 0. 1.]
-  [1. 0. 1.]]
-
- [[0. 1. 0.]
-  [1. 1. 0.]
-  [1. 1. 1.]]
-
- [[0. 1. 0.]
-  [0. 1. 1.]
-  [1. 1. 1.]]]
-Number of triangles forming each obstacle  [2. 2. 2. 2. 2. 2.]
-The triangles forming the boundary of the environment  [[[0. 0. 0.]
-  [0. 1. 0.]
-  [1. 1. 0.]]
-
- [[0. 0. 0.]
-  [1. 0. 0.]
-  [1. 1. 0.]]
-
- [[0. 0. 1.]
-  [0. 1. 1.]
-  [1. 1. 1.]]
-
- [[0. 0. 1.]
-  [1. 0. 1.]
-  [1. 1. 1.]]
-
- [[0. 0. 0.]
-  [0. 1. 0.]
-  [0. 1. 1.]]
-
- [[0. 1. 1.]
-  [0. 0. 1.]
-  [0. 0. 0.]]
-
- [[1. 0. 0.]
-  [1. 1. 0.]
-  [1. 1. 1.]]
-
- [[1. 1. 1.]
-  [1. 0. 1.]
-  [1. 0. 0.]]
-
- [[0. 0. 0.]
-  [1. 0. 0.]
-  [1. 0. 1.]]
-
- [[0. 0. 0.]
-  [0. 0. 1.]
-  [1. 0. 1.]]
-
- [[0. 1. 0.]
-  [1. 1. 0.]
-  [1. 1. 1.]]
-
- [[0. 1. 0.]
-  [0. 1. 1.]
-  [1. 1. 1.]]]
- The number of triangles per boundary surface  [2. 2. 2. 2. 2. 2.]
-The total number of triangles forming obstacles in the environment  12
-The number of steps to discretise the longest axis into  5
-The number of reflective surface in the enironment (all others are totally absorbing)  2
-Position of the transmitter  [0.5 0.5 0.5]
-job=0
-main called with job=  0, using output filename=ray_trace_output_000.txt
+job=80
+main called with job= 80, using output filename=ray_trace_output_080.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.1 0.1 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx000.npy
--------------------------------
-Job number 0
-Power from DSM complete
-Time taken [0.634]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 0
-Optimum gains from DSM complete
-Time taken [228.808]
--------------------------------
--------------------------------
-Job number 0
-Quality from DSM complete [[-23.622 -23.622 -33.567]]
-Time taken [1.383]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.634   0.634   0.634   0.634   1.    228.808]]]
--------------------------------
--------------------------------
--------------------------------
-job=1
-main called with job=  1, using output filename=ray_trace_output_001.txt
+job=79
+main called with job= 79, using output filename=ray_trace_output_079.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.1 0.3 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx001.npy
--------------------------------
-Job number 1
-Power from DSM complete
-Time taken [0.592]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 1
-Optimum gains from DSM complete
-Time taken [201.475]
--------------------------------
--------------------------------
-Job number 1
-Quality from DSM complete [[-23.4   -23.4   -31.679]]
-Time taken [0.774]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.592   0.592   0.592   0.592   1.    201.475]]]
--------------------------------
--------------------------------
--------------------------------
-job=2
-main called with job=  2, using output filename=ray_trace_output_002.txt
+job=78
+main called with job= 78, using output filename=ray_trace_output_078.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.1 0.5 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx002.npy
--------------------------------
-Job number 2
-Power from DSM complete
-Time taken [0.834]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 2
-Optimum gains from DSM complete
-Time taken [216.799]
--------------------------------
--------------------------------
-Job number 2
-Quality from DSM complete [[-24.563 -24.563 -32.875]]
-Time taken [1.238]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.834   0.834   0.834   0.834   1.    216.799]]]
--------------------------------
--------------------------------
--------------------------------
-job=3
-main called with job=  3, using output filename=ray_trace_output_003.txt
+job=77
+main called with job= 77, using output filename=ray_trace_output_077.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.1 0.7 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx003.npy
--------------------------------
-Job number 3
-Power from DSM complete
-Time taken [1.307]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 3
-Optimum gains from DSM complete
-Time taken [222.21]
--------------------------------
--------------------------------
-Job number 3
-Quality from DSM complete [[-24.608 -24.608 -32.619]]
-Time taken [0.614]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      1.307   1.307   1.307   1.307   1.    222.21 ]]]
--------------------------------
--------------------------------
--------------------------------
-job=4
-main called with job=  4, using output filename=ray_trace_output_004.txt
+job=76
+main called with job= 76, using output filename=ray_trace_output_076.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.1 0.9 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx004.npy
--------------------------------
-Job number 4
-Power from DSM complete
-Time taken [0.455]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 4
-Optimum gains from DSM complete
-Time taken [204.208]
--------------------------------
--------------------------------
-Job number 4
-Quality from DSM complete [[-25.633 -25.633 -34.136]]
-Time taken [1.727]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.455   0.455   0.455   0.455   1.    204.208]]]
--------------------------------
--------------------------------
--------------------------------
-job=5
-main called with job=  5, using output filename=ray_trace_output_005.txt
+job=75
+main called with job= 75, using output filename=ray_trace_output_075.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.3 0.1 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx005.npy
--------------------------------
-Job number 5
-Power from DSM complete
-Time taken [0.652]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 5
-Optimum gains from DSM complete
-Time taken [205.905]
--------------------------------
--------------------------------
-Job number 5
-Quality from DSM complete [[-24.673 -24.673 -32.816]]
-Time taken [0.549]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.652   0.652   0.652   0.652   1.    205.905]]]
--------------------------------
--------------------------------
--------------------------------
-job=6
-main called with job=  6, using output filename=ray_trace_output_006.txt
+job=74
+main called with job= 74, using output filename=ray_trace_output_074.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.3 0.3 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx006.npy
--------------------------------
-Job number 6
-Power from DSM complete
-Time taken [0.61]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 6
-Optimum gains from DSM complete
-Time taken [203.012]
--------------------------------
--------------------------------
-Job number 6
-Quality from DSM complete [[-23.818 -23.818 -32.718]]
-Time taken [1.211]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.61    0.61    0.61    0.61    1.    203.012]]]
--------------------------------
--------------------------------
--------------------------------
-job=7
-main called with job=  7, using output filename=ray_trace_output_007.txt
+job=73
+main called with job= 73, using output filename=ray_trace_output_073.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.3 0.5 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx007.npy
--------------------------------
-Job number 7
-Power from DSM complete
-Time taken [0.39]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 7
-Optimum gains from DSM complete
-Time taken [210.218]
--------------------------------
--------------------------------
-Job number 7
-Quality from DSM complete [[-23.113 -23.113 -30.125]]
-Time taken [1.067]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.39    0.39    0.39    0.39    1.    210.218]]]
--------------------------------
--------------------------------
--------------------------------
-job=8
-main called with job=  8, using output filename=ray_trace_output_008.txt
+job=72
+main called with job= 72, using output filename=ray_trace_output_072.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.3 0.7 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx008.npy
--------------------------------
-Job number 8
-Power from DSM complete
-Time taken [0.963]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 8
-Optimum gains from DSM complete
-Time taken [206.3]
--------------------------------
--------------------------------
-Job number 8
-Quality from DSM complete [[-23.29 -23.29 -30.72]]
-Time taken [0.729]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.963   0.963   0.963   0.963   1.    206.3  ]]]
--------------------------------
--------------------------------
--------------------------------
-job=9
-main called with job=  9, using output filename=ray_trace_output_009.txt
+job=71
+main called with job= 71, using output filename=ray_trace_output_071.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.3 0.9 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx009.npy
--------------------------------
-Job number 9
-Power from DSM complete
-Time taken [0.266]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 9
-Optimum gains from DSM complete
-Time taken [193.158]
--------------------------------
--------------------------------
-Job number 9
-Quality from DSM complete [[-24.881 -24.881 -31.326]]
-Time taken [0.825]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.266   0.266   0.266   0.266   1.    193.158]]]
--------------------------------
--------------------------------
--------------------------------
-job=10
-main called with job= 10, using output filename=ray_trace_output_010.txt
+job=70
+main called with job= 70, using output filename=ray_trace_output_070.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.5 0.1 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx010.npy
--------------------------------
-Job number 10
-Power from DSM complete
-Time taken [0.935]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 10
-Optimum gains from DSM complete
-Time taken [197.912]
--------------------------------
--------------------------------
-Job number 10
-Quality from DSM complete [[-25.31  -25.31  -35.565]]
-Time taken [0.515]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.935   0.935   0.935   0.935   1.    197.912]]]
--------------------------------
--------------------------------
--------------------------------
-job=11
-main called with job= 11, using output filename=ray_trace_output_011.txt
+job=69
+main called with job= 69, using output filename=ray_trace_output_069.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.5 0.3 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx011.npy
--------------------------------
-Job number 11
-Power from DSM complete
-Time taken [0.344]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 11
-Optimum gains from DSM complete
-Time taken [197.65]
--------------------------------
--------------------------------
-Job number 11
-Quality from DSM complete [[-24.044 -24.044 -31.651]]
-Time taken [0.498]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.344   0.344   0.344   0.344   1.    197.65 ]]]
--------------------------------
--------------------------------
--------------------------------
-job=12
-main called with job= 12, using output filename=ray_trace_output_012.txt
+job=68
+main called with job= 68, using output filename=ray_trace_output_068.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.5 0.5 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx012.npy
--------------------------------
-Job number 12
-Power from DSM complete
-Time taken [0.646]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 12
-Optimum gains from DSM complete
-Time taken [184.357]
--------------------------------
--------------------------------
-Job number 12
-Quality from DSM complete [[-23.455 -23.455 -31.617]]
-Time taken [0.477]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.646   0.646   0.646   0.646   1.    184.357]]]
--------------------------------
--------------------------------
--------------------------------
-job=13
-main called with job= 13, using output filename=ray_trace_output_013.txt
+job=67
+main called with job= 67, using output filename=ray_trace_output_067.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.5 0.7 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx013.npy
--------------------------------
-Job number 13
-Power from DSM complete
-Time taken [0.431]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 13
-Optimum gains from DSM complete
-Time taken [189.345]
--------------------------------
--------------------------------
-Job number 13
-Quality from DSM complete [[-23.776 -23.776 -31.206]]
-Time taken [0.39]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.431   0.431   0.431   0.431   1.    189.345]]]
--------------------------------
--------------------------------
--------------------------------
-job=14
-main called with job= 14, using output filename=ray_trace_output_014.txt
+job=66
+main called with job= 66, using output filename=ray_trace_output_066.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.5 0.9 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx014.npy
--------------------------------
-Job number 14
-Power from DSM complete
-Time taken [0.362]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 14
-Optimum gains from DSM complete
-Time taken [176.676]
--------------------------------
--------------------------------
-Job number 14
-Quality from DSM complete [[-24.72  -24.72  -32.288]]
-Time taken [0.88]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.362   0.362   0.362   0.362   1.    176.676]]]
--------------------------------
--------------------------------
--------------------------------
-job=15
-main called with job= 15, using output filename=ray_trace_output_015.txt
+job=65
+main called with job= 65, using output filename=ray_trace_output_065.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.7 0.1 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx015.npy
--------------------------------
-Job number 15
-Power from DSM complete
-Time taken [0.343]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 15
-Optimum gains from DSM complete
-Time taken [187.163]
--------------------------------
--------------------------------
-Job number 15
-Quality from DSM complete [[-25.213 -25.213 -34.676]]
-Time taken [1.138]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.343   0.343   0.343   0.343   1.    187.163]]]
--------------------------------
--------------------------------
--------------------------------
-job=16
-main called with job= 16, using output filename=ray_trace_output_016.txt
+job=64
+main called with job= 64, using output filename=ray_trace_output_064.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.7 0.3 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx016.npy
--------------------------------
-Job number 16
-Power from DSM complete
-Time taken [0.213]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 16
-Optimum gains from DSM complete
-Time taken [174.202]
--------------------------------
--------------------------------
-Job number 16
-Quality from DSM complete [[-23.635 -23.635 -30.275]]
-Time taken [0.416]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.213   0.213   0.213   0.213   1.    174.202]]]
--------------------------------
--------------------------------
--------------------------------
-job=17
-main called with job= 17, using output filename=ray_trace_output_017.txt
+job=63
+main called with job= 63, using output filename=ray_trace_output_063.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.7 0.5 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx017.npy
--------------------------------
-Job number 17
-Power from DSM complete
-Time taken [0.358]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 17
-Optimum gains from DSM complete
-Time taken [193.617]
--------------------------------
--------------------------------
-Job number 17
-Quality from DSM complete [[-23.572 -23.572 -31.287]]
-Time taken [0.275]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.358   0.358   0.358   0.358   1.    193.617]]]
--------------------------------
--------------------------------
--------------------------------
-job=18
-main called with job= 18, using output filename=ray_trace_output_018.txt
+job=62
+main called with job= 62, using output filename=ray_trace_output_062.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.7 0.7 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx018.npy
--------------------------------
-Job number 18
-Power from DSM complete
-Time taken [0.395]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 18
-Optimum gains from DSM complete
-Time taken [173.399]
--------------------------------
--------------------------------
-Job number 18
-Quality from DSM complete [[-23.796 -23.796 -31.428]]
-Time taken [0.619]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.395   0.395   0.395   0.395   1.    173.399]]]
--------------------------------
--------------------------------
--------------------------------
-job=19
-main called with job= 19, using output filename=ray_trace_output_019.txt
+job=61
+main called with job= 61, using output filename=ray_trace_output_061.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.7 0.9 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx019.npy
--------------------------------
-Job number 19
-Power from DSM complete
-Time taken [0.454]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 19
-Optimum gains from DSM complete
-Time taken [186.237]
--------------------------------
--------------------------------
-Job number 19
-Quality from DSM complete [[-24.708 -24.708 -32.481]]
-Time taken [0.474]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.454   0.454   0.454   0.454   1.    186.237]]]
--------------------------------
--------------------------------
--------------------------------
-job=20
-main called with job= 20, using output filename=ray_trace_output_020.txt
+job=60
+main called with job= 60, using output filename=ray_trace_output_060.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.9 0.1 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx020.npy
--------------------------------
-Job number 20
-Power from DSM complete
-Time taken [0.326]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 20
-Optimum gains from DSM complete
-Time taken [174.211]
--------------------------------
--------------------------------
-Job number 20
-Quality from DSM complete [[-25.419 -25.419 -34.651]]
-Time taken [0.235]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.326   0.326   0.326   0.326   1.    174.211]]]
--------------------------------
--------------------------------
--------------------------------
-job=21
-main called with job= 21, using output filename=ray_trace_output_021.txt
+job=59
+main called with job= 59, using output filename=ray_trace_output_059.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.9 0.3 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx021.npy
--------------------------------
-Job number 21
-Power from DSM complete
-Time taken [0.424]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 21
-Optimum gains from DSM complete
-Time taken [181.016]
--------------------------------
--------------------------------
-Job number 21
-Quality from DSM complete [[-25.051 -25.051 -32.734]]
-Time taken [1.886]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.424   0.424   0.424   0.424   1.    181.016]]]
--------------------------------
--------------------------------
--------------------------------
-job=22
-main called with job= 22, using output filename=ray_trace_output_022.txt
+job=58
+main called with job= 58, using output filename=ray_trace_output_058.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.9 0.5 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx022.npy
--------------------------------
-Job number 22
-Power from DSM complete
-Time taken [0.235]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 22
-Optimum gains from DSM complete
-Time taken [189.918]
--------------------------------
--------------------------------
-Job number 22
-Quality from DSM complete [[-24.67  -24.67  -32.143]]
-Time taken [0.574]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.235   0.235   0.235   0.235   1.    189.918]]]
--------------------------------
--------------------------------
--------------------------------
-job=23
-main called with job= 23, using output filename=ray_trace_output_023.txt
+job=57
+main called with job= 57, using output filename=ray_trace_output_057.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.9 0.7 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx023.npy
--------------------------------
-Job number 23
-Power from DSM complete
-Time taken [0.266]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 23
-Optimum gains from DSM complete
-Time taken [217.112]
--------------------------------
--------------------------------
-Job number 23
-Quality from DSM complete [[-25.12  -25.12  -32.551]]
-Time taken [1.237]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.266   0.266   0.266   0.266   1.    217.112]]]
--------------------------------
--------------------------------
--------------------------------
-job=24
-main called with job= 24, using output filename=ray_trace_output_024.txt
+job=56
+main called with job= 56, using output filename=ray_trace_output_056.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.9 0.9 0.1]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx024.npy
--------------------------------
-Job number 24
-Power from DSM complete
-Time taken [1.317]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 24
-Optimum gains from DSM complete
-Time taken [191.9]
--------------------------------
--------------------------------
-Job number 24
-Quality from DSM complete [[-25.902 -25.902 -33.107]]
-Time taken [1.343]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      1.317   1.317   1.317   1.317   1.    191.9  ]]]
--------------------------------
--------------------------------
--------------------------------
-job=25
-main called with job= 25, using output filename=ray_trace_output_025.txt
+job=55
+main called with job= 55, using output filename=ray_trace_output_055.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
-Tx [0.1 0.1 0.3]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx025.npy
--------------------------------
-Job number 25
-Power from DSM complete
-Time taken [0.246]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 25
-Optimum gains from DSM complete
-Time taken [182.967]
--------------------------------
--------------------------------
-Job number 25
-Quality from DSM complete [[-22.637 -22.637 -30.881]]
-Time taken [0.394]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.      0.      0.246   0.246   0.246   0.246   1.    182.967]]]
--------------------------------
--------------------------------
--------------------------------
-job=26
-main called with job= 26, using output filename=ray_trace_output_026.txt
+job=54
+main called with job= 54, using output filename=ray_trace_output_054.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
--------------------------------
-Starting the ray bouncing and information storage
--------------------------------
-Tx [0.1 0.3 0.3]
--------------------------------
-Ray-launching complete
-Time taken 167.82306146621704
--------------------------------
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx026.npy
--------------------------------
-Job number 26
-Power from DSM complete
-Time taken [118.76]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 26
-Optimum gains from DSM complete
-Time taken [176.09]
--------------------------------
--------------------------------
-Job number 26
-Quality from DSM complete [[-23.279 -23.279 -31.384]]
-Time taken [1.025]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.    167.823 118.76  118.76  286.583 286.583   1.    176.09 ]]]
--------------------------------
--------------------------------
--------------------------------
-job=27
-main called with job= 27, using output filename=ray_trace_output_027.txt
+job=53
+main called with job= 53, using output filename=ray_trace_output_053.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
--------------------------------
-Starting the ray bouncing and information storage
--------------------------------
-Tx [0.1 0.5 0.3]
--------------------------------
-Ray-launching complete
-Time taken 167.37855577468872
--------------------------------
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx027.npy
--------------------------------
-Job number 27
-Power from DSM complete
-Time taken [112.685]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 27
-Optimum gains from DSM complete
-Time taken [165.12]
--------------------------------
--------------------------------
-Job number 27
-Quality from DSM complete [[-24.09 -24.09 -31.89]]
-Time taken [0.186]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.    167.379 112.685 112.685 280.063 280.063   1.    165.12 ]]]
--------------------------------
--------------------------------
--------------------------------
-job=28
-main called with job= 28, using output filename=ray_trace_output_028.txt
+job=52
+main called with job= 52, using output filename=ray_trace_output_052.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
--------------------------------
-Starting the ray bouncing and information storage
--------------------------------
-Tx [0.1 0.7 0.3]
--------------------------------
-Ray-launching complete
-Time taken 167.52307772636414
--------------------------------
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx028.npy
--------------------------------
-Job number 28
-Power from DSM complete
-Time taken [97.769]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 28
-Optimum gains from DSM complete
-Time taken [164.611]
--------------------------------
--------------------------------
-Job number 28
-Quality from DSM complete [[-24.707 -24.707 -33.015]]
-Time taken [0.341]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.    167.523  97.769  97.769 265.292 265.292   1.    164.611]]]
--------------------------------
--------------------------------
--------------------------------
-job=29
-main called with job= 29, using output filename=ray_trace_output_029.txt
+job=51
+main called with job= 51, using output filename=ray_trace_output_051.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
--------------------------------
-Starting the ray bouncing and information storage
--------------------------------
-Tx [0.1 0.9 0.3]
--------------------------------
-Ray-launching complete
-Time taken 166.71689891815186
--------------------------------
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx029.npy
--------------------------------
-Job number 29
-Power from DSM complete
-Time taken [113.199]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 29
-Optimum gains from DSM complete
-Time taken [165.119]
--------------------------------
--------------------------------
-Job number 29
-Quality from DSM complete [[-25.179 -25.179 -34.387]]
-Time taken [0.417]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.    166.717 113.199 113.199 279.916 279.916   1.    165.119]]]
--------------------------------
--------------------------------
--------------------------------
-job=30
-main called with job= 30, using output filename=ray_trace_output_030.txt
+job=50
+main called with job= 50, using output filename=ray_trace_output_050.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
--------------------------------
-Starting the ray bouncing and information storage
--------------------------------
-Tx [0.3 0.1 0.3]
--------------------------------
-Ray-launching complete
-Time taken 170.6964373588562
--------------------------------
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx030.npy
--------------------------------
-Job number 30
-Power from DSM complete
-Time taken [111.334]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 30
-Optimum gains from DSM complete
-Time taken [174.456]
--------------------------------
--------------------------------
-Job number 30
-Quality from DSM complete [[-23.683 -23.683 -31.86 ]]
-Time taken [0.141]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.    170.696 111.334 111.334 282.03  282.03    1.    174.456]]]
--------------------------------
--------------------------------
--------------------------------
-job=31
-main called with job= 31, using output filename=ray_trace_output_031.txt
+job=49
+main called with job= 49, using output filename=ray_trace_output_049.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
--------------------------------
-Starting the ray bouncing and information storage
--------------------------------
-Tx [0.3 0.3 0.3]
--------------------------------
-Ray-launching complete
-Time taken 164.10520458221436
--------------------------------
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx031.npy
--------------------------------
-Job number 31
-Power from DSM complete
-Time taken [108.027]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 31
-Optimum gains from DSM complete
-Time taken [166.494]
--------------------------------
--------------------------------
-Job number 31
-Quality from DSM complete [[-22.575 -22.575 -29.699]]
-Time taken [0.547]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.    164.105 108.027 108.027 272.132 272.132   1.    166.494]]]
--------------------------------
--------------------------------
--------------------------------
-job=32
-main called with job= 32, using output filename=ray_trace_output_032.txt
+job=48
+main called with job= 48, using output filename=ray_trace_output_048.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
--------------------------------
-Starting the ray bouncing and information storage
--------------------------------
-Tx [0.3 0.5 0.3]
--------------------------------
-Ray-launching complete
-Time taken 168.4547986984253
--------------------------------
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx032.npy
--------------------------------
-Job number 32
-Power from DSM complete
-Time taken [131.455]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 32
-Optimum gains from DSM complete
-Time taken [176.421]
--------------------------------
--------------------------------
-Job number 32
-Quality from DSM complete [[-21.851 -21.851 -28.986]]
-Time taken [0.337]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.    168.455 131.455 131.455 299.91  299.91    1.    176.421]]]
--------------------------------
--------------------------------
--------------------------------
-job=33
-main called with job= 33, using output filename=ray_trace_output_033.txt
+job=47
+main called with job= 47, using output filename=ray_trace_output_047.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
--------------------------------
-Starting the ray bouncing and information storage
--------------------------------
-Tx [0.3 0.7 0.3]
--------------------------------
-Ray-launching complete
-Time taken 167.68492674827576
--------------------------------
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx033.npy
--------------------------------
-Job number 33
-Power from DSM complete
-Time taken [115.549]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 33
-Optimum gains from DSM complete
-Time taken [167.332]
--------------------------------
--------------------------------
-Job number 33
-Quality from DSM complete [[-21.853 -21.853 -28.716]]
-Time taken [0.186]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.    167.685 115.549 115.549 283.234 283.234   1.    167.332]]]
--------------------------------
--------------------------------
--------------------------------
+job=46
+main called with job= 46, using output filename=ray_trace_output_046.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=45
+main called with job= 45, using output filename=ray_trace_output_045.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=44
+main called with job= 44, using output filename=ray_trace_output_044.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=43
+main called with job= 43, using output filename=ray_trace_output_043.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=42
+main called with job= 42, using output filename=ray_trace_output_042.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=41
+main called with job= 41, using output filename=ray_trace_output_041.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=40
+main called with job= 40, using output filename=ray_trace_output_040.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=39
+main called with job= 39, using output filename=ray_trace_output_039.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=38
+main called with job= 38, using output filename=ray_trace_output_038.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=37
+main called with job= 37, using output filename=ray_trace_output_037.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=36
+main called with job= 36, using output filename=ray_trace_output_036.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=35
+main called with job= 35, using output filename=ray_trace_output_035.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
 job=34
 main called with job= 34, using output filename=ray_trace_output_034.txt
 Running  on python version
 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
 [GCC 7.3.0]
-Number of obstacles 12
--------------------------------
-Starting the ray bouncing and information storage
--------------------------------
-Tx [0.3 0.9 0.3]
--------------------------------
-Ray-launching complete
-Time taken 170.65910482406616
--------------------------------
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxOb02Ob04Power_grid022Refs006m000_tx034.npy
--------------------------------
-Job number 34
-Power from DSM complete
-Time taken [112.72]
--------------------------------
----------------------------------
-Starting the optimal gains calculation
--------------------------------
-Job number 34
-Optimum gains from DSM complete
-Time taken [197.413]
--------------------------------
--------------------------------
-Job number 34
-Quality from DSM complete [[-23.319 -23.319 -30.474]]
-Time taken [1.474]
--------------------------------
--------------------------------
-Time to complete program
-[[[  1.    170.659 112.72  112.72  283.379 283.379   1.    197.413]]]
--------------------------------
--------------------------------
--------------------------------
-job=35
+job=33
+main called with job= 33, using output filename=ray_trace_output_033.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=32
+main called with job= 32, using output filename=ray_trace_output_032.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=31
+main called with job= 31, using output filename=ray_trace_output_031.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=30
+main called with job= 30, using output filename=ray_trace_output_030.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=29
+main called with job= 29, using output filename=ray_trace_output_029.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=28
+main called with job= 28, using output filename=ray_trace_output_028.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=27
+main called with job= 27, using output filename=ray_trace_output_027.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=26
+main called with job= 26, using output filename=ray_trace_output_026.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=25
+main called with job= 25, using output filename=ray_trace_output_025.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=24
+main called with job= 24, using output filename=ray_trace_output_024.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=23
+main called with job= 23, using output filename=ray_trace_output_023.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=22
+main called with job= 22, using output filename=ray_trace_output_022.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=21
+main called with job= 21, using output filename=ray_trace_output_021.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=20
+main called with job= 20, using output filename=ray_trace_output_020.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=19
+main called with job= 19, using output filename=ray_trace_output_019.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=18
+main called with job= 18, using output filename=ray_trace_output_018.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=17
+main called with job= 17, using output filename=ray_trace_output_017.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=16
+main called with job= 16, using output filename=ray_trace_output_016.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=15
+main called with job= 15, using output filename=ray_trace_output_015.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=14
+main called with job= 14, using output filename=ray_trace_output_014.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=13
+main called with job= 13, using output filename=ray_trace_output_013.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=12
+main called with job= 12, using output filename=ray_trace_output_012.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=11
+main called with job= 11, using output filename=ray_trace_output_011.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=10
+main called with job= 10, using output filename=ray_trace_output_010.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=9
+main called with job=  9, using output filename=ray_trace_output_009.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=8
+main called with job=  8, using output filename=ray_trace_output_008.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=7
+main called with job=  7, using output filename=ray_trace_output_007.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=6
+main called with job=  6, using output filename=ray_trace_output_006.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=5
+main called with job=  5, using output filename=ray_trace_output_005.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=4
+main called with job=  4, using output filename=ray_trace_output_004.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=3
+main called with job=  3, using output filename=ray_trace_output_003.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=2
+main called with job=  2, using output filename=ray_trace_output_002.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+job=1
+main called with job=  1, using output filename=ray_trace_output_001.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 250
+Starting job...
 
 ########################################################################
 ----------------------! Balena Job Details !----------------------------
 
-JobID          : 3997499
+JobID          : 4083974
 No. of nodes   : 1
 No. of CPUs    : 16
 Timelimit      : 03:00:00
-Elapsed time   : 03:00:23
-Nodelist       : node-sw-006
+Elapsed time   : 00:00:57
+Nodelist       : node-sw-150
 
 ########################################################################
 
