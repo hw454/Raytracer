@@ -2623,7 +2623,10 @@ def quality_compute(foldtype,plottype,Mesh,Grid,room,Znobrat,refindex,Antpar,Gt,
   Nre=int(Nre)
   Ns=max(Mesh.Nx,Mesh.Ny,Mesh.Nz)
   h=1.0/Ns
-
+  if room.Nsur>6:
+    boxstr='Box'
+  else:
+    boxstr='NoBox'
   Tx=RTM.MoveTx(job,Nx,Ny,Nz,h)
   if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
     loca='Centre'
