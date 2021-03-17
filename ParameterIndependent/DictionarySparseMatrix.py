@@ -2353,6 +2353,10 @@ def optimum_gains(foldtype,plottype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,N
       os.makedirs(powerfolder)
   if not os.path.exists(powerfolder):
       os.makedirs(powerfolder)
+  if room.Nsur>6:
+    boxstr='Box'
+  else:
+    boxstr='NoBox'
   # Check if the reflections angles are saved, if not then find them.
   angstr='ang%03dRefs%03dNs%0d_tx%03d'%(Nra,Nre,Ns,job)
   angfile=meshfolder+'/'+boxstr+angstr
@@ -2468,7 +2472,10 @@ def power_compute(foldtype,plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nr
     indout=ind
   Ns=max(Nx,Ny,Nz)
   h=1.0/Ns
-
+  if room.Nsur>6:
+    boxstr='Box'
+  else:
+    boxstr='NoBox'
   powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
   meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
   if not os.path.exists('./Mesh'):
