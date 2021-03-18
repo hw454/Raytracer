@@ -141,7 +141,7 @@ def plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
           mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
           if os.path.isfile(mesheg):
             Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
-            P,ind=DSM.power_compute(foldtype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Ns,LOS,PerfRef)
+            P,ind=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Nre,job,index,LOS,PerfRef)
           else:
             continue
         RadAstr    =meshfolder+'/'+boxstr+'RadA_grid%02dRefs%dm%d_tx%03d.npy'%(Nr,Nre,index,job)
@@ -450,7 +450,7 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
   numjobs=125
   roomnumstat=np.load('Parameters/roomnumstat.npy')
   _,_,L,split    =np.load('Parameters/Raytracing.npy')
-  Nra        =np.load('Parameters/Nra.npy')
+  #Nra        =np.load('Parameters/Nra.npy')
   Ntri          =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
   MaxInter      =np.load('Parameters/MaxInter.npy')             # The number of intersections a single ray can have in the room in one direction.
   Orig          =np.load('Parameters/Origin.npy')
@@ -624,7 +624,7 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
             mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
             if os.path.isfile(mesheg):
               Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
-              P,ind=DSM.power_compute(foldtype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Ns,LOS,PerfRef)
+              P,ind=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Nre,job,index,LOS,PerfRef)
               if not os.path.exists('./Mesh'):
                 os.makedirs('./Mesh')
                 os.makedirs('./Mesh/'+plottype)
@@ -673,7 +673,7 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
             mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
             if os.path.isfile(mesheg):
               Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
-              P,ind=DSM.power_compute(foldtype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Ns,LOS,PerfRef)
+              P,ind=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Nre,job,index,LOS,PerfRef)
               if not os.path.exists('./Mesh'):
                 os.makedirs('./Mesh')
                 os.makedirs('./Mesh/'+plottype)
@@ -722,7 +722,7 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
             mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
             if os.path.isfile(mesheg):
               Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
-              P,ind=DSM.power_compute(foldtype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Ns,LOS,PerfRef)
+              P,ind=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Nre,job,index,LOS,PerfRef)
               if not os.path.exists('./Mesh'):
                 os.makedirs('./Mesh')
                 os.makedirs('./Mesh/'+plottype)
@@ -910,7 +910,7 @@ def main():
     if not Q==0:
       continue
     #plot_times(plottype,testnum,roomnumstat)
-    if Par==0 and Ns==5:
+    if Par==0 and Ns==5 and Nr==22 and Nre<4:
       plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index)
       #plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index)        # Plot the power in slices.
     else:

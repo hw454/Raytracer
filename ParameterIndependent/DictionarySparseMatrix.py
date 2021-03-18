@@ -2335,7 +2335,7 @@ def optimum_gains(foldtype,plottype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,N
     indout=ind
   Ns=max(Nx,Ny,Nz)
   h=1.0/Ns
-
+  powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
   meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
@@ -2662,15 +2662,8 @@ def quality_compute(foldtype,plottype,Mesh,Grid,room,Znobrat,refindex,Antpar,Gt,
   angstr='ang%03dRefs%03dNs%0d_tx%03d'%(Nra,Nre,Ns,job)
   angfile=meshfolder+'/'+boxstr+angstr
   angeg=angfile+'%02dx%02dy%02dz.npz'%(0,0,0)
-  if newvar:
-    AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
-    AngDSM.save_dict(angfile)
-  else:
-    if os.path.isfile(angeg):
-      AngDSM=load_dict(angfile,Nx,Ny,Nz)
-    else:
-      AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
-      AngDSM.save_dict(angfile)
+  AngDSM=Mesh.sparse_angles(ind)                       # Get the angles of incidence from the mesh.
+  AngDSM.save_dict(angfile)
   Comper,Compar=AngDSM.refcoefbyterm_withmul(Znobrat,refindex,LOS,PerfRef,ind)
   rfile=meshfolder+'/rad%dRefs%dNs%d'%(Nra,Nre,Ns)
   rstr='rad%dRefs%dNs%d'%(Nra,Nre,Ns)
@@ -2678,16 +2671,8 @@ def quality_compute(foldtype,plottype,Mesh,Grid,room,Znobrat,refindex,Antpar,Gt,
   reg=rfile+'%02dx%02dy%02dz.npy'%(0,0,0)
   Nob=room.Nob
   Nsur=room.Nsur
-  if newvar:
-    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre,boxstr,index,job)
-    RadMesh.save_dict(rfile)
-  else:
-    if os.path.isfile(reg):
-      RadMesh=load_dict(rfile,Nx,Ny,Nz)
-      ind=RadMesh.nonzero()
-    else:
-      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre,boxstr,index,job)
-      RadMesh.save_dict(rfile)
+  RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre,boxstr,index,job)
+  RadMesh.save_dict(rfile)
   t4=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,Nra,ind)
   P=np.zeros((Mesh.Nx,Mesh.Ny,Mesh.Nz),dtype=np.longdouble)
