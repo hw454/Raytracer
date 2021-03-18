@@ -172,6 +172,7 @@ def MoreInputs_Run(index=0):
   RayPar        =np.load('Parameters/Raytracing.npy')
   _,_,L,split =RayPar
   parameters=  np.flip(np.load('Parameters/Parameterarray.npy'),axis=0)
+  nr,nc=parameters.shape
   for arr in parameters:
     InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index=arr.astype(int)
     print('Parameter set',arr)
@@ -425,25 +426,6 @@ def MoreInputs_Run(index=0):
     plotfit= myfile.read()         # read the entire file into a string
     myfile.close()
     RTplot.plot_mesh(Mesh,Room,TxLowTol,foldtype,plottype,Box,Obstr,Nr,Nre,Ns,plotfit,LOS,index)
-  return 0
-
-
-def main():
-  Oblist        =np.load('Parameters/Obstacles.npy').astype(float)      # The obstacles which are within the outerboundary
-  Ntri          =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
-  _,h,_,_    =np.load('Parameters/Raytracing.npy')
-  Room=rom.room(Oblist,Ntri)
-  Nx=int(Room.maxxleng()/h)
-  Ny=int(Room.maxyleng()/h)
-  Nz=int(Room.maxzleng()/h)
-  #Ra.centre_dist_test()
-  #RT.main(sys.argv)
-  Tx0=np.array([0,0,0])
-  Quality_Tx(Tx0)
-  TxB=((0,h*Nx),(0,h*Ny),(0,h*Nz))
-  TxOut=minimize(Quality_Tx, Tx0, method='SLSQP', tol=1e-6,bounds=TxB)
-  print('main',TxOut)
-
   return 0
 
 if __name__=='__main__':

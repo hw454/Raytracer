@@ -1072,9 +1072,9 @@ def MoveTx(job,Nx,Ny,Nz,h):
 
 def jobfromTx(Tx,h):
   Ns=int(1.0//h+1)
-  H=(Tx[2]-0.5*h)//h
-  t=(Tx[0]-0.5*h)//h
-  u=(Tx[1]-0.5*h)//h
+  H=1+(Tx[2]-0.5*h)//h
+  t=1+(Tx[0]-0.5*h)//h
+  u=1+(Tx[1]-0.5*h)//h
   return int(H*(Ns**2)+t*Ns+u)
 
 def main(argv,scriptcall=False):
@@ -1130,21 +1130,25 @@ def main(argv,scriptcall=False):
     else:
       Tx=np.load('Parameters/Origin.npy')
       job=jobfromTx(Tx,h)
+      job=665
+      Tx=MoveTx(job,Nx,Ny,Nz,h)
       np.save('Parameters/Origin_job%03d.npy'%job,Tx)
     #InBook     =rd.open_workbook(filename=Sheetname)#,data_only=True)
     #SimParstr  ='SimulationParameters'
     #SimPar     =InBook.sheet_by_name(SimParstr)
     #InBook.save(filename=Sheetname)
-    if Ns==10:
-      if job==444 or job==432:
+    if Ns==11:
+      if job==665 or job==652:
         pass
       else:
         continue
     if job>125 and Ns==5:
         continue
     if Nr==337 or Nre==6:
-      if not job==55 or job==444 or job==432:
-          continue
+      if job==55 or job==652 or job==665:
+        pass
+      else:
+        continue
     Mesh1,timemesh,Room=MeshProgram(Nr,index,job,Nre,PerfRef,LOS,InnerOb,Nrs,Ns) # Shoot the rays and store the information
     Grid,timep     =power_grid(Room,Mesh1,Nr,index,job,Nre,PerfRef,LOS,InnerOb,Nrs,Ns)  # Use the ray information to compute the power
     if job==55:
