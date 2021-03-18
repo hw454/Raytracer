@@ -887,7 +887,7 @@ class DS:
           elif s[x1,y1,z1,a1,b1]!=s[x2,y2,z2,a2,b2]: return False
           else: pass
     return True
-  def __get_rad__(s,Nsur,ind=-1,plottype=str(),Nra=-1,Nre=-1):
+  def __get_rad__(s,Nsur,ind=-1,plottype=str(),Nra=-1,Nre=-1,boxstr=str(),index=0,job=0):
     ''' Return a DS corresponding to the distances stored in the mesh.
 
     :param Nob: The number of obstacles.
@@ -959,10 +959,10 @@ class DS:
     Ns=max(s.Nx,s.Ny,s.Nz)
     meshfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
     if Nra>0 and Nre>0:
-      RadAstr    =meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nra,Nre,0)
+      RadAstr    =meshfolder+'/'+boxstr+'RadA_grid%dRefs%dm%d_tx%03d.npy'%(Nra,Nre,index,job)
       np.save(RadAstr,RadA)
       for j in range(0,Nsur):
-        RadSistr=meshfolder+'/RadS%d_grid%dRefs%dm%d.npy'%(j,Nra,Nre,0)
+        RadSistr=meshfolder+'/'+boxstr+'RadS%d_grid%dRefs%dm%d_tx%03d.npy'%(j,Nra,Nre,index,job)
         np.save(RadSistr,RadSi[j])
     return out,indout
   def __del_doubles__(s,h,Nsur,ind=-1,Ntri=-1):
@@ -2391,14 +2391,14 @@ def optimum_gains(foldtype,plottype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,N
   Nob=room.Nob
   Nsur=room.Nsur
   if newvar:
-    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre)
+    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre,boxstr,index,job)
     RadMesh.save_dict(rfile)
   else:
     if os.path.isfile(reg):
       RadMesh=load_dict(rfile,Nx,Ny,Nz)
       ind=RadMesh.nonzero()
     else:
-      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre)
+      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre,boxstr,index,job)
       RadMesh.save_dict(rfile)
   t4=t.time()
   Hx,Fx=RadMesh.opti_func_mats(Realper,Realpar,Imageper,Imagepar,khat,L,lam,Pol,Nra,ind)
@@ -2545,14 +2545,14 @@ def power_compute(foldtype,plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nr
   Nob=room.Nob
   Nsur=room.Nsur
   if newvar:
-    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre)
+    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre,boxstr,index,job)
     RadMesh.save_dict(rfile)
   else:
     if os.path.isfile(reg):
       RadMesh=load_dict(rfile,Nx,Ny,Nz)
       ind=RadMesh.nonzero()
     else:
-      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre)
+      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre,boxstr,index,job)
       RadMesh.save_dict(rfile)
   t4=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,Nra,ind)
@@ -2679,14 +2679,14 @@ def quality_compute(foldtype,plottype,Mesh,Grid,room,Znobrat,refindex,Antpar,Gt,
   Nob=room.Nob
   Nsur=room.Nsur
   if newvar:
-    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre)
+    RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre,boxstr,index,job)
     RadMesh.save_dict(rfile)
   else:
     if os.path.isfile(reg):
       RadMesh=load_dict(rfile,Nx,Ny,Nz)
       ind=RadMesh.nonzero()
     else:
-      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre)
+      RadMesh,ind=Mesh.__get_rad__(Nsur,ind,foldtype,Nra,Nre,boxstr,index,job)
       RadMesh.save_dict(rfile)
   t4=t.time()
   Gridpe, Gridpa=RadMesh.gain_phase_rad_ref_mul_add(Comper,Compar,Gt,khat,L,lam,Nra,ind)

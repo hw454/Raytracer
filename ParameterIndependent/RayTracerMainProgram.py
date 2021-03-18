@@ -638,7 +638,6 @@ def power_grid(Room,Mesh,Nr=22,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,Nrs
     loca='OffCentre'
   plottype=LOSstr+boxstr+loca
   # Initialise variable for counting zeros
-  G_z=np.zeros((1,1))
   Nsur=int(Room.Nsur)
   Nx=int(Room.maxxleng()//h+1)
   Ny=int(Room.maxyleng()//h+1)
@@ -685,15 +684,6 @@ def power_grid(Room,Mesh,Nr=22,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,Nrs
         os.makedirs(powerfolder)
       np.save(pstr,Grid)
       print('Power grid saved at, ',pstr)
-      RadAstr=meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nr,Nre,0)
-      if os.path.isfile(RadAstr):
-        os.rename(r''+meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nr,Nre,0),r''+meshfolder+'/'+boxstr+'RadA_grid%dRefs%dm%d_tx%03d.npy'%(Nr,Nre,index,job))
-      if not LOS:
-        for su in range(0,Nsur):
-          RadSstr=meshfolder+'/RadS%d_grid%dRefs%dm%d.npy'%(su,Nr,Nre,0)
-          if os.path.isfile(RadSstr):
-            os.rename(r''+meshfolder+'/RadS%d_grid%dRefs%dm%d.npy'%(su,Nr,Nre,0),r''+meshfolder+'/'+boxstr+'RadS%d_grid%dRefs%dm%d_tx%03d.npy'%(su,Nr,Nre,index,job))
-  G_z[0,0]=np.count_nonzero((Grid==0))
   t1=t.time()
   timemat[0]=t1-t0
   print('-------------------------------')
@@ -701,7 +691,7 @@ def power_grid(Room,Mesh,Nr=22,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,Nrs
   print('Power from DSM complete')
   print('Time taken',timemat)
   print('-------------------------------')
-  return Grid,G_z,timemat
+  return Grid,timemat
 
 def optimum_gains(Room,Mesh,Nr=22,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,Nrs=2,Ns=5):
   ''' Calculate the field on a grid using enviroment parameters and the \
@@ -1138,8 +1128,8 @@ def main(argv,scriptcall=False):
     if scriptcall:
       Tx=MoveTx(job,Nx,Ny,Nz,h)
     else:
-      job=55
-      Tx=MoveTx(job,Nx,Ny,Nz,h)
+      Tx=np.load('Parameters/Origin.npy')
+      job=jobfromTx(Tx,h)
       np.save('Parameters/Origin_job%03d.npy'%job,Tx)
     #InBook     =rd.open_workbook(filename=Sheetname)#,data_only=True)
     #SimParstr  ='SimulationParameters'
@@ -1152,11 +1142,11 @@ def main(argv,scriptcall=False):
         continue
     if job>125 and Ns==5:
         continue
-    if Nr==337 and Nre==6:
+    if Nr==337 or Nre==6:
       if not job==55:
           continue
     Mesh1,timemesh,Room=MeshProgram(Nr,index,job,Nre,PerfRef,LOS,InnerOb,Nrs,Ns) # Shoot the rays and store the information
-    Grid,G_z,timep     =power_grid(Room,Mesh1,Nr,index,job,Nre,PerfRef,LOS,InnerOb,Nrs,Ns)  # Use the ray information to compute the power
+    Grid,timep     =power_grid(Room,Mesh1,Nr,index,job,Nre,PerfRef,LOS,InnerOb,Nrs,Ns)  # Use the ray information to compute the power
     if job==55:
       Gtout,timeo      =optimum_gains(Room,Mesh1,Nr,index,job,Nre,PerfRef,LOS,InnerOb,Nrs,Ns)
     Q=Quality(Room,Nr,index,job,Nre,PerfRef,LOS,InnerOb,Nrs,Ns)
