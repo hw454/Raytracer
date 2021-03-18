@@ -1143,7 +1143,7 @@ def main(argv,scriptcall=False):
     if job>125 and Ns==5:
         continue
     if Nr==337 or Nre==6:
-      if not job==55:
+      if not job==55 or job==444 or job==432:
           continue
     Mesh1,timemesh,Room=MeshProgram(Nr,index,job,Nre,PerfRef,LOS,InnerOb,Nrs,Ns) # Shoot the rays and store the information
     Grid,timep     =power_grid(Room,Mesh1,Nr,index,job,Nre,PerfRef,LOS,InnerOb,Nrs,Ns)  # Use the ray information to compute the power
