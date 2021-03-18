@@ -2348,8 +2348,8 @@ def optimum_gains(foldtype,plottype,Mesh,room,Znobrat,refindex,Antpar, Pol,Nra,N
     os.makedirs(meshfolder)
   if not os.path.exists(meshfolder):
     os.makedirs(meshfolder)
-  if not os.path.exists('./Mesh'+plottype):
-      os.makedirs('./Mesh'+plottype)
+  if not os.path.exists('./Mesh/'+plottype):
+      os.makedirs('./Mesh/'+plottype)
       os.makedirs(powerfolder)
   if not os.path.exists(powerfolder):
       os.makedirs(powerfolder)
@@ -2634,19 +2634,13 @@ def quality_compute(foldtype,plottype,Mesh,Grid,room,Znobrat,refindex,Antpar,Gt,
     boxstr='Box'
   else:
     boxstr='NoBox'
-  Tx=RTM.MoveTx(job,Nx,Ny,Nz,h)
-  if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
-    loca='Centre'
-  else:
-    loca='OffCentre'
-  plottype=LOSstr+boxstr+loca
   powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
   meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nra,Nre,Ns)
   if not os.path.exists('./Mesh'):
     os.makedirs('./Mesh')
     os.makedirs('./Mesh/'+foldtype)
     os.makedirs(meshfolder)
-    os.makedirs('./Mesh'+plottype)
+    os.makedirs('./Mesh/'+plottype)
     os.makedirs(powerfolder)
   if not os.path.exists('./Mesh/'+foldtype):
     os.makedirs('./Mesh/'+foldtype)
@@ -2654,7 +2648,7 @@ def quality_compute(foldtype,plottype,Mesh,Grid,room,Znobrat,refindex,Antpar,Gt,
   if not os.path.exists(meshfolder):
     os.makedirs(meshfolder)
   if not os.path.exists('./Mesh'+plottype):
-      os.makedirs('./Mesh'+plottype)
+      os.makedirs('./Mesh/'+plottype)
       os.makedirs(powerfolder)
   if not os.path.exists(powerfolder):
       os.makedirs(powerfolder)
