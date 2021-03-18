@@ -913,9 +913,8 @@ def main():
     if Par==0 and Ns==5 and Nr==22 and Nre<4:
       plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index)
       #plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index)        # Plot the power in slices.
-    else:
-      pass
-      #plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index)        # Plot the power in slices.
+    elif Ns==10:
+      plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index)        # Plot the power in slices.
     #ResOn      =np.load('Parameters/ResOn.npy')
     #if ResOn:
     #  plot_residual(plottype,testnum,roomnumstat)

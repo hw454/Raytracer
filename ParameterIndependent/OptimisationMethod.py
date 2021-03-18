@@ -381,7 +381,7 @@ def MoreInputs_Run(index=0):
       Q=Quality_MoreInputs(TxHighTol,Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef,Box,Obstr)
       Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
     job=Ns**3+1
-    P,_=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,job,indexLOS,PerfRef)
+    P,_=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,job,index,LOS,PerfRef)
     np.save(meshfolder+'/'+Box+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03dx%03dy%03dz.npy'%(Nr,Nre,index,TxHighTol[0]*1e+3,TxHighTol[1]*1e+3,TxHighTol[2]*1e+3),P)
     RadAstr=meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
     if os.path.isfile(RadAstr):
