@@ -148,8 +148,9 @@ def Quality_MoreInputs(Tx,Direc,programterms,RayPar,foldtype,Room,Znobrat,refind
   print('Mesh saved at',meshname)
   Ns=max(Nx,Ny,Nz)
   Grid=np.zeros((Nx,Ny,Nz))
+  job=Ns**3+1
   #Gt=DSM.optimum_gains(plottype,Mesh,Room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS,PerfRef)
-  Q,_=DSM.quality_compute(foldtype,Mesh,Grid,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,Ns,LOS,PerfRef)
+  Q,_=DSM.quality_compute(foldtype,plottype,Mesh,Grid,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,job,index,LOS,PerfRef)
   if not os.path.exists('./Quality'):
    os.makedirs('./Quality')
   if not os.path.exists('./Quality/'+plottype):
@@ -169,7 +170,7 @@ def MoreInputs_Run(index=0):
 
   ##----Retrieve the Raytracing Parameters-----------------------------
   RayPar        =np.load('Parameters/Raytracing.npy')
-  N_,_,L,split =RayPar
+  _,_,L,split =RayPar
   parameters=  np.flip(np.load('Parameters/Parameterarray.npy'),axis=0)
   for arr in parameters:
     InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index=arr.astype(int)
@@ -191,6 +192,9 @@ def MoreInputs_Run(index=0):
       continue
     if Ns==10:
       print('Only optimise with the 5x5x5 meshes not 10x10x10')
+      continue
+    if Q==1 or Q==2:
+      print('Only consider average power in optimisation')
       continue
     MaxInter      =np.load('Parameters/MaxInter%d.npy'%index)             # The number of intersections a single ray can have in the room in one direction.
     Oblist        =np.load('Parameters/Obstacles%d.npy'%index).astype(float)      # The obstacles which are within the outerboundary
@@ -304,16 +308,16 @@ def MoreInputs_Run(index=0):
     TxHighTol=TxOut.x
     HighTolnit=TxOut.nit
     print('Optimal Tx at ',TxOut.x)
-    # if not os.path.isfile(Optfile):
-      # TxOut=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars,options={'xtol':spacetol,'ftol':optTol},bounds=TxB)
-      # np.save(Optfile,TxOut.x)
-      # TxHighTol=TxOut.x
-      # HighTolnit=TxOut.nit
-      # print('Optimal Tx at ',TxOut.x)
-    # else:
-      # TxHighTol=np.load(Optfile)
-      # print('Opt loaded',TxHighTol)
-      # HighTolnit=np.nan
+    if not os.path.isfile(Optfile):
+      TxOut=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars,options={'xtol':spacetol,'ftol':optTol},bounds=TxB)
+      np.save(Optfile,TxOut.x)
+      TxHighTol=TxOut.x
+      HighTolnit=TxOut.nit
+      print('Optimal Tx at ',TxOut.x)
+    else:
+      TxHighTol=np.load(Optfile)
+      print('Opt loaded',TxHighTol)
+      HighTolnit=np.nan
     t1=t.time()
     spacetol2=0.005
     optTol2=1e-4
@@ -324,16 +328,16 @@ def MoreInputs_Run(index=0):
     TxLowTol=TxOutTolLow.x
     LowTolnit=TxOutTolLow.nit
     print('Optimal Tx at ',TxOutTolLow.x)
-    # if not os.path.isfile(OptfileLow):
-      # TxOutTolLow=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars,options={'xtol':spacetol2, 'ftol':optTol2},bounds=TxB)
-      # np.save(OptfileLow,TxOutTolLow.x)
-      # TxLowTol=TxOutTolLow.x
-      # LowTolnit=TxOutTolLow.nit
-      # print('Optimal Tx at ',TxOutTolLow.x)
-    # else:
-      # TxLowTol=np.load(OptfileLow)
-      # print('Opt Loaded',TxLowTol)
-      # LowTolnit=np.nan
+    if not os.path.isfile(OptfileLow):
+      TxOutTolLow=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars,options={'xtol':spacetol2, 'ftol':optTol2},bounds=TxB)
+      np.save(OptfileLow,TxOutTolLow.x)
+      TxLowTol=TxOutTolLow.x
+      LowTolnit=TxOutTolLow.nit
+      print('Optimal Tx at ',TxOutTolLow.x)
+    else:
+      TxLowTol=np.load(OptfileLow)
+      print('Opt Loaded',TxLowTol)
+      LowTolnit=np.nan
     t3=t.time()
     txtstr=SpecResultsFolder+'/'+Obstr+'OptimalOrigin.txt'
     if not os.path.isfile(txtstr):
@@ -376,7 +380,8 @@ def MoreInputs_Run(index=0):
       Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef,Box,Obstr=pars
       Q=Quality_MoreInputs(TxHighTol,Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef,Box,Obstr)
       Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
-    P,_=DSM.power_compute(plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,Ns,LOS,PerfRef)
+    job=Ns**3+1
+    P,_=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,job,indexLOS,PerfRef)
     np.save(meshfolder+'/'+Box+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03dx%03dy%03dz.npy'%(Nr,Nre,index,TxHighTol[0]*1e+3,TxHighTol[1]*1e+3,TxHighTol[2]*1e+3),P)
     RadAstr=meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
     if os.path.isfile(RadAstr):
@@ -403,7 +408,7 @@ def MoreInputs_Run(index=0):
       Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef,Box,Obstr=pars
       Quality_MoreInputs(TxLowTol,Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef,Box,Obstr)
       Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
-    P,_=DSM.power_compute(plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,Ns,LOS,PerfRef)
+    P,_=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,job,indexLOS,PerfRef)
     np.save(meshfolder+'/'+Box+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03dx%03dy%03dz.npy'%(Nr,Nre,index,TxLowTol[0]*1e+3,TxLowTol[1]*1e+3,TxLowTol[2]*1e+3),P)
     RadAstr=meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
     if os.path.isfile(RadAstr):
