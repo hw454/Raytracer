@@ -26,11 +26,15 @@
 # send mail to this address
 #SBATCH --mail-user=hw454@bath.ac.uk
 
+# Start time
+#SBATCH --begin=now+5hours
+
 # set up environment
+
 module load python3/2019.x
 source activate py3
 
-./Raytracer_transmittermoverBack.sh 
+./Raytracer_transmittermover.sh 
 
 echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 250"
 echo "Starting job..."

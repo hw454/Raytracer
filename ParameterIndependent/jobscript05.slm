@@ -25,6 +25,9 @@
 #
 # send mail to this address
 #SBATCH --mail-user=hw454@bath.ac.uk
+#
+# Choose start time
+#SBATCH --begin=now+3hours
 
 # set up environment
 echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 10"
@@ -32,7 +35,7 @@ echo "Starting job..."
 module load python3/2019.x
 source activate py3
 
-for ((job=25; job>125; job++)); do
+for ((job=0; job>125; job++)); do
   echo "job=${job}"
   time python RayTracerMainProgram.py "${job}"
 done 
