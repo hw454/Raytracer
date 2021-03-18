@@ -659,9 +659,9 @@ def power_grid(Room,Mesh,Nr=22,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,Nrs
       print('Power loaded from store')
       print('Power file'+pstr)
   else:
-      meshname=meshfolder+'/DSM_tx%03d'%(job)
-      if os.path.isfile(meshname):
-        Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
+      #meshname=meshfolder+'/DSM_tx%03d'%(job)
+      #if os.path.isfile(meshname):
+      #  Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
       # Make the refindex, impedance and gains vectors the right length to
       # match the matrices.
       Znobrat=np.tile(Znobrat,(Nre,1))          # The number of rows is Nsur*Nre+1. Repeat Znobrat to match Mesh dimensions

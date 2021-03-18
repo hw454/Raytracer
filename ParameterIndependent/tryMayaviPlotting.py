@@ -563,7 +563,7 @@ def PlotPolarGains(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
           mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
           if os.path.isfile(mesheg):
             Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
-            Gt=DSM.optimum_gains(plottype,Mesh,Room,Znobrat,refindex,Antpar,Pol,Nr,Nre,Ns,LOS,PerfRef)
+            Gt=DSM.optimum_gains(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Pol,Nr,Nre,job,index,LOS,PerfRef)
             np.save(OptiStr+'.npy',Gt)
             print('plotting gain pattern for Nra=%03d, Nre=%d, Roomnum=%d,Tx_job=%03d'%(Nr,Nre,index,job))
           else:
