@@ -2482,15 +2482,15 @@ def power_compute(foldtype,plottype,Mesh,room,Znobrat,refindex,Antpar,Gt, Pol,Nr
     os.makedirs('./Mesh')
     os.makedirs('./Mesh/'+foldtype)
     os.makedirs(meshfolder)
-    os.makedirs('./Mesh'+plottype)
+    os.makedirs('./Mesh/'+plottype)
     os.makedirs(powerfolder)
   if not os.path.exists('./Mesh/'+foldtype):
     os.makedirs('./Mesh/'+foldtype)
     os.makedirs(meshfolder)
   if not os.path.exists(meshfolder):
     os.makedirs(meshfolder)
-  if not os.path.exists('./Mesh'+plottype):
-      os.makedirs('./Mesh'+plottype)
+  if not os.path.exists('./Mesh/'+plottype):
+      os.makedirs('./Mesh/'+plottype)
       os.makedirs(powerfolder)
   if not os.path.exists(powerfolder):
       os.makedirs(powerfolder)
