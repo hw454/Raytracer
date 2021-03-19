@@ -654,11 +654,13 @@ def power_grid(Room,Mesh,Nr=22,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,Nrs
   meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   pstr=powerfolder+'/'+boxstr+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
-  if os.path.isfile(pstr):
-      Grid= np.load(pstr)
-      print('Power loaded from store')
-      print('Power file'+pstr)
-  else:
+  # if os.path.isfile(pstr):
+      # Grid= np.load(pstr)
+      # print('Power loaded from store')
+      # print('Power file'+pstr)
+  # else:
+  c=1
+  if c:
       #meshname=meshfolder+'/DSM_tx%03d'%(job)
       #if os.path.isfile(meshname):
       #  Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
