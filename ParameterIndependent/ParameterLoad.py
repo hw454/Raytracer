@@ -535,13 +535,13 @@ def ObstacleCoefficients(SN,index=0):
   Nob=np.load('Parameters/Nob%d.npy'%index)           # The Number of obstacle.
   if index==1 or index==2:
     Nrs=0
-  if index==3:
+  elif index==3:
     Nrs=1
-  if index==6 or index==5:
+  elif index==6 or index==5:
     Nrs=2
-  if index==7:
+  elif index==7:
     Nrs=12
-  if index==4:
+  elif index==4:
     Nrs=6
   else:
     Nrs=0
