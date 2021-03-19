@@ -72,7 +72,18 @@ def DeclareParameters(SN,index=0):
     #np.pi*np.array([1/3])#,1/5,1/7,1/8,1/9,1/12,1/14,1/16,1/18,1/19,1/20,1/22,1/25,1/36])
   Nra=np.ones(nrays,dtype=int)
   Nrs =SimPar.cell(row=13,column=3).value
-  Nrs=2
+  if index==1 or index==2:
+    Nrs=0
+  elif index==3:
+    Nrs=1
+  elif index==6 or index==5:
+    Nrs=2
+  elif index==7:
+    Nrs=12
+  elif index==4:
+    Nrs=6
+  else:
+    Nrs=0
   SimPar.cell(row=13,column=3).value=Nrs
   Nre=int(SimPar.cell(row=2,column=3).value )     # Number of reflections
   Ns=int(SimPar.cell(row=3,column=3).value )      # Number of steps on longest axis.
@@ -373,7 +384,7 @@ def DeclareParameters(SN,index=0):
   np.save('Parameters/NtriOut.npy',NtriOut)
   np.save('Parameters/Nob%d.npy'%index,Nob)
   np.save('Parameters/Ns.npy',Ns)
-  np.save('Parameters/Nrs.npy',Nrs)
+  np.save('Parameters/Nrs%d.npy'%index,Nrs)
   np.save('Parameters/Origin.npy',Tx)
   np.save('Parameters/LOS%d.npy'%index,LOS)
   np.save('Parameters/PerfRef%d.npy'%index,PerfRef)
@@ -595,9 +606,17 @@ def ObstacleCoefficients(SN,index=0):
   Nobstsur=Nobst*max(1,6*Obst.cell(row=2,column=3).value)
   Nsur=Nobstsur*InOb+NOut
   print('Number of surfaces',Nsur)
-  mur   =np.array([complex(ObstPar.cell(row=2,column=2).value)])
-  epsr  =np.array([complex(ObstPar.cell(row=2,column=3).value)])
-  sigma =np.array([complex(ObstPar.cell(row=2,column=4).value)])
+  if index==7 or index==4:
+    murj =complex(ObstPar.cell(row=1,column=2).value)
+    epsrj=complex(ObstPar.cell(row=1,column=3).value)
+    sigj =complex(ObstPar.cell(row=1,column=4).value)
+  else:
+    murj=0j
+    epsrj=0j
+    sigj=0j
+  mur   =np.array([murj])
+  epsr  =np.array([epsrj])
+  sigma =np.array([sigj])
   refindex=np.zeros(Nsur,dtype=np.complex128)
   Znobrat=np.zeros(Nsur,dtype=np.complex128)
   top=frequency*mu0*mur[-1]*1j
@@ -607,44 +626,44 @@ def ObstacleCoefficients(SN,index=0):
   else:
     Znob =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
   Znobrat[0]=np.array([Znob/Z0])
-  ObstPar.cell(row=2,column=5).value=str(Znob/Z0)
+  ObstPar.cell(row=3,column=5).value=str(Znob/Z0)
   PerfRef=SimPar.cell(row=11,column=3).value
-  if PerfRef and Znob!=0:
-    refindec[0]=1+0j
-  else:
-    refindex[0]=mur[-1]*epsr[-1]
-  ObstPar.cell(row=2,column=6).value=str(refindex[-1])
+  refindex[0]=mur[-1]*epsr[-1]
+  ObstPar.cell(row=3,column=6).value=str(refindex[-1])
   nre=0
+  Nobst+=NOut
+  c=0
   for j in range(1,Nsur):
     if j+1<=NOut:
       box=int(OutB.cell(row=j+2,column=3).value)
       surf=int(OutB.cell(row=j+2,column=4).value)
       tri=int(OutB.cell(row=j+2,column=5).value)
       for i in range(1,6*box+2*surf+tri):
+        c+=1
         murj =0j
         epsrj=0j
         sigj =0j
-        if index==3 and j+2==6:
-          murj =complex(ObstPar.cell(row=11,column=2).value)
-          epsrj=complex(ObstPar.cell(row=11,column=3).value)
-          sigj =complex(ObstPar.cell(row=11,column=4).value)
+        if index==3 and j+3==7:
+          murj =complex(ObstPar.cell(row=1,column=2).value)
+          epsrj=complex(ObstPar.cell(row=1,column=3).value)
+          sigj =complex(ObstPar.cell(row=1,column=4).value)
         elif index==6:
-          if j+2==4 and j+2==4:
-            murj =complex(ObstPar.cell(row=11,column=2).value)
-            epsrj=complex(ObstPar.cell(row=11,column=3).value)
-            sigj =complex(ObstPar.cell(row=11,column=4).value)
-        if index==5:
-          if j+2==5 or j+2==6:
-            murj =complex(ObstPar.cell(row=11,column=2).value)
-            epsrj=complex(ObstPar.cell(row=11,column=3).value)
-            sigj =complex(ObstPar.cell(row=11,column=4).value)
-        elif index==7:
-          murj =complex(ObstPar.cell(row=11,column=2).value)
-          epsrj=complex(ObstPar.cell(row=11,column=3).value)
-          sigj =complex(ObstPar.cell(row=11,column=4).value)
-        ObstPar.cell(row=j+2,column=2).value=str(murj)
-        ObstPar.cell(row=j+2,column=3).value=str(epsrj)
-        ObstPar.cell(row=j+2,column=4).value=str(sigj)
+          if j+3==5 or j+3==7:
+            murj =complex(ObstPar.cell(row=1,column=2).value)
+            epsrj=complex(ObstPar.cell(row=1,column=3).value)
+            sigj =complex(ObstPar.cell(row=1,column=4).value)
+        elif index==5:
+          if j+3==7 or j+3==8:
+            murj =complex(ObstPar.cell(row=1,column=2).value)
+            epsrj=complex(ObstPar.cell(row=1,column=3).value)
+            sigj =complex(ObstPar.cell(row=1,column=4).value)
+        elif index==7 or index==4:
+          murj =complex(ObstPar.cell(row=1,column=2).value)
+          epsrj=complex(ObstPar.cell(row=1,column=3).value)
+          sigj =complex(ObstPar.cell(row=1,column=4).value)
+        ObstPar.cell(row=j+3,column=2).value=str(murj)
+        ObstPar.cell(row=j+3,column=3).value=str(epsrj)
+        ObstPar.cell(row=j+3,column=4).value=str(sigj)
           #murj =complex(ObstPar.cell(row=j+2,column=2).value)
           #epsrj=complex(ObstPar.cell(row=j+2,column=3).value)
           #sigj =complex(ObstPar.cell(row=j+2,column=4).value)
@@ -658,30 +677,44 @@ def ObstacleCoefficients(SN,index=0):
         else:
           nre+=1
           Znob   =np.sqrt(top/bottom)                    # Wave impedance of the obstacles
-        Znobrat[j]=Znob/Z0
-        ObstPar.cell(row=j+2,column=5).value=str(Znob/Z0)
+        Znobrat[c]=Znob/Z0
+        ObstPar.cell(row=j+3,column=5).value=str(Znob/Z0)
         if nre > Nrs:
-          refindex[j]=0+0j
-          ObstPar.cell(row=j+2,column=6).value=str(0+0j)
+          refindex[c]=0+0j
+          ObstPar.cell(row=j+3,column=6).value=str(0+0j)
         else:
-          if PerfRef and Znob!=0:
-            refindex[j]=1
-            ObstPar.cell(row=j+2,column=6).value=str(1+0j)
-          else:
-            refindex[j]=murj*epsrj
-            ObstPar.cell(row=j+2,column=6).value=str(murj*epsrj)
-    if Nobst+1>=j+1>NOut:
+          refindex[c]=murj*epsrj
+          ObstPar.cell(row=j+3,column=6).value=str(murj*epsrj)
+    if Nobst>=j+1>NOut:
       box=int(Obst.cell(row=j+2-NOut,column=3).value)
       surf=int(Obst.cell(row=j+2-NOut,column=4).value)
-      tri=int(OutB.cell(row=j+2-NOut,column=5).value)
-      for i in range(1,box*6+surf*2+tri):
+      tri=int(Obst.cell(row=j+2-NOut,column=5).value)
+      for i in range(0,box*6+surf*2+tri):
+        c+=1
         murj =0j
         epsrj=0j
         sigj =0j
-        if index==7:
-          murj =complex(ObstPar.cell(row=11,column=2).value)
-          epsrj=complex(ObstPar.cell(row=11,column=3).value)
-          sigj =complex(ObstPar.cell(row=11,column=4).value)
+        if index==3 and j+3==7:
+          murj =complex(ObstPar.cell(row=1,column=2).value)
+          epsrj=complex(ObstPar.cell(row=1,column=3).value)
+          sigj =complex(ObstPar.cell(row=1,column=4).value)
+        elif index==6:
+          if j+3==7 or j+3==5:
+            murj =complex(ObstPar.cell(row=1,column=2).value)
+            epsrj=complex(ObstPar.cell(row=1,column=3).value)
+            sigj =complex(ObstPar.cell(row=1,column=4).value)
+        elif index==5:
+          if j+3==8 or j+3==7:
+            murj =complex(ObstPar.cell(row=1,column=2).value)
+            epsrj=complex(ObstPar.cell(row=1,column=3).value)
+            sigj =complex(ObstPar.cell(row=1,column=4).value)
+        elif index==7 or index==4:
+          murj =complex(ObstPar.cell(row=1,column=2).value)
+          epsrj=complex(ObstPar.cell(row=1,column=3).value)
+          sigj =complex(ObstPar.cell(row=1,column=4).value)
+        ObstPar.cell(row=j+3,column=2).value=str(murj)
+        ObstPar.cell(row=j+3,column=3).value=str(epsrj)
+        ObstPar.cell(row=j+3,column=4).value=str(sigj)
         mur   =np.append(mur  ,murj)
         epsr  =np.append(epsr ,epsrj)
         sigma =np.append(sigma,sigj)
@@ -692,18 +725,14 @@ def ObstacleCoefficients(SN,index=0):
         else:
           nre+=1
           Znob   =np.sqrt(top/bottom)
-        Znobrat[j]=Znob/Z0
-        ObstPar.cell(row=j+2,column=5).value=str(Znob/Z0)
+        Znobrat[c]=Znob/Z0
+        ObstPar.cell(row=j+3,column=5).value=str(Znob/Z0)
         if nre>Nrs:
-          refindex[j]=0+0j
-          ObstPar.cell(row=j+2,column=6).value=str(0+0j)
+          refindex[c]=0+0j
+          ObstPar.cell(row=j+3,column=6).value=str(0+0j)
         else:
-          if PerfRef and Znob!=0:
-            refindex[j]=1
-            ObstPar.cell(row=j+2,column=6).value=str(1+0j)
-          else:
-            refindex[j]=murj*epsrj
-            ObstPar.cell(row=j+2,column=6).value=str(murj*epsrj)
+          refindex[c]=murj*epsrj
+          ObstPar.cell(row=j+3,column=6).value=str(murj*epsrj)
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS
   # --------------------------------------------------------------------
@@ -804,7 +833,7 @@ def initialload(index=0):
   NtriOut                     =np.load('Parameters/NtriOut.npy')
   Nob                         =np.load('Parameters/Nob%d.npy'%index)
   Ns                          =np.load('Parameters/Ns.npy')
-  Nrs                         =np.load('Parameters/Nrs.npy')
+  Nrs                         =np.load('Parameters/Nrs%d.npy'%index)
   Tx                          =np.load('Parameters/Origin.npy')
   LOS                         =np.load('Parameters/LOS%d.npy'%index)
   PerfRef                     =np.load('Parameters/PerfRef%d.npy'%index)
@@ -921,7 +950,7 @@ if __name__=='__main__':
   print('Running  on python version')
   print(sys.version)
   Sheetname='InputSheet.xlsx'
-  for index in range(10):
+  for index in range(8):
     out=DeclareParameters(Sheetname,index)
     out=ObstacleCoefficients(Sheetname,index)
     initialload(index)
