@@ -123,29 +123,22 @@ def Quality_MoreInputs(Tx,Direc,programterms,RayPar,foldtype,Room,Znobrat,refind
     os.makedirs(meshfolder)
   if not os.path.exists(meshfolder):
     os.makedirs(meshfolder)
-  meshname=meshfolder+'/DSM_tx%03dx%03dy%03dz'%(Tx[0]*1e+3,Tx[1]*1e+3,Tx[2]*1e+3)
+  meshname=meshfolder+'/DSM_tx%05dx%05dy%05dz'%(Tx[0]*1e+5,Tx[1]*1e+5,Tx[2]*1e+5)
   mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
-  # if os.path.isfile(mesheg):
-    # Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
-  # else:
+  if os.path.isfile(mesheg):
+    Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
+  else:
     # ##----Retrieve the environment--------------------------------------
     # ##----The lengths are non-dimensionalised---------------------------
     # # -------------Find the number of cells in the x, y and z axis.-------
     # #------------Initialise the Mesh------------------------------------
-    # Mesh=DSM.DS(Nx,Ny,Nz,Nsur*Nre+1,Nr*(Nre+1),np.complex128,split)
-    # if not Room.CheckTxInner(Tx):
-      # return 0
+    Mesh=DSM.DS(Nx,Ny,Nz,Nsur*Nre+1,Nr*(Nre+1),np.complex128,split)
+    if not Room.CheckTxInner(Tx):
+      return np.nan
     # #-----------The input directions changes for each ray number.-------
-    # Rays, Mesh=Room.ray_mesh_bounce(Tx,Direc,Mesh,programterms)
-    # Mesh.save_dict(meshname)
-  # Initialise Grid For Power-------------------------------------
-  Mesh=DSM.DS(Nx,Ny,Nz,Nsur*Nre+1,Nr*(Nre+1),np.complex128,split)
-  if not Room.CheckTxInner(Tx):
-    return np.nan
-    #-----------The input directions changes for each ray number.-------
-  Rays, Mesh=Room.ray_mesh_bounce(Tx,Direc,Mesh,programterms)
-  Mesh.save_dict(meshname)
-  print('Mesh saved at',meshname)
+    Rays, Mesh=Room.ray_mesh_bounce(Tx,Direc,Mesh,programterms)
+    Mesh.save_dict(meshname)
+    print('Mesh saved at',meshname)
   Ns=max(Nx,Ny,Nz)
   Grid=np.zeros((Nx,Ny,Nz))
   job=Ns**3+1
@@ -158,7 +151,7 @@ def Quality_MoreInputs(Tx,Direc,programterms,RayPar,foldtype,Room,Znobrat,refind
   np.save('./Quality/'+plottype+'/'+Boxstr+Obstr+'Quality%03dRefs%03dm%03d_tx%03dx%03dy%03dz.npy'%(Nr,Nre,index,Tx[0],Tx[1],Tx[2]),Q)
   return -Q
 
-def MoreInputs_Run(index=0):
+def MoreInputs_Run(:
   ''' Load the input variables then run Quality_MoreInputs()'''
   print('Starting Optimisation')
     ##----The lengths are non-dimensionalised---------------------------
@@ -363,7 +356,7 @@ def MoreInputs_Run(index=0):
       n = text_file.write('\n Spacial Tolerance %f'%spacetol2)
       text_file.close()
     meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
-    meshname=meshfolder+'/DSM_tx%03dx%03dy%03dz'%(TxHighTol[0]*1e+3,TxHighTol[1]*1e+3,TxHighTol[2]*1e+3)
+    meshname=meshfolder+'/DSM_tx%05dx%05dy%05dz'%(TxHighTol[0]*1e+5,TxHighTol[1]*1e+5,TxHighTol[2]*1e+5)
     mesheg=meshname+"%02dx%02dy%02dz.npz"%(0,0,0)
     if not os.path.exists('./Mesh'):
       os.makedirs('./Mesh')
@@ -401,7 +394,8 @@ def MoreInputs_Run(index=0):
     myfile.close()
     RTplot.plot_mesh(Mesh,Room,TxHighTol,foldtype,plottype,Box,Obstr,Nr,Nre,Ns,plotfit,LOS,index)
     meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
-    meshname=meshfolder+'/DSM_tx%03dx%03dy%03dz'%(TxLowTol[0]*1e+3,TxLowTol[1]*1e+3,TxLowTol[2]*1e+3)
+    meshname=meshfolder+'/DSM_tx%05dx%05dy%05dz'%(TxLowTol[0]*1e+5,TxLowTol[1]*1e+5,TxLowTol[2]*1e+5)
+    mesheg=meshname++"%02dx%02dy%02dz.npz"%(0,0,0)
     if os.path.isfile(meshname):
       Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
     else:
@@ -431,7 +425,6 @@ def MoreInputs_Run(index=0):
 
 if __name__=='__main__':
   #main
-  index=1
-  MoreInputs_Run(index)
+  MoreInputs_Run()
   exit()
 
