@@ -18,7 +18,7 @@
 #SBATCH --ntasks-per-node=1
 #
 # Choose the time your code will need at most:
-#SBATCH --time=3:00:00
+#SBATCH --time=5:00:00
 #
 # mail alert at start, end and abortion of execution
 #SBATCH --mail-type=END
@@ -27,19 +27,19 @@
 #SBATCH --mail-user=hw454@bath.ac.uk
 
 # Start time
-#SBATCH --begin=now+5hours
+#SBATCH --begin=now
 
 # set up environment
 
 module load python3/2019.x
 source activate py3
 
-./Raytracer_transmittermover.sh 
-
-echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 250"
+echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 55"
 echo "Starting job..."
-
-
+for ((job=0; job<55; job++)); do 
+  echo "job=${job}"
+  time python RayTracerMainProgram.py "${job}"
+done
 
 
 

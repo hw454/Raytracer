@@ -1,9 +1,8 @@
-Traceback (most recent call last):
-  File "OptimisationMethod.py", line 12, in <module>
-    import RayTracerMainProgram as RT
-  File "/beegfs/scratch/user/m/hw454/Raytracer/ParameterIndependentNewGit/Raytracer/ParameterIndependent/RayTracerMainProgram.py", line 41, in <module>
-    import ParameterLoad as PI
-  File "/beegfs/scratch/user/m/hw454/Raytracer/ParameterIndependentNewGit/Raytracer/ParameterIndependent/ParameterLoad.py", line 535
-    <<<<<<< HEAD
-     ^
+  File "OptimisationMethodQuart3.py", line 154
+    def MoreInputs_Run(:
+                       ^
 SyntaxError: invalid syntax
+
+real	0m0.051s
+user	0m0.025s
+sys	0m0.010s

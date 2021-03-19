@@ -8,9 +8,9 @@
 ##############################################################
 #
 # Choose name of job (name of executable)
-#SBATCH --job-name=TransmitterOptimising10
-#SBATCH --output=TXmove10.out
-#SBATCH --error=TXMove10.err
+#SBATCH --job-name=OptCase
+#SBATCH --output=TxCase.out
+#SBATCH --error=TxCase.err
 #SBATCH --partition=batch
 #
 # Choose the number of nodes & processors per node:
@@ -30,11 +30,13 @@
 module load python3/2019.x
 source activate py3
 
-./Raytracer_transmittermover10.sh 
-echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 250"
+
+echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 665 and 652"
 echo "Starting job..."
 
-
+for job in 665 652; do
+  time python RayTracerMainProgram.py "${job}"
+done
 
 
 

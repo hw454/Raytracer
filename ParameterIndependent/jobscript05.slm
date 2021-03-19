@@ -8,9 +8,9 @@
 ##############################################################
 #
 # Choose name of job (name of executable)
-#SBATCH --job-name=TransmitterOptimising5
-#SBATCH --output=TXmove5.out
-#SBATCH --error=TXMove5.err
+#SBATCH --job-name=TMov2
+#SBATCH --output=TXmoveall2.out
+#SBATCH --error=TXMoveAll2.err
 #SBATCH --partition=batch
 #
 # Choose the number of nodes & processors per node:
@@ -18,30 +18,28 @@
 #SBATCH --ntasks-per-node=1
 #
 # Choose the time your code will need at most:
-#SBATCH --time=3:00:00
+#SBATCH --time=5:00:00
 #
 # mail alert at start, end and abortion of execution
 #SBATCH --mail-type=END
 #
 # send mail to this address
 #SBATCH --mail-user=hw454@bath.ac.uk
-#
-# Choose start time
-#SBATCH --begin=now+3hours
+
+# Start time
+#SBATCH --begin=now
 
 # set up environment
-echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 10"
-echo "Starting job..."
+
 module load python3/2019.x
 source activate py3
 
-for ((job=0; job>125; job++)); do
+echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 250"
+echo "Starting job..."
+for ((job=56; job<125; job++)); do 
   echo "job=${job}"
   time python RayTracerMainProgram.py "${job}"
-done 
-
-
-
+done
 
 
 

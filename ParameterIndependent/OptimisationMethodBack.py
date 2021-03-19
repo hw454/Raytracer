@@ -309,16 +309,16 @@ def MoreInputs_Run(index=0):
     TxHighTol=TxOut.x
     HighTolnit=TxOut.nit
     print('Optimal Tx at ',TxOut.x)
-    # if not os.path.isfile(Optfile):
-      # TxOut=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars,options={'xtol':spacetol,'ftol':optTol},bounds=TxB)
-      # np.save(Optfile,TxOut.x)
-      # TxHighTol=TxOut.x
-      # HighTolnit=TxOut.nit
-      # print('Optimal Tx at ',TxOut.x)
-    # else:
-      # TxHighTol=np.load(Optfile)
-      # print('Opt loaded',TxHighTol)
-      # HighTolnit=np.nan
+    if not os.path.isfile(Optfile):
+      TxOut=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars,options={'xtol':spacetol,'ftol':optTol},bounds=TxB)
+      np.save(Optfile,TxOut.x)
+      TxHighTol=TxOut.x
+      HighTolnit=TxOut.nit
+      print('Optimal Tx at ',TxOut.x)
+    else:
+      TxHighTol=np.load(Optfile)
+      print('Opt loaded',TxHighTol)
+      HighTolnit=np.nan
     t1=t.time()
     spacetol2=0.005
     optTol2=1e-4
@@ -329,16 +329,16 @@ def MoreInputs_Run(index=0):
     TxLowTol=TxOutTolLow.x
     LowTolnit=TxOutTolLow.nit
     print('Optimal Tx at ',TxOutTolLow.x)
-    # if not os.path.isfile(OptfileLow):
-      # TxOutTolLow=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars,options={'xtol':spacetol2, 'ftol':optTol2},bounds=TxB)
-      # np.save(OptfileLow,TxOutTolLow.x)
-      # TxLowTol=TxOutTolLow.x
-      # LowTolnit=TxOutTolLow.nit
-      # print('Optimal Tx at ',TxOutTolLow.x)
-    # else:
-      # TxLowTol=np.load(OptfileLow)
-      # print('Opt Loaded',TxLowTol)
-      # LowTolnit=np.nan
+    if not os.path.isfile(OptfileLow):
+      TxOutTolLow=minimize(Quality_MoreInputs, Tx, method='Powell',args=pars,options={'xtol':spacetol2, 'ftol':optTol2},bounds=TxB)
+      np.save(OptfileLow,TxOutTolLow.x)
+      TxLowTol=TxOutTolLow.x
+      LowTolnit=TxOutTolLow.nit
+      print('Optimal Tx at ',TxOutTolLow.x)
+    else:
+      TxLowTol=np.load(OptfileLow)
+      print('Opt Loaded',TxLowTol)
+      LowTolnit=np.nan
     t3=t.time()
     txtstr=SpecResultsFolder+'/'+Obstr+'OptimalOrigin.txt'
     if not os.path.isfile(txtstr):

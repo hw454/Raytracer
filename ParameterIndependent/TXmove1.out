@@ -1,1825 +1,217 @@
-Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 10
+Will run python3 OptimisationMethodQuart1
 Starting job...
-job=56
-main called with job= 56, using output filename=ray_trace_output_056.txt
-Running  on python version
-3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
-[GCC 7.3.0]
-./Mesh/twoRefNoBox/Nra022Refs002Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/LOSNoBoxOffCentre/Nra022Refs002Ns5/NoBoxPower_grid022Refs002m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.089]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.089]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/twoRefNoBox/Nra022Refs002Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/LOSNoBoxOffCentre/Nra022Refs002Ns5/NoBoxPower_grid022Refs002m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/twoRefNoBox/Nra022Refs002Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/LOSNoBoxOffCentre/Nra022Refs002Ns5/NoBoxPower_grid022Refs002m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/twoRefNoBox/Nra337Refs002Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/LOSNoBoxOffCentre/Nra337Refs002Ns5/NoBoxPower_grid337Refs002m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [16.035]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.034]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [16.035]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/twoRefNoBox/Nra337Refs002Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/LOSNoBoxOffCentre/Nra337Refs002Ns5/NoBoxPower_grid337Refs002m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/twoRefNoBox/Nra337Refs002Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/LOSNoBoxOffCentre/Nra337Refs002Ns5/NoBoxPower_grid337Refs002m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
--------------------------------
-Starting the ray bouncing and information storage
--------------------------------
-Tx [0.3 0.3 0.5]
--------------------------------
-Ray-launching complete
-Time taken 47.94170784950256
--------------------------------
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/SingleRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m003_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [27.63]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.029]
--------------------------------
--------------------------------
-Time to complete program
-[47.942] [27.63]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/SingleRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m003_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/SingleRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m003_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.007]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
--------------------------------
-Starting the ray bouncing and information storage
--------------------------------
-Tx [0.3 0.3 0.5]
--------------------------------
-Ray-launching complete
-Time taken 1213.7796392440796
--------------------------------
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/SingleRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m003_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [81.78]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[1213.78] [81.78]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/SingleRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m003_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/SingleRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m003_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/onePerfRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m003_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [29.794]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [29.794]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/onePerfRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m003_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.007]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/onePerfRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m003_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/onePerfRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m003_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [88.888]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [88.888]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/onePerfRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m003_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/onePerfRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m003_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/twoRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [29.157]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.063]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [29.157]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/twoRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [86.788]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.007]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [86.788]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [30.169]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [30.169]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [88.927]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [88.927]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/MultiRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [29.146]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [29.146]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/MultiRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [87.405]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.007]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [87.405]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.008]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/MultiPerfRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [29.631]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.035]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [29.631]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiPerfRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiPerfRefNoBoxOffCentre/Nra022Refs003Ns5/NoBoxPower_grid022Refs003m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.008]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/MultiPerfRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [89.054]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.041]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [89.054]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiPerfRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefNoBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiPerfRefNoBoxOffCentre/Nra337Refs003Ns5/NoBoxPower_grid337Refs003m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.843 -23.843 -28.022]]
-Time taken [0.012]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/twoRefBox/Nra022Refs002Ns5/DSM_tx05600x00y00z.npz
--------------------------------
-Starting the ray bouncing and information storage
--------------------------------
-Tx [0.3 0.3 0.5]
--------------------------------
-Ray-launching complete
-Time taken 29.32193875312805
--------------------------------
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/LOSBoxOffCentre/Nra022Refs002Ns5/BoxPower_grid022Refs002m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [11.707]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.626 -23.626 -28.946]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[29.322] [11.707]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/twoRefBox/Nra022Refs002Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/LOSBoxOffCentre/Nra022Refs002Ns5/BoxPower_grid022Refs002m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.626 -23.626 -28.946]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/twoRefBox/Nra022Refs002Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/LOSBoxOffCentre/Nra022Refs002Ns5/BoxPower_grid022Refs002m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.004]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.626 -23.626 -28.946]]
-Time taken [0.007]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.004]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/twoRefBox/Nra337Refs002Ns5/DSM_tx05600x00y00z.npz
--------------------------------
-Starting the ray bouncing and information storage
--------------------------------
-Tx [0.3 0.3 0.5]
--------------------------------
-Ray-launching complete
-Time taken 344.1933345794678
--------------------------------
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/LOSBoxOffCentre/Nra337Refs002Ns5/BoxPower_grid337Refs002m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [21.901]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.879 -23.879 -28.041]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[344.193] [21.901]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/twoRefBox/Nra337Refs002Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/LOSBoxOffCentre/Nra337Refs002Ns5/BoxPower_grid337Refs002m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.879 -23.879 -28.041]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/twoRefBox/Nra337Refs002Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/LOSBoxOffCentre/Nra337Refs002Ns5/BoxPower_grid337Refs002m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.879 -23.879 -28.041]]
-Time taken [0.019]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
--------------------------------
-Starting the ray bouncing and information storage
--------------------------------
-Tx [0.3 0.3 0.5]
--------------------------------
-Ray-launching complete
-Time taken 50.09488582611084
--------------------------------
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/MultiPerfRefBoxOffCentre/Nra022Refs003Ns5/BoxPower_grid022Refs003m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [30.522]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.626 -23.626 -28.946]]
-Time taken [0.073]
--------------------------------
--------------------------------
-Time to complete program
-[50.095] [30.522]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiPerfRefBoxOffCentre/Nra022Refs003Ns5/BoxPower_grid022Refs003m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.626 -23.626 -28.946]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiPerfRefBoxOffCentre/Nra022Refs003Ns5/BoxPower_grid022Refs003m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.626 -23.626 -28.946]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
--------------------------------
-Starting the ray bouncing and information storage
--------------------------------
-Tx [0.3 0.3 0.5]
--------------------------------
-Ray-launching complete
-Time taken 2230.2096860408783
--------------------------------
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/MultiPerfRefBoxOffCentre/Nra337Refs003Ns5/BoxPower_grid337Refs003m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [106.891]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.879 -23.879 -28.041]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[2230.21] [106.891]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiPerfRefBoxOffCentre/Nra337Refs003Ns5/BoxPower_grid337Refs003m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.879 -23.879 -28.041]]
-Time taken [0.007]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiPerfRefBoxOffCentre/Nra337Refs003Ns5/BoxPower_grid337Refs003m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.003]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.879 -23.879 -28.041]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.003]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/MultiRefBoxOffCentre/Nra022Refs003Ns5/BoxPower_grid022Refs003m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [30.23]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.626 -23.626 -28.946]]
-Time taken [0.015]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [30.23]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiRefBoxOffCentre/Nra022Refs003Ns5/BoxPower_grid022Refs003m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.626 -23.626 -28.946]]
-Time taken [0.019]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefBox/Nra022Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiRefBoxOffCentre/Nra022Refs003Ns5/BoxPower_grid022Refs003m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.626 -23.626 -28.946]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/MultiRefBoxOffCentre/Nra337Refs003Ns5/BoxPower_grid337Refs003m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [109.494]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.879 -23.879 -28.041]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [109.494]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiRefBoxOffCentre/Nra337Refs003Ns5/BoxPower_grid337Refs003m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.879 -23.879 -28.041]]
-Time taken [0.039]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/threeRefBox/Nra337Refs003Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiRefBoxOffCentre/Nra337Refs003Ns5/BoxPower_grid337Refs003m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.879 -23.879 -28.041]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
--------------------------------
-Starting the ray bouncing and information storage
--------------------------------
-Tx [0.3 0.3 0.5]
--------------------------------
-Ray-launching complete
-Time taken 162.5891945362091
--------------------------------
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/twoRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxPower_grid022Refs006m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [86.59]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.015]
--------------------------------
--------------------------------
-Time to complete program
-[162.589] [86.59]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxPower_grid022Refs006m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxPower_grid022Refs006m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.006]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxPower_grid022Refs006m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [95.537]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.03]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [95.537]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxPower_grid022Refs006m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.007]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/twoPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxPower_grid022Refs006m006_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/MultiRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxPower_grid022Refs006m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [92.494]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.05]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [92.494]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxPower_grid022Refs006m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxPower_grid022Refs006m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.009]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/MultiPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxPower_grid022Refs006m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [95.436]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [95.436]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxPower_grid022Refs006m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.001]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.012]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.001]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefNoBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiPerfRefNoBoxOffCentre/Nra022Refs006Ns5/NoBoxPower_grid022Refs006m004_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.628 -23.628 -28.946]]
-Time taken [0.005]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
--------------------------------
-Starting the ray bouncing and information storage
--------------------------------
-Tx [0.3 0.3 0.5]
--------------------------------
-Ray-launching complete
-Time taken 172.81619238853455
--------------------------------
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/MultiPerfRefBoxOffCentre/Nra022Refs006Ns5/BoxPower_grid022Refs006m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [99.984]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.626 -23.626 -28.946]]
-Time taken [0.009]
--------------------------------
--------------------------------
-Time to complete program
-[172.816] [99.984]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiPerfRefBoxOffCentre/Nra022Refs006Ns5/BoxPower_grid022Refs006m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.002]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.626 -23.626 -28.946]]
-Time taken [0.008]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.002]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiPerfRefBoxOffCentre/Nra022Refs006Ns5/BoxPower_grid022Refs006m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.003]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.626 -23.626 -28.946]]
-Time taken [0.01]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.003]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power grid saved at,  ./Mesh/MultiRefBoxOffCentre/Nra022Refs006Ns5/BoxPower_grid022Refs006m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [99.486]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.626 -23.626 -28.946]]
-Time taken [0.211]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [99.486]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiRefBoxOffCentre/Nra022Refs006Ns5/BoxPower_grid022Refs006m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.004]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.626 -23.626 -28.946]]
-Time taken [0.1]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.004]
--------------------------------
--------------------------------
--------------------------------
-./Mesh/sixRefBox/Nra022Refs006Ns5/DSM_tx05600x00y00z.npz
-Tx [0.3 0.3 0.5]
-Mesh loaded from store
----------------------------------
-Starting the power calculation
-Power loaded from store
-Power file./Mesh/MultiRefBoxOffCentre/Nra022Refs006Ns5/BoxPower_grid022Refs006m007_tx056.npy
--------------------------------
-Job number 56
-Power from DSM complete
-Time taken [0.008]
--------------------------------
--------------------------------
-Job number 56
-Quality from DSM complete [[-23.626 -23.626 -28.946]]
-Time taken [0.045]
--------------------------------
--------------------------------
-Time to complete program
-[0.] [0.008]
--------------------------------
--------------------------------
--------------------------------
-job=57
+Starting Optimisation
+Parameter set [ 0. 22.  0.  1.  2.  0.  5.  0.  0.  4.]
+Optimal Tx at  [0.5109602  0.49764932 0.50788668]
+Reduce tolerance
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x50000y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49723x50000y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x38196y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x61803y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x76393y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x52756y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x50399y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x45738y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49285y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x50232y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49672y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y38196z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y61803z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y76393z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y50999z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y45655z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y48801z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y49874z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y49707z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y50040z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49905x49822y50081z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx56317x61803y44556z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx43682x38196y55443z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx64126x76393y37829z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx51166x52179y48994z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50600x51121y49482z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx47958x46184y51759z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50262x50490y49773z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49382x48845y50532z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49926x49862y50063z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49718x49474y50242z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49978x49959y50018z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50086x50162y49925z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50005x50010y49995z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50036x50068y49968z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50005x50009y49995z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49994x49989y50004z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50001x50002y49999z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49998x49997y50001z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50000x50000y49999z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49998y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y38196z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y61803z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y76393z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y51084z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y50298z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y45676z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y48848z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y49822z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x38196y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x61803y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x76393y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x52769y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x50401y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x45739y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49312y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x50234y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49919y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49687y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx43725x38196y55395z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx56360x61803y44509z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx64168x76393y37781z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx51205x52172y48950z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50641x51119y49435z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx47999x46183y51712z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50323x50525y49709z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49436x48866y50474z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49984x49891y50002z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49775x49500y50182z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50027x49971y49964z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50140x50183y49867z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50051x50016y49944z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50026x49970y49965z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50027x49970y49965z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50027x49971y49965z
+Optimal Tx at  [0.50027042 0.49970883 0.4996546 ]
+Starting Optimisation
+Parameter set [ 0. 22.  0.  1.  2.  0.  5.  0.  0.  4.]
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50000x50000y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx38196x50000y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx61803x50000y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx76393x50000y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx51096x50000y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx48596x50000y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx53596x50000y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx51096x38196y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx51096x61803y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx51096x76393y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx51096x52264y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx51096x49764y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx51096x45346y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx51096x49764y38196z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx51096x49764y61803z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx51096x49764y76393z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx51096x49764y50788z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx51096x49764y48288z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx51096x49764y53288z
+Optimal Tx at  [0.5109602  0.49764932 0.50788668]
+Reduce tolerance
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50262x50000y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx45653x50000y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49096x50000y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x50000y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49723x50000y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x38196y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x61803y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x76393y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x52756y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x50399y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x45738y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49285y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x50232y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49672y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y38196z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y61803z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y76393z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y50999z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y50265z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y45655z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y48801z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y49874z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y49707z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49952x49911y50040z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49905x49822y50081z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx56317x61803y44556z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx43682x38196y55443z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx64126x76393y37829z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx51166x52179y48994z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50600x51121y49482z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx47958x46184y51759z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50262x50490y49773z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49382x48845y50532z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49926x49862y50063z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49718x49474y50242z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49978x49959y50018z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50086x50162y49925z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50005x50010y49995z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50036x50068y49968z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50005x50009y49995z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49994x49989y50004z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50001x50002y49999z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49998x49997y50001z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50000x50000y49999z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49998y50000z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y38196z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y61803z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y76393z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y51084z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y50298z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y45676z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y48848z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y49822z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49999y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x38196y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x61803y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x76393y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x52769y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x50401y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x45739y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49312y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x50234y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49919y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49999x49687y49989z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx43725x38196y55395z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx56360x61803y44509z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx64168x76393y37781z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx51205x52172y48950z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50641x51119y49435z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx47999x46183y51712z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50323x50525y49709z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49436x48866y50474z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49984x49891y50002z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx49775x49500y50182z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50027x49971y49964z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50140x50183y49867z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50051x50016y49944z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50026x49970y49965z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50027x49970y49965z
+Mesh saved at ./Mesh/twoNoBox/Nra022Refs002Ns5/DSM_tx50027x49971y49965z
+Optimal Tx at  [0.50027042 0.49970883 0.4996546 ]
+
+########################################################################
+----------------------! Balena Job Details !----------------------------
+
+JobID          : 4105250
+No. of nodes   : 1
+No. of CPUs    : 16
+Timelimit      : 05:00:00
+Elapsed time   : 01:07:00
+Nodelist       : node-sw-140
+
+########################################################################
+
+
+########################################################################
+----------------------! Balena Job Details !----------------------------
+
+JobID          : 4105303
+No. of nodes   : 1
+No. of CPUs    : 16
+Timelimit      : 05:00:00
+Elapsed time   : 00:56:07
+Nodelist       : node-sw-112
+
+########################################################################
+
