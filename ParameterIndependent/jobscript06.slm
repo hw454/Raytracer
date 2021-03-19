@@ -8,9 +8,9 @@
 ##############################################################
 #
 # Choose name of job (name of executable)
-#SBATCH --job-name=TransmitterOptimising6
-#SBATCH --output=TXmove6.out
-#SBATCH --error=TXMove6.err
+#SBATCH --job-name=OptCases
+#SBATCH --output=TXCases.out
+#SBATCH --error=TXCases.err
 #SBATCH --partition=batch
 #
 # Choose the number of nodes & processors per node:
@@ -25,23 +25,21 @@
 #
 # send mail to this address
 #SBATCH --mail-user=hw454@bath.ac.uk
-# 
-#Choose start time
-#SBATCH --begin=now+1hour
+
+# Start time
+#SBATCH --begin=now
 
 # set up environment
-echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 10"
-echo "Starting job..."
+
 module load python3/2019.x
 source activate py3
 
-for ((job=0; job>125; job--)); do
+echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 250"
+echo "Starting job..."
+for job in 55 652 665; do 
   echo "job=${job}"
   time python RayTracerMainProgram.py "${job}"
-done 
-
-
-
+done
 
 
 

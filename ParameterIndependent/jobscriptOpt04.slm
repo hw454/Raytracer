@@ -2,15 +2,15 @@
 #
 # Specify the queue
 #SBATCH --account=free
-
+#
 ##############################################################
 ## IMPORTANT:  You need to change the following options     ##
 ##############################################################
 #
 # Choose name of job (name of executable)
-#SBATCH --job-name=TransmitterOptimising
-#SBATCH --output=TXmoveAll.out
-#SBATCH --error=TXMoveAll.err
+#SBATCH --job-name=OptPow4
+#SBATCH --output=Opt4.out
+#SBATCH --error=Opt4.err
 #SBATCH --partition=batch
 #
 # Choose the number of nodes & processors per node:
@@ -25,21 +25,18 @@
 #
 # send mail to this address
 #SBATCH --mail-user=hw454@bath.ac.uk
-
-# Start time
+#
+# Choose the start time
 #SBATCH --begin=now
-
 # set up environment
-
 module load python3/2019.x
 source activate py3
 
-echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 55"
+
+echo "Will run python3 OptimisationQuart4"
 echo "Starting job..."
-for ((job=0; job<55; job++)); do 
-  echo "job=${job}"
-  time python RayTracerMainProgram.py "${job}"
-done
+
+time python OptimisationMethodQuart4.py 
 
 
 

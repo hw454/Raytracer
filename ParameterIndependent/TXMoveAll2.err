@@ -1,0 +1,2 @@
+/cm/local/apps/slurm/var/spool/job4105241/slurm_script: line 39: syntax error near `;'
+/cm/local/apps/slurm/var/spool/job4105241/slurm_script: line 39: `for ((job=56; job<125; job++); do '
