@@ -2647,7 +2647,7 @@ def quality_compute(foldtype,plottype,Mesh,Grid,room,Znobrat,refindex,Antpar,Gt,
     os.makedirs(meshfolder)
   if not os.path.exists(meshfolder):
     os.makedirs(meshfolder)
-  if not os.path.exists('./Mesh'+plottype):
+  if not os.path.exists('./Mesh/'+plottype):
       os.makedirs('./Mesh/'+plottype)
       os.makedirs(powerfolder)
   if not os.path.exists(powerfolder):

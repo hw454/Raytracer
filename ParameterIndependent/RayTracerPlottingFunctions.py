@@ -28,17 +28,11 @@ def plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
   values at the (x,y) position.
   '''
   numjobs    =np.load('Parameters/Numjobs.npy')
-  if Ns==5:
-    numjobs=125
-  else:
-    numjobs=500
+  numjobs=Ns**3+1
   roomnumstat=np.load('Parameters/roomnumstat.npy')
-  _,h,L,split    =np.load('Parameters/Raytracing.npy')
-  Nra           =np.load('Parameters/Nra.npy')
+  _,_,L,split    =np.load('Parameters/Raytracing.npy')
   Ntri          =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
   MaxInter      =np.load('Parameters/MaxInter.npy')             # The number of intersections a single ray can have in the room in one direction.
-  Orig          =np.load('Parameters/Origin.npy')
-  Nrs           =np.load('Parameters/Nrs.npy')
   Nsur          =np.load('Parameters/Nsur%d.npy'%index)
   NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
 
@@ -60,8 +54,8 @@ def plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
   # else:
       # nra=len(Nra)
   Oblist        =np.load('Parameters/Obstacles%d.npy'%index).astype(float)      # The obstacles which are within the outerboundary
-  Nsur       =np.load('Parameters/Nsur%d.npy'%index)
-  refindex=np.load('Parameters/refindex%03d.npy'%index)
+  Nsur          =np.load('Parameters/Nsur%d.npy'%index)
+  refindex      =np.load('Parameters/refindex%03d.npy'%index)
   Pol           = np.load('Parameters/Pol%03d.npy'%index)
   NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
   Ntri          =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
@@ -80,6 +74,7 @@ def plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
         Obstr=Obstr+'Ob%02d'%ob
   if InnerOb:
     boxstr='Box'
+    Ntri=np.concatenate((Ntri,NtriOb))
   else:
     boxstr='NoBox'
   if LOS:
@@ -102,13 +97,13 @@ def plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
       LOSstr='SingleRef'
   foldtype=Refstr+boxstr
   #Room contains all the obstacles and walls.
+  h=1.0/Ns
   Room=rom.room(Oblist,Ntri)
   Nob=Room.Nob
   Nsur=int(Room.Nsur)
-  Nx=int(Room.maxxleng()/h)
-  Ny=int(Room.maxyleng()/h)
-  Nz=int(Room.maxzleng()/h)
-  Ns=max(Nx,Ny,Nz)
+  Nx=int(Room.maxxleng()//h+1)
+  Ny=int(Room.maxyleng()//h+1)
+  Nz=int(Room.maxzleng()//h+1)
   Znobrat=np.tile(Znobrat,(Nre,1))          # The number of rows is Nsur*Nre+1. Repeat Znobrat to match Mesh dimensions
   Znobrat=np.insert(Znobrat,0,1.0+0.0j)     # Use a 1 for placement in the LOS row
   refindex=np.tile(refindex,(Nre,1))        # The number of rows is Nsur*Nre+1. Repeat refindex to match Mesh dimensions
@@ -119,21 +114,29 @@ def plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
   gainname      ='Parameters/Tx%03dGains%03d.npy'%(Nr,index)
   Gt            = np.load(gainname)
   for job in range(0,numjobs+1):
-      if Ns==10:
-        if not job==444 and not job==432:
+      if Ns==11:
+        if job==665 or job==652:
+          pass
+        else:
           continue
-      else:
         Tx=RTM.MoveTx(job,Nx,Ny,Nz,h)
         if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
           loca='Centre'
         else:
            loca='OffCentre'
+        if not Room.CheckTxInner(Tx):
+          print('invalid Tx')
+          continue
         foldtype=Refstr+boxstr
         plottype=LOSstr+boxstr+loca
         meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
         powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
         pstr       =powerfolder+'/'+boxstr+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
+        print(pstr)
+        print('Parameters')
+        print(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index)
         if os.path.isfile(pstr):
+          print('job',job)
           print('Plotting power at Tx=',Tx)
           P   =np.load(pstr)
         else:
@@ -141,7 +144,7 @@ def plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
           mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
           if os.path.isfile(mesheg):
             Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
-            P,ind=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Nre,job,index,LOS,PerfRef)
+            P,ind=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,job,index,LOS,PerfRef)
           else:
             continue
         RadAstr    =meshfolder+'/'+boxstr+'RadA_grid%02dRefs%dm%d_tx%03d.npy'%(Nr,Nre,index,job)
@@ -177,6 +180,7 @@ def plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
           os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d'%job)
         if not os.path.exists('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d'%job):
           os.makedirs('./GeneralMethodPowerFigures/'+plottype+'/Tx%03d'%job)
+        print(Nr)
         for i in range(0,n):
           mp.clf()
           mp.figure(i)
@@ -457,7 +461,12 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
   #Nrs           =np.load('Parameters/Nrs.npy')
   Nsur          =np.load('Parameters/Nsur%d.npy'%index)
   NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
-
+  Oblist        =np.load('Parameters/Obstacles%d.npy'%index).astype(float)      # The obstacles which are within the outerboundary
+  refindex      =np.load('Parameters/refindex%03d.npy'%index)
+  Pol           = np.load('Parameters/Pol%03d.npy'%index)
+  ##----Retrieve the Obstacle Parameters--------------------------------------
+  Znobrat      =np.load('Parameters/Znobrat%03d.npy'%index)
+  Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
   myfile = open('Parameters/Heatmapstyle.txt', 'rt') # open lorem.txt for reading text
   cmapopt= myfile.read()         # read the entire file into a string
   myfile.close()
@@ -479,15 +488,6 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
     j=0
   else:
     j=1
-  Oblist        =np.load('Parameters/Obstacles%d.npy'%index).astype(float)      # The obstacles which are within the outerboundary
-  Nsur          =np.load('Parameters/Nsur%d.npy'%index)
-  refindex      =np.load('Parameters/refindex%03d.npy'%index)
-  Pol           = np.load('Parameters/Pol%03d.npy'%index)
-  NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
-  Ntri          =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
-  ##----Retrieve the Obstacle Parameters--------------------------------------
-  Znobrat      =np.load('Parameters/Znobrat%03d.npy'%index)
-  Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
   obnumbers=np.zeros((Nrs,1))
   k=0
   Obstr=''
@@ -910,12 +910,12 @@ def main():
     if not Q==0:
       continue
     #plot_times(plottype,testnum,roomnumstat)
-    if Par==0 and Ns==5 and Nr==22 and Nre<4:
-      plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index)
+    #if Par==0 and Ns==5 and Nr==22 and Nre<4:
+      #pass
+      #plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index)
       #plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index)        # Plot the power in slices.
-    else:
-      pass
-      #plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index)        # Plot the power in slices.
+    if Ns==11:
+      plot_grid(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index)        # Plot the power in slices.
     #ResOn      =np.load('Parameters/ResOn.npy')
     #if ResOn:
     #  plot_residual(plottype,testnum,roomnumstat)

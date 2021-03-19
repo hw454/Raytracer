@@ -123,11 +123,12 @@ def Quality_MoreInputs(Tx,Direc,programterms,RayPar,foldtype,Room,Znobrat,refind
     os.makedirs(meshfolder)
   if not os.path.exists(meshfolder):
     os.makedirs(meshfolder)
-  meshname=meshfolder+'/DSM_tx%03dx%03dy%03dz'%(Tx[0]*1e+3,Tx[1]*1e+3,Tx[2]*1e+3)
+  meshname=meshfolder+'/DSM_tx%05dx%05dy%05dz'%(Tx[0]*1e+5,Tx[1]*1e+5,Tx[2]*1e+5)
   mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
-  # if os.path.isfile(mesheg):
-    # Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
-  # else:
+  if os.path.isfile(mesheg):
+    print('mesh loaded',meshname)
+    Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
+  else:
     # ##----Retrieve the environment--------------------------------------
     # ##----The lengths are non-dimensionalised---------------------------
     # # -------------Find the number of cells in the x, y and z axis.-------
@@ -139,20 +140,20 @@ def Quality_MoreInputs(Tx,Direc,programterms,RayPar,foldtype,Room,Znobrat,refind
     # Rays, Mesh=Room.ray_mesh_bounce(Tx,Direc,Mesh,programterms)
     # Mesh.save_dict(meshname)
   # Initialise Grid For Power-------------------------------------
-  Mesh=DSM.DS(Nx,Ny,Nz,Nsur*Nre+1,Nr*(Nre+1),np.complex128,split)
-  if not Room.CheckTxInner(Tx):
-    return np.nan
+    Mesh=DSM.DS(Nx,Ny,Nz,Nsur*Nre+1,Nr*(Nre+1),np.complex128,split)
+    if not Room.CheckTxInner(Tx):
+      return np.nan
     #-----------The input directions changes for each ray number.-------
-  Rays, Mesh=Room.ray_mesh_bounce(Tx,Direc,Mesh,programterms)
-  Mesh.save_dict(meshname)
-  print('Mesh saved at',meshname)
+    Rays, Mesh=Room.ray_mesh_bounce(Tx,Direc,Mesh,programterms)
+    Mesh.save_dict(meshname)
+    print('Mesh saved at',meshname)
   Ns=max(Nx,Ny,Nz)
   Grid=np.zeros((Nx,Ny,Nz))
   job=Ns**3+1
   #Gt=DSM.optimum_gains(plottype,Mesh,Room,Znobrat,refindex,Antpar, Pol,Nra,Nre,Ns,LOS,PerfRef)
   Q,_=DSM.quality_compute(foldtype,plottype,Mesh,Grid,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,job,index,LOS,PerfRef)
   if not os.path.exists('./Quality'):
-   os.makedirs('./Quality')
+    os.makedirs('./Quality')
   if not os.path.exists('./Quality/'+plottype):
     os.makedirs('./Quality/'+plottype)
   np.save('./Quality/'+plottype+'/'+Boxstr+Obstr+'Quality%03dRefs%03dm%03d_tx%03dx%03dy%03dz.npy'%(Nr,Nre,index,Tx[0],Tx[1],Tx[2]),Q)
@@ -380,8 +381,13 @@ def MoreInputs_Run(index=0):
       Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef,Box,Obstr=pars
       Q=Quality_MoreInputs(TxHighTol,Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef,Box,Obstr)
       Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
+      txtstr=SpecResultsFolder+'/'+Obstr+'OptimalOrigin.txt'
+      if os.path.isfile(txtstr):
+        text_file = open(SpecResultsFolder+'/'+Obstr+'OptimalOrigin.txt', 'a')
+        n = text_file.write('\n Quality at '+str(TxHighTol))
+        n = text_file.write(str(-Q))
     job=Ns**3+1
-    P,_=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,job,indexLOS,PerfRef)
+    P,_=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,job,index,LOS,PerfRef)
     np.save(meshfolder+'/'+Box+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03dx%03dy%03dz.npy'%(Nr,Nre,index,TxHighTol[0]*1e+3,TxHighTol[1]*1e+3,TxHighTol[2]*1e+3),P)
     RadAstr=meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
     if os.path.isfile(RadAstr):
@@ -406,9 +412,14 @@ def MoreInputs_Run(index=0):
       print('The optimal Tx does not have a corresponding Mesh')
       print(meshname)
       Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef,Box,Obstr=pars
-      Quality_MoreInputs(TxLowTol,Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef,Box,Obstr)
+      Q=Quality_MoreInputs(TxLowTol,Direc,programterms,RayPar,foldtype,Room,Znobrat,refindex,Antpar,Gt, Pol,LOS,PerfRef,Box,Obstr)
       Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
-    P,_=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,job,indexLOS,PerfRef)
+      txtstr=SpecResultsFolder+'/'+Obstr+'OptimalOrigin.txt'
+      if os.path.isfile(txtstr):
+        text_file = open(SpecResultsFolder+'/'+Obstr+'OptimalOrigin.txt', 'a')
+        n = text_file.write('\n Quality at '+str(TxLowTol))
+        n = text_file.write(str(-Q))
+    P,_=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,job,index,LOS,PerfRef)
     np.save(meshfolder+'/'+Box+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03dx%03dy%03dz.npy'%(Nr,Nre,index,TxLowTol[0]*1e+3,TxLowTol[1]*1e+3,TxLowTol[2]*1e+3),P)
     RadAstr=meshfolder+'/RadA_grid%dRefs%dm%d.npy'%(Nr,Nre,index)
     if os.path.isfile(RadAstr):
