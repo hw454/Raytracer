@@ -461,7 +461,12 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
   #Nrs           =np.load('Parameters/Nrs.npy')
   Nsur          =np.load('Parameters/Nsur%d.npy'%index)
   NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
-
+  Oblist        =np.load('Parameters/Obstacles%d.npy'%index).astype(float)      # The obstacles which are within the outerboundary
+  refindex      =np.load('Parameters/refindex%03d.npy'%index)
+  Pol           = np.load('Parameters/Pol%03d.npy'%index)
+  ##----Retrieve the Obstacle Parameters--------------------------------------
+  Znobrat      =np.load('Parameters/Znobrat%03d.npy'%index)
+  Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
   myfile = open('Parameters/Heatmapstyle.txt', 'rt') # open lorem.txt for reading text
   cmapopt= myfile.read()         # read the entire file into a string
   myfile.close()
@@ -483,15 +488,6 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
     j=0
   else:
     j=1
-  Oblist        =np.load('Parameters/Obstacles%d.npy'%index).astype(float)      # The obstacles which are within the outerboundary
-  Nsur          =np.load('Parameters/Nsur%d.npy'%index)
-  refindex      =np.load('Parameters/refindex%03d.npy'%index)
-  Pol           = np.load('Parameters/Pol%03d.npy'%index)
-  NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
-  Ntri          =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
-  ##----Retrieve the Obstacle Parameters--------------------------------------
-  Znobrat      =np.load('Parameters/Znobrat%03d.npy'%index)
-  Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
   obnumbers=np.zeros((Nrs,1))
   k=0
   Obstr=''
