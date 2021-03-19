@@ -151,7 +151,7 @@ def Quality_MoreInputs(Tx,Direc,programterms,RayPar,foldtype,Room,Znobrat,refind
   np.save('./Quality/'+plottype+'/'+Boxstr+Obstr+'Quality%03dRefs%03dm%03d_tx%03dx%03dy%03dz.npy'%(Nr,Nre,index,Tx[0],Tx[1],Tx[2]),Q)
   return -Q
 
-def MoreInputs_Run(:
+def MoreInputs_Run():
   ''' Load the input variables then run Quality_MoreInputs()'''
   print('Starting Optimisation')
     ##----The lengths are non-dimensionalised---------------------------
@@ -243,7 +243,7 @@ def MoreInputs_Run(:
       else:
         LOSstr='SingleRef'
     Obstr=''
-    if Nrs<Nsur:
+    if 0<Nrs<Nsur:
       obnumbers=np.zeros((Nrs,1))
       k=0
       for ob, refin in enumerate(refindex):
