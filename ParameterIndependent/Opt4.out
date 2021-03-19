@@ -1,15 +1,82 @@
 Will run python3 OptimisationQuart4
 Starting job...
+Starting Optimisation
+Parameter set [  1. 337.  12.   0.   6.   0.   5.   0.   0.   7.]
+Ray number invalid
+Parameter set [  1. 337.  12.   0.   6.   0.   5.   1.   0.   7.]
+Ray number invalid
+Parameter set [  1. 337.  12.   0.   6.   0.   5.   2.   0.   7.]
+Ray number invalid
+Parameter set [ 0. 22.  0.  1.  2.  0. 11.  0.  0.  4.]
+Intial Tx position not yet found
+Parameter set [  0. 337.   0.   1.   2.   0.  11.   0.   0.   4.]
+Ray number invalid
+Parameter set [ 0. 22.  1.  0.  3.  0. 11.  0.  0.  3.]
+Not interested in single reflective case
+Parameter set [  0. 337.   1.   0.   3.   0.  11.   0.   0.   3.]
+Ray number invalid
+Parameter set [ 0. 22.  1.  0.  3.  1. 11.  0.  0.  3.]
+Not interested in single reflective case
+Parameter set [  0. 337.   1.   0.   3.   1.  11.   0.   0.   3.]
+Ray number invalid
+Parameter set [ 0. 22.  2.  0.  3.  0. 11.  0.  1.  5.]
+Not interested in parallel reflective surfaces only corner
+Parameter set [  0. 337.   2.   0.   3.   0.  11.   0.   1.   5.]
+Ray number invalid
+Parameter set [ 0. 22.  2.  0.  3.  1. 11.  0.  1.  5.]
+Not interested in parallel reflective surfaces only corner
+Parameter set [  0. 337.   2.   0.   3.   1.  11.   0.   1.   5.]
+Ray number invalid
+Parameter set [ 0. 22.  6.  0.  3.  0. 11.  0.  0.  4.]
+Intial Tx position not yet found
+Parameter set [  0. 337.   6.   0.   3.   0.  11.   0.   0.   4.]
+Ray number invalid
+Parameter set [ 0. 22.  6.  0.  3.  1. 11.  0.  0.  4.]
+Intial Tx position not yet found
+Parameter set [  0. 337.   6.   0.   3.   1.  11.   0.   0.   4.]
+Ray number invalid
+Parameter set [ 1. 22.  0.  1.  2.  0. 11.  0.  0.  2.]
+Not interested in LOS with box
+Parameter set [  1. 337.   0.   1.   2.   0.  11.   0.   0.   2.]
+Ray number invalid
+Parameter set [ 1. 22. 12.  0.  3.  1. 11.  0.  0.  7.]
+Intial Tx position not yet found
+Parameter set [  1. 337.  12.   0.   3.   1.  11.   0.   0.   7.]
+Ray number invalid
+Parameter set [ 1. 22. 12.  0.  3.  0. 11.  0.  0.  7.]
+Intial Tx position not yet found
+Parameter set [  1. 337.  12.   0.   3.   0.  11.   0.   0.   7.]
+Ray number invalid
+Parameter set [ 0. 22.  2.  0.  6.  0. 11.  0.  1.  5.]
+Only interested in 3 reflections case
+Parameter set [  0. 337.   2.   0.   6.   0.  11.   0.   1.   5.]
+Ray number invalid
+Parameter set [ 0. 22.  2.  0.  6.  1. 11.  0.  1.  5.]
+Only interested in 3 reflections case
+Parameter set [  0. 337.   2.   0.   6.   1.  11.   0.   1.   5.]
+Ray number invalid
+Parameter set [ 0. 22.  6.  0.  6.  0. 11.  0.  0.  4.]
+Only interested in 3 reflections case
+Parameter set [  0. 337.   6.   0.   6.   0.  11.   0.   0.   4.]
+Ray number invalid
+Parameter set [ 0. 22.  6.  0.  6.  1. 11.  0.  0.  4.]
+Only interested in 3 reflections case
+Parameter set [  0. 337.   6.   0.   6.   1.  11.   0.   0.   4.]
+Ray number invalid
+Parameter set [ 1. 22. 12.  0.  6.  1. 11.  0.  0.  7.]
+Only interested in 3 reflections case
+Parameter set [  1. 337.  12.   0.   6.   1.  11.   0.   0.   7.]
+Ray number invalid
 
 ########################################################################
 ----------------------! Balena Job Details !----------------------------
 
-JobID          : 4104223
+JobID          : 4105247
 No. of nodes   : 1
 No. of CPUs    : 16
 Timelimit      : 05:00:00
-Elapsed time   : 00:00:01
-Nodelist       : node-sw-103
+Elapsed time   : 00:04:57
+Nodelist       : node-sw-128
 
 ########################################################################
 

@@ -9,8 +9,8 @@
 #
 # Choose name of job (name of executable)
 #SBATCH --job-name=Opt2
-#SBATCH --output=TXmove2.out
-#SBATCH --error=TXMove2.err
+#SBATCH --output=Opt2.out
+#SBATCH --error=Opt2.err
 #SBATCH --partition=batch
 #
 # Choose the number of nodes & processors per node:
@@ -29,7 +29,7 @@
 # Choose start time
 #SBATCH --begin=now
 # set up environment
-echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 10"
+echo "Will run python3 OptimisationMethodQuart2. Which will run the optimisation method for the second quart of paramter sets."
 echo "Starting job..."
 module load python3/2019.x
 source activate py3

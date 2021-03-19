@@ -1,2 +1,1 @@
-/cm/local/apps/slurm/var/spool/job4105237/slurm_script: line 39: syntax error near `;'
-/cm/local/apps/slurm/var/spool/job4105237/slurm_script: line 39: `for ((job=0; job<55; job++); do '
+slurmstepd: error: *** JOB 4106446 ON node-sw-075 CANCELLED AT 2021-03-19T17:40:48 ***

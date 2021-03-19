@@ -1,8 +1,30 @@
-  File "OptimisationMethodQuart2.py", line 154
-    def MoreInputs_Run(:
-                       ^
-SyntaxError: invalid syntax
+Traceback (most recent call last):
+  File "OptimisationMethodQuart2.py", line 428, in <module>
+    MoreInputs_Run()
+  File "OptimisationMethodQuart2.py", line 379, in MoreInputs_Run
+    P,_=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,job,indexLOS,PerfRef)
+NameError: name 'indexLOS' is not defined
+Traceback (most recent call last):
+  File "OptimisationMethodQuart2.py", line 428, in <module>
+    MoreInputs_Run()
+  File "OptimisationMethodQuart2.py", line 379, in MoreInputs_Run
+    P,_=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,job,indexLOS,PerfRef)
+NameError: name 'indexLOS' is not defined
 
-real	0m1.099s
-user	0m0.029s
-sys	0m0.011s
+real	127m55.826s
+user	124m53.694s
+sys	0m8.524s
+
+real	113m40.829s
+user	111m43.356s
+sys	0m8.135s
+Traceback (most recent call last):
+  File "OptimisationMethodQuart2.py", line 428, in <module>
+    MoreInputs_Run()
+  File "OptimisationMethodQuart2.py", line 379, in MoreInputs_Run
+    P,_=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,job,indexLOS,PerfRef)
+NameError: name 'indexLOS' is not defined
+
+real	73m16.270s
+user	71m20.930s
+sys	0m8.437s

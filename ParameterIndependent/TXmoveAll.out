@@ -1,15 +1,16 @@
-Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 250
+Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 55
 Starting job...
+job=0
 
 ########################################################################
 ----------------------! Balena Job Details !----------------------------
 
-JobID          : 4105237
+JobID          : 4106446
 No. of nodes   : 1
 No. of CPUs    : 16
 Timelimit      : 05:00:00
-Elapsed time   : 00:00:04
-Nodelist       : node-sw-121
+Elapsed time   : 00:00:19
+Nodelist       : node-sw-075
 
 ########################################################################
 
