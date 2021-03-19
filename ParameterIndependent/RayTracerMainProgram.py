@@ -803,11 +803,11 @@ def optimum_gains(Room,Mesh,Nr=22,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,
   meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   OptiStr=powerfolder+'/'+boxstr+Obstr+'OptimalGains%03dRefs%03dm%03d_tx%03d'%(Nr,Nre,index,job)
-  if os.path.isfile(OptiStr+'.npy'):
-      Gt=np.load(OptiStr+'.npy')
-      print('Optimal loaded')
-      timemat[0]=t.time()-t0
-      return Gt, timemat
+  # if os.path.isfile(OptiStr+'.npy'):
+      # Gt=np.load(OptiStr+'.npy')
+      # print('Optimal loaded')
+      # timemat[0]=t.time()-t0
+      # return Gt, timemat
   # Make the refindex, impedance and gains vectors the right length to
   # match the matrices.
   Znobrat=np.tile(Znobrat,(Nre,1))          # The number of rows is Nsur*Nre+1. Repeat Znobrat to match Mesh dimensions
