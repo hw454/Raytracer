@@ -228,7 +228,7 @@ def MoreInputs_Run():
       LOSstr='LOS'
     elif PerfRef:
       if Nre>2:
-        if Nrs<Nsur:
+        if 0<Nrs<Nsur:
           LOSstr=nw.num2words(Nrs)+'PerfRef'
         else:
           LOSstr='MultiPerfRef'

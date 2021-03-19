@@ -243,7 +243,7 @@ def MoreInputs_Run():
       else:
         LOSstr='SingleRef'
     Obstr=''
-    if Nrs<Nsur:
+    if 0<Nrs<Nsur:
       obnumbers=np.zeros((Nrs,1))
       k=0
       for ob, refin in enumerate(refindex):
