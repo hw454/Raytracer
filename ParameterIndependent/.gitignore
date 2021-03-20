@@ -1,9 +1,6 @@
 *.pyc
-*.jpg
-*.png
 *.aux
 *.toc
-*.txt
 *.pyc
 *.orig
 *.log
