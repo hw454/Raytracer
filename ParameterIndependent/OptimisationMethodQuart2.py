@@ -395,7 +395,7 @@ def MoreInputs_Run():
     RTplot.plot_mesh(Mesh,Room,TxHighTol,foldtype,plottype,Box,Obstr,Nr,Nre,Ns,plotfit,LOS,index)
     meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
     meshname=meshfolder+'/DSM_tx%05dx%05dy%05dz'%(TxLowTol[0]*1e+5,TxLowTol[1]*1e+5,TxLowTol[2]*1e+5)
-    mesheg=meshname++"%02dx%02dy%02dz.npz"%(0,0,0)
+    mesheg=meshname+"%02dx%02dy%02dz.npz"%(0,0,0)
     if os.path.isfile(meshname):
       Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
     else:

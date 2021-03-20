@@ -127,6 +127,7 @@ def Quality_MoreInputs(Tx,Direc,programterms,RayPar,foldtype,Room,Znobrat,refind
   mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
   if os.path.isfile(mesheg):
     Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
+    print('Mesh loaded'+meshname)  
   else:
     # ##----Retrieve the environment--------------------------------------
     # ##----The lengths are non-dimensionalised---------------------------
