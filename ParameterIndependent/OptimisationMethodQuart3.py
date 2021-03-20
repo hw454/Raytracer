@@ -164,12 +164,9 @@ def MoreInputs_Run():
   ##----Retrieve the Raytracing Parameters-----------------------------
   RayPar        =np.load('Parameters/Raytracing.npy')
   _,_,L,split =RayPar
-  parameters=  np.load('Parameters/Parameterarray.npy')
-  nr,nc=parameters.shape
-  endr=int(0.25*nr)
-  for arr in parameters[2*endr:3*endr]:
+  parametersorig=  np.load('Parameters/Parameterarray.npy')
+  for arr in parametersorig:
     InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index=arr.astype(int)
-    print('Parameter set',arr)
     if Nr==0 or Nr==337:
       print('Ray number invalid')
       continue
@@ -185,12 +182,21 @@ def MoreInputs_Run():
     if Nrs==2 and Par:
       print('Not interested in parallel reflective surfaces only corner')
       continue
-    if Ns==10:
+    if Ns==11:
       print('Only optimise with the 5x5x5 meshes not 10x10x10')
       continue
     if Q==1 or Q==2:
       print('Only consider average power in optimisation')
       continue
+    else:
+      if 'parameters' in locals():
+        parameters=np.append(parameters,[arr],axis=0)
+      else:
+        parameters=[arr]
+  nr,nc=parameters.shape
+  endr=int(0.25*nr)
+  for arr in parameters[2*endr:3*endr]:
+    print('Parameter set',arr)
     MaxInter      =np.load('Parameters/MaxInter%d.npy'%index)             # The number of intersections a single ray can have in the room in one direction.
     Oblist        =np.load('Parameters/Obstacles%d.npy'%index).astype(float)      # The obstacles which are within the outerboundary
     refindex     =np.load('Parameters/refindex%03d.npy'%index)
@@ -395,7 +401,7 @@ def MoreInputs_Run():
     RTplot.plot_mesh(Mesh,Room,TxHighTol,foldtype,plottype,Box,Obstr,Nr,Nre,Ns,plotfit,LOS,index)
     meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
     meshname=meshfolder+'/DSM_tx%05dx%05dy%05dz'%(TxLowTol[0]*1e+5,TxLowTol[1]*1e+5,TxLowTol[2]*1e+5)
-    mesheg=meshname++"%02dx%02dy%02dz.npz"%(0,0,0)
+    mesheg=meshname+"%02dx%02dy%02dz.npz"%(0,0,0)
     if os.path.isfile(meshname):
       Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
     else:

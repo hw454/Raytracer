@@ -164,12 +164,9 @@ def MoreInputs_Run():
   ##----Retrieve the Raytracing Parameters-----------------------------
   RayPar        =np.load('Parameters/Raytracing.npy')
   _,_,L,split =RayPar
-  parameters=  np.load('Parameters/Parameterarray.npy')
-  nr,nc=parameters.shape
-  endr=int(0.25*nr)
-  for arr in parameters[endr:2*endr]:
+  parametersorig=  np.load('Parameters/Parameterarray.npy')
+  for arr in parametersorig:
     InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index=arr.astype(int)
-    print('Parameter set',arr)
     if Nr==0 or Nr==337:
       print('Ray number invalid')
       continue
@@ -185,12 +182,21 @@ def MoreInputs_Run():
     if Nrs==2 and Par:
       print('Not interested in parallel reflective surfaces only corner')
       continue
-    if Ns==10:
+    if Ns==11:
       print('Only optimise with the 5x5x5 meshes not 10x10x10')
       continue
     if Q==1 or Q==2:
       print('Only consider average power in optimisation')
       continue
+    else:
+      if 'parameters' in locals():
+        parameters=np.append(parameters,[arr],axis=0)
+      else:
+        parameters=[arr]
+  nr,nc=parameters.shape
+  endr=int(0.25*nr)
+  for arr in parameters[endr:2*endr]:
+    print('Parameter set',arr)
     MaxInter      =np.load('Parameters/MaxInter%d.npy'%index)             # The number of intersections a single ray can have in the room in one direction.
     Oblist        =np.load('Parameters/Obstacles%d.npy'%index).astype(float)      # The obstacles which are within the outerboundary
     refindex     =np.load('Parameters/refindex%03d.npy'%index)
@@ -228,7 +234,7 @@ def MoreInputs_Run():
       LOSstr='LOS'
     elif PerfRef:
       if Nre>2:
-        if 0<Nrs<Nsur:
+        if Nrs<Nsur:
           LOSstr=nw.num2words(Nrs)+'PerfRef'
         else:
           LOSstr='MultiPerfRef'
@@ -243,7 +249,7 @@ def MoreInputs_Run():
       else:
         LOSstr='SingleRef'
     Obstr=''
-    if Nrs<Nsur:
+    if 0<Nrs<Nsur:
       obnumbers=np.zeros((Nrs,1))
       k=0
       for ob, refin in enumerate(refindex):
