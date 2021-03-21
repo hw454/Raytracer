@@ -7,3 +7,6 @@
 testDS
 *~lock*
 *.tar.gz
+/build/*
+/Times/*.png
+/Times/*.jpg

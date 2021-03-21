@@ -642,6 +642,13 @@ def power_grid(Room,Mesh,Nr=22,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,Nrs
   Nx=int(Room.maxxleng()//h+1)
   Ny=int(Room.maxyleng()//h+1)
   Nz=int(Room.maxzleng()//h+1)
+  if not Room.CheckTxInner(Tx):
+    if logon:
+        logging.info('Tx=(%f,%f,%f) is not a valid transmitter location'%(Tx[0],Tx[1],Tx[2]))
+    print('This is not a valid transmitter location')
+    timemat=0
+    Grid=np.zeros((Nx,Ny,Nz))
+    return Grid,timemat
   Ns=max(Nx,Ny,Nz)
   print('---------------------------------')
   print('Starting the power calculation')
@@ -654,16 +661,11 @@ def power_grid(Room,Mesh,Nr=22,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,Nrs
   meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   pstr=powerfolder+'/'+boxstr+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
-  # if os.path.isfile(pstr):
-      # Grid= np.load(pstr)
-      # print('Power loaded from store')
-      # print('Power file'+pstr)
-  # else:
-  c=1
-  if c:
-      #meshname=meshfolder+'/DSM_tx%03d'%(job)
-      #if os.path.isfile(meshname):
-      #  Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
+  if os.path.isfile(pstr):
+      Grid= np.load(pstr)
+      print('Power loaded from store')
+      print('Power file'+pstr)
+  else:
       # Make the refindex, impedance and gains vectors the right length to
       # match the matrices.
       Znobrat=np.tile(Znobrat,(Nre,1))          # The number of rows is Nsur*Nre+1. Repeat Znobrat to match Mesh dimensions
@@ -726,6 +728,7 @@ def optimum_gains(Room,Mesh,Nr=22,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,
   :returns: Grid
 
   '''
+  t0=t.time()
   ##----Retrieve the Raytracing Parameters-----------------------------
   _,_,L    =np.load('Parameters/Raytracing.npy')[0:3]
   Tx            =np.load('Parameters/Origin_job%03d.npy'%job).astype(float)# The location of the source antenna (origin of every ray)
@@ -803,11 +806,11 @@ def optimum_gains(Room,Mesh,Nr=22,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,
   meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   OptiStr=powerfolder+'/'+boxstr+Obstr+'OptimalGains%03dRefs%03dm%03d_tx%03d'%(Nr,Nre,index,job)
-  # if os.path.isfile(OptiStr+'.npy'):
-      # Gt=np.load(OptiStr+'.npy')
-      # print('Optimal loaded')
-      # timemat[0]=t.time()-t0
-      # return Gt, timemat
+  if os.path.isfile(OptiStr+'.npy'):
+    Gt=np.load(OptiStr+'.npy')
+    print('Optimal loaded')
+    timemat[0]=t.time()-t0
+    return Gt, timemat
   # Make the refindex, impedance and gains vectors the right length to
   # match the matrices.
   Znobrat=np.tile(Znobrat,(Nre,1))          # The number of rows is Nsur*Nre+1. Repeat Znobrat to match Mesh dimensions
@@ -1030,6 +1033,11 @@ def Quality(Room,Nr=22,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,Nrs=2,Ns=5)
   meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   pstr=powerfolder+'/'+boxstr+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
+  if not Room.CheckTxInner(Tx):
+    if logon:
+        logging.info('Tx=(%f,%f,%f) is not a valid transmitter location'%(Tx[0],Tx[1],Tx[2]))
+    print('This is not a valid transmitter location')
+    return 0.0
   P=np.load(pstr)
   Q=DSM.QualityFromPower(P)
   Qmat[0,0]=Q
@@ -1074,9 +1082,9 @@ def MoveTx(job,Nx,Ny,Nz,h):
 
 def jobfromTx(Tx,h):
   Ns=int(1.0//h+1)
-  H=1+(Tx[2]-0.5*h)//h
-  t=1+(Tx[0]-0.5*h)//h
-  u=1+(Tx[1]-0.5*h)//h
+  H=round((Tx[2]-0.5*h)/h)
+  t=round((Tx[0]-0.5*h)/h)
+  u=round((Tx[1]-0.5*h)/h)
   return int(H*(Ns**2)+t*Ns+u)
 
 def main(argv,scriptcall=False):
@@ -1132,7 +1140,7 @@ def main(argv,scriptcall=False):
     else:
       Tx=np.load('Parameters/Origin.npy')
       job=jobfromTx(Tx,h)
-      job=665
+      job=55
       Tx=MoveTx(job,Nx,Ny,Nz,h)
       np.save('Parameters/Origin_job%03d.npy'%job,Tx)
     #InBook     =rd.open_workbook(filename=Sheetname)#,data_only=True)

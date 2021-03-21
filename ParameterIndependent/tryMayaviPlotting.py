@@ -1471,11 +1471,7 @@ def PlotSingleCone(plottype):
   return
 
 def jobfromTx(Tx,h):
-  Ns=int(1.0/h)
-  H=(Tx[2]-0.5*h)//h
-  t=(Tx[0]-0.5*h)//h
-  u=(Tx[1]-0.5*h)//h
-  return int(H*(Ns**2)+t*Ns+u)
+  return RTM.jobfromTx(Tx,h)
 
 
 if __name__=='__main__':
