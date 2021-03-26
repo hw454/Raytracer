@@ -432,9 +432,6 @@ class Ray:
        y=cross(Norm[0],d)            # Compute another vector in the plane to form co-ordinate axis.
        y/=leng(y)             # Normalise y. y and Norm[0] are now the co-ordinate axis in the plane.
      Norm=numparr([cos(a)*Norm[0]+sin(a)*y for a in anglevec])
-     #outer(cos(anglevec),Norm[0])+outer(sin(anglevec),y) # Use the outer product to multiple the axis
-                                                                          # Norm[0] and y by their corresponding sin(theta),
-                                                                          # and cos(theta) parts.
      return Norm
   def reflect_calc(s,room):
     ''' Finds the reflection of the ray inside a room.
@@ -793,7 +790,7 @@ class Ray:
                                # The need for this copy() has been checked.
     i1,j1,k1=room.position(p1,h)                           # Find the indices for position p
     theta=s._ref_angle_(room,direc,nob)                    # Compute the reflection angle
-    segleng=leng(s.points[-3][0:3]-s.points[-2][0:3])           # Length of the ray segment
+    segleng=leng(s.points[-3][0:3]-s.points[-2][0:3])      # Length of the ray segment
     # Dist will be increased as the ray is stepped through. But this will go beyond the intersection point.
     # Outdist is the distance the ray has travelled from the source to the intersection point.
     olddist=dist
@@ -1032,7 +1029,7 @@ class Ray:
     # Compute a matrix with rows corresponding to normals for the cone.
     Ncon=s._number_cones_(deldist,dist+segleng,deltheta,theta,Ms)
     if Ncon>0:
-      norm=s._normal_mat_(Ncon,Nra,direc,dist,h)             # Matrix of normals to the direc, of distance 1 equally angle spaced
+      norm=s._normal_mat_(Ncon,direc)             # Matrix of normals to the direc, of distance 1 equally angle spaced
       Nnor=len(norm)                                         # The number of normal vectors#
     else:
       Nnor=0
@@ -1069,38 +1066,30 @@ class Ray:
           else:
             _Grid[i1,j1,k1,0]+=(1.0/(distcor))*np.exp(1j*khat*distcor*(L**2))*RefCoef[0]
             _Grid[i1,j1,k1,1]+=(1.0/(distcor))*np.exp(1j*khat*distcor*(L**2))*RefCoef[1]
-          Nc=s._number_cone_steps_(deldist,dist,deltheta,Ms)       # No. of cone steps required for this ray step.
+          Nc=(s._number_cone_steps_(deldist,dist,deltheta,Ms)//3)       # No. of cone steps required for this ray step.
           for m2 in range(0,split*(Nc)):
             p3=numparr([p1+(m2+1)*alpha*splitinv*n for n in norm])
             #np.tile(p1,(Ncon,1))+(m2+1)*alpha*norm*splitinv        # Step along all the normals from the ray point p1.
             copos=room.position(p3,h)                              # Find the indices corresponding to the cone points.
+            check,coposch,p3ch,normch =DSM.stopchecklist(copos,p3,norm,Nx,Ny,Nz)  # The indices which do not correspond to positions in the environment are removed.
             if m2==0 and m1==0:
-              copos2=zeros(copos.shape)
-              check,altcopos,p3out,normout =DSM.stopchecklist(altcopos,p3,norm,Nx,Ny,Nz)  # The indices which do not correspond to positions in the environment are removed.
-              copos2=altcopos
+               copos2=zeros(coposch.shape)
+               copos2=altcopos
             else:
-              altcopos,p3out,normout,copos2=duplicatecheck(copos,copos2,p3,norm,Nx,Ny,Nz) # If there are any cone indices which were in the previous step these are removed.
-            if altcopos.shape[0]>0: # Check that there are some cone positions to store.
+              altcopos,p3out,normout,copos2=duplicatecheck(coposch,copos2,p3ch,normch) # If there are any cone indices which were in the previous step these are removed.
+            if len(altcopos.shape)>1 and altcopos.shape[0]>0: # Check that there are some cone positions to store.
               # Check whether there is more than one vector in the list of cones.
-              if isinstance(normout[0],(float,int,np.int64, np.complex128 )):
+              if normout.shape[0]<2:
                 Nnorcor=1
-                coords=room.coordinate(h,altcopos[0],altcopos[1],altcopos[2]) # Find the centre element point for each cone normal.
+                coords=room.coordinate(h,altcopos[0,0],altcopos[0,1],altcopos[0,2]) # Find the centre element point for each cone normal.
               else:
                 Nnorcor=normout.shape[0]
                 coords=room.coordinate(h,altcopos[:,0],altcopos[:,1],altcopos[:,2])
               r2=s.centre_dist(p1,coords,dist,room)
-              if Nnorcor==1:
-                x,y,z=altcopos
-                intercheck=room.check_innerpoint(coords)
-                if not intercheck and abs(r2)>epsilon:
-                  _Grid[x,y,z,0]+=(1.0/(r2))*np.exp(1j*khat*r2*(L**2))*RefCoef[0]
-                  _Grid[x,y,z,1]+=(1.0/(r2))*np.exp(1j*khat*r2*(L**2))*RefCoef[1]
-                continue
-              else:
-                for j in range(0,Nnorcor):
-                  x,y,z=altcopos[j]
-                  intercheck=room.check_innerpoint(coords[j])
-                  if not intercheck and abs(r2[j])>epsilon:
+              for j in range(0,Nnorcor):
+                x,y,z=altcopos[j]
+                intercheck=room.check_innerpoint(coords[j])
+                if not intercheck and abs(r2[j])>epsilon:
                     # If the ray is already accounted for in this mesh square then step to the next point.
                     errmsg='Number of cone positions (%d,%d,%d) not the same as number of distances, %d'%(altcopos[j,0],altcopos[j,1],altcopos[j,2],r2[j])
                     if altcopos.shape[0]!=r2.shape[0]:
@@ -1117,31 +1106,25 @@ class Ray:
             copos=room.position(p3,h)                              # Find the indices corresponding to the cone points.
             if m2==0 and m1==0:
               copos2=zeros(copos.shape)
-              check,altcopos,p3out,normout =DSM.stopchecklist(copos,p3,h,Nx,Ny,Nz)  # The indices which do not correspond to positions in the environment are removed.
+              check,altcopos,p3out,normout =DSM.stopchecklist(copos,p3,norm,Nx,Ny,Nz)  # The indices which do not correspond to positions in the environment are removed.
               copos2=copos
             else:
-              altcopos,p3out,normout,copos2=duplicatecheck(copos,copos2,p3,norm,Nx,Ny,Nz) # If there are any cone indices which were in the previous step these are removed.
-            if altcopos.shape[0]>0: # Check that there are some cone positions to store.
+              check,coposch,p3ch,normch =DSM.stopchecklist(copos,p3,norm,Nx,Ny,Nz)
+              altcopos,p3out,normout,copos2=duplicatecheck(coposch,copos2,p3ch,normch) # If there are any cone indices which were in the previous step these are removed.
+            if altcopos.shape[0]>0 and len(altcopos.shape)>1: # Check that there are some cone positions to store.
               # Check whether there is more than one vector in the list of cones.
-              if isinstance(normout[0],(float,int,np.int64, np.complex128 )):
+              if normout.shape[0]<2:
                 Nnorcor=1
-                coords=room.coordinate(h,altcopos[0],altcopos[1],altcopos[2]) # Find the centre element point for each cone normal.
+                coords=room.coordinate(h,altcopos[0,0],altcopos[0,1],altcopos[0,2]) # Find the centre element point for each cone normal.
               else:
                 Nnorcor=normout.shape[0]
+                #print(altcopos.shape)
                 coords=room.coordinate(h,altcopos[:,0],altcopos[:,1],altcopos[:,2])
               r2=s.centre_dist(p1,coords,dist,room)
-              if Nnorcor==1:
-                x,y,z=altcopos
-                intercheck=room.check_innerpoint(coords)
-                if not intercheck and abs(r2)>epsilon:
-                  _Grid[x,y,z,0]+=(1.0/(r2))*np.exp(1j*khat*r2*(L**2))*RefCoef[0]
-                  _Grid[x,y,z,1]+=(1.0/(r2))*np.exp(1j*khat*r2*(L**2))*RefCoef[1]
-                continue
-              else:
-                for j in range(0,Nnorcor):
-                  x,y,z=altcopos[j]
-                  intercheck=room.check_innerpoint(coords[j])
-                  if not intercheck and abs(r2[j])>epsilon:
+              for j in range(0,Nnorcor):
+                x,y,z=altcopos[j]
+                intercheck=room.check_innerpoint(coords[j])
+                if not intercheck and abs(r2[j])>epsilon:
                     # If the ray is already accounted for in this mesh square then step to the next point.
                     errmsg='Number of cone positions (%d,%d,%d) not the same as number of distances, %d'%(altcopos[j,0],altcopos[j,1],altcopos[j,2],r2[j])
                     if altcopos.shape[0]!=r2.shape[0]:

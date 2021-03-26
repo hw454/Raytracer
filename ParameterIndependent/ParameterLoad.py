@@ -63,7 +63,7 @@ def DeclareParameters(SN,index=0):
   deltheta=np.array([])
   nrays=Angspace.max_row-1
 
-  nrays=2
+  nrays=7
   SimPar.cell(row=12,column=3).value=nrays
 
 
@@ -85,6 +85,8 @@ def DeclareParameters(SN,index=0):
   else:
     Nrs=0
   SimPar.cell(row=13,column=3).value=Nrs
+  Lp=int(SimPar.cell(row=27,column=3).value )     # Number of reflections
+  Up=int(SimPar.cell(row=28,column=3).value )     # Number of reflections
   Nre=int(SimPar.cell(row=2,column=3).value )     # Number of reflections
   Ns=int(SimPar.cell(row=3,column=3).value )      # Number of steps on longest axis.
   split=SimPar.cell(row=4,column=3).value         # Number of steps through each mesh square
@@ -364,6 +366,8 @@ def DeclareParameters(SN,index=0):
   # --------------------------------------------------------------------
   # SAVE THE PARAMETERS IN A FOLDER TITLED `Parameters`
   # --------------------------------------------------------------------
+  np.save('Parameters/Up.npy',Up)
+  np.save('Parameters/Lp.npy',Lp)
   np.save('Parameters/ResOn.npy',ResOn)
   np.save('Parameters/logon.npy',logon)
   np.save('Parameters/MaxInter%d.npy'%index,MaxInter)
@@ -371,8 +375,8 @@ def DeclareParameters(SN,index=0):
   np.save('Parameters/roomnumstat.npy',roomnumstat)
   np.save('Parameters/timetest.npy',timetest)
   np.save('Parameters/Raytracing.npy',RTPar)
-  np.save('Parameters/Nra.npy',Nraout)
-  np.save('Parameters/delangle.npy',deltheta)
+  np.save('Parameters/NraFull.npy',Nraout)
+  np.save('Parameters/delangleFull.npy',deltheta)
   if InnerOb:
     Oblist=np.concatenate((OuterBoundary,Oblist))
   else:
@@ -537,7 +541,7 @@ def ObstacleCoefficients(SN,index=0):
   RTPar         =np.load('Parameters/Raytracing.npy')
   Nre,h,L,split =RTPar
   Oblist        =np.load('Parameters/Obstacles%d.npy'%index)
-  Nra           =np.load('Parameters/Nra.npy')
+  Nra           =np.load('Parameters/NraFull.npy')
   if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
       nra=np.array([Nra])
   else:
@@ -572,6 +576,7 @@ def ObstacleCoefficients(SN,index=0):
   # ANTENNA PARAMETERS
   #-----------------------------------------------------------------------
   # Gains of the rays
+
   for j in range(0,nra):
     Gt=np.ones((Nra[j],1),dtype=np.complex128)
     gainname='Parameters/Tx%03dGains%03d.npy'%(Nra[j],index)
@@ -644,6 +649,7 @@ def ObstacleCoefficients(SN,index=0):
         epsrj=0j
         sigj =0j
         if index==3 and j+3==7:
+          print(ObstPar.cell(row=1,column=2).value)
           murj =complex(ObstPar.cell(row=1,column=2).value)
           epsrj=complex(ObstPar.cell(row=1,column=3).value)
           sigj =complex(ObstPar.cell(row=1,column=4).value)
@@ -824,8 +830,8 @@ def initialload(index=0):
   roomnumstat                 =np.load('Parameters/roomnumstat.npy')
   timetest                    =np.load('Parameters/timetest.npy')
   Nre,h,roomlengthscale,split =np.load('Parameters/Raytracing.npy')
-  Nra                         =np.load('Parameters/Nra.npy')
-  deltheta                    =np.load('Parameters/delangle.npy')
+  Nra                         =np.load('Parameters/NraFull.npy')
+  deltheta                    =np.load('Parameters/delangleFull.npy')
   Oblist                      =np.load('Parameters/Obstacles%d.npy'%index)
   NtriOb                      =np.load('Parameters/NtriOb.npy')
   InnerOb                     =np.load('Parameters/InnerOb%d.npy'%index)
@@ -945,16 +951,37 @@ def initialload(index=0):
   logging.info('Position of the transmitter (%f,%f,%f)'%(Tx[0],Tx[1],Tx[2]))
   return
 
+def parload():
+  SN='Parameters/Parameters.xlsx'
+  InBook     =wb.load_workbook(filename=SN,data_only=True)
+  Sh     ='Sheet1'
+  Pars       =InBook[Sh]
+  Np=Pars.max_row-1
+  parameters=np.zeros((Np,10))
+  for j in range(Np):
+    parameters[j,0]=Pars.cell(row=j+2,column=1).value
+    parameters[j,1]=Pars.cell(row=j+2,column=2).value
+    parameters[j,2]=Pars.cell(row=j+2,column=3).value
+    parameters[j,3]=Pars.cell(row=j+2,column=4).value
+    parameters[j,4]=Pars.cell(row=j+2,column=5).value
+    parameters[j,5]=Pars.cell(row=j+2,column=6).value
+    parameters[j,6]=Pars.cell(row=j+2,column=7).value
+    parameters[j,7]=Pars.cell(row=j+2,column=8).value
+    parameters[j,8]=Pars.cell(row=j+2,column=9).value
+    parameters[j,9]=Pars.cell(row=j+2,column=10).value
+  np.save('./Parameters/ParameterarrayTimeTest.npy',parameters)
+  return
+
 if __name__=='__main__':
   np.set_printoptions(precision=3)
   print('Running  on python version')
   print(sys.version)
   Sheetname='InputSheet.xlsx'
+  #parload()
   for index in range(8):
     out=DeclareParameters(Sheetname,index)
     out=ObstacleCoefficients(Sheetname,index)
     initialload(index)
-
   exit()
 
 

@@ -474,7 +474,7 @@ class room:
     Nz=Grid.shape[2]
     P=zeros((Nx,Ny,Nz),dtype=np.longdouble)
     P=absolute(Grid[:,:,:,0])**2+absolute(Grid[:,:,:,1])**2
-    P=DSM.Watts_to_db(P)
+    P=DS.Watts_to_db(P)
     return raylist, P
   def ray_bounce(s,Tx,Nre,Nra,directions):
     ''' Trace ray's uniformly emitted from an origin around a room.

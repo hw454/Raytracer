@@ -424,6 +424,36 @@ def plot_times(plottype,testnum,roomnumstat):
     mp.savefig(filename,bbox_inches=plotfit)
   return
 
+def plot_time_test(job=0):
+  Nra= np.load('Parameters/NraFull.npy')
+  nra=len(Nra)
+  TimeMatStd=np.load('Times/TimeStd.npy')
+  TimeGRL=np.load('Times/TimeGRL.npy')
+  nre=5
+  fig = plt.figure()
+  ax = plt.subplot(111)
+  for Nrind,Nreind in product(range(nra),range(nre)):
+    ts=np.array([t for t in TimeMatstd[Nrind,Nreind,:,0] if t>0])
+    Avestd=np.average(ts)
+    nts=len(ts)
+    onevec=np.ones(nts)
+    Nradum=Nra[Nrind]*onevec
+    mp.plots(Nradum,ts,'o',label='std_nre%d'%(Nreind+2))
+    mp.plots(Nradum,Avestd*onevec,label='average_std_nre%d'%(Nreind+2))
+    tgrl=np.array([t for t in TimeGRL[Nrind,Nreind,:,5] if t>0])
+    ngrl=len(tgrl)
+    Ave=np.average(tgrl)
+    onevec=np.ones(ngrl)
+    Nradum=Nra[Nrind]*onevec
+    mp.plots(Nradum,tgrl,'x',label='grl_nre%d'%(Nreind+2))
+    mp.plot(Nradum,Ave*onevec,label='average_grl_nre%d'%(Nreind+2))
+  ax.legend()
+  filename='./Times/TimeTestPlot.jpg'%(Nr,Nre,k)
+  mp.savefig(filename,bbox_inches=plotfit)
+  mp.clf()
+  mp.close()
+  return
+
 def plot_quality(plottype,testnum,roomnumstat,job=0):
   Nre,h,L    =np.load('Parameters/Raytracing.npy')[0:3]
   Nra        =np.load('Parameters/Nra.npy')
@@ -454,17 +484,20 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
   roomnumstat=np.load('Parameters/roomnumstat.npy')
   _,_,L,split    =np.load('Parameters/Raytracing.npy')
   #Nra        =np.load('Parameters/Nra.npy')
-  Ntri          =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
-  MaxInter      =np.load('Parameters/MaxInter.npy')             # The number of intersections a single ray can have in the room in one direction.
   Orig          =np.load('Parameters/Origin.npy')
+  Pol           = np.load('Parameters/Pol%03d.npy'%index)
+  Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
+  Up            =np.load('Parameters/Up.npy')
+  Lp            =np.load('Parameters/Lp.npy')
+  ##----Retrieve the Obstacle Parameters--------------------------------------
+  Znobrat      =np.load('Parameters/Znobrat%03d.npy'%index)
   Nsur          =np.load('Parameters/Nsur%d.npy'%index)
   NtriOb        =np.load('Parameters/NtriOb.npy')               # Number of triangles forming the surfaces of the obstacles
   Oblist        =np.load('Parameters/Obstacles%d.npy'%index).astype(float)      # The obstacles which are within the outerboundary
   refindex      =np.load('Parameters/refindex%03d.npy'%index)
-  Pol           = np.load('Parameters/Pol%03d.npy'%index)
-  ##----Retrieve the Obstacle Parameters--------------------------------------
-  Znobrat      =np.load('Parameters/Znobrat%03d.npy'%index)
-  Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
+  Ntri          =np.load('Parameters/NtriOut.npy')              # Number of triangles forming the surfaces of the outerboundary
+  MaxInter      =np.load('Parameters/MaxInter.npy')             # The number of intersections a single ray can have in the room in one direction.
+
   myfile = open('Parameters/Heatmapstyle.txt', 'rt') # open lorem.txt for reading text
   cmapopt= myfile.read()         # read the entire file into a string
   myfile.close()
@@ -523,6 +556,7 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
       LOSstr='SingleRef'
   foldtype=Refstr+boxstr
   #Room contains all the obstacles and walls.
+  U,L=DSM.db_to_Watts(np.array([Up,Lp]))
   Room=rom.room(Oblist,Ntri)
   Nob=Room.Nob
   Nsur=int(Room.Nsur)
@@ -549,6 +583,7 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
   Qmeshstr=meshfolder+'/'+boxstr+Obstr+'QualityAverage%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,index)
   QPmeshstr=meshfolder+'/'+boxstr+Obstr+'QualityPercentile%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,index)
   QMmeshstr=meshfolder+'/'+boxstr+Obstr+'QualityMin%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,index)
+  QSigmeshstr=meshfolder+'/'+boxstr+Obstr+'QualityMin%03dRefs%03dm%03d_txAll.npy'%(Nr,Nre,index)
   check=0
   # if not os.path.exists('./Mesh'):
     # os.makedirs('./Mesh')
@@ -581,6 +616,7 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
     Qmesh=np.ma.array(np.ones((na,nb,Nz)),mask=mask)
     QPmesh=np.ma.array(np.ones((na,nb,Nz)),mask=mask)
     QMmesh=np.ma.array(np.ones((na,nb,Nz)),mask=mask)
+    QSigmesh=np.ma.array(np.ones((na,nb,Nz)),mask=mask)
     for job in range(numjobs+1):
       #Tx=np.load('Parameters/Origin_job%03d.npy'%job)
       Tx=RTM.MoveTx(job,Nx,Ny,Nz,h)
@@ -592,9 +628,10 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
       elif not Room.CheckTxInner(Tx):
           print('Tx inside an obstacle',Tx)
           mask[Txind[0],Txind[1],Txind[2]]=True
-          Qmesh =np.ma.array(Qmesh,mask=mask)
-          QMmesh=np.ma.array(QMmesh,mask=mask)
-          QPmesh=np.ma.array(QPmesh,mask=mask)
+          Qmesh   =np.ma.array(Qmesh,mask=mask)
+          QMmesh  =np.ma.array(QMmesh,mask=mask)
+          QPmesh  =np.ma.array(QPmesh,mask=mask)
+          QSigmesh=np.ma.array(QSigmesh,mask=mask)
           inside=1
       if abs(Tx[0]-0.5)<epsilon and abs(Tx[1]-0.5)<epsilon and abs(Tx[2]-0.5)<epsilon:
         loca='Centre'
@@ -756,26 +793,56 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
               QMmesh=np.ma.array(QMmesh, mask=mask)
               print('Quality Min not found')
               print(qualityname)
-  #if any(not ma.isnan(q) for q in Qmesh.flatten()):
-  #  print(any(not ma.isnan(q) for q in Qmesh.flatten()))
-  masknew= np.zeros_like(np.zeros((na+2,nb+2,Nz)), dtype=bool)
-  masknew[1:-1,1:-1,:]=mask
-  masknew[0,:,:]=True
-  masknew[-1,:,:]=True
-  masknew[:,0,:]=True
-  masknew[:,-1,:]=True
-  Qnewmesh=np.ma.array(np.ones((na+2,nb+2,Nz)),mask=masknew)
-  Qnewmesh[1:-1,1:-1,:]=Qmesh
-  Qmesh=Qnewmesh
-  Qnewmesh=np.ma.array(np.ones((na+2,nb+2,Nz)),mask=masknew)
-  Qnewmesh[1:-1,1:-1,:]=QPmesh
-  QPmesh=Qnewmesh
-  Qnewmesh=np.ma.array(np.ones((na+2,nb+2,Nz)),mask=masknew)
-  Qnewmesh[1:-1,1:-1,:]=QMmesh
-  QMmesh=Qnewmesh
-  feature_x =np.concatenate(([0],feature_x,[Nx*h*L]))
-  feature_y =np.concatenate(([0],feature_y,[Ny*h*L]))
-  [X, Y] = np.meshgrid(feature_y,feature_x )
+        qualitySigname='./Quality/'+plottype+'/'+boxstr+Obstr+'QualitySigmoid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
+        if os.path.isfile(qualitySigname):
+          QuSig=np.load(qualitySigname)
+          QSigmesh[Txind[0],Txind[1],Txind[2]]=QuM
+        else:
+          pstr       =powerfolder+'/'+boxstr+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
+          if os.path.isfile(pstr):
+            P=np.load(pstr)
+            Qu=DSM.QualitySigmoidFromPower(P,L,U)
+            if not os.path.exists('./Quality'):
+              os.makedirs('./Quality')
+              os.makedirs('./Quality/'+plottype)
+            if not os.path.exists('./Quality/'+plottype):
+              os.makedirs('./Quality/'+plottype)
+            np.save(qualityMname,Qu)
+            QSigmesh[Txind[0],Txind[1],Txind[2]]=Qu
+          else:
+            print('Power not found')
+            print(pstr)
+            meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
+            meshname=meshfolder+'/DSM_tx%03d'%(job)
+            mesheg=meshname+'%02dx%02dy%02dz.npz'%(0,0,0)
+            if os.path.isfile(mesheg):
+              Mesh= DSM.load_dict(meshname,Nx,Ny,Nz)
+              P,ind=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,Nre,job,index,LOS,PerfRef)
+              if not os.path.exists('./Mesh'):
+                os.makedirs('./Mesh')
+                os.makedirs('./Mesh/'+plottype)
+                os.makedirs(powerfolder)
+              if not os.path.exists('./Mesh/'+plottype):
+                os.makedirs('./Mesh/'+plottype)
+                os.makedirs(powerfolder)
+              if not os.path.exists(powerfolder):
+                os.makedirs(powerfolder)
+              if not os.path.exists('./Quality'):
+                os.makedirs('./Quality')
+                os.makedirs('./Quality/'+plottype)
+              if not os.path.exists('./Quality/'+plottype):
+                os.makedirs('./Quality/'+plottype)
+              np.save(pstr,P)
+              Qu=DSM.QualitySigmoidFromPower(P,L,U)
+              np.save(qualitySigname,Qu)
+              QSigmesh[Txind[0],Txind[1],Txind[2]]=Qu
+            else:
+              print('Mesh not found')
+              print(meshname)
+              mask[Txind[0],Txind[1],Txind[2]]=True
+              QSigmesh=np.ma.array(QSigmesh, mask=mask)
+              print('Quality Sigmoid not found')
+              print(qualityname)
   ResultsFolder='./OptimisationResults'
   SpecResultsFolder=ResultsFolder+'/'+LOSstr+boxstr+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   if not os.path.exists(ResultsFolder):
@@ -787,10 +854,10 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
     os.makedirs(SpecResultsFolder)
   if not os.path.exists(SpecResultsFolder):
     os.makedirs(SpecResultsFolder)
-  TxOpt=np.unravel_index(np.argmax(Qmesh),Qmesh.shape) #np.where(Qmesh==np.amax(Qmesh))
-  TxOpt=Room.coordinate(h,TxOpt[0],TxOpt[1],TxOpt[2])
-  print('Optimal T for Q ave from Exhaust:',TxOpt)
-  np.save(SpecResultsFolder+'/'+Obstr+'OptimumExhaustOriginAverage.npy',TxOpt)
+  TxOptA=np.unravel_index(np.argmax(Qmesh),Qmesh.shape) #np.where(Qmesh==np.amax(Qmesh))
+  TxOptA=Room.coordinate(h,TxOptA[0],TxOptA[1],TxOptA[2])
+  print('Optimal T for Q ave from Exhaust:',TxOptA)
+  np.save(SpecResultsFolder+'/'+Obstr+'OptimumExhaustOriginAverage.npy',TxOptA)
   TxOptM=np.unravel_index(np.argmax(QMmesh),QMmesh.shape) #np.where(QMmesh==np.amax(QMmesh))
   TxOptM=Room.coordinate(h,TxOptM[0],TxOptM[1],TxOptM[2])
   print('Optimal T for Q min from Exhaust:',TxOptM)
@@ -798,14 +865,18 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
   TxOptP=np.unravel_index(np.argmax(QPmesh),QPmesh.shape)
   TxOptP=Room.coordinate(h,TxOptP[0],TxOptP[1],TxOptP[2])
   print('Optimal T for Q percentile from Exhaust:',TxOptP)
-  np.save(SpecResultsFolder+'/'+Obstr+'OptimumExhaustOriginPercentile.npy',TxOpt)
+  np.save(SpecResultsFolder+'/'+Obstr+'OptimumExhaustOriginPercentile.npy',TxOptP)
+  TxOptSig=np.unravel_index(np.argmax(QSigmesh),QSigmesh.shape)
+  TxOptSig=Room.coordinate(h,TxOptSig[0],TxOptSig[1],TxOptSig[2])
+  print('Optimal T for Q percentile from Exhaust:',TxOptSig)
+  np.save(SpecResultsFolder+'/'+Obstr+'OptimumExhaustOriginPercentile.npy',TxOptSig)
   text_file = open(SpecResultsFolder+'/'+Obstr+'OptimalTxExhaust.txt', 'w')
-  n = text_file.write('\n Optimal location for exhaustive search of average power is at ')
-  n = text_file.write(str(TxOpt))
-  n = text_file.write('\n Optimal location for exhaustive search of min power is at ')
-  n = text_file.write(str(TxOptM))
-  n = text_file.write('\n Optimal location for exhaustive search of 10th percentile power is at ')
-  n = text_file.write(str(TxOptP))
+  n = text_file.write('\n Optimal location for exhaustive search of average power is at \n')
+  n = text_file.write(str(L*TxOptA))
+  n = text_file.write('\n Optimal location for exhaustive search of min power is at \n')
+  n = text_file.write(str(L*TxOptM))
+  n = text_file.write('\n Optimal location for exhaustive search of 10th percentile power is at \n')
+  n = text_file.write(str(L*TxOptP))
   text_file.close()
   print('Optimal saved to '+SpecResultsFolder+'/'+Obstr+'OptimalTxExhaust.txt')
   Qmin=min(Qmesh.flatten()[np.ma.argmin(Qmesh)],QPmesh.flatten()[np.ma.argmin(QPmesh)],QMmesh.flatten()[np.ma.argmin(QMmesh)])
@@ -825,30 +896,52 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
       os.mkdir('./Quality/'+qualtype)
     if not os.path.exists('./Quality/'+qualtype):
       os.mkdir('./Quality/'+qualtype)
-    np.save(Qmeshstr,Qmesh.filled(np.nan))
-    np.save(QPmeshstr,QPmesh.filled(np.nan))
-    np.save(QMmeshstr,QMmesh.filled(np.nan))
+    np.save(Qmeshstr  ,Qmesh.filled(np.nan))
+    np.save(QPmeshstr  ,QPmesh.filled(np.nan))
+    np.save(QMmeshstr  ,QMmesh.filled(np.nan))
+    np.save(QSigmeshstr,QSigmesh.filled(np.nan))
     Qstr='Quality/'+qualtype+'/'+boxstr+Obstr+'OptimalLocationAverage%03dRefs%03dm%03d'%(Nr,Nre,index)
-    TxOpt=np.argmax(Qmesh)
-    np.save(Qstr+'.npy',TxOpt)
+    TxOptQA=np.argmax(Qmesh)
+    np.save(Qstr+'.npy',TxOptQA)
     text_file = open(Qstr+'.txt', 'w')
     n = text_file.write('Optimal transmitter location at ')
-    n = text_file.write(str(TxOpt))
+    n = text_file.write(str(TxOptA))
     text_file.close()
     Qstr='Quality/'+qualtype+'/'+boxstr+Obstr+'OptimalLocationPercentile%03dRefs%03dm%03d'%(Nr,Nre,index)
-    TxOpt=np.argmax(QPmesh)
-    np.save(Qstr+'.npy',TxOpt)
+    TxOptQP=np.argmax(QPmesh)
+    np.save(Qstr+'.npy',TxOptP)
     text_file = open(Qstr+'.txt', 'w')
     n = text_file.write('Optimal transmitter location at ')
-    n = text_file.write(str(TxOpt))
+    n = text_file.write(str(TxOptP))
     text_file.close()
     Qstr='Quality/'+qualtype+'/'+boxstr+Obstr+'OptimalLocationMinimum%03dRefs%03dm%03d'%(Nr,Nre,index)
-    TxOpt=np.argmax(QMmesh)
-    np.save(Qstr+'.npy',TxOpt)
+    TxOptQM=np.argmax(QMmesh)
+    np.save(Qstr+'.npy',TxOptQM)
     text_file = open(Qstr+'.txt', 'w')
     n = text_file.write('Optimal transmitter location at ')
-    n = text_file.write(str(TxOpt))
+    n = text_file.write(str(TxOptM))
     text_file.close()
+    masknew= np.zeros_like(np.zeros((na+2,nb+2,Nz)), dtype=bool)
+    masknew[1:-1,1:-1,:]=mask
+    masknew[0,:,:]=True
+    masknew[-1,:,:]=True
+    masknew[:,0,:]=True
+    masknew[:,-1,:]=True
+    Qnewmesh=np.ma.array(np.ones((na+2,nb+2,Nz)),mask=masknew)
+    Qnewmesh[1:-1,1:-1,:]=Qmesh
+    Qmesh=Qnewmesh
+    Qnewmesh=np.ma.array(np.ones((na+2,nb+2,Nz)),mask=masknew)
+    Qnewmesh[1:-1,1:-1,:]=QPmesh
+    QPmesh=Qnewmesh
+    Qnewmesh=np.ma.array(np.ones((na+2,nb+2,Nz)),mask=masknew)
+    Qnewmesh[1:-1,1:-1,:]=QMmesh
+    QMmesh=Qnewmesh
+    Qnewmesh=np.ma.array(np.ones((na+2,nb+2,Nz)),mask=masknew)
+    Qnewmesh[1:-1,1:-1,:]=QSigmesh
+    QSigmesh=Qnewmesh
+    feature_x =np.concatenate(([0],feature_x,[Nx*h*L]))
+    feature_y =np.concatenate(([0],feature_y,[Ny*h*L]))
+    [X, Y] = np.meshgrid(feature_y,feature_x )
     for k in range(0,Nz):
           # fig = mp.figure()
           # ax = fig.add_subplot(111, projection='3d')
@@ -880,8 +973,7 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
           # mp.close()
           # fig = mp.figure()
           # ax = fig.add_subplot(111, projection='3d')
-          # ax.set_ylim(0, L*Nx*h)
-          # ax.set_xlim(0, L*Ny*h)
+
           # ax.set_zlim(Qmin, Qmax)
           # ax.plot_surface(X,Y,QMmesh[:,:,k],vmin=Qmin,vmax=Qmax,cmap=cmapopt)
           # fig.colorbar(mp.cm.ScalarMappable(norm=norm, cmap=cmapopt), ax=ax)
@@ -893,7 +985,9 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
           # mp.clf()
           # mp.close()
           fig, ax = mp.subplots(1, 1)
-          ax.contourf(X,Y,Qmesh[:,:,k],corner_mask=True)
+          ax.set_ylim(0, L*Nx*h)
+          ax.set_xlim(0, L*Ny*h)
+          ax.contourf(X,Y,Qmesh[:,:,k],cmap=cmapopt,corner_mask=True)
           fig.colorbar(mp.cm.ScalarMappable(norm=norm, cmap=cmapopt), ax=ax)
           for a,b in product(range(Nx),range(Ny)):
             xa=(a+0.5)*h
@@ -901,7 +995,10 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
             zb=(k+0.5)*h
             ab=np.array([xa,xb,zb])
             if Room.CheckTxInner(ab):
-              mp.plot(xa*L,L*xb,'o',markerfacecolor='black',markeredgecolor='black')
+              if np.linalg.norm(ab-TxOptA[0])<epsilon:
+                mp.plot(xa*L,L*xb,'o',markerfacecolor='blue',markeredgecolor='black')
+              else:
+                mp.plot(xa*L,L*xb,'o',markerfacecolor='black',markeredgecolor='black')
           #ax.set_title('Quality of coverage by transmitter location z=%02f'%(k*h+h/2))
           if InnerOb:
             boxxmin=0.45#np.amin(Oblist[12:][:][0])
@@ -912,14 +1009,16 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
             boxy=L*np.array([boxymin,boxymax,boxymax,boxymin,boxymin])
             if k*h<0.45:
               mp.plot(boxx,boxy,'-k')
-          ax.set_xlabel('X position of Tx')
-          ax.set_ylabel('Y position of Tx')
+          ax.set_xlabel('X')
+          ax.set_ylabel('Y')
           filename='./Quality/'+qualtype+'/'+boxstr+Obstr+'QualityAverageContour%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
           mp.savefig(filename,bbox_inches=plotfit)
           mp.clf()
           mp.close()
           fig, ax = mp.subplots(1, 1)
-          ax.contourf(X,Y,Qmesh[:,:,k],corner_mask=True)
+          ax.set_ylim(0, L*Nx*h)
+          ax.set_xlim(0, L*Ny*h)
+          ax.contourf(X,Y,QPmesh[:,:,k],cmap=cmapopt,corner_mask=True)
           fig.colorbar(mp.cm.ScalarMappable(norm=norm, cmap=cmapopt), ax=ax)
           if InnerOb:
             if k*h<0.45:
@@ -931,7 +1030,10 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
             zb=(k+0.5)*h
             ab=np.array([xa,xb,zb])
             if Room.CheckTxInner(ab):
-              mp.plot(xa*L,L*xb,'o',markerfacecolor='black',markeredgecolor='black')
+              if np.linalg.norm(ab-TxOptP[0])<epsilon:
+                mp.plot(xa*L,L*xb,'o',markerfacecolor='blue',markeredgecolor='red')
+              else:
+                mp.plot(xa*L,L*xb,'o',markerfacecolor='black',markeredgecolor='black')
           ax.set_xlabel('X')
           ax.set_ylabel('Y')
           filename='./Quality/'+qualtype+'/'+boxstr+Obstr+'QualityPercentileContour%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
@@ -939,7 +1041,9 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
           mp.clf()
           mp.close()
           fig, ax = mp.subplots(1, 1)
-          ax.contourf(X,Y,Qmesh[:,:,k],corner_mask=True)
+          ax.set_ylim(0, L*Nx*h)
+          ax.set_xlim(0, L*Ny*h)
+          ax.contourf(X,Y,QMmesh[:,:,k],cmap=cmapopt,corner_mask=True)
           fig.colorbar(mp.cm.ScalarMappable(norm=norm, cmap=cmapopt), ax=ax)
           for a,b in product(range(Nx),range(Ny)):
             xa=(a+0.5)*h
@@ -947,7 +1051,10 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
             zb=(k+0.5)*h
             ab=np.array([xa,xb,zb])
             if Room.CheckTxInner(ab):
-              mp.plot(xa*L,L*xb,'o',markerfacecolor='black',markeredgecolor='black')
+              if np.linalg.norm(ab-TxOptM[0])<epsilon:
+                mp.plot(xa*L,L*xb,'o',markerfacecolor='blue',markeredgecolor='red')
+              else:
+                mp.plot(xa*L,L*xb,'o',markerfacecolor='black',markeredgecolor='black')
           #ax.set_title('Quality (min) of coverage by transmitter location z=%02d'%(k*h+h/2))
           if InnerOb:
             if k*h<0.45:
@@ -958,6 +1065,49 @@ def plot_quality_contour(InnerOb,Nr,Nrs,LOS,Nre,PerfRef,Ns,Q,Par,index):
           mp.savefig(filename,bbox_inches=plotfit)
           mp.clf()
           mp.close()
+          fig, ax = mp.subplots(1, 1)
+          ax.set_ylim(0, L*Nx*h)
+          ax.set_xlim(0, L*Ny*h)
+          ax.contourf(X,Y,QSigmesh[:,:,k],cmap=cmapopt,corner_mask=True)
+          fig.colorbar(mp.cm.ScalarMappable(norm=norm, cmap=cmapopt), ax=ax)
+          for a,b in product(range(Nx),range(Ny)):
+            xa=(a+0.5)*h
+            xb=(b+0.5)*h
+            zb=(k+0.5)*h
+            ab=np.array([xa,xb,zb])
+            if Room.CheckTxInner(ab):
+              if np.linalg.norm(ab-TxOptM[0])<epsilon:
+                mp.plot(xa*L,L*xb,'o',markerfacecolor='blue',markeredgecolor='red')
+              else:
+                mp.plot(xa*L,L*xb,'o',markerfacecolor='black',markeredgecolor='black')
+          #ax.set_title('Quality (min) of coverage by transmitter location z=%02d'%(k*h+h/2))
+          if InnerOb:
+            if k*h<0.45:
+              mp.plot(boxx,boxy,'-k')
+          ax.set_xlabel('X')
+          ax.set_ylabel('Y')
+          filename='./Quality/'+qualtype+'/'+boxstr+Obstr+'QualitySigmoidContour%03dNref%03d_z%02d.jpg'%(Nr,Nre,k)
+          mp.savefig(filename,bbox_inches=plotfit)
+          mp.clf()
+          mp.close()
+  return
+
+def plot_sigmoid():
+  U=np.load('Parameters/Up.npy')
+  L=np.load('Parameters/Lp.npy')
+  U,L=DSM.db_to_Watts(np.array([U,L]))
+  Nterms=2000
+  top=(U+L)/2
+  P=np.linspace(L-top,U+top,Nterms)
+  onevec=np.ones(Nterms)
+  bottom=20/(U-L)
+  Q=np.array([np.exp((p-top)*bottom)/(np.exp((p-top)*bottom)+1) for p in P])
+  mp.plot(P,Q)
+  linvec=np.linspace(min(Q),max(Q),Nterms)
+  mp.plot(U*onevec,linvec)
+  mp.plot(L*onevec,linvec)
+  #mp.show()
+  mp.savefig('SigmoidPlot.jpg')
   return
 
 def main():
@@ -980,5 +1130,7 @@ def main():
   return
 
 if __name__=='__main__':
-  main()
+  #plot_sigmoid()
+  plot_time_test()
+  #main()
   exit()

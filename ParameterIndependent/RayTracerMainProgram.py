@@ -661,33 +661,35 @@ def power_grid(Room,Mesh,Nr=22,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,Nrs
   meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   pstr=powerfolder+'/'+boxstr+Obstr+'Power_grid%03dRefs%03dm%03d_tx%03d.npy'%(Nr,Nre,index,job)
-  if os.path.isfile(pstr):
-      Grid= np.load(pstr)
-      print('Power loaded from store')
-      print('Power file'+pstr)
-  else:
-      # Make the refindex, impedance and gains vectors the right length to
-      # match the matrices.
-      Znobrat=np.tile(Znobrat,(Nre,1))          # The number of rows is Nsur*Nre+1. Repeat Znobrat to match Mesh dimensions
-      Znobrat=np.insert(Znobrat,0,1.0+0.0j)     # Use a 1 for placement in the LOS row
-      refindex=np.tile(refindex,(Nre,1))        # The number of rows is Nsur*Nre+1. Repeat refindex to match Mesh dimensions
-      refindex=np.insert(refindex,0,1.0+0.0j)   # Use a 1 for placement in the LOS row
-      # Calculate the necessry parameters for the power calculation.
-      Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
-      gainname      ='Parameters/Tx%03dGains%03d.npy'%(Nr,index)
-      Gt            = np.load(gainname)
-      Grid,ind=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,job,index,LOS,PerfRef)
-      if not os.path.exists('./Mesh'):
-        os.makedirs('./Mesh')
-        os.makedirs('./Mesh/'+plottype)
-        os.makedirs(powerfolder)
-      if not os.path.exists('./Mesh/'+plottype):
-        os.makedirs('./Mesh/'+plottype)
-        os.makedirs(powerfolder)
-      if not os.path.exists(powerfolder):
-        os.makedirs(powerfolder)
-      np.save(pstr,Grid)
-      print('Power grid saved at, ',pstr)
+  # if os.path.isfile(pstr):
+    # Grid= np.load(pstr)
+    # print('Power loaded from store')
+    # print('Power file'+pstr)
+  # else:
+  c=1
+  if c:
+    # Make the refindex, impedance and gains vectors the right length to
+    # match the matrices.
+    Znobrat=np.tile(Znobrat,(Nre,1))          # The number of rows is Nsur*Nre+1. Repeat Znobrat to match Mesh dimensions
+    Znobrat=np.insert(Znobrat,0,1.0+0.0j)     # Use a 1 for placement in the LOS row
+    refindex=np.tile(refindex,(Nre,1))        # The number of rows is Nsur*Nre+1. Repeat refindex to match Mesh dimensions
+    refindex=np.insert(refindex,0,1.0+0.0j)   # Use a 1 for placement in the LOS row
+    # Calculate the necessry parameters for the power calculation.
+    Antpar        =np.load('Parameters/Antpar%03d.npy'%index)
+    gainname      ='Parameters/Tx%03dGains%03d.npy'%(Nr,index)
+    Gt            = np.load(gainname)
+    Grid,ind=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt,Pol,Nr,Nre,job,index,LOS,PerfRef)
+    if not os.path.exists('./Mesh'):
+      os.makedirs('./Mesh')
+      os.makedirs('./Mesh/'+plottype)
+      os.makedirs(powerfolder)
+    if not os.path.exists('./Mesh/'+plottype):
+      os.makedirs('./Mesh/'+plottype)
+      os.makedirs(powerfolder)
+    if not os.path.exists(powerfolder):
+      os.makedirs(powerfolder)
+    np.save(pstr,Grid)
+    print('Power grid saved at, ',pstr)
   t1=t.time()
   timemat[0]=t1-t0
   print('-------------------------------')
@@ -806,11 +808,11 @@ def optimum_gains(Room,Mesh,Nr=22,index=0,job=0,Nre=3,PerfRef=0,LOS=0,InnerOb=0,
   meshfolder='./Mesh/'+foldtype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   powerfolder='./Mesh/'+plottype+'/Nra%03dRefs%03dNs%0d'%(Nr,Nre,Ns)
   OptiStr=powerfolder+'/'+boxstr+Obstr+'OptimalGains%03dRefs%03dm%03d_tx%03d'%(Nr,Nre,index,job)
-  if os.path.isfile(OptiStr+'.npy'):
-    Gt=np.load(OptiStr+'.npy')
-    print('Optimal loaded')
-    timemat[0]=t.time()-t0
-    return Gt, timemat
+  # if os.path.isfile(OptiStr+'.npy'):
+    # Gt=np.load(OptiStr+'.npy')
+    # print('Optimal loaded')
+    # timemat[0]=t.time()-t0
+    # return Gt, timemat
   # Make the refindex, impedance and gains vectors the right length to
   # match the matrices.
   Znobrat=np.tile(Znobrat,(Nre,1))          # The number of rows is Nsur*Nre+1. Repeat Znobrat to match Mesh dimensions
@@ -1140,7 +1142,7 @@ def main(argv,scriptcall=False):
     else:
       Tx=np.load('Parameters/Origin.npy')
       job=jobfromTx(Tx,h)
-      job=55
+      job=652
       Tx=MoveTx(job,Nx,Ny,Nz,h)
       np.save('Parameters/Origin_job%03d.npy'%job,Tx)
     #InBook     =rd.open_workbook(filename=Sheetname)#,data_only=True)
@@ -1155,7 +1157,9 @@ def main(argv,scriptcall=False):
     if job>125 and Ns==5:
         continue
     if Nr==337 or Nre==6:
-      if job==55 or job==652 or job==665:
+      if job==55:
+        continue
+      elif job==652 or job==665:
         pass
       else:
         continue
