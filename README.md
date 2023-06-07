@@ -1,3 +1,7 @@
+Notice: This repository developed over my PhD I am making this public but no longer work in this area. The core idea of this package is to store the history of the rays travelling (most raytracers will calculate power as they go along). Storing the ray history improves error from double counting. 
+
+The theory underlying this package is covered in my thesis: https://researchportal.bath.ac.uk/en/studentTheses/indoor-propagation-of-radio-frequency-small-cells
+
 This repository contains all the Raytracer versions.
 
 The latest version is in the folder "/ParameterIndependent/". 
