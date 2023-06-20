@@ -9,9 +9,6 @@ kramdown:
   math_engine: mathjax
   syntax_highlighter: rouge
 encoding: UTF-8
-remote_theme: pages-themes/hacker@v0.2.0
-plugins:
-- jekyll-remote-theme
-title: Generalised Ray Launcher
+title: "Generalised Ray Launcher"
 description: "Code written for H Wragg's PhD thesis. The generalised ray launcher store ray's history then post processes to approximate power. 
 Thus allowing investigation into the role of obstacles and antenna patterns."
