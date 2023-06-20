@@ -1,0 +1,42 @@
+#!/bin/bash
+#
+# Specify the queue
+#SBATCH --account=free
+#
+##############################################################
+## IMPORTANT:  You need to change the following options     ##
+##############################################################
+#
+# Choose name of job (name of executable)
+#SBATCH --job-name=OptCase
+#SBATCH --output=TxCase.out
+#SBATCH --error=TxCase.err
+#SBATCH --partition=batch
+#
+# Choose the number of nodes & processors per node:
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#
+# Choose the time your code will need at most:
+#SBATCH --time=3:00:00
+#
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=END
+#
+# send mail to this address
+#SBATCH --mail-user=hw454@bath.ac.uk
+
+# set up environment
+module load python3/2019.x
+source activate py3
+
+
+echo "Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 665 and 652"
+echo "Starting job..."
+
+for job in 665 652; do
+  time python RayTracerMainProgram.py "${job}"
+done
+
+
+

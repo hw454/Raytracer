@@ -1,0 +1,37 @@
+
+real	13m50.564s
+user	13m25.609s
+sys	0m2.132s
+
+real	13m45.690s
+user	13m26.498s
+sys	0m2.326s
+
+real	13m35.706s
+user	13m15.207s
+sys	0m2.252s
+
+real	14m19.239s
+user	13m8.066s
+sys	0m2.254s
+
+real	13m38.984s
+user	13m19.370s
+sys	0m2.245s
+
+real	13m20.522s
+user	13m1.684s
+sys	0m2.172s
+
+real	13m30.315s
+user	13m10.175s
+sys	0m2.143s
+
+real	14m34.583s
+user	14m17.004s
+sys	0m2.253s
+
+real	13m55.577s
+user	13m38.818s
+sys	0m2.305s
+slurmstepd: error: *** JOB 4105319 ON node-sw-046 CANCELLED AT 2021-03-19T17:38:58 ***

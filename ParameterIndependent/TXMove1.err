@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "OptimisationMethodQuart1.py", line 428, in <module>
+    MoreInputs_Run()
+  File "OptimisationMethodQuart1.py", line 379, in MoreInputs_Run
+    P,_=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,job,indexLOS,PerfRef)
+NameError: name 'indexLOS' is not defined
+Traceback (most recent call last):
+  File "OptimisationMethodQuart1.py", line 428, in <module>
+    MoreInputs_Run()
+  File "OptimisationMethodQuart1.py", line 379, in MoreInputs_Run
+    P,_=DSM.power_compute(foldtype,plottype,Mesh,Room,Znobrat,refindex,Antpar,Gt, Pol,Nr,Nre,job,indexLOS,PerfRef)
+NameError: name 'indexLOS' is not defined
+
+real	56m3.601s
+user	53m41.435s
+sys	0m7.875s
+
+real	66m55.238s
+user	63m53.233s
+sys	0m8.006s

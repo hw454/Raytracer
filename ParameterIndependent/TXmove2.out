@@ -1,0 +1,298 @@
+Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 0 to 10
+Starting job...
+Starting Optimisation
+Parameter set [ 0. 22.  6.  0.  3.  0.  5.  1.  0.  4.]
+Only consider average power in optimisation
+Parameter set [ 0. 22.  6.  0.  3.  0.  5.  2.  0.  4.]
+Only consider average power in optimisation
+Parameter set [  0. 337.   6.   0.   3.   0.   5.   0.   0.   4.]
+Ray number invalid
+Parameter set [  0. 337.   6.   0.   3.   0.   5.   1.   0.   4.]
+Ray number invalid
+Parameter set [  0. 337.   6.   0.   3.   0.   5.   2.   0.   4.]
+Ray number invalid
+Parameter set [ 0. 22.  6.  0.  3.  1.  5.  0.  0.  4.]
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50000x50000y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx38196x50000y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx61803x50000y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx76393x50000y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51096x50000y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx48596x50000y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx53596x50000y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51096x38196y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51096x61803y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51096x76393y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51096x52264y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51096x49764y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51096x45346y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51096x49764y38196z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51096x49764y61803z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51096x49764y76393z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51096x49764y50788z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51096x49764y48288z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51096x49764y53288z
+Optimal Tx at  [0.5109602  0.49764932 0.50788668]
+Reduce tolerance
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50262x50000y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx45653x50000y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49096x50000y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x50000y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49723x50000y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x38196y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x61803y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x76393y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x52756y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x50399y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x45738y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49285y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x50232y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49672y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y38196z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y61803z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y76393z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y50999z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y50265z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y45655z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y48801z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y49874z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y49707z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y50040z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49905x49822y50081z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx56317x61803y44556z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx43682x38196y55443z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx64126x76393y37829z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51166x52179y48994z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50600x51121y49482z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx47958x46184y51759z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50262x50490y49773z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49382x48845y50532z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49926x49862y50063z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49718x49474y50242z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49978x49959y50018z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50086x50162y49925z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50005x50010y49995z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50036x50068y49968z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50005x50009y49995z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49994x49989y50004z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50001x50002y49999z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49998x49997y50001z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50000x50000y49999z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49998y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y38196z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y61803z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y76393z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y51084z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y50298z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y45676z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y48848z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y49822z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x38196y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x61803y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x76393y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x52769y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x50401y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x45739y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49312y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x50234y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49919y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49687y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx43725x38196y55395z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx56360x61803y44509z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx64168x76393y37781z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51205x52172y48950z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50641x51119y49435z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx47999x46183y51712z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50323x50525y49709z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49436x48866y50474z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49984x49891y50002z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49775x49500y50182z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50027x49971y49964z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50140x50183y49867z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50051x50016y49944z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50026x49970y49965z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50027x49970y49965z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50027x49971y49965z
+Optimal Tx at  [0.50027042 0.49970883 0.4996546 ]
+Starting Optimisation
+Parameter set [ 0. 22.  6.  0.  3.  0.  5.  1.  0.  4.]
+Only consider average power in optimisation
+Parameter set [ 0. 22.  6.  0.  3.  0.  5.  2.  0.  4.]
+Only consider average power in optimisation
+Parameter set [  0. 337.   6.   0.   3.   0.   5.   0.   0.   4.]
+Ray number invalid
+Parameter set [  0. 337.   6.   0.   3.   0.   5.   1.   0.   4.]
+Ray number invalid
+Parameter set [  0. 337.   6.   0.   3.   0.   5.   2.   0.   4.]
+Ray number invalid
+Parameter set [ 0. 22.  6.  0.  3.  1.  5.  0.  0.  4.]
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51096x49764y53288z
+Optimal Tx at  [0.5109602  0.49764932 0.50788668]
+Reduce tolerance
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50262x50000y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx45653x50000y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49096x50000y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x50000y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49723x50000y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x38196y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x61803y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x76393y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x52756y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x50399y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x45738y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49285y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x50232y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49672y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y38196z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y61803z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y76393z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y50999z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y50265z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y45655z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y48801z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y49874z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y49707z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49952x49911y50040z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49905x49822y50081z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx56317x61803y44556z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx43682x38196y55443z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx64126x76393y37829z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51166x52179y48994z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50600x51121y49482z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx47958x46184y51759z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50262x50490y49773z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49382x48845y50532z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49926x49862y50063z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49718x49474y50242z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49978x49959y50018z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50086x50162y49925z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50005x50010y49995z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50036x50068y49968z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50005x50009y49995z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49994x49989y50004z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50001x50002y49999z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49998x49997y50001z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50000x50000y49999z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49998y50000z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y38196z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y61803z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y76393z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y51084z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y50298z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y45676z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y48848z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y49822z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x38196y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x61803y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x76393y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x52769y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x50401y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x45739y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49312y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x50234y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49919y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49687y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx43725x38196y55395z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx56360x61803y44509z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx64168x76393y37781z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51205x52172y48950z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50641x51119y49435z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx47999x46183y51712z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50323x50525y49709z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49436x48866y50474z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49984x49891y50002z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49775x49500y50182z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50027x49971y49964z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50140x50183y49867z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50051x50016y49944z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50026x49970y49965z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50027x49970y49965z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50027x49971y49965z
+Optimal Tx at  [0.50027042 0.49970883 0.4996546 ]
+Starting Optimisation
+Parameter set [ 0. 22.  6.  0.  3.  0.  5.  1.  0.  4.]
+Only consider average power in optimisation
+Parameter set [ 0. 22.  6.  0.  3.  0.  5.  2.  0.  4.]
+Only consider average power in optimisation
+Parameter set [  0. 337.   6.   0.   3.   0.   5.   0.   0.   4.]
+Ray number invalid
+Parameter set [  0. 337.   6.   0.   3.   0.   5.   1.   0.   4.]
+Ray number invalid
+Parameter set [  0. 337.   6.   0.   3.   0.   5.   2.   0.   4.]
+Ray number invalid
+Parameter set [ 0. 22.  6.  0.  3.  1.  5.  0.  0.  4.]
+Optimal Tx at  [0.5109602  0.49764932 0.50788668]
+Reduce tolerance
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y49822z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49999y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x38196y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x61803y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x76393y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x52769y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x50401y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x45739y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49312y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x50234y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49919y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49999x49687y49989z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx43725x38196y55395z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx56360x61803y44509z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx64168x76393y37781z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx51205x52172y48950z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50641x51119y49435z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx47999x46183y51712z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50323x50525y49709z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49436x48866y50474z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49984x49891y50002z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx49775x49500y50182z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50027x49971y49964z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50140x50183y49867z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50051x50016y49944z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50026x49970y49965z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50027x49970y49965z
+Mesh saved at ./Mesh/threeNoBox/Nra022Refs003Ns5/DSM_tx50027x49971y49965z
+Optimal Tx at  [0.50027042 0.49970883 0.4996546 ]
+
+########################################################################
+----------------------! Balena Job Details !----------------------------
+
+JobID          : 4105302
+No. of nodes   : 1
+No. of CPUs    : 16
+Timelimit      : 05:00:00
+Elapsed time   : 01:53:46
+Nodelist       : node-sw-138
+
+########################################################################
+
+
+########################################################################
+----------------------! Balena Job Details !----------------------------
+
+JobID          : 4104196
+No. of nodes   : 1
+No. of CPUs    : 16
+Timelimit      : 05:00:00
+Elapsed time   : 01:13:22
+Nodelist       : node-sw-068
+
+########################################################################
+
+
+########################################################################
+----------------------! Balena Job Details !----------------------------
+
+JobID          : 4105249
+No. of nodes   : 1
+No. of CPUs    : 16
+Timelimit      : 05:00:00
+Elapsed time   : 02:07:59
+Nodelist       : node-sw-128
+
+########################################################################
+

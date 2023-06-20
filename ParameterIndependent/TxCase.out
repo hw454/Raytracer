@@ -1,0 +1,23 @@
+Will run python3 ParameterLoad.py then python3 RayTracerMainProgram.py for each job in 665 and 652
+Starting job...
+main called with job=665, using output filename=ray_trace_output_665.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+main called with job=652, using output filename=ray_trace_output_652.txt
+Running  on python version
+3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0]
+
+########################################################################
+----------------------! Balena Job Details !----------------------------
+
+JobID          : 4098566
+No. of nodes   : 1
+No. of CPUs    : 16
+Timelimit      : 03:00:00
+Elapsed time   : 00:00:21
+Nodelist       : node-sw-087
+
+########################################################################
+

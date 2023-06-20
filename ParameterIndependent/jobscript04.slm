@@ -1,0 +1,42 @@
+#!/bin/bash
+#
+# Specify the queue
+#SBATCH --account=free
+#
+##############################################################
+## IMPORTANT:  You need to change the following options     ##
+##############################################################
+#
+# Choose name of job (name of executable)
+#SBATCH --job-name=OptPow4
+#SBATCH --output=Opt4.out
+#SBATCH --error=Opt4.err
+#SBATCH --partition=batch
+#
+# Choose the number of nodes & processors per node:
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#
+# Choose the time your code will need at most:
+#SBATCH --time=5:00:00
+#
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=END
+#
+# send mail to this address
+#SBATCH --mail-user=hw454@bath.ac.uk
+#
+# Choose the start time
+#SBATCH --begin=now+5hours
+# set up environment
+module load python3/2019.x
+source activate py3
+
+
+echo "Will run python3 OptimisationQuart4"
+echo "Starting job..."
+
+time python OptimisationMethodQuart4.py 
+
+
+

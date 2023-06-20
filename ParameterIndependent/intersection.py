@@ -12,6 +12,11 @@ import itertools
 import math as ma
 
 epsilon=sys.float_info.epsilon
+dbg=0
+if dbg:
+  logon=1
+else:
+  logon=np.load('Parameters/logon.npy')
 
 def Project2D(po,triangle):
   T0=triangle[0]
@@ -24,7 +29,7 @@ def Project2D(po,triangle):
   direc2=np.cross(direc1,norm)
   # Check the vectors direc1, norm, and direc2 satisfy the right conditions.
   if abs(np.dot(norm,direc1))<epsilon and abs(np.dot(norm,direc2))<epsilon: # and abs(np.dot(direc1,direc2))<epsilon:
-    coef=np.array([np.dot(po-T0,direc1),np.dot(po-T0,direc2),1])
+    coef=np.array([np.dot(po,direc1),np.dot(po,direc2),1])
     return coef
   else:
     print('n.d1',abs(np.dot(norm,direc1)),'n.d2',abs(np.dot(norm,direc2)))
@@ -55,61 +60,83 @@ def InsideCheck(Point,triangle):
   TriMat=np.array([T0,T1,T2]).T
   coefs=np.linalg.solve(TriMat,Point)
   # If all the coefficients are bigger than 0 and less than 1 then the point is inside the triangle
-  if (abs(np.sum(coefs))<=(1+epsilon)) and all(c>=-epsilon for c in coefs):
-      return 1
-  else:
-      return 0
+  return abs(np.sum(coefs))-1<=epsilon and all(c>=-epsilon for c in coefs)
 
-def intersection(line,triangle):
+def intersection(line,room,nob):
     ''' find the intersection of a line and a plane. The line is
     represented as a point and a direction and the plane is three points which lie on the plane.'''
+    triangle=room.obst[nob-1]
     tricheck=TriangleFalseCheck(triangle)
+    if logon:
+      logging.info('Ray direction (%f,%f,%f)'%(line[1][0],line[1][1],line[1][2]))
     if tricheck:
       print("Stopped on the surface intersection")
       print("Triangle:", triangle)
       raise Error("The surfaces is not defined properly")
       return None
     elif not tricheck:
-        edge1=triangle[1]-triangle[0]
-        edge2=triangle[1]-triangle[2]
         # The triangle lies on a plane with normal norm and goes through the point p0.
         # The line goes through the point l0 in the direction direc
-        norm    =np.cross(edge1,edge2)
-        norm    =norm/(la.norm(norm))
-        direc   =line[1]
-        p0      =triangle[0]
+        norm=room.norms[nob-1]
+        direc   =0.1*line[1]
+        p0      =room.obst[nob-1][0]
         l0      =line[0]
-        parcheck=np.inner(direc,norm)
-        if (parcheck>epsilon or parcheck<-epsilon):
+        dot=direc@norm
+        if  abs(dot)<=epsilon:
+          if logon:
+            logging.info('Ray is parallel to surface')
+            logging.info('Surface norm (%f,%f,%f)'%(norm[0],norm[1],norm[2]))
+            logging.info('dot %f'%dot)
+            logging.info('nob %d'%nob)
+          return np.array([ma.nan,ma.nan,ma.nan])
+        elif abs(dot)>epsilon:
           # The line is not parallel with the plane and there is therefore an intersection.
-          lam=np.inner(p0-l0,norm)/np.inner(direc,norm)
+          lam=((p0-l0)@norm)/dot
+          if abs((p0-l0)@norm)<epsilon:
+            p0=room.obst[nob-1][1]
+            lam=((p0-l0)@norm)/dot
+            if abs((p0-l0)@norm)<epsilon:
+              p0=room.obst[nob-1][2]
+              lam=((p0-l0)@norm)/dot
           if lam<epsilon:
             # The intersection point is in the opposite direction to the ray
             # print('negative direction',lam)
-            # Not just negative considered as there may be an epsilon difference to the point itself.
+            # Not just negative considered as there may be an epsilon difference to the point itself
+            if logon:
+              logging.info('lam %f'%lam)
+              logging.info('nob %d'%nob)
+              logging.info('Triangle point (%f,%f,%f)'%(p0[0],p0[1],p0[2]))
+              logging.info('Ray start (%f,%f,%f)'%(l0[0],l0[1],l0[2]))
+              logging.info('Triangle norm (%f,%f,%f)'%(norm[0],norm[1],norm[2]))
+              logging.info('direc dot norm %f'%dot)
+              logging.info('Top frac (%f,%f,%f)'%((p0-l0)[0],(p0-l0)[1],(p0-l0)[2]))
+              logging.info('Triangle (%f,%f,%f),(%f,%f,%f),(%f,%f,%f)'%(triangle[0][0],triangle[0][1],triangle[0][2],triangle[1][0],triangle[1][1],triangle[1][2],triangle[2][0],triangle[2][1],triangle[2][2]))
             return np.array([ma.nan,ma.nan,ma.nan])
-          elif abs(np.inner(direc,norm))<epsilon:
-            lam=np.inner(direc,p0-l0)
           else:
             # Compute the intersection point with the plane
             inter=l0+lam*direc
-            check=InsideCheck(inter,triangle)
-            if check:
+            if InsideCheck(inter,triangle):
               # The point is inside the triangle
+              if logon:
+                logging.info('nob %d'%nob)
+                logging.info('Intersection found (%f,%f,%f)'%(inter[0],inter[1],inter[2]))
               return inter
             else:
               # The point is outside the triangle
               # print('outside surface')
+              if logon:
+                logging.info('Point outside ob (%f,%f,%f)'%(inter[0],inter[1],inter[2]))
+                logging.info('nob %d'%nob)
               return np.array([ma.nan,ma.nan,ma.nan])
-        elif (parcheck<=epsilon and parcheck>=-epsilon):
+        #elif (parcheck<=epsilon and parcheck>=-epsilon):
           #FIXME deal with diffraction here.
           # print('parallel to surface', parcheck)
           # The line is contained in the plane or parallel right output
-          return np.array([ma.nan,ma.nan,ma.nan])
+        #  return np.array([ma.nan,ma.nan,ma.nan])
         else:
-            print('Before error, direction ',direc,' Normal ',norm,' Parallel check ',parcheck)
-            raise Error('neither intersect or parallel to plane')
-        return np.array([ma.nan,ma.nan,ma.nan])
+          print('Before error, direction ',direc,' Normal ',norm,' Parallel check ',parcheck)
+          logging.error('neither intersect or parallel to plane')
+          return np.array([ma.nan,ma.nan,ma.nan])
     else:
       print("Triangle: ", triangle)
       raise Error("Triangle neither exists or doesn't exist")

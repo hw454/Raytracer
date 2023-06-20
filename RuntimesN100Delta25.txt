@@ -1,1 +1,0 @@
-Run times for first source location 13.13326287, 3.06399703Run times for first source location 13.29340601, 3.11704993

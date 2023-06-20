@@ -1,0 +1,42 @@
+#!/bin/bash
+#
+# Specify the queue
+#SBATCH --account=free
+
+##############################################################
+## IMPORTANT:  You need to change the following options     ##
+##############################################################
+#
+# Choose name of job (name of executable)
+#SBATCH --job-name=Opt2
+#SBATCH --output=Opt2.out
+#SBATCH --error=Opt2.err
+#SBATCH --partition=batch
+#
+# Choose the number of nodes & processors per node:
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#
+# Choose the time your code will need at most:
+#SBATCH --time=5:00:00
+#
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=END
+#
+# send mail to this address
+#SBATCH --mail-user=hw454@bath.ac.uk
+#
+# Choose start time
+#SBATCH --begin=now
+# set up environment
+echo "Will run python3 OptimisationMethodQuart2. Which will run the optimisation method for the second quart of paramter sets."
+echo "Starting job..."
+module load python3/2019.x
+source activate py3
+
+time python OptimisationMethodQuart2.py
+
+
+
+
+
