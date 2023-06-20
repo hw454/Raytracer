@@ -1104,23 +1104,105 @@ def main(argv,scriptcall=False):
   np.set_printoptions(precision=3)
   print('Running  on python version')
   print(sys.version)
-  #Sheetname='InputSheet.xlsx'
-  #out=PI.DeclareParameters(Sheetname)
-  #out=PI.ObstacleCoefficients(Sheetname)
-  #out=RayTracer() # To compute just the rays with no storage uncomment this line.
+  timetest=1
+  testnum=1
+  roomnumstat=1
+  Timemat=np.zeros((testnum,6))
+  Nra =np.load('Parameters/Nra.npy')
+  myfile = open('Parameters/runplottype.txt', 'rt') # open lorem.txt for reading text
+  plottype= myfile.read()         # read the entire file into a string
+  myfile.close()
+  Sheetname='InputSheet.xlsx'
+  if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
+      Nra=np.array([Nra])
+      nra=1
+  else:
+      nra=len(Nra)
+  Qmat   =np.zeros((testnum,nra))
+  Qtruemat=np.zeros((testnum,nra))
+  G_zeros =np.zeros((testnum,nra)) # Number of nonzero terms
+  Reserr  =np.zeros((testnum,nra))
+  repeat=0
+  logname='RayTracer'+plottype+'.log'
+  j=1
+  while os.path.exists(logname):
+    logname='RayTracer'+plottype+'%d.log'%j
+    j+=1
+  logging.basicConfig(filename=logname,filemode='w',format="[%(asctime)s %(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s",
+    level=logging.INFO,
+    datefmt='%Y-%m-%d %H:%M:%S')
+  logging.info(sys.version)
+  for j in range(0,timetest):
+    Roomnum=roomnumstat
+    #Timemat[0,0]=Roomnum
+    for count in range(0,testnum):
+      start=t.time()
+      Mesh1=MeshProgram(Sheetname,repeat,plottype) # Shoot the rays and store the information
+      #('In main',Mesh1[3,3,3])
+      mid=t.time()
+      Grid,G_z=power_grid(Sheetname,repeat,plottype,Roomnum)  # Use the ray information to compute the power
+      repeat=1
+      G_zeros[count,:]=G_z
+      Q,Q2=Quality(Sheetname,repeat,plottype,Roomnum)
+      Qmat[count,:]=Q
+      Qtruemat[count,:]=Q2
+      # plot_grid()        # Plot the power in slices.
+      end=t.time()
+      Reserr[count,:]+=Residual(plottype,Roomnum)/Roomnum
+      Timemat[count,0]+=Roomnum
+      Timemat[count,1]+=mid-start
+      Timemat[count,2]+=(end-mid)/(Roomnum)
+      if count !=0:
+        Timemat[0,2]+=(end-mid)/(Roomnum)
+      Timemat[count,3]+=end-start
+      start=t.time()
+      #for i in range(0,Roomnum):
+      #  Mesh2=StdProgram(i) # Shoot the rays and store the information
+      end=t.time()
+      Timemat[count,4]+=end-start
+      Timemat[count,5]+=(end-start)/(Roomnum)
+      #if count !=0:
+      #  Timemat[0,5]+=(end-start)/(Roomnum)
+      Roomnum*=2 #FIXME      to increase roomnumber
+
+      #del Mesh1, Grid
+  Timemat[0,2]/=(testnum)
+  Timemat[0,5]/=(testnum)
+  Timemat/=(timetest)
+  Reserr/=(timetest)
+  print('-------------------------------')
+  print('Time to complete program') # Roomnum, ray time, average power time, total time, total time averaged by room
+  print(Timemat)
+  print('-------------------------------')
+  print('-------------------------------')
+  print('Residual to the True calculation')
+  print(Reserr)
+  print('-------------------------------')
+  Nra         =np.load('Parameters/Nra.npy')
+  if isinstance(Nra, (float,int,np.int32,np.int64, np.complex128 )):
+      nra=1
+  else:
+      nra=len(Nra)
+  Nre,h,L     =np.load('Parameters/Raytracing.npy')[0:3]
+  if not os.path.exists('./Times'):
+    os.makedirs('./Times')
+  if not os.path.exists('./Times/'+plottype):
+    os.makedirs('./Times/'+plottype)
+  timename='./Times/'+plottype+'/TimesNra%dRefs%dRoomnum%dto%d.npy'%(nra,Nre,roomnumstat,Roomnum)
   ResOn      =np.load('Parameters/ResOn.npy')
-  if logon:
-    logname='RayTracer_%03d.log'%job
-    logging.basicConfig(filename=logname,filemode='w',format="[%(asctime)s %(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s",
-      level=logging.INFO,
-      datefmt='%Y-%m-%d %H:%M:%S')
-    logging.info(sys.version)
   if not os.path.exists('./Quality'):
     os.makedirs('./Quality')
   if not os.path.exists('./Errors'):
     os.makedirs('./Errors')
-  if not os.path.exists('./Times'):
-    os.makedirs('./Times')
+  for j in range(testnum):
+    qualityname=('./Quality/'+plottype+'/QualityNrays'+str(int(nra))+'Refs'+str(int(Nre))+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
+    np.save(qualityname,Qmat[j,:])
++plottype+'/Quality'+str(int(Nra[0]))+'to'+str(int(Nra[-1]))+'Nref'+str(int(Nre))+'.jpg')#.eps').
+    errorname=('./Errors/'+plottype+'/ErrorsNrays'+str(int(nra))+'Refs'+str(int(Nre))+'Roomnum'+str(int(roomnumstat))+'to'+str(int(Roomnum))+'.npy')
+    np.save(errorname,Reserr[j,:])
+  np.save(timename,Timemat)
+  np.save('roomnumstat.npy',roomnumstat)
+  np.save('Roomnum.npy',Roomnum)
   parameters=  np.load('Parameters/Parameterarray.npy')
   _,_,L,split    =np.load('Parameters/Raytracing.npy')
   for arr in parameters:
